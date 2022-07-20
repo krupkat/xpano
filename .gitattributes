@@ -1,0 +1,4 @@
+* text=auto
+*.imp text
+*.bat text eol=crlf
+*.natvis text eol=crlf
