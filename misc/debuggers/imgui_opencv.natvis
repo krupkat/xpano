@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!-- ../Visual-Studio-Visualizers/OpenCV.natvis -->
+  <UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1" MenuName="Add to Image Watch"/>
+
+  <!-- OpenCV cv::Mat -->
+
+  <Type Name="cv::Mat">
+    <AlternativeType Name="cv::Mat_&lt;*&gt;"/>
+    <UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1"/>
+  </Type>
+
+  <Type Name="cv::Mat">
+    <AlternativeType Name="cv::Mat_&lt;*&gt;"/>
+    <DisplayString Condition="(flags&amp;7)==0">{{UINT8, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==1">{{INT8, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==2">{{UINT16, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==3">{{INT16, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==4">{{INT32, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==5">{{FLOAT32, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==6">{{FLOAT64, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(flags&amp;7)==7">{{USER, {((flags&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <Expand>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==0">
+        <DisplayString>UINT8</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==1">
+        <DisplayString>INT8</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==2">
+        <DisplayString>UINT16</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==3">
+        <DisplayString>INT16</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==4">
+        <DisplayString>INT32</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==5">
+        <DisplayString>FLOAT32</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(flags&amp;7)==6">
+        <DisplayString>FLOAT64</DisplayString>
+      </Synthetic>
+      <Item Name="[channels]">((flags&amp;0xfff)&gt;&gt;3)+1</Item>
+      <Item Name="[width]">cols</Item>
+      <Item Name="[height]">rows</Item>
+      <Item Name="[stride]">step.p[0]</Item>
+      <Item Name="[continous]" Condition="(flags&amp;16384)==16384">true</Item>
+      <Item Name="[submatrix]" Condition="(flags&amp;32768)==32768">true</Item>
+      <Item Name="[data]">data</Item>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==0">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(uint8_t*)data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==1">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(int8_t*)data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==2">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(uint16_t*)data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==3">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(int16_t*)data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==4">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(int32_t*)data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==5">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(float*)data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="data != 0 &amp;&amp; (flags&amp;7)==6">
+        <Size>cols*rows*(((flags&amp;0xfff)&gt;&gt;3)+1)</Size>
+        <ValuePointer>(double*)data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- OpenCV CvMat -->
+
+  <Type Name="CvMat">
+    <UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1"/>
+  </Type>
+
+  <Type Name="CvMat">
+    <DisplayString Condition="(type&amp;7)==0">{{UINT8, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==1">{{INT8, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==2">{{UINT16, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==3">{{INT16, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==4">{{INT32, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==5">{{FLOAT32, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==6">{{FLOAT64, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <DisplayString Condition="(type&amp;7)==7">{{USER, {((type&amp;0xfff)&gt;&gt;3)+1} x {cols} x {rows}}}</DisplayString>
+    <Expand>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==0">
+        <DisplayString>UINT8</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==1">
+        <DisplayString>INT8</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==2">
+        <DisplayString>UINT16</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==3">
+        <DisplayString>INT16</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==4">
+        <DisplayString>INT32</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==5">
+        <DisplayString>FLOAT32</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="(type&amp;7)==6">
+        <DisplayString>FLOAT64</DisplayString>
+      </Synthetic>
+      <Item Name="[channels]">((type&amp;0xfff)&gt;&gt;3)+1</Item>
+      <Item Name="[width]">cols</Item>
+      <Item Name="[height]">rows</Item>
+      <!-- if step is zero, default to stride = width * nchannels * channelsize -->
+      <Item Name="[stride]" Condition="step&gt;0">step</Item>
+      <Item Name="[stride]" Condition="step==0">width*(((type&amp;0xfff)&gt;&gt;3)+1)*(1&lt;&lt;((type&amp;7)&gt;&gt;1))</Item>
+      <Item Name="[data]">data.ptr</Item>      
+    </Expand>
+  </Type>
+
+  <!-- OpenCV _IplImage (interleaved data order only) -->
+
+  <Type Name="_IplImage">
+    <UIVisualizer ServiceId="{A452AFEA-3DF6-46BB-9177-C0B08F318025}" Id="1"/>
+  </Type>
+
+  <Type Name="_IplImage">
+    <DisplayString Condition="depth==0x08">{{UINT8, {nChannels} x {width} x {height}}}</DisplayString>
+    <DisplayString Condition="depth==0x80000008">{{INT8, {nChannels} x {width} x {height}}}</DisplayString>
+    <DisplayString Condition="depth==0x10">{{UINT16, {nChannels} x {width} x {height}}}</DisplayString>
+    <DisplayString Condition="depth==0x80000010">{{INT16, {nChannels} x {width} x {height}}}</DisplayString>
+    <DisplayString Condition="depth==0x80000020">{{INT32, {nChannels} x {width} x {height}}}</DisplayString>
+    <DisplayString Condition="depth==0x20">{{FLOAT32, {nChannels} x {width} x {height}}}</DisplayString>
+    <DisplayString Condition="depth==0x40">{{FLOAT64, {nChannels} x {width} x {height}}}</DisplayString>
+    <Expand>
+      <Synthetic Name="[type]" Condition="depth==0x08">
+        <DisplayString>UINT8</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="depth==0x80000008">
+        <DisplayString>INT8</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="depth==0x10">
+        <DisplayString>UINT16</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="depth==0x80000010">
+        <DisplayString>INT16</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="depth==0x80000020">
+        <DisplayString>INT32</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="depth==0x20">
+        <DisplayString>FLOAT32</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[type]" Condition="depth==0x40">
+        <DisplayString>FLOAT64</DisplayString>
+      </Synthetic>
+      <Item Name="[channels]">nChannels</Item>
+      <Item Name="[width]">width</Item>
+      <Item Name="[height]">height</Item>
+      <Item Name="[stride]">widthStep</Item>
+      <Item Name="[data]">imageData</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="cv::Point_&lt;*&gt;">
+    <DisplayString>{x} {y}</DisplayString>
+  </Type>
+  <Type Name="cv::Point3_&lt;*&gt;">
+    <DisplayString>{x} {y} {z}</DisplayString>
+  </Type>
+  <Type Name="cv::Size_&lt;*&gt;">
+    <DisplayString>{width}×{height}</DisplayString>
+    <Expand>
+      <Item Condition="width &gt;= 0 &amp;&amp; height &gt;= 0" Name="[area]">width * height</Item>
+    </Expand>
+  </Type>
+  <Type Name="cv::Range">
+    <DisplayString Condition="start == end">empty</DisplayString>
+    <DisplayString Condition="start != end">[start,end)</DisplayString>
+    <Expand>
+      <Item Name="[size]">end - start</Item>
+    </Expand>
+  </Type>
+  <Type Name="cv::RotatedRect">
+    <DisplayString>center={center} size={size} angle={angle}°</DisplayString>
+  </Type>
+  <Type Name="cv::Rect_&lt;*&gt;">
+    <DisplayString>{x} {y} {x + width} {y + height} [{width}×{height}]</DisplayString>
+    <Expand>
+      <Item Name="[area]">width * height</Item>
+    </Expand>
+  </Type>
+  <Type Name="cv::Scalar_&lt;*&gt;">
+    <Expand>
+      <ArrayItems>
+        <Size>4</Size>
+        <ValuePointer>val</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="cv::Vec&lt;*,*&gt;">
+    <Expand>
+      <ArrayItems>
+        <Size>$T2</Size>
+        <ValuePointer>val</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="cv::Matx&lt;*,*,*&gt;">
+    <DisplayString>[{$T2}, {$T3}]</DisplayString>
+    <Expand>
+      <ArrayItems>
+        <Size>$T2 * $T3</Size>
+        <ValuePointer>val</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <!-- 2 x 2 Matrix -->
+  <Type Name="cv::Matx&lt;*,2,2&gt;">      
+      <DisplayString>[2, 2]</DisplayString>
+      <Expand>
+        <Synthetic Name="[row 0]">
+          <DisplayString>{val[0]} {val[1]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 1]">
+          <DisplayString>{val[2]} {val[3]}</DisplayString>
+        </Synthetic>
+      </Expand>
+  </Type>
+  <!-- 3 x 3 Matrix -->
+  <Type Name="cv::Matx&lt;*,3,3&gt;">      
+      <DisplayString>[3, 3]</DisplayString>
+      <Expand>
+        <Synthetic Name="[row 0]">
+          <DisplayString>{val[0]} {val[1]} {val[2]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 1]">
+          <DisplayString>{val[3]} {val[4]} {val[5]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 2]">
+          <DisplayString>{val[6]} {val[7]} {val[8]}</DisplayString>
+        </Synthetic>
+      </Expand>
+  </Type>
+  <!-- 3 x 4 Matrix -->
+  <Type Name="cv::Matx&lt;*,3,4&gt;">      
+      <DisplayString>[3, 4]</DisplayString>
+      <Expand>
+        <Synthetic Name="[row 0]">
+          <DisplayString>{val[0]} {val[1]} {val[2]} {val[3]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 1]">
+          <DisplayString>{val[4]} {val[5]} {val[6]} {val[7]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 2]">
+          <DisplayString>{val[8]} {val[9]} {val[10]} {val[11]}</DisplayString>
+        </Synthetic>
+      </Expand>
+  </Type>  
+  <!-- 4 x 4 Matrix -->
+  <Type Name="cv::Matx&lt;*,4,4&gt;">      
+      <DisplayString>[4, 4]</DisplayString>
+      <Expand>
+        <Synthetic Name="[row 0]">
+          <DisplayString>{val[0]} {val[1]} {val[2]} {val[3]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 1]">
+          <DisplayString>{val[4]} {val[5]} {val[6]} {val[7]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 2]">
+          <DisplayString>{val[8]} {val[9]} {val[10]} {val[11]}</DisplayString>
+        </Synthetic>
+        <Synthetic Name="[row 3]">
+          <DisplayString>{val[12]} {val[13]} {val[14]} {val[15]}</DisplayString>
+        </Synthetic>
+      </Expand>
+  </Type>  
+  <Type Name="cv::Ptr&lt;*&gt;">
+    <DisplayString Condition="obj == 0">empty</DisplayString>
+    <DisplayString Condition="obj != 0 &amp;&amp; *refcount == 1">Ptr {*obj} [{*refcount} ref]</DisplayString>
+    <DisplayString Condition="obj != 0 &amp;&amp; *refcount != 1">Ptr {*obj} [{*refcount} refs]</DisplayString>
+    <Expand>
+      <Item Name="[ptr]" Condition="obj != 0">obj</Item>
+    </Expand>
+  </Type>
+  <Type Name="cv::AutoBuffer&lt;*,*&gt;">
+    <DisplayString>{{size = {size}}}</DisplayString>
+    <Expand>
+      <ArrayItems>
+        <Size>size</Size>
+        <ValuePointer>ptr</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="cv::Complex&lt;*&gt;">
+    <!--pure real-->
+    <DisplayString Condition="im == 0">{re}</DisplayString>
+    <!--pure imaginary-->
+    <DisplayString Condition="(re == 0) &amp;&amp; (im &lt; 0)">-i*{-im}</DisplayString>
+    <DisplayString Condition="(re == 0) &amp;&amp; (im &gt;= 0)">i*{im}</DisplayString>
+    <!--mixed-->
+    <DisplayString Condition="im &lt; 0">{re}-i*{-im}</DisplayString>
+    <DisplayString>{re}+i*{im}</DisplayString>
+    <Expand>
+      <Item Name="real">re</Item>
+      <Item Name="imag">im</Item>
+    </Expand>
+  </Type>
+  <Type Name="cv::Exception">
+    <DisplayString>msg</DisplayString>
+  </Type>
+  <Type Name="cv::MatConstIterator_&lt;*&gt;">
+    <AlternativeType Name="cv::MatIterator_&lt;*&gt;"/>
+    <DisplayString Condition="m-&gt;dims == 2 &amp;&amp; ptr == m-&gt;data + m-&gt;cols * m-&gt;rows * m-&gt;step.p[m-&gt;dims - 1]">{*(($T1*)ptr)}</DisplayString>
+    <DisplayString Condition="!(m-&gt;dims == 2 &amp;&amp; ptr == m-&gt;data + m-&gt;cols * m-&gt;rows * m-&gt;step.p[m-&gt;dims - 1])">end</DisplayString>
+    <Expand>
+      <Item Name="[ptr]">($T1*)ptr</Item>
+    </Expand>
+  </Type>
+  <Type Name="cv::MatConstIterator">
+    <DisplayString Condition="m-&gt;dims == 2 &amp;&amp; ptr == m-&gt;data + m-&gt;cols * m-&gt;rows * m-&gt;step.p[m-&gt;dims - 1]">{*ptr}</DisplayString>
+    <DisplayString Condition="!(m-&gt;dims == 2 &amp;&amp; ptr == m-&gt;data + m-&gt;cols * m-&gt;rows * m-&gt;step.p[m-&gt;dims - 1])">end</DisplayString>
+    <Expand>
+      <Item Name="[ptr]">ptr</Item>
+    </Expand>
+  </Type>
+  <!--TODO: SparseMat-->
+  <!-- imgui/misc/debuggers/imgui.natvis -->
+
+<Type Name="ImVector&lt;*&gt;">
+  <DisplayString>{{Size={Size} Capacity={Capacity}}}</DisplayString>
+  <Expand>
+    <ArrayItems>
+      <Size>Size</Size>
+      <ValuePointer>Data</ValuePointer>
+    </ArrayItems>
+  </Expand>
+</Type>
+
+<Type Name="ImSpan&lt;*&gt;">
+  <DisplayString>{{Size={DataEnd-Data} }}</DisplayString>
+  <Expand>
+    <ArrayItems>
+      <Size>DataEnd-Data</Size>
+      <ValuePointer>Data</ValuePointer>
+    </ArrayItems>
+  </Expand>
+</Type>
+
+<Type Name="ImVec2">
+  <DisplayString>{{x={x,g} y={y,g}}}</DisplayString>
+</Type>
+
+<Type Name="ImVec4">
+  <DisplayString>{{x={x,g} y={y,g} z={z,g} w={w,g}}}</DisplayString>
+</Type>
+
+<Type Name="ImRect">
+  <DisplayString>{{Min=({Min.x,g} {Min.y,g}) Max=({Max.x,g} {Max.y,g}) Size=({Max.x-Min.x,g} {Max.y-Min.y,g})}}</DisplayString>
+  <Expand>
+    <Item Name="Min">Min</Item>
+    <Item Name="Max">Max</Item>
+    <Item Name="[Width]">Max.x - Min.x</Item>
+    <Item Name="[Height]">Max.y - Min.y</Item>
+  </Expand>
+</Type>
+
+<Type Name="ImGuiWindow">
+  <DisplayString>{{Name {Name,s} Active {(Active||WasActive)?1:0,d} Child {(Flags &amp; 0x01000000)?1:0,d} Popup {(Flags &amp; 0x04000000)?1:0,d} Hidden {(Hidden)?1:0,d}}</DisplayString>
+</Type>
+
+<Type Name="ImGuiDockNode">
+  <DisplayString>{{ID {ID,x} Pos=({Pos.x,g} {Pos.y,g}) Size=({Size.x,g} {Size.y,g}) Parent {(ParentNode==0)?0:ParentNode-&gt;ID,x} Childs {(ChildNodes[0] != 0)+(ChildNodes[1] != 0)} Windows {Windows.Size}  }</DisplayString>
+</Type>
+
+</AutoVisualizer>

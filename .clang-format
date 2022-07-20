@@ -1,0 +1,10 @@
+BasedOnStyle: Google
+
+SortIncludes: CaseInsensitive
+IncludeCategories:
+  - Regex:           '<(absl|BS_|imgui|nfd|opencv2|SDL).*>'
+    Priority:        2
+  - Regex:           '<[[:alnum:].]+>'
+    Priority:        1
+  - Regex:           '.*'
+    Priority:        3

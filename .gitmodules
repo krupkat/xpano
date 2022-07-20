@@ -1,0 +1,12 @@
+[submodule "external/abseil-cpp"]
+	path = external/abseil-cpp
+	url = git@github.com:abseil/abseil-cpp.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "external/nativefiledialog-extended"]
+	path = external/nativefiledialog-extended
+	url = git@github.com:btzy/nativefiledialog-extended.git
+[submodule "external/thread-pool"]
+	path = external/thread-pool
+	url = git@github.com:bshoshany/thread-pool.git

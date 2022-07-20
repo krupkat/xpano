@@ -1,0 +1,10 @@
+[
+  { include: [ "<xstring>", private, "<string>", public ] },
+  { include: [ "<xutility>", private, "<algorithm>", public ] },
+  { include: ["@<opencv2/core/.*>", "private", "<opencv2/core.hpp>", "public"] },
+  { include: ["@<SDL_.*>", "private", "<SDL.h>", "public"] },
+  { include: ["<corecrt_math.h>", "private", "<cmath>", "public"] },
+  { include: ["<imgui_internal.h>", "public", "<imgui.h>", "public"] },
+  { symbol: [ "std::move", private, "<utility>", public ] },
+  { symbol: [ "std::plus", private, "<functional>", public ] },
+]
