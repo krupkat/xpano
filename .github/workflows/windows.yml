@@ -1,0 +1,73 @@
+name: Windows
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+  SDL_VERSION: prerelease-2.23.1
+  OPENCV_VERSION: "4.6.0"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Cache OpenCV
+      uses: actions/cache@v3
+      id: cache-opencv
+      with:
+        path: opencv/install
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
+
+    - name: Install OpenCV
+      if: steps.cache-opencv.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/opencv/opencv.git --depth 1 --branch $env:OPENCV_VERSION
+        cd opencv
+        cmake -B build -DCMAKE_INSTALL_PREFIX=install @(Get-Content ../misc/build/opencv_minimal_flags.txt)
+        cmake --build build --target install --config Release
+        cd ..
+
+    - name: Cache SDL
+      uses: actions/cache@v3
+      id: cache-sdl
+      with:
+        path: sdl/install
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}
+
+    - name: Install SDL
+      if: steps.cache-sdl.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $env:SDL_VERSION
+        cd sdl
+        cmake -B build -DCMAKE_INSTALL_PREFIX=install
+        cmake --build build --target install --config Release
+        cd ..
+
+    - name: Get Abseil version
+      run: echo "ABSEIL_HEAD=$(git rev-parse --short HEAD:external/abseil-cpp)" >> $env:GITHUB_ENV
+
+    - name: Cache Abseil
+      uses: actions/cache@v3
+      id: cache-abseil
+      with:
+        path: build/external/abseil-cpp
+        key: ${{runner.os}}-abseil-${{env.ABSEIL_HEAD}}-${{env.BUILD_TYPE}}
+
+    - name: Mark Abseil build fresh
+      if: steps.cache-abseil.outputs.cache-hit == 'true'
+      run: Get-ChildItem build/external/abseil-cpp * -recurse | ForEach-Object{$_.LastWriteTime = get-date}
+
+    - name: Configure CMake
+      run: cmake -B build -DSDL2_DIR="sdl/install/cmake" -DOpenCV_DIR="opencv/install"
+
+    - name: Build
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
