@@ -4,15 +4,6 @@ project(SDLTest)
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
 
-IF (WIN32)
-	IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set(OpenCV_DIR "C:/Users/tomas/opencv/build/install_debug")
-	ELSE()
-		set(OpenCV_DIR "C:/Users/tomas/opencv/build/install")
-	ENDIF()
-	set(SDL2_DIR "C:/Users/tomas/SDL/build/install/cmake")
-ENDIF()
-
 add_subdirectory("external/abseil-cpp")
 add_subdirectory("external/nativefiledialog-extended" EXCLUDE_FROM_ALL)
 
