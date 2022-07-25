@@ -108,6 +108,34 @@ Action ThumbnailPane::Draw() {
   float thumbnail_height =
       available_size.y - 2 * ImGui::GetStyle().FramePadding.y;
 
+  if (auto window_size = ImGui::GetWindowSize();
+      window_size.y != window_size_.y ||
+      (resizing_streak_ > 0 && resizing_streak_ < 30)) {
+    window_size_ = window_size;
+    thumbnail_height = last_thumbnail_height_;
+    resizing_streak_++;
+    SDL_Log("Streak");
+  } else {
+    if (resizing_streak_ >= 30) {
+      resizing_streak_ = 0;
+      scroll_ratio_ = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
+      SDL_Log("Streak ended, scroll ratio: %f, scroll_max: %f", scroll_ratio_,
+              ImGui::GetScrollMaxX());
+      rescroll_ = true;
+    } else if (rescroll_) {
+      if (const auto &ids = hover_checker_.HighlightedIds(); !ids.empty()) {
+        SDL_Log("Rescrolling");
+        SetScrollX(ids);
+      } else {
+        SDL_Log("Rescrolling,  scroll ratio: %f, scroll_max: %f", scroll_ratio_,
+                ImGui::GetScrollMaxX());
+        ImGui::SetScrollX(ImGui::GetScrollMaxX() * scroll_ratio_);
+      }
+      rescroll_ = false;
+    }
+    last_thumbnail_height_ = thumbnail_height;
+  }
+
   for (const auto &coord : coords_) {
     ImGui::PushID(coord.id);
     hover_checker_.SetColor(coord.id);
@@ -170,6 +198,7 @@ void ThumbnailPane::Reset() {
   coords_.resize(0);
   scroll_.resize(0);
   hover_checker_ = HoverChecker{};
+  scroll_id_ = 0;
 }
 
 }  // namespace xpano::gui

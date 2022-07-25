@@ -19,6 +19,8 @@ class HoverChecker {
 
   [[nodiscard]] bool AllowsMofication() const;
 
+  const std::vector<int>& HighlightedIds() const { return highlighted_ids_; }
+
  private:
   [[nodiscard]] bool WasHovered(int img_id) const;
   void RecordHover(int img_id);
@@ -51,6 +53,16 @@ class ThumbnailPane {
   utils::sdl::Texture tex_;
   std::vector<Coord> coords_;
   std::vector<float> scroll_;
+
+  int scroll_id_ = 0;
+  ImVec2 window_size_ = ImVec2(0, 0);
+  float last_thumbnail_height_ = 0.0f;
+  int resizing_streak_ = 0;
+
+  float last_scroll_x_ = 0.0f;
+  float last_scroll_x_max_ = 0.0f;
+  float scroll_ratio_ = 0.0f;
+  bool rescroll_ = false;
 
   HoverChecker hover_checker_;
   SDL_Renderer *renderer_;

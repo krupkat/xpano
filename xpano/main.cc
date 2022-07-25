@@ -17,9 +17,9 @@
 #endif
 
 int main(int /*unused*/, char** /*unused*/) {
-  #if SDL_VERSION_ATLEAST(2, 23, 1)
+#if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
-  #endif
+#endif
 
   // This feature isn't compatible with ImGui as of v1.88
   // SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
