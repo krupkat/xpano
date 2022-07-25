@@ -97,9 +97,7 @@ void ThumbnailPane::Load(const std::vector<Image> &images) {
 bool ThumbnailPane::Loaded() const { return !coords_.empty(); }
 
 Action ThumbnailPane::Draw() {
-  ImGui::Begin("Images", nullptr,
-               ImGuiWindowFlags_AlwaysHorizontalScrollbar |
-                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  ImGui::Begin("Images", nullptr, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
   Action action{};
 
   if (scroll_.empty()) {

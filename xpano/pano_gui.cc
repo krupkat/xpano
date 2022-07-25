@@ -154,8 +154,7 @@ Action PanoGui::DrawGui() {
 }
 
 Action PanoGui::DrawSidebar() {
-  ImGui::Begin("PanoSweep", nullptr,
-               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  ImGui::Begin("PanoSweep");
   ImGui::Text("Welcome to PanoSweep");
   Action action{};
 

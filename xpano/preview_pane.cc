@@ -56,8 +56,7 @@ void PreviewPane::Load(cv::Mat image) {
 }
 
 void PreviewPane::Draw() {
-  ImGui::Begin("Preview", nullptr,
-               ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  ImGui::Begin("Preview");
   if (tex_) {
     ImVec2 available_size = ImGui::GetContentRegionAvail();
     float aspect = coord_.uv1.x / coord_.uv1.y;

@@ -38,8 +38,7 @@ void Logger::Concatenate() {
 }
 
 void LoggerGui::Draw() {
-  ImGui::Begin("Logger", nullptr,
-               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  ImGui::Begin("Logger");
   const auto &log = logger_.Log();
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   for (const auto &line : log) {
