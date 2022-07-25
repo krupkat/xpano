@@ -4,51 +4,59 @@ project(SDLTest)
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
 
-add_subdirectory("external/abseil-cpp")
+add_subdirectory("external/abseil-cpp" EXCLUDE_FROM_ALL)
 add_subdirectory("external/nativefiledialog-extended" EXCLUDE_FROM_ALL)
 
 set(IMGUI_SOURCES 
-	"external/imgui/imgui.cpp"
-	"external/imgui/imgui_draw.cpp"
-	"external/imgui/imgui_demo.cpp"
-	"external/imgui/imgui_tables.cpp"
+  "external/imgui/imgui.cpp"
+  "external/imgui/imgui_draw.cpp"
+  "external/imgui/imgui_demo.cpp"
+  "external/imgui/imgui_tables.cpp"
   "external/imgui/imgui_widgets.cpp"
   "external/imgui/backends/imgui_impl_sdl.cpp"
   "external/imgui/backends/imgui_impl_sdlrenderer.cpp"
 )
 
 set (XPANO_SOURCES
-	"xpano/main.cc"
-	"xpano/algorithm.cc"
-	"xpano/file_dialog.cc"
-	"xpano/image.cc"
-	"xpano/layout.cc"
-	"xpano/logger.cc"
-	"xpano/pano_gui.cc"
-	"xpano/preview_pane.cc"
-	"xpano/stitcher_pipeline.cc"
-	"xpano/thumbnail_pane.cc"
-	"xpano/utils/imgui_.cc"
+  "xpano/main.cc"
+  "xpano/algorithm.cc"
+  "xpano/file_dialog.cc"
+  "xpano/image.cc"
+  "xpano/layout.cc"
+  "xpano/logger.cc"
+  "xpano/pano_gui.cc"
+  "xpano/preview_pane.cc"
+  "xpano/stitcher_pipeline.cc"
+  "xpano/thumbnail_pane.cc"
+  "xpano/utils/imgui_.cc"
 )
 
 find_package(SDL2 REQUIRED)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc stitching)
 
 add_executable(SDLTest WIN32
-	${XPANO_SOURCES}
-	${IMGUI_SOURCES}
+  ${XPANO_SOURCES}
+  ${IMGUI_SOURCES}
 )
 
 target_include_directories(SDLTest PRIVATE 
-	"external/imgui" 
-	"external/imgui/backends"
-	"external/thread-pool")
+  "external/imgui" 
+  "external/imgui/backends"
+  "external/thread-pool"
+)
 
 target_link_libraries(SDLTest 
-	absl::strings
-	nfd
-	${OpenCV_LIBRARIES}
-	${SDL2_LIBRARIES}
+  absl::strings
+  nfd
+  opencv_calib3d
+  opencv_core
+  opencv_features2d
+  opencv_flann
+  opencv_imgcodecs
+  opencv_imgproc
+  opencv_stitching
+  SDL2::SDL2
+  SDL2::SDL2main
 )
 
 install(TARGETS SDLTest)
