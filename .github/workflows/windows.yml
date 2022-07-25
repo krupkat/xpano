@@ -52,20 +52,6 @@ jobs:
         cmake --build build --target install --config Release
         cd ..
 
-    - name: Get Abseil version
-      run: echo "ABSEIL_HEAD=$(git rev-parse --short HEAD:external/abseil-cpp)" >> $env:GITHUB_ENV
-
-    - name: Cache Abseil
-      uses: actions/cache@v3
-      id: cache-abseil
-      with:
-        path: build/external/abseil-cpp
-        key: ${{runner.os}}-abseil-${{env.ABSEIL_HEAD}}-${{env.BUILD_TYPE}}
-
-    - name: Mark Abseil build fresh
-      if: steps.cache-abseil.outputs.cache-hit == 'true'
-      run: Get-ChildItem build/external/abseil-cpp * -recurse | ForEach-Object{$_.LastWriteTime = get-date}
-
     - name: Configure CMake
       run: cmake -B build -DSDL2_DIR="sdl/install/cmake" -DOpenCV_DIR="opencv/install"
 
