@@ -5,8 +5,9 @@
 #include <imgui.h>
 #include <SDL.h>
 
-#include "action.h"
-#include "image.h"
+#include "algorithm/image.h"
+#include "gui/action.h"
+#include "gui/coord.h"
 #include "utils/sdl_.h"
 
 namespace xpano::gui {
@@ -33,7 +34,7 @@ class HoverChecker {
 class ThumbnailPane {
  public:
   explicit ThumbnailPane(SDL_Renderer *renderer);
-  void Load(const std::vector<Image> &images);
+  void Load(const std::vector<algorithm::Image> &images);
   [[nodiscard]] bool Loaded() const;
 
   Action Draw();

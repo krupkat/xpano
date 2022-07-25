@@ -1,4 +1,4 @@
-#include "thumbnail_pane.h"
+#include "gui/thumbnail_pane.h"
 
 #include <algorithm>
 #include <functional>
@@ -9,9 +9,10 @@
 #include <opencv2/core.hpp>
 #include <SDL.h>
 
-#include "action.h"
+#include "algorithm/image.h"
 #include "constants.h"
-#include "image.h"
+#include "gui/action.h"
+#include "gui/coord.h"
 
 namespace xpano::gui {
 
@@ -56,7 +57,7 @@ void HoverChecker::ResetHover() { hover_id_ = -1; }
 
 ThumbnailPane::ThumbnailPane(SDL_Renderer *renderer) : renderer_(renderer) {}
 
-void ThumbnailPane::Load(const std::vector<Image> &images) {
+void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   int num_images = static_cast<int>(images.size());
 
   int skip = kPreviewSize;

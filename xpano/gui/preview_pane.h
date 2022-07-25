@@ -3,10 +3,10 @@
 #include <opencv2/core.hpp>
 #include <SDL.h>
 
-#include "image.h"
+#include "gui/coord.h"
 #include "utils/sdl_.h"
 
-namespace xpano {
+namespace xpano::gui {
 
 class PreviewPane {
  public:
@@ -21,4 +21,4 @@ class PreviewPane {
   SDL_Renderer *renderer_;
 };
 
-}  // namespace xpano
+}  // namespace xpano::gui

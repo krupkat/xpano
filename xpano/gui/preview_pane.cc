@@ -1,4 +1,4 @@
-#include "preview_pane.h"
+#include "gui/preview_pane.h"
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
@@ -6,9 +6,9 @@
 #include <SDL.h>
 
 #include "constants.h"
-#include "image.h"
+#include "gui/coord.h"
 
-namespace xpano {
+namespace xpano::gui {
 
 namespace {
 [[nodiscard]] float GetAspect(const cv::Mat &image_data) {
@@ -73,4 +73,4 @@ void PreviewPane::Draw() {
   ImGui::End();
 }
 
-}  // namespace xpano
+}  // namespace xpano::gui

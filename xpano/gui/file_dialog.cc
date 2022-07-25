@@ -1,4 +1,4 @@
-#include "file_dialog.h"
+#include "gui/file_dialog.h"
 
 #include <array>
 #include <string>
@@ -8,7 +8,7 @@
 #include <nfd.hpp>
 #include <SDL.h>
 
-namespace xpano::file_dialog {
+namespace xpano::gui::file_dialog {
 
 std::vector<std::string> CallNfd() {
   NFD::UniquePathSet out_paths;
@@ -41,4 +41,4 @@ std::vector<std::string> CallNfd() {
   return results;
 }
 
-}  // namespace xpano::file_dialog
+}  // namespace xpano::gui::file_dialog

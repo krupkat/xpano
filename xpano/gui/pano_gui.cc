@@ -1,4 +1,4 @@
-#include "pano_gui.h"
+#include "gui/pano_gui.h"
 
 #include <algorithm>
 #include <chrono>
@@ -14,15 +14,15 @@
 #include <opencv2/features2d.hpp>
 #include <SDL.h>
 
-#include "action.h"
-#include "algorithm.h"
-#include "file_dialog.h"
-#include "image.h"
-#include "layout.h"
-#include "logger.h"
-#include "preview_pane.h"
-#include "stitcher_pipeline.h"
-#include "thumbnail_pane.h"
+#include "algorithm/algorithm.h"
+#include "algorithm/image.h"
+#include "algorithm/stitcher_pipeline.h"
+#include "gui/action.h"
+#include "gui/file_dialog.h"
+#include "gui/layout.h"
+#include "gui/preview_pane.h"
+#include "gui/thumbnail_pane.h"
+#include "log/logger.h"
 
 namespace xpano::gui {
 
@@ -41,7 +41,7 @@ void DrawProgressBar(float progress) {
 }
 
 cv::Mat DrawMatches(const algorithm::Match& match,
-                    const std::vector<Image>& images) {
+                    const std::vector<algorithm::Image>& images) {
   cv::Mat out;
   const auto& img1 = images[match.id1];
   const auto& img2 = images[match.id2];
