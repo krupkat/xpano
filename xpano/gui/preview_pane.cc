@@ -59,16 +59,24 @@ void PreviewPane::Draw() {
   ImGui::Begin("Preview");
   if (tex_) {
     ImVec2 available_size = ImGui::GetContentRegionAvail();
-    float aspect = coord_.uv1.x / coord_.uv1.y;
+    auto p_min = ImGui::GetCursorScreenPos();
+    auto p_max = ImVec2(p_min.x + available_size.x, p_min.y + available_size.y);
 
-    ImVec2 size;
+    float aspect = coord_.uv1.x / coord_.uv1.y;
     if (available_size.x / available_size.y < aspect) {
-      size = ImVec2(available_size.x, available_size.x / aspect);
+      auto mid = (p_min.y + p_max.y) / 2.0f;
+      auto half_y = available_size.x / aspect / 2.0f;
+      p_min.y = mid - half_y;
+      p_max.y = mid + half_y;
     } else {
-      size = ImVec2(available_size.y * aspect, available_size.y);
+      auto mid = (p_min.x + p_max.x) / 2.0f;
+      auto half_x = available_size.y * aspect / 2.0f;
+      p_min.x = mid - half_x;
+      p_max.x = mid + half_x;
     }
 
-    ImGui::Image(tex_.get(), size, coord_.uv0, coord_.uv1);
+    ImGui::GetWindowDrawList()->AddImage(tex_.get(), p_min, p_max, coord_.uv0,
+                                         coord_.uv1);
   }
   ImGui::End();
 }
