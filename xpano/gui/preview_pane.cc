@@ -55,8 +55,9 @@ void PreviewPane::Load(cv::Mat image) {
   coord_ = Coord{ImVec2(0.0f, 0.0f), coord_uv, 1.0f, 0};
 }
 
-void PreviewPane::Draw() {
+Action PreviewPane::Draw() {
   ImGui::Begin("Preview");
+  Action action{};
   if (tex_) {
     ImVec2 available_size = ImGui::GetContentRegionAvail();
     auto p_min = ImGui::GetCursorScreenPos();
@@ -75,10 +76,49 @@ void PreviewPane::Draw() {
       p_max.x = mid + half_x;
     }
 
+    auto size = ImVec2(p_max.x - p_min.x, p_max.y - p_min.y);
+    if (zoom_ > 1.0f) {
+      p_min = ImGui::GetCursorScreenPos();
+
+      p_min.x += screen_offset_.x * available_size.x -
+                 image_offset_.x * size.x * zoom_;
+      p_min.y += screen_offset_.y * available_size.y -
+                 image_offset_.y * size.y * zoom_;
+
+      p_max.x = p_min.x + size.x * zoom_;
+      p_max.y = p_min.y + size.y * zoom_;
+    }
+
     ImGui::GetWindowDrawList()->AddImage(tex_.get(), p_min, p_max, coord_.uv0,
                                          coord_.uv1);
+
+    auto screen_to_image = [this, &p_min, &size](ImVec2 screen_pos) {
+      return ImVec2((screen_pos.x - p_min.x) / zoom_ / size.x,
+                    (screen_pos.y - p_min.y) / zoom_ / size.y);
+    };
+
+    if (ImGui::IsWindowHovered()) {
+      auto p_min_s = ImGui::GetCursorScreenPos();
+      if (ImGui::GetIO().MouseWheel > 0) {
+        auto mouse_pos = ImGui::GetMousePos();
+        image_offset_ = screen_to_image(mouse_pos);
+        screen_offset_ = ImVec2((mouse_pos.x - p_min_s.x) / available_size.x,
+                                (mouse_pos.y - p_min_s.y) / available_size.y);
+        zoom_ *= 2.0f;
+      }
+      if (ImGui::GetIO().MouseWheel < 0) {
+        auto mouse_pos = ImGui::GetMousePos();
+        image_offset_ = screen_to_image(mouse_pos);
+        screen_offset_ = ImVec2((mouse_pos.x - p_min_s.x) / available_size.x,
+                                (mouse_pos.y - p_min_s.y) / available_size.y);
+        if (zoom_ >= 2.0f) {
+          zoom_ /= 2.0f;
+        }
+      }
+    }
   }
   ImGui::End();
+  return action;
 }
 
 }  // namespace xpano::gui
