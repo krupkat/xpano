@@ -7,8 +7,8 @@
 
 #include "algorithm/image.h"
 #include "gui/action.h"
-#include "gui/coord.h"
 #include "utils/sdl_.h"
+#include "utils/vec.h"
 
 namespace xpano::gui {
 
@@ -32,6 +32,12 @@ class HoverChecker {
 };
 
 class ThumbnailPane {
+  struct Coord {
+    utils::Ratio2f uv0;
+    utils::Ratio2f uv1;
+    float aspect;
+  };
+
  public:
   explicit ThumbnailPane(SDL_Renderer *renderer);
   void Load(const std::vector<algorithm::Image> &images);

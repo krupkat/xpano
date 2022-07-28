@@ -6,7 +6,6 @@
 #include <SDL.h>
 
 #include "constants.h"
-#include "gui/coord.h"
 #include "utils/vec.h"
 
 namespace xpano::gui {
@@ -41,8 +40,7 @@ void PreviewPane::Load(cv::Mat image) {
       utils::SdlRect(utils::Point2i{0}, utils::ToIntVec(resized.size));
   SDL_UpdateTexture(tex_.get(), &target, resized.data,
                     static_cast<int>(resized.step1()));
-
-  coord_ = Coord{{utils::Ratio2f{0.0f}}, coord_uv, 1.0f, 0};
+  tex_coord_ = coord_uv;
 }
 
 void PreviewPane::Draw() {
@@ -52,7 +50,7 @@ void PreviewPane::Draw() {
     auto mid =
         utils::ToPoint(ImGui::GetCursorScreenPos()) + available_size / 2.0f;
 
-    float image_aspect = coord_.uv1.Aspect();
+    float image_aspect = tex_coord_.Aspect();
     auto image_size =
         available_size.Aspect() < image_aspect
             ? utils::Vec2f{available_size[0], available_size[0] / image_aspect}
@@ -62,7 +60,7 @@ void PreviewPane::Draw() {
     auto p_max = mid + image_size / 2.0f;
     ImGui::GetWindowDrawList()->AddImage(
         tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
-        utils::ImVec(coord_.uv0), utils::ImVec(coord_.uv1));
+        ImVec2(0.0f, 0.0f), utils::ImVec(tex_coord_));
   }
   ImGui::End();
 }

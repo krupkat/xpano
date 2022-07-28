@@ -12,7 +12,6 @@
 #include "algorithm/image.h"
 #include "constants.h"
 #include "gui/action.h"
-#include "gui/coord.h"
 #include "utils/vec.h"
 
 namespace xpano::gui {
@@ -69,12 +68,12 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   auto type = images[0].GetPreview().type();
   cv::Mat atlas{utils::CvSize(size), type};
   for (int i = 0; i < images.size(); i++) {
-    auto uv_coord = thumbnail_size * utils::Ratio2i{i % side, i / side};
+    auto tex_coord = thumbnail_size * utils::Ratio2i{i % side, i / side};
     const auto preview = images[i].GetPreview();
     preview.copyTo(
-        atlas(utils::CvRect(utils::Point2i{0} + uv_coord, thumbnail_size)));
-    Coord coord{uv_coord / size, (uv_coord + thumbnail_size) / size,
-                images[i].GetAspect(), i};
+        atlas(utils::CvRect(utils::Point2i{0} + tex_coord, thumbnail_size)));
+    Coord coord{tex_coord / size, (tex_coord + thumbnail_size) / size,
+                images[i].GetAspect()};
     coords_.emplace_back(coord);
   }
   tex_.reset(SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
@@ -98,24 +97,25 @@ Action ThumbnailPane::Draw() {
   float thumbnail_height =
       available_size.y - 2 * ImGui::GetStyle().FramePadding.y;
 
-  for (const auto &coord : coords_) {
-    ImGui::PushID(coord.id);
-    hover_checker_.SetColor(coord.id);
+  for (int coord_id = 0; coord_id < coords_.size(); coord_id++) {
+    ImGui::PushID(coord_id);
+    hover_checker_.SetColor(coord_id);
     float scroll_pre = ImGui::GetCursorPosX();
+    const auto &coord = coords_[coord_id];
     if (ImGui::ImageButton(
             tex_.get(),
             ImVec2(thumbnail_height * coord.aspect, thumbnail_height),
             utils::ImVec(coord.uv0), utils::ImVec(coord.uv1))) {
       if (io_.KeyCtrl && hover_checker_.AllowsMofication()) {
-        action = {ActionType::kModifyPano, coord.id};
+        action = {ActionType::kModifyPano, coord_id};
       } else {
-        action = {ActionType::kShowImage, coord.id};
+        action = {ActionType::kShowImage, coord_id};
       }
     }
-    hover_checker_.ResetColor(coord.id, io_.KeyCtrl);
+    hover_checker_.ResetColor(coord_id, io_.KeyCtrl);
     ImGui::PopID();
     ImGui::SameLine();
-    scroll_[coord.id] = (scroll_pre + ImGui::GetCursorPosX()) / 2.0f;
+    scroll_[coord_id] = (scroll_pre + ImGui::GetCursorPosX()) / 2.0f;
   }
   ImGui::End();
 
@@ -129,16 +129,10 @@ void ThumbnailPane::SetScrollX(int id1, int id2) {
   SetScrollX(std::vector<int>({id1, id2}));
 }
 void ThumbnailPane::SetScrollX(const std::vector<int> &ids) {
-  auto find_scroll = [this](int img_id) {
-    auto iter = std::find_if(
-        coords_.begin(), coords_.end(),
-        [img_id](const Coord &coord) { return coord.id == img_id; });
-    return iter != coords_.end() ? scroll_[iter->id] : 0.0f;
-  };
-
-  float scroll = std::transform_reduce(ids.begin(), ids.end(), 0.0f,
-                                       std::plus<>(), find_scroll) /
-                 static_cast<float>(ids.size());
+  float scroll =
+      std::transform_reduce(ids.begin(), ids.end(), 0.0f, std::plus<>(),
+                            [this](int index) { return scroll_[index]; }) /
+      static_cast<float>(ids.size());
 
   ImGui::Begin("Images");
   ImGui::SetScrollFromPosX(ImGui::GetCursorStartPos().x + scroll);

@@ -3,8 +3,8 @@
 #include <opencv2/core.hpp>
 #include <SDL.h>
 
-#include "gui/coord.h"
 #include "utils/sdl_.h"
+#include "utils/vec.h"
 
 namespace xpano::gui {
 
@@ -16,7 +16,7 @@ class PreviewPane {
 
  private:
   utils::sdl::Texture tex_;
-  Coord coord_;
+  utils::Ratio2f tex_coord_;
 
   SDL_Renderer *renderer_;
 };
