@@ -6,77 +6,62 @@
 #include <SDL.h>
 
 #include "constants.h"
-#include "gui/coord.h"
+#include "utils/vec.h"
+#include "utils/vec_converters.h"
 
 namespace xpano::gui {
-
-namespace {
-[[nodiscard]] float GetAspect(const cv::Mat &image_data) {
-  auto width = static_cast<float>(image_data.size[1]);
-  auto height = static_cast<float>(image_data.size[0]);
-  return width / height;
-}
-}  // namespace
 
 PreviewPane::PreviewPane(SDL_Renderer *renderer) : renderer_(renderer){};
 
 void PreviewPane::Load(cv::Mat image) {
+  auto texture_size = utils::Vec2i{kLoupeSize};
   if (!tex_) {
     tex_.reset(SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
-                                 SDL_TEXTUREACCESS_STATIC, kLoupeSize,
-                                 kLoupeSize));
+                                 SDL_TEXTUREACCESS_STATIC, texture_size[0],
+                                 texture_size[1]));
   }
 
   int larger_dim = image.size[0] > image.size[1] ? 0 : 1;
 
   cv::Mat resized;
-  ImVec2 coord_uv;
+  utils::Ratio2f coord_uv;
   if (image.size[larger_dim] > kLoupeSize) {
-    cv::Size size;
-    float aspect = GetAspect(image);
-    if (aspect >= 1.0f) {
-      size = cv::Size(kLoupeSize, static_cast<int>(kLoupeSize / aspect));
-      coord_uv = ImVec2(1.0f, 1.0f / aspect);
+    if (float aspect = utils::ToIntVec(image.size).Aspect(); aspect >= 1.0f) {
+      coord_uv = {1.0f, 1.0f / aspect};
     } else {
-      size = cv::Size(static_cast<int>(kLoupeSize * aspect), kLoupeSize);
-      coord_uv = ImVec2(1.0f * aspect, 1.0f);
+      coord_uv = {1.0f * aspect, 1.0f};
     }
-    cv::resize(image, resized, size, 0, 0, cv::INTER_AREA);
+    auto size = utils::ToIntVec(texture_size * coord_uv);
+    cv::resize(image, resized, utils::CvSize(size), 0, 0, cv::INTER_AREA);
   } else {
     resized = image;
-    coord_uv = ImVec2(static_cast<float>(image.size[1]) / kLoupeSize,
-                      static_cast<float>(image.size[0]) / kLoupeSize);
+    coord_uv = utils::ToIntVec(image.size) / texture_size;
   }
-
-  SDL_Rect target{0, 0, resized.size[1], resized.size[0]};
+  auto target =
+      utils::SdlRect(utils::Point2i{0}, utils::ToIntVec(resized.size));
   SDL_UpdateTexture(tex_.get(), &target, resized.data,
                     static_cast<int>(resized.step1()));
-
-  coord_ = Coord{ImVec2(0.0f, 0.0f), coord_uv, 1.0f, 0};
+  tex_coord_ = coord_uv;
 }
 
 void PreviewPane::Draw() {
   ImGui::Begin("Preview");
   if (tex_) {
-    ImVec2 available_size = ImGui::GetContentRegionAvail();
-    auto p_min = ImGui::GetCursorScreenPos();
-    auto p_max = ImVec2(p_min.x + available_size.x, p_min.y + available_size.y);
+    auto available_size = utils::ToVec(ImGui::GetContentRegionAvail());
+    auto mid =
+        utils::ToPoint(ImGui::GetCursorScreenPos()) + available_size / 2.0f;
 
-    float aspect = coord_.uv1.x / coord_.uv1.y;
-    if (available_size.x / available_size.y < aspect) {
-      auto mid = (p_min.y + p_max.y) / 2.0f;
-      auto half_y = available_size.x / aspect / 2.0f;
-      p_min.y = mid - half_y;
-      p_max.y = mid + half_y;
-    } else {
-      auto mid = (p_min.x + p_max.x) / 2.0f;
-      auto half_x = available_size.y * aspect / 2.0f;
-      p_min.x = mid - half_x;
-      p_max.x = mid + half_x;
-    }
+    float image_aspect = tex_coord_.Aspect();
+    auto image_size =
+        available_size.Aspect() < image_aspect
+            ? utils::Vec2f{available_size[0], available_size[0] / image_aspect}
+            : utils::Vec2f{available_size[1] * image_aspect, available_size[1]};
 
-    ImGui::GetWindowDrawList()->AddImage(tex_.get(), p_min, p_max, coord_.uv0,
-                                         coord_.uv1);
+    auto p_min = mid - image_size / 2.0f;
+    auto p_max = mid + image_size / 2.0f;
+    ImGui::GetWindowDrawList()->AddImage(
+        tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
+        ImVec2(0.0f, 0.0f), utils::ImVec(tex_coord_));
   }
   ImGui::End();
 }
