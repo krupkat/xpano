@@ -10,6 +10,7 @@ env:
   BUILD_TYPE: Release
   SDL_VERSION: prerelease-2.23.1
   OPENCV_VERSION: "4.6.0"
+  CATCH_VERSION: "v3.1.0"
 
 jobs:
   build:
@@ -52,8 +53,34 @@ jobs:
         cmake --build build --target install --config Release
         cd ..
 
+    - name: Cache Catch
+      uses: actions/cache@v3
+      id: cache-catch
+      with:
+        path: catch/install
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}
+
+    - name: Install Catch
+      if: steps.cache-catch.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $env:CATCH_VERSION
+        cd catch
+        cmake -B build -DCMAKE_INSTALL_PREFIX=install -DBUILD_TESTING=OFF
+        cmake --build build --target install --config ${{env.BUILD_TYPE}}
+        cd ..
+
     - name: Configure CMake
-      run: cmake -B build -DSDL2_DIR="sdl/install/cmake" -DOpenCV_DIR="opencv/install"
+      run: |
+        cmake -B build `
+          -DBUILD_TESTING=ON `
+          -DSDL2_DIR="sdl/install/cmake" `
+          -DOpenCV_DIR="opencv/install" `
+          -DCatch2_DIR="catch/install/lib/cmake/Catch2"
 
     - name: Build
-      run: cmake --build build --target SDLTest --config ${{env.BUILD_TYPE}}
+      run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest -C ${{env.BUILD_TYPE}}
