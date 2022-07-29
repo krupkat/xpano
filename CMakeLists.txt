@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
+OPTION(BUILD_TESTING "Build tests" OFF)
+
 project(SDLTest)
+include(CTest)
 
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
@@ -17,7 +20,7 @@ set(IMGUI_SOURCES
   "external/imgui/backends/imgui_impl_sdlrenderer.cpp"
 )
 
-set (XPANO_SOURCES
+set(XPANO_SOURCES
   "xpano/main.cc"
   "xpano/algorithm/algorithm.cc"
   "xpano/algorithm/image.cc"
@@ -61,3 +64,7 @@ target_link_libraries(SDLTest
 )
 
 install(TARGETS SDLTest)
+
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()

@@ -13,6 +13,7 @@
 #include "constants.h"
 #include "gui/action.h"
 #include "utils/vec.h"
+#include "utils/vec_converters.h"
 
 namespace xpano::gui {
 
