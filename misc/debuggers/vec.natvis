@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <Type Name="xpano::utils::Vec&lt;float, 2, xpano::utils::Point&gt;">
+    <DisplayString>Point2f(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;float, 2, xpano::utils::Vector&gt;">
+    <DisplayString>Vec2f(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;float, 2, xpano::utils::Ratio&gt;">
+    <DisplayString>Ratio2f(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;int, 2, xpano::utils::Point&gt;">
+    <DisplayString>Point2i(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;int, 2, xpano::utils::Vector&gt;">
+    <DisplayString>Vec2i(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;int, 2, xpano::utils::Ratio&gt;">
+    <DisplayString>Ratio2i(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+</AutoVisualizer>

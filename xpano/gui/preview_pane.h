@@ -3,9 +3,8 @@
 #include <opencv2/core.hpp>
 #include <SDL.h>
 
-#include "gui/action.h"
-#include "gui/coord.h"
 #include "utils/sdl_.h"
+#include "utils/vec.h"
 
 namespace xpano::gui {
 
@@ -13,15 +12,15 @@ class PreviewPane {
  public:
   explicit PreviewPane(SDL_Renderer *renderer);
   void Load(cv::Mat image);
-  Action Draw();
+  void Draw();
 
  private:
   utils::sdl::Texture tex_;
-  Coord coord_;
+  utils::Ratio2f tex_coord_;
 
   float zoom_ = 1.0f;
-  ImVec2 image_offset_;
-  ImVec2 screen_offset_;
+  utils::Ratio2f image_offset_;
+  utils::Ratio2f screen_offset_;
 
   SDL_Renderer *renderer_;
 };

@@ -334,7 +334,7 @@
     </Expand>
   </Type>
   <!--TODO: SparseMat-->
-  <!-- imgui/misc/debuggers/imgui.natvis -->
+  <!-- external/imgui/misc/debuggers/imgui.natvis -->
 
 <Type Name="ImVector&lt;*&gt;">
   <DisplayString>{{Size={Size} Capacity={Capacity}}}</DisplayString>
@@ -382,4 +382,29 @@
   <DisplayString>{{ID {ID,x} Pos=({Pos.x,g} {Pos.y,g}) Size=({Size.x,g} {Size.y,g}) Parent {(ParentNode==0)?0:ParentNode-&gt;ID,x} Childs {(ChildNodes[0] != 0)+(ChildNodes[1] != 0)} Windows {Windows.Size}  }</DisplayString>
 </Type>
 
+  <!-- misc/debuggers/vec.natvis -->
+
+  <Type Name="xpano::utils::Vec&lt;float, 2, xpano::utils::Point&gt;">
+    <DisplayString>Point2f(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;float, 2, xpano::utils::Vector&gt;">
+    <DisplayString>Vec2f(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;float, 2, xpano::utils::Ratio&gt;">
+    <DisplayString>Ratio2f(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;int, 2, xpano::utils::Point&gt;">
+    <DisplayString>Point2i(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;int, 2, xpano::utils::Vector&gt;">
+    <DisplayString>Vec2i(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
+
+  <Type Name="xpano::utils::Vec&lt;int, 2, xpano::utils::Ratio&gt;">
+    <DisplayString>Ratio2i(x={data_[0], g}, y={data_[1], g})</DisplayString>
+  </Type>
 </AutoVisualizer>
