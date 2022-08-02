@@ -56,6 +56,34 @@ bool HoverChecker::WasHovered(int img_id) const { return hover_id_ == img_id; }
 void HoverChecker::RecordHover(int img_id) { hover_id_ = img_id; }
 void HoverChecker::ResetHover() { hover_id_ = -1; }
 
+void AutoScroller::SetNeedsRescroll() {
+  needs_rescroll_ = true;
+  scroll_ratio_ = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
+}
+
+bool AutoScroller::NeedsRescroll() const { return needs_rescroll_; }
+
+void AutoScroller::Rescroll() {
+  ImGui::SetScrollX(ImGui::GetScrollMaxX() * scroll_ratio_);
+  needs_rescroll_ = false;
+}
+
+ResizeChecker::ResizeChecker(int delay) : delay_(delay) {}
+
+ResizeChecker::Status ResizeChecker::Check(ImVec2 window_size) {
+  if (window_size.y != window_size_.y || window_size.x != window_size_.x ||
+      (resizing_streak_ > 0 && resizing_streak_ < delay_)) {
+    window_size_ = window_size;
+    resizing_streak_++;
+    return Status::kResizing;
+  }
+  if (resizing_streak_ >= delay_) {
+    resizing_streak_ = 0;
+    return Status::kResized;
+  }
+  return Status::kIdle;
+}
+
 ThumbnailPane::ThumbnailPane(SDL_Renderer *renderer) : renderer_(renderer) {}
 
 void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
@@ -77,6 +105,7 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
                 images[i].GetAspect()};
     coords_.emplace_back(coord);
   }
+  scroll_.resize(coords_.size());
   tex_.reset(SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
                                SDL_TEXTUREACCESS_STATIC, size[0], size[1]));
   SDL_UpdateTexture(tex_.get(), nullptr, atlas.data,
@@ -90,35 +119,17 @@ Action ThumbnailPane::Draw() {
   ImGui::Begin("Images", nullptr, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
   Action action{};
 
-  if (scroll_.empty()) {
-    scroll_.resize(coords_.size());
+  if (auto_scroller_.NeedsRescroll()) {
+    auto_scroller_.Rescroll();
   }
 
-  ImVec2 available_size = ImGui::GetContentRegionAvail();
-  float thumbnail_height =
-      available_size.y - 2 * ImGui::GetStyle().FramePadding.y;
-
-  if (auto window_size = ImGui::GetWindowSize();
-      window_size.y != window_size_.y ||
-      (resizing_streak_ > 0 && resizing_streak_ < 30)) {
-    window_size_ = window_size;
-    thumbnail_height = last_thumbnail_height_;
-    resizing_streak_++;
-    SDL_Log("Streak");
-  } else {
-    if (resizing_streak_ >= 30) {
-      resizing_streak_ = 0;
-      scroll_ratio_ = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
-      SDL_Log("Streak ended, scroll ratio: %f, scroll_max: %f", scroll_ratio_,
-              ImGui::GetScrollMaxX());
-      rescroll_ = true;
-    } else if (rescroll_) {
-      SDL_Log("Rescrolling,  scroll ratio: %f, scroll_max: %f", scroll_ratio_,
-              ImGui::GetScrollMaxX());
-      ImGui::SetScrollX(ImGui::GetScrollMaxX() * scroll_ratio_);
-      rescroll_ = false;
+  if (auto window_status = resize_checker_.Check(ImGui::GetWindowSize());
+      window_status != ResizeChecker::Status::kResizing) {
+    thumbnail_height_ =
+        ImGui::GetContentRegionAvail().y - 2 * ImGui::GetStyle().FramePadding.y;
+    if (window_status == ResizeChecker::Status::kResized) {
+      auto_scroller_.SetNeedsRescroll();
     }
-    last_thumbnail_height_ = thumbnail_height;
   }
 
   for (int coord_id = 0; coord_id < coords_.size(); coord_id++) {
@@ -128,7 +139,7 @@ Action ThumbnailPane::Draw() {
     const auto &coord = coords_[coord_id];
     if (ImGui::ImageButton(
             tex_.get(),
-            ImVec2(thumbnail_height * coord.aspect, thumbnail_height),
+            ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
             utils::ImVec(coord.uv0), utils::ImVec(coord.uv1))) {
       if (io_.KeyCtrl && hover_checker_.AllowsMofication()) {
         action = {ActionType::kModifyPano, coord_id};
@@ -179,7 +190,6 @@ void ThumbnailPane::Reset() {
   coords_.resize(0);
   scroll_.resize(0);
   hover_checker_ = HoverChecker{};
-  scroll_id_ = 0;
 }
 
 }  // namespace xpano::gui

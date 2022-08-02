@@ -6,6 +6,7 @@
 #include <SDL.h>
 
 #include "algorithm/image.h"
+#include "constants.h"
 #include "gui/action.h"
 #include "utils/sdl_.h"
 #include "utils/vec.h"
@@ -29,6 +30,35 @@ class HoverChecker {
   int styles_pushed_ = 0;
   bool allow_modification_ = false;
   std::vector<int> highlighted_ids_;
+};
+
+class AutoScroller {
+ public:
+  void SetNeedsRescroll();
+  [[nodiscard]] bool NeedsRescroll() const;
+  void Rescroll();
+
+ private:
+  bool needs_rescroll_ = false;
+  float scroll_ratio_ = 0.0f;
+};
+
+class ResizeChecker {
+ public:
+  enum class Status {
+    kIdle,
+    kResizing,
+    kResized,
+  };
+
+  explicit ResizeChecker(int delay = kResizingDelayFrames);
+  Status Check(ImVec2 window_size);
+
+ private:
+  const int delay_;
+
+  int resizing_streak_ = 0;
+  ImVec2 window_size_ = {0, 0};
 };
 
 class ThumbnailPane {
@@ -59,13 +89,10 @@ class ThumbnailPane {
   std::vector<Coord> coords_;
   std::vector<float> scroll_;
 
-  int scroll_id_ = 0;
-  ImVec2 window_size_ = ImVec2(0, 0);
-  float last_thumbnail_height_ = 0.0f;
-  int resizing_streak_ = 0;
+  AutoScroller auto_scroller_;
+  ResizeChecker resize_checker_;
 
-  float scroll_ratio_ = 0.0f;
-  bool rescroll_ = false;
+  float thumbnail_height_ = 0.0f;
 
   HoverChecker hover_checker_;
   SDL_Renderer *renderer_;
