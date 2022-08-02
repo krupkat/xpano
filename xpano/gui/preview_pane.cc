@@ -1,5 +1,9 @@
 #include "gui/preview_pane.h"
 
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -8,10 +12,29 @@
 #include "constants.h"
 #include "utils/vec.h"
 #include "utils/vec_converters.h"
-
 namespace xpano::gui {
 
-PreviewPane::PreviewPane(SDL_Renderer *renderer) : renderer_(renderer){};
+PreviewPane::PreviewPane(SDL_Renderer *renderer) : renderer_(renderer) {
+  std::iota(zoom_.begin(), zoom_.end(), 0.0f);
+  std::transform(zoom_.begin(), zoom_.end(), zoom_.begin(),
+                 [](float exp) { return std::pow(kZoomFactor, exp); });
+};
+
+float PreviewPane::Zoom() const { return zoom_[zoom_id_]; }
+
+bool PreviewPane::IsZoomed() const { return zoom_id_ != 0; }
+
+void PreviewPane::ZoomIn() {
+  if (zoom_id_ < kZoomLevels - 1) {
+    zoom_id_++;
+  }
+}
+
+void PreviewPane::ZoomOut() {
+  if (zoom_id_ > 0) {
+    zoom_id_--;
+  }
+}
 
 void PreviewPane::Load(cv::Mat image) {
   auto texture_size = utils::Vec2i{kLoupeSize};
@@ -59,9 +82,37 @@ void PreviewPane::Draw() {
 
     auto p_min = mid - image_size / 2.0f;
     auto p_max = mid + image_size / 2.0f;
+    if (IsZoomed()) {
+      p_min = utils::ToPoint(ImGui::GetCursorScreenPos()) +
+              available_size * screen_offset_ -
+              image_size * image_offset_ * Zoom();
+      p_max = p_min + image_size * Zoom();
+    }
+
     ImGui::GetWindowDrawList()->AddImage(
         tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
         ImVec2(0.0f, 0.0f), utils::ImVec(tex_coord_));
+
+    if (ImGui::IsWindowHovered()) {
+      bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+      bool mouse_dragging = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+      float mouse_wheel = ImGui::GetIO().MouseWheel;
+
+      if (mouse_clicked || mouse_dragging || mouse_wheel != 0) {
+        auto window_start = utils::ToPoint(ImGui::GetCursorScreenPos());
+        auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
+        screen_offset_ = (mouse_pos - window_start) / available_size;
+        if (!mouse_dragging) {
+          image_offset_ = (mouse_pos - p_min) / Zoom() / image_size;
+        }
+      }
+      if (mouse_wheel > 0) {
+        ZoomIn();
+      }
+      if (mouse_wheel < 0) {
+        ZoomOut();
+      }
+    }
   }
   ImGui::End();
 }

@@ -1,6 +1,7 @@
 #include "algorithm/stitcher_pipeline.h"
 
 #include <atomic>
+#include <cstddef>
 #include <future>
 #include <optional>
 #include <string>

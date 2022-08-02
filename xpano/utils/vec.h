@@ -18,7 +18,7 @@ struct Vec {
 
   template <typename TFillType>
   requires std::same_as<TType, TFillType>
-  explicit constexpr Vec(TFillType value) : data_{} { data_.fill(value); }
+  explicit constexpr Vec(TFillType value) { data_.fill(value); }
 
   template <typename... Args>
   requires(std::same_as<TType, Args>&&...) && (sizeof...(Args) == N)
@@ -34,7 +34,7 @@ struct Vec {
   }
 
  private:
-  std::array<TType, N> data_;
+  std::array<TType, N> data_{};
 };
 
 using Vec2f = Vec<float, 2, Vector>;
