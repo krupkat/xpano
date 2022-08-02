@@ -12,4 +12,6 @@ constexpr int kWindowHeight = 800;
 
 constexpr float kZoomFactor = 2.0f;
 constexpr int kZoomLevels = 10;
+
+constexpr int kResizingDelayFrames = 30;
 }  // namespace xpano
