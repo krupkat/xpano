@@ -7,8 +7,8 @@
 #include <SDL.h>
 
 #include "constants.h"
-#include "logger.h"
-#include "pano_gui.h"
+#include "gui/pano_gui.h"
+#include "log/logger.h"
 #include "utils/imgui_.h"
 #include "utils/sdl_.h"
 

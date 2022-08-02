@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
+OPTION(BUILD_TESTING "Build tests" OFF)
+
 project(SDLTest)
+include(CTest)
 
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
@@ -17,17 +20,17 @@ set(IMGUI_SOURCES
   "external/imgui/backends/imgui_impl_sdlrenderer.cpp"
 )
 
-set (XPANO_SOURCES
+set(XPANO_SOURCES
   "xpano/main.cc"
-  "xpano/algorithm.cc"
-  "xpano/file_dialog.cc"
-  "xpano/image.cc"
-  "xpano/layout.cc"
-  "xpano/logger.cc"
-  "xpano/pano_gui.cc"
-  "xpano/preview_pane.cc"
-  "xpano/stitcher_pipeline.cc"
-  "xpano/thumbnail_pane.cc"
+  "xpano/algorithm/algorithm.cc"
+  "xpano/algorithm/image.cc"
+  "xpano/algorithm/stitcher_pipeline.cc"
+  "xpano/log/logger.cc"
+  "xpano/gui/file_dialog.cc"  
+  "xpano/gui/layout.cc"  
+  "xpano/gui/pano_gui.cc"
+  "xpano/gui/preview_pane.cc"  
+  "xpano/gui/thumbnail_pane.cc"
   "xpano/utils/imgui_.cc"
 )
 
@@ -43,6 +46,7 @@ target_include_directories(SDLTest PRIVATE
   "external/imgui" 
   "external/imgui/backends"
   "external/thread-pool"
+  "xpano"
 )
 
 target_link_libraries(SDLTest 
@@ -60,3 +64,7 @@ target_link_libraries(SDLTest
 )
 
 install(TARGETS SDLTest)
+
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()

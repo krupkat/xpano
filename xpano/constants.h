@@ -9,4 +9,7 @@ constexpr int kMatchThreshold = 70;
 
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
+
+constexpr float kZoomFactor = 2.0f;
+constexpr int kZoomLevels = 10;
 }  // namespace xpano

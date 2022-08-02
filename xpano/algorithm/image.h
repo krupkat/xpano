@@ -3,17 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <imgui.h>
 #include <opencv2/core.hpp>
 
-namespace xpano {
-
-struct Coord {
-  ImVec2 uv0;
-  ImVec2 uv1;
-  float aspect;
-  int id;
-};
+namespace xpano::algorithm {
 
 class Image {
  public:
@@ -38,4 +30,4 @@ class Image {
   cv::Mat descriptors_;
 };
 
-}  // namespace xpano
+}  // namespace xpano::algorithm

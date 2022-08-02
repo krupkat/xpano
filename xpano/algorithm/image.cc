@@ -1,4 +1,4 @@
-#include "image.h"
+#include "algorithm/image.h"
 
 #include <string>
 #include <utility>
@@ -12,7 +12,7 @@
 
 #include "constants.h"
 
-namespace xpano {
+namespace xpano::algorithm {
 namespace {
 thread_local cv::Ptr<cv::Feature2D> sift = cv::SIFT::create(kNumFeatures);
 }  // namespace
@@ -52,4 +52,4 @@ const std::vector<cv::KeyPoint>& Image::GetKeypoints() const {
 
 cv::Mat Image::GetDescriptors() const { return descriptors_; }
 
-}  // namespace xpano
+}  // namespace xpano::algorithm

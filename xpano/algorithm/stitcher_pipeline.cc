@@ -1,6 +1,7 @@
-#include "stitcher_pipeline.h"
+#include "algorithm/stitcher_pipeline.h"
 
 #include <atomic>
+#include <cstddef>
 #include <future>
 #include <optional>
 #include <string>
@@ -10,10 +11,10 @@
 #include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 
-#include "algorithm.h"
-#include "image.h"
+#include "algorithm/algorithm.h"
+#include "algorithm/image.h"
 
-namespace xpano {
+namespace xpano::algorithm {
 
 void ProgressMonitor::Monitor(int num_tasks) {
   done_ = 0;
@@ -45,8 +46,7 @@ std::future<std::optional<cv::Mat>> StitcherPipeline::RunStitching(
     imgs.push_back(data.images[img_id].GetImageData());
   }
 
-  return pool_.submit(
-      [imgs = std::move(imgs)]() { return algorithm::Stitch(imgs); });
+  return pool_.submit([imgs = std::move(imgs)]() { return Stitch(imgs); });
 }
 
 float StitcherPipeline::LoadingProgress() const {
@@ -69,21 +69,20 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
                         })
       .wait();
 
-  BS::multi_future<algorithm::Match> matches_future;
+  BS::multi_future<Match> matches_future;
   for (int i = 1; i < images.size(); i++) {
     matches_future.f.push_back(pool_.submit([this, i, &images]() {
-      auto match = algorithm::Match{
-          i - 1, i, algorithm::MatchImages(images[i - 1], images[i])};
+      auto match = Match{i - 1, i, MatchImages(images[i - 1], images[i])};
       loading_progress_.NotifyTaskDone();
       return match;
     }));
   }
 
   auto matches = matches_future.get();
-  auto panos = algorithm::FindPanos(matches);
+  auto panos = FindPanos(matches);
   loading_progress_.NotifyTaskDone();
 
   return StitcherData{images, matches, panos};
 }
 
-}  // namespace xpano
+}  // namespace xpano::algorithm

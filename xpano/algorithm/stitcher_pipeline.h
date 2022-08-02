@@ -9,10 +9,10 @@
 #include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 
-#include "algorithm.h"
-#include "image.h"
+#include "algorithm/algorithm.h"
+#include "algorithm/image.h"
 
-namespace xpano {
+namespace xpano::algorithm {
 
 struct StitcherPipelineOptions {
   int image_downsample_factor = 1;
@@ -52,4 +52,4 @@ class StitcherPipeline {
   BS::thread_pool pool_;
 };
 
-}  // namespace xpano
+}  // namespace xpano::algorithm

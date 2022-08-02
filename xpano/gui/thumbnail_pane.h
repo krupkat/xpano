@@ -5,9 +5,10 @@
 #include <imgui.h>
 #include <SDL.h>
 
-#include "action.h"
-#include "image.h"
+#include "algorithm/image.h"
+#include "gui/action.h"
 #include "utils/sdl_.h"
+#include "utils/vec.h"
 
 namespace xpano::gui {
 
@@ -18,8 +19,6 @@ class HoverChecker {
   void Highlight(const std::vector<int> &ids, bool allow_modification);
 
   [[nodiscard]] bool AllowsMofication() const;
-
-  const std::vector<int>& HighlightedIds() const { return highlighted_ids_; }
 
  private:
   [[nodiscard]] bool WasHovered(int img_id) const;
@@ -33,9 +32,15 @@ class HoverChecker {
 };
 
 class ThumbnailPane {
+  struct Coord {
+    utils::Ratio2f uv0;
+    utils::Ratio2f uv1;
+    float aspect;
+  };
+
  public:
   explicit ThumbnailPane(SDL_Renderer *renderer);
-  void Load(const std::vector<Image> &images);
+  void Load(const std::vector<algorithm::Image> &images);
   [[nodiscard]] bool Loaded() const;
 
   Action Draw();
@@ -59,8 +64,6 @@ class ThumbnailPane {
   float last_thumbnail_height_ = 0.0f;
   int resizing_streak_ = 0;
 
-  float last_scroll_x_ = 0.0f;
-  float last_scroll_x_max_ = 0.0f;
   float scroll_ratio_ = 0.0f;
   bool rescroll_ = false;
 

@@ -1,4 +1,4 @@
-#include "algorithm.h"
+#include "algorithm/algorithm.h"
 
 #include <optional>
 #include <utility>
@@ -9,8 +9,8 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/stitching.hpp>
 
+#include "algorithm/image.h"
 #include "constants.h"
-#include "image.h"
 
 namespace xpano::algorithm {
 

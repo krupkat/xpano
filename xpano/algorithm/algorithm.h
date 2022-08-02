@@ -5,7 +5,7 @@
 
 #include <opencv2/core.hpp>
 
-#include "image.h"
+#include "algorithm/image.h"
 
 namespace xpano::algorithm {
 
