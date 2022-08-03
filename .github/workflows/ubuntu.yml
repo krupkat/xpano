@@ -32,16 +32,16 @@ jobs:
     - name: Install Catch
       if: steps.cache-catch.outputs.cache-hit != 'true'
       run: |
-        git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch ${{env.CATCH_VERSION}}
+        git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
         cd catch
-        cmake -B build -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_TESTING=OFF
+        cmake -B build -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=OFF
         cmake --build build --target install
         cd ..
 
     - name: Configure CMake
       run: |
         cmake -B build \
-          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DBUILD_TESTING=ON \
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 
