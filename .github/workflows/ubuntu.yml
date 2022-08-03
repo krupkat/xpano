@@ -22,7 +22,12 @@ jobs:
           packages: libgtk-3-dev libopencv-dev libsdl2-dev
 
     - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_TESTING=ON
 
     - name: Build
       run: cmake --build build -j $(nproc)
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest
