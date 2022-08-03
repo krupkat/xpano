@@ -6,7 +6,7 @@ Tool for stitching photos.
 
 ## Build
 
-The project can be built by running a single script from the `misc/install` directory.
+The project can be built by running a single script from the `misc/install` directory. On both supported systems you will need at least CMake 3.21 and a compiler with C++20 support.
 
 ### Ubuntu
 
@@ -16,7 +16,7 @@ Library prerequisites:
 sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev
 ```
 
-Run install script from the root of the repository:
+Run the install script from the root of the repository:
 
 ```
 ./misc/install/build-ubuntu-22.04.sh
