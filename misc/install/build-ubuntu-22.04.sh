@@ -12,6 +12,7 @@ cd ..
 
 cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 

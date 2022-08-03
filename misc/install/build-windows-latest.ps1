@@ -27,6 +27,7 @@ cd ..
 
 cmake -B build `
   -DBUILD_TESTING=ON `
+  -DCMAKE_INSTALL_PREFIX=install `
   -DSDL2_DIR="sdl/install/cmake" `
   -DOpenCV_DIR="opencv/install" `
   -DCatch2_DIR="../catch/install/lib/cmake/Catch2"
