@@ -66,21 +66,22 @@ jobs:
         git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $env:CATCH_VERSION
         cd catch
         cmake -B build -DCMAKE_INSTALL_PREFIX=install -DBUILD_TESTING=OFF
-        cmake --build build --target install --config ${{env.BUILD_TYPE}}
+        cmake --build build --target install --config $env:BUILD_TYPE
         cd ..
 
     - name: Configure CMake
       run: |
         cmake -B build `
           -DBUILD_TESTING=ON `
+          -DCMAKE_INSTALL_PREFIX=install `
           -DSDL2_DIR="sdl/install/cmake" `
           -DOpenCV_DIR="opencv/install" `
           -DCatch2_DIR="../catch/install/lib/cmake/Catch2"
 
     - name: Build
-      run: cmake --build build --config ${{env.BUILD_TYPE}}
+      run: cmake --build build --config $env:BUILD_TYPE --target install
 
     - name: Run Tests
       run: |
         cd build
-        ctest -C ${{env.BUILD_TYPE}}
+        ctest -C $env:BUILD_TYPE

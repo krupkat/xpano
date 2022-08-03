@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 OPTION(BUILD_TESTING "Build tests" OFF)
 
 project(SDLTest)
@@ -63,7 +63,13 @@ target_link_libraries(SDLTest
   SDL2::SDL2main
 )
 
-install(TARGETS SDLTest)
+install(
+  TARGETS SDLTest
+)
+
+install(
+  FILES "$<TARGET_RUNTIME_DLLS:SDLTest>" TYPE BIN
+)
 
 if(BUILD_TESTING)
   add_subdirectory(tests)
