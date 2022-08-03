@@ -46,7 +46,7 @@ jobs:
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 
     - name: Build
-      run: cmake --build build -j $(nproc)
+      run: cmake --build build -j $(nproc) --target install
 
     - name: Run Tests
       run: |

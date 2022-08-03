@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 OPTION(BUILD_TESTING "Build tests" OFF)
 
 project(SDLTest)
@@ -63,7 +63,13 @@ target_link_libraries(SDLTest
   SDL2::SDL2main
 )
 
-install(TARGETS SDLTest)
+install(
+  TARGETS SDLTest 
+  RUNTIME_DEPENDENCIES
+    PRE_INCLUDE_REGEXES "^opencv_.*.dll$" "^sdl2.dll$" 
+    PRE_EXCLUDE_REGEXES ".*"
+    DIRECTORIES $<TARGET_FILE_DIR:opencv_core> $<TARGET_FILE_DIR:SDL2::SDL2>
+)
 
 if(BUILD_TESTING)
   add_subdirectory(tests)

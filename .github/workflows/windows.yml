@@ -78,7 +78,7 @@ jobs:
           -DCatch2_DIR="../catch/install/lib/cmake/Catch2"
 
     - name: Build
-      run: cmake --build build --config $env:BUILD_TYPE
+      run: cmake --build build --config $env:BUILD_TYPE --target install
 
     - name: Run Tests
       run: |
