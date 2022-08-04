@@ -69,13 +69,16 @@ target_link_libraries(SDLTest
 )
 
 copy_runtime_dlls(SDLTest)
+copy_file(SDLTest "${CMAKE_SOURCE_DIR}/external/imgui/misc/fonts/DroidSans.ttf")
 
-install(
-  TARGETS SDLTest
+install(TARGETS
+  SDLTest
 )
 
-install(
-  FILES "$<TARGET_RUNTIME_DLLS:SDLTest>" TYPE BIN
+install(FILES 
+  "$<TARGET_RUNTIME_DLLS:SDLTest>" 
+  "${CMAKE_SOURCE_DIR}/external/imgui/misc/fonts/DroidSans.ttf"
+  TYPE BIN
 )
 
 if(BUILD_TESTING)

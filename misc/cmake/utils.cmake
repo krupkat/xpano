@@ -13,3 +13,10 @@ function(copy_directory target directory)
     COMMAND_EXPAND_LISTS
   )
 endfunction()
+
+function(copy_file target file)
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${file} $<TARGET_FILE_DIR:${target}>
+    COMMAND_EXPAND_LISTS
+  )
+endfunction()

@@ -93,9 +93,7 @@ int main(int /*unused*/, char** /*unused*/) {
 
     // Handle DPI change
     if (dpi_handler.DpiChanged()) {
-      xpano::utils::imgui::ReloadFont(
-          R"(..\..\external\imgui\misc\fonts\DroidSans.ttf)",
-          dpi_handler.DpiScale());
+      xpano::utils::imgui::ReloadFont("DroidSans.ttf", dpi_handler.DpiScale());
     }
 
     // Start the Dear ImGui frame
