@@ -39,7 +39,9 @@ set(ALL_TEST_TARGETS
   VecTest
 )
 
-foreach( name ${ALL_TEST_TARGETS} )
+foreach(name ${ALL_TEST_TARGETS})
   copy_runtime_dlls(${name})
-  catch_discover_tests(${name})  
+  catch_discover_tests(${name} 
+    WORKING_DIRECTORY "$<TARGET_FILE_DIR:${name}>"
+  )
 endforeach()
