@@ -8,7 +8,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <SDL.h>
+// #include <SDL.h>
 
 #include "constants.h"
 
@@ -26,8 +26,8 @@ void Image::Load() {
   cv::resize(image_data_, preview_, cv::Size(kPreviewSize, kPreviewSize), 0, 0,
              cv::INTER_AREA);
 
-  SDL_Log("Loaded %s\nSize: %d x %d\nKeypoints: %d", path_.c_str(),
-          image_data_.size[1], image_data_.size[0], keypoints_.size());
+  // SDL_Log("Loaded %s\nSize: %d x %d\nKeypoints: %d", path_.c_str(),
+  //         image_data_.size[1], image_data_.size[0], keypoints_.size());
 }
 
 cv::Mat Image::GetPreview() const { return preview_; }
