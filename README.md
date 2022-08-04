@@ -6,7 +6,7 @@ Tool for stitching photos.
 
 ## Build
 
-The project can be built by running a single script from the `misc/install` directory. On both supported systems you will need at least CMake 3.21 and a compiler with C++20 support.
+The project can be built by running a single script from the `misc/build` directory. On both supported systems you will need at least CMake 3.21 and a compiler with C++20 support.
 
 ### Ubuntu
 
@@ -19,7 +19,7 @@ sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev
 Run the install script from the root of the repository:
 
 ```
-./misc/install/build-ubuntu-22.04.sh
+./misc/build/build-ubuntu-22.04.sh
 ```
 
 ### Windows
@@ -27,5 +27,5 @@ Run the install script from the root of the repository:
 Open the "Developer PowerShell for VS 2022" profile in Windows Terminal and run the install script from the root of the repository:
 
 ```
-./misc/install/build-windows-latest.ps1
+./misc/build/build-windows-latest.ps1
 ```
