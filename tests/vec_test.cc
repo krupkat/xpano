@@ -6,8 +6,13 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-using namespace Catch;
-using namespace xpano::utils;
+using Catch::Approx;
+using xpano::utils::Point2f;
+using xpano::utils::Point2i;
+using xpano::utils::Ratio2f;
+using xpano::utils::Ratio2i;
+using xpano::utils::Vec2f;
+using xpano::utils::Vec2i;
 
 TEMPLATE_TEST_CASE("Vec constructor + access", "[Vec]", Vec2f, Point2f,
                    Ratio2f) {

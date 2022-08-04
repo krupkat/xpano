@@ -1,3 +1,7 @@
-build/**
+build/
+install/
+opencv/
+SDL/
+catch/
+imgui.ini
 .vscode
-install/**

@@ -3,6 +3,7 @@ OPTION(BUILD_TESTING "Build tests" OFF)
 
 project(SDLTest)
 include(CTest)
+include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
@@ -49,9 +50,7 @@ target_include_directories(SDLTest PRIVATE
   "xpano"
 )
 
-target_link_libraries(SDLTest 
-  absl::strings
-  nfd
+set(OPENCV_TARGETS
   opencv_calib3d
   opencv_core
   opencv_features2d
@@ -59,9 +58,17 @@ target_link_libraries(SDLTest
   opencv_imgcodecs
   opencv_imgproc
   opencv_stitching
+)
+
+target_link_libraries(SDLTest
+  absl::strings
+  nfd
+  ${OPENCV_TARGETS}
   SDL2::SDL2
   SDL2::SDL2main
 )
+
+copy_runtime_dlls(SDLTest)
 
 install(
   TARGETS SDLTest
