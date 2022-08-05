@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
 OPTION(BUILD_TESTING "Build tests" OFF)
 
+if(XPANO_STATIC_VCRT)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 project(SDLTest)
 include(CTest)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")

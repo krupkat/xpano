@@ -27,14 +27,17 @@ jobs:
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-static-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/opencv/opencv.git --depth 1 --branch $env:OPENCV_VERSION
         cd opencv
-        cmake -B build -DCMAKE_INSTALL_PREFIX=install @(Get-Content ../misc/build/opencv_minimal_flags.txt)
+        cmake -B build `
+          -DBUILD_SHARED_LIBS=OFF `
+          -DCMAKE_INSTALL_PREFIX=install `
+          @(Get-Content ../misc/build/opencv_minimal_flags.txt)
         cmake --build build --target install --config Release
         cd ..
 
@@ -43,14 +46,17 @@ jobs:
       id: cache-sdl
       with:
         path: sdl/install
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-static
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $env:SDL_VERSION
         cd sdl
-        cmake -B build -DCMAKE_INSTALL_PREFIX=install
+        cmake -B build `
+          -DBUILD_SHARED_LIBS=OFF `
+          -DCMAKE_INSTALL_PREFIX=install `
+          -DSDL_FORCE_STATIC_VCRT=ON
         cmake --build build --target install --config Release
         cd ..
 
@@ -59,14 +65,18 @@ jobs:
       id: cache-catch
       with:
         path: catch/install
-        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-static-${{env.BUILD_TYPE}}
 
     - name: Install Catch
       if: steps.cache-catch.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $env:CATCH_VERSION
         cd catch
-        cmake -B build -DCMAKE_INSTALL_PREFIX=install -DBUILD_TESTING=OFF
+        cmake -B build `
+          -DCMAKE_INSTALL_PREFIX=install `
+          -DBUILD_TESTING=OFF `
+          -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
+          -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
         cmake --build build --target install --config $env:BUILD_TYPE
         cd ..
 
@@ -74,8 +84,10 @@ jobs:
       run: |
         cmake -B build `
           -DBUILD_TESTING=ON `
+          -DXPANO_STATIC_VCRT=ON `
           -DCMAKE_INSTALL_PREFIX=install `
           -DSDL2_DIR="sdl/install/cmake" `
+          -DOpenCV_STATIC=ON `
           -DOpenCV_DIR="opencv/install" `
           -DCatch2_DIR="../catch/install/lib/cmake/Catch2"
 
