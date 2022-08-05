@@ -7,28 +7,40 @@ $env:CATCH_VERSION = 'v3.1.0'
 
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $env:OPENCV_VERSION
 cd opencv
-cmake -B build -DCMAKE_INSTALL_PREFIX=install @(Get-Content ../misc/build/opencv_minimal_flags.txt)
+cmake -B build `
+  -DBUILD_SHARED_LIBS=OFF `
+  -DCMAKE_INSTALL_PREFIX=install `
+  @(Get-Content ../misc/build/opencv_minimal_flags.txt)
 cmake --build build --target install --config Release
 cd ..
 
 
 git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $env:SDL_VERSION
 cd sdl
-cmake -B build -DCMAKE_INSTALL_PREFIX=install
+cmake -B build `
+  -DBUILD_SHARED_LIBS=OFF `
+  -DCMAKE_INSTALL_PREFIX=install `
+  -DSDL_FORCE_STATIC_VCRT=ON
 cmake --build build --target install --config Release
 cd ..
 
 
 git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $env:CATCH_VERSION
 cd catch
-cmake -B build -DCMAKE_INSTALL_PREFIX=install -DBUILD_TESTING=OFF
+cmake -B build `
+  -DCMAKE_INSTALL_PREFIX=install `
+  -DBUILD_TESTING=OFF `
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 cmake --build build --target install --config $env:BUILD_TYPE
 cd ..
 
 cmake -B build `
   -DBUILD_TESTING=ON `
+  -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DSDL2_DIR="sdl/install/cmake" `
+  -DOpenCV_STATIC=ON `
   -DOpenCV_DIR="opencv/install" `
   -DCatch2_DIR="../catch/install/lib/cmake/Catch2"
 
