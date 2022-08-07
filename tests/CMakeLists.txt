@@ -13,6 +13,7 @@ add_executable(StitcherTest
 target_link_libraries(StitcherTest 
   Catch2::Catch2WithMain
   ${OPENCV_TARGETS}
+  spdlog::spdlog
 )
 
 target_include_directories(StitcherTest PRIVATE 

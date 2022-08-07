@@ -12,6 +12,7 @@
 #include <opencv2/features2d.hpp>
 #include <SDL.h>
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
@@ -203,7 +204,7 @@ void PanoGui::PerformAction(Action action) {
     }
     case ActionType::kShowMatch: {
       selected_match_ = action.id;
-      SDL_Log("Clicked match %d", action.id);
+      spdlog::info("Clicked match {}", action.id);
       const auto& match = stitcher_data_->matches[action.id];
       auto img = DrawMatches(match, stitcher_data_->images);
       plot_pane_.Load(img);
@@ -213,7 +214,7 @@ void PanoGui::PerformAction(Action action) {
     }
     case ActionType::kShowPano: {
       selected_pano_ = action.id;
-      SDL_Log("Clicked pano %d", action.id);
+      spdlog::info("Clicked pano {}", action.id);
       pano_future_ =
           stitcher_pipeline_.RunStitching(*stitcher_data_, action.id);
       const auto& pano = stitcher_data_->panos[selected_pano_];
@@ -247,7 +248,7 @@ void PanoGui::ResolveFutures() {
 
   if (IsReady(pano_future_)) {
     auto pano = pano_future_.get();
-    SDL_Log("Received pano");
+    spdlog::info("Received pano");
     if (pano) {
       plot_pane_.Load(*pano);
     }

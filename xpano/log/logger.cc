@@ -8,20 +8,62 @@
 
 #include <imgui.h>
 #include <SDL.h>
+#include <spdlog/common.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 namespace xpano::logger {
 
 namespace {
-void CustomLog(void *userdata, int /*category*/, SDL_LogPriority /*priority*/,
+void CustomLog(void * /*userdata*/, int /*category*/, SDL_LogPriority priority,
                const char *message) {
-  auto *logger = static_cast<Logger *>(userdata);
-  logger->Append(message);
+  switch (priority) {
+    case SDL_LOG_PRIORITY_VERBOSE:
+      spdlog::trace(message);
+      break;
+    case SDL_LOG_PRIORITY_DEBUG:
+      spdlog::debug(message);
+      break;
+    case SDL_LOG_PRIORITY_INFO:
+      spdlog::info(message);
+      break;
+    case SDL_LOG_PRIORITY_WARN:
+      spdlog::warn(message);
+      break;
+    case SDL_LOG_PRIORITY_ERROR:
+      spdlog::error(message);
+      break;
+    case SDL_LOG_PRIORITY_CRITICAL:
+      spdlog::critical(message);
+      break;
+    default:
+      spdlog::info(message);
+      break;
+  }
 }
 }  // namespace
 
-void Logger::Append(const char *message) {
-  std::lock_guard<std::mutex> lock(mut_);
-  log_tmp_.emplace_back(std::string(message));
+std::vector<std::string> BufferSinkMt::LastFormatted() {
+  std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
+  std::vector<std::string> new_messages;
+  std::swap(new_messages, messages_);
+  return new_messages;
+}
+
+void BufferSinkMt::sink_it_(const spdlog::details::log_msg &msg) {
+  spdlog::memory_buf_t formatted;
+  base_sink<std::mutex>::formatter_->format(msg, formatted);
+  messages_.push_back(fmt::to_string(formatted));
+}
+
+void BufferSinkMt::flush_() {}
+
+Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
+
+void Logger::RedirectSpdlogOutput() {
+  sink_->set_pattern("[%l] %v");
+  spdlog::set_default_logger(std::make_shared<spdlog::logger>("XPano", sink_));
 }
 
 const std::vector<std::string> &Logger::Log() {
@@ -30,11 +72,8 @@ const std::vector<std::string> &Logger::Log() {
 }
 
 void Logger::Concatenate() {
-  std::lock_guard<std::mutex> lock(mut_);
-  if (!log_tmp_.empty()) {
-    std::copy(log_tmp_.begin(), log_tmp_.end(), std::back_inserter(log_));
-    log_tmp_.resize(0);
-  }
+  auto new_messages = sink_->LastFormatted();
+  std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
 void LoggerGui::Draw() {
@@ -52,9 +91,11 @@ void LoggerGui::Draw() {
 }
 
 void LoggerGui::RedirectSDLOutput() {
-  SDL_LogSetOutputFunction(CustomLog, &logger_);
+  SDL_LogSetOutputFunction(CustomLog, nullptr);
 }
 
 void LoggerGui::RedirectOpenCVOutput() {}
+
+void LoggerGui::RedirectSpdlogOutput() { logger_.RedirectSpdlogOutput(); }
 
 }  // namespace xpano::logger
