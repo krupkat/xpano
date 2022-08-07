@@ -8,6 +8,7 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <SDL.h>
+#include <spdlog/spdlog.h>
 
 #include "algorithm/image.h"
 #include "constants.h"
@@ -110,7 +111,7 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
                                SDL_TEXTUREACCESS_STATIC, size[0], size[1]));
   SDL_UpdateTexture(tex_.get(), nullptr, atlas.data,
                     static_cast<int>(atlas.step1()));
-  SDL_Log("Success Atlas!");
+  spdlog::info("Success Atlas!");
 }
 
 bool ThumbnailPane::Loaded() const { return !coords_.empty(); }

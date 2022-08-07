@@ -6,7 +6,7 @@
 
 #include <nfd.h>
 #include <nfd.hpp>
-#include <SDL.h>
+#include <spdlog/spdlog.h>
 
 namespace xpano::gui::file_dialog {
 
@@ -22,7 +22,7 @@ std::vector<std::string> CallNfd() {
   nfdresult_t result =
       NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
   if (result == NFD_OKAY) {
-    SDL_Log("Success!");
+    spdlog::info("Success!");
 
     nfdpathsetsize_t num_paths;
     NFD::PathSet::Count(out_paths, num_paths);
@@ -33,9 +33,9 @@ std::vector<std::string> CallNfd() {
       results.emplace_back(path.get());
     }
   } else if (result == NFD_CANCEL) {
-    SDL_Log("User pressed cancel.");
+    spdlog::info("User pressed cancel.");
   } else {
-    SDL_Log("Error: %s", NFD::GetError());
+    spdlog::error("Error: %s", NFD::GetError());
   }
 
   return results;

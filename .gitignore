@@ -3,5 +3,6 @@ install/
 opencv/
 SDL/
 catch/
+spdlog/
 imgui.ini
 .vscode

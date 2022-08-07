@@ -11,6 +11,7 @@ env:
   SDL_VERSION: prerelease-2.23.1
   OPENCV_VERSION: "4.6.0"
   CATCH_VERSION: "v3.1.0"
+  SPDLOG_VERSION: "v1.10.0"
 
 jobs:
   build:
@@ -80,6 +81,24 @@ jobs:
         cmake --build build --target install --config $env:BUILD_TYPE
         cd ..
 
+    - name: Cache spdlog
+      uses: actions/cache@v3
+      id: cache-spdlog
+      with:
+        path: spdlog/build/install
+        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-static-${{env.BUILD_TYPE}}
+
+    - name: Install spdlog
+      if: steps.cache-spdlog.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/gabime/spdlog.git --depth 1 --branch $env:SPDLOG_VERSION
+        cd spdlog
+        cmake -B build `
+          -DCMAKE_INSTALL_PREFIX=build/install `
+          -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+        cmake --build build --target install --config $env:BUILD_TYPE
+        cd ..
+
     - name: Configure CMake
       run: |
         cmake -B build `
@@ -89,7 +108,8 @@ jobs:
           -DSDL2_DIR="sdl/install/cmake" `
           -DOpenCV_STATIC=ON `
           -DOpenCV_DIR="opencv/install" `
-          -DCatch2_DIR="../catch/install/lib/cmake/Catch2"
+          -Dspdlog_DIR="spdlog/build/install/lib/cmake/spdlog" `
+          -DCatch2_DIR="../catch/install/lib/cmake/Catch2" `
 
     - name: Build
       run: cmake --build build --config $env:BUILD_TYPE --target install

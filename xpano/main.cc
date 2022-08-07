@@ -5,6 +5,7 @@
 #include <imgui_impl_sdlrenderer.h>
 #include <nfd.h>
 #include <SDL.h>
+#include <spdlog/spdlog.h>
 
 #include "constants.h"
 #include "gui/pano_gui.h"
@@ -29,13 +30,14 @@ int main(int /*unused*/, char** /*unused*/) {
     return -1;
   }
 
-  if (NFD_Init() != NFD_OKAY) {
-    SDL_Log("Couldn't initialize NFD");
-  }
-
   // Setup logging
   xpano::logger::LoggerGui logger{};
+  logger.RedirectSpdlogOutput();
   logger.RedirectSDLOutput();
+
+  if (NFD_Init() != NFD_OKAY) {
+    spdlog::error("Couldn't initialize NFD");
+  }
 
   // Setup window
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
@@ -48,14 +50,14 @@ int main(int /*unused*/, char** /*unused*/) {
   SDL_Renderer* renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
   if (renderer == nullptr) {
-    SDL_Log("Error creating SDL_Renderer!");
+    spdlog::error("Error creating SDL_Renderer!");
     return 0;
   }
   SDL_RendererInfo info;
   SDL_GetRendererInfo(renderer, &info);
-  SDL_Log("Current SDL_Renderer: %s", info.name);
-  SDL_Log("Max tex width: %d", info.max_texture_width);
-  SDL_Log("Max tex height: %d", info.max_texture_height);
+  spdlog::info("Current SDL_Renderer: {}", info.name);
+  spdlog::info("Max tex width: {}", info.max_texture_width);
+  spdlog::info("Max tex height: {}", info.max_texture_height);
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
