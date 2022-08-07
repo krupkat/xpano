@@ -7,12 +7,11 @@
 #include <string>
 #include <vector>
 
-#include <absl/strings/str_cat.h>
-#include <absl/strings/str_join.h>
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <SDL.h>
+#include <spdlog/fmt/bundled/format.h>
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
@@ -36,7 +35,7 @@ bool IsReady(const std::future<TType>& future) {
 
 void DrawProgressBar(float progress) {
   int progress_int = static_cast<int>(progress * 100);
-  std::string label = absl::StrCat(progress_int, "%");
+  std::string label = fmt::format("{}%", progress_int);
   ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.f), label.c_str());
 }
 
@@ -101,7 +100,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 
   for (int i = 0; i < panos.size(); i++) {
     ImGui::TableNextColumn();
-    auto string = absl::StrJoin(panos[i].ids, ",");
+    auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
     ImGui::Text("%s", string.c_str());
     ImGui::TableNextColumn();
     ImGui::PushID(i);

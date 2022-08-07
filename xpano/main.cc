@@ -5,6 +5,7 @@
 #include <imgui_impl_sdlrenderer.h>
 #include <nfd.h>
 #include <SDL.h>
+#include <spdlog/spdlog.h>
 
 #include "constants.h"
 #include "gui/pano_gui.h"
