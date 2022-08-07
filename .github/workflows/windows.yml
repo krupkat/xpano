@@ -85,7 +85,7 @@ jobs:
       uses: actions/cache@v3
       id: cache-spdlog
       with:
-        path: spdlog/install
+        path: spdlog/build/install
         key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-static-${{env.BUILD_TYPE}}
 
     - name: Install spdlog
@@ -94,7 +94,7 @@ jobs:
         git clone https://github.com/gabime/spdlog.git --depth 1 --branch $env:SPDLOG_VERSION
         cd spdlog
         cmake -B build `
-          -DCMAKE_INSTALL_PREFIX=install_spdlog `
+          -DCMAKE_INSTALL_PREFIX=build/install `
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
         cmake --build build --target install --config $env:BUILD_TYPE
         cd ..
@@ -108,7 +108,7 @@ jobs:
           -DSDL2_DIR="sdl/install/cmake" `
           -DOpenCV_STATIC=ON `
           -DOpenCV_DIR="opencv/install" `
-          -Dspdlog_DIR="spdlog/install_spdlog/lib/cmake/spdlog" `
+          -Dspdlog_DIR="spdlog/build/install/lib/cmake/spdlog" `
           -DCatch2_DIR="../catch/install/lib/cmake/Catch2" `
 
     - name: Build
