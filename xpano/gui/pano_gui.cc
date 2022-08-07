@@ -11,7 +11,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <SDL.h>
-#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/fmt.h>
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
