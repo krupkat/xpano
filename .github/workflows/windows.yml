@@ -101,7 +101,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B build `
+        cmake -B build -G Ninja `
           -DBUILD_TESTING=ON `
           -DXPANO_STATIC_VCRT=ON `
           -DCMAKE_INSTALL_PREFIX=install `
