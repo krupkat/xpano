@@ -71,7 +71,7 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
 
   BS::multi_future<Match> matches_future;
   for (int i = 1; i < images.size(); i++) {
-    matches_future.f.push_back(pool_.submit([this, i, &images]() {
+    matches_future.push_back(pool_.submit([this, i, &images]() {
       auto match = Match{i - 1, i, MatchImages(images[i - 1], images[i])};
       loading_progress_.NotifyTaskDone();
       return match;
