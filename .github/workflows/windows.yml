@@ -12,6 +12,7 @@ env:
   OPENCV_VERSION: "4.6.0"
   CATCH_VERSION: "v3.1.0"
   SPDLOG_VERSION: "v1.10.0"
+  GENERATOR: "Ninja Multi-Config"
 
 jobs:
   build:
@@ -103,7 +104,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B build -G Ninja `
+        cmake -B build -G "$env:GENERATOR" `
           -DBUILD_TESTING=ON `
           -DXPANO_STATIC_VCRT=ON `
           -DCMAKE_INSTALL_PREFIX=install `
