@@ -23,6 +23,8 @@ jobs:
       with:
         submodules: true
 
+    - uses: ilammy/msvc-dev-cmd@v1
+
     - name: Cache OpenCV
       uses: actions/cache@v3
       id: cache-opencv
