@@ -21,6 +21,7 @@ class PreviewPane {
   [[nodiscard]] bool IsZoomed() const;
   void ZoomIn();
   void ZoomOut();
+  void ResetZoom();
 
   utils::Ratio2f tex_coord_;
 

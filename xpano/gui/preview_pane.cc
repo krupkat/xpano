@@ -37,6 +37,8 @@ void PreviewPane::ZoomOut() {
   }
 }
 
+void PreviewPane::ResetZoom() { zoom_id_ = 0; }
+
 void PreviewPane::Load(cv::Mat image) {
   auto texture_size = utils::Vec2i{kLoupeSize};
   if (!tex_) {
@@ -61,6 +63,7 @@ void PreviewPane::Load(cv::Mat image) {
   }
   backend_->UpdateTexture(tex_.get(), resized);
   tex_coord_ = coord_uv;
+  ResetZoom();
 }
 
 void PreviewPane::Draw() {
