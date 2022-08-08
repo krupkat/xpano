@@ -19,6 +19,7 @@ class Sdl final : public Base {
 
  private:
   SDL_Renderer* renderer_;
+  SDL_RendererInfo info_;
 };
 
 }  // namespace xpano::gui::backends

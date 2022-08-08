@@ -54,11 +54,6 @@ int main(int /*unused*/, char** /*unused*/) {
     spdlog::error("Error creating SDL_Renderer!");
     return 0;
   }
-  SDL_RendererInfo info;
-  SDL_GetRendererInfo(renderer, &info);
-  spdlog::info("Current SDL_Renderer: {}", info.name);
-  spdlog::info("Max tex width: {}", info.max_texture_width);
-  spdlog::info("Max tex height: {}", info.max_texture_height);
   xpano::gui::backends::Sdl backend{renderer};
 
   // Setup Dear ImGui context
