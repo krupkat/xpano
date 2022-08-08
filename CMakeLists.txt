@@ -30,6 +30,8 @@ set(XPANO_SOURCES
   "xpano/algorithm/image.cc"
   "xpano/algorithm/stitcher_pipeline.cc"
   "xpano/log/logger.cc"
+  "xpano/gui/backends/base.cc"
+  "xpano/gui/backends/sdl.cc"
   "xpano/gui/file_dialog.cc"  
   "xpano/gui/layout.cc"  
   "xpano/gui/pano_gui.cc"

@@ -6,12 +6,6 @@
 
 namespace xpano::utils::sdl {
 
-struct TexDeleter {
-  void operator()(SDL_Texture* tex) { SDL_DestroyTexture(tex); }
-};
-
-using Texture = std::unique_ptr<SDL_Texture, TexDeleter>;
-
 class DpiHandler {
  public:
   explicit DpiHandler(SDL_Window* window) : window_(window) {}

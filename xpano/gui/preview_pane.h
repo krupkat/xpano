@@ -3,17 +3,16 @@
 #include <array>
 
 #include <opencv2/core.hpp>
-#include <SDL.h>
 
 #include "constants.h"
-#include "utils/sdl_.h"
+#include "gui/backends/base.h"
 #include "utils/vec.h"
 
 namespace xpano::gui {
 
 class PreviewPane {
  public:
-  explicit PreviewPane(SDL_Renderer *renderer);
+  explicit PreviewPane(backends::Base* backend);
   void Load(cv::Mat image);
   void Draw();
 
@@ -23,7 +22,6 @@ class PreviewPane {
   void ZoomIn();
   void ZoomOut();
 
-  utils::sdl::Texture tex_;
   utils::Ratio2f tex_coord_;
 
   int zoom_id_ = 0;
@@ -32,7 +30,8 @@ class PreviewPane {
   utils::Ratio2f image_offset_;
   utils::Ratio2f screen_offset_;
 
-  SDL_Renderer *renderer_;
+  backends::Texture tex_;
+  backends::Base* backend_;
 };
 
 }  // namespace xpano::gui
