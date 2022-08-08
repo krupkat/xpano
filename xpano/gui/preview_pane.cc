@@ -7,14 +7,15 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <SDL.h>
 
 #include "constants.h"
+#include "gui/backends/base.h"
 #include "utils/vec.h"
 #include "utils/vec_converters.h"
+
 namespace xpano::gui {
 
-PreviewPane::PreviewPane(SDL_Renderer *renderer) : renderer_(renderer) {
+PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
   std::iota(zoom_.begin(), zoom_.end(), 0.0f);
   std::transform(zoom_.begin(), zoom_.end(), zoom_.begin(),
                  [](float exp) { return std::pow(kZoomFactor, exp); });
@@ -39,9 +40,7 @@ void PreviewPane::ZoomOut() {
 void PreviewPane::Load(cv::Mat image) {
   auto texture_size = utils::Vec2i{kLoupeSize};
   if (!tex_) {
-    tex_.reset(SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
-                                 SDL_TEXTUREACCESS_STATIC, texture_size[0],
-                                 texture_size[1]));
+    tex_ = backend_->CreateTexture(texture_size);
   }
 
   int larger_dim = image.size[0] > image.size[1] ? 0 : 1;
@@ -60,10 +59,7 @@ void PreviewPane::Load(cv::Mat image) {
     resized = image;
     coord_uv = utils::ToIntVec(image.size) / texture_size;
   }
-  auto target =
-      utils::SdlRect(utils::Point2i{0}, utils::ToIntVec(resized.size));
-  SDL_UpdateTexture(tex_.get(), &target, resized.data,
-                    static_cast<int>(resized.step1()));
+  backend_->UpdateTexture(tex_.get(), resized);
   tex_coord_ = coord_uv;
 }
 

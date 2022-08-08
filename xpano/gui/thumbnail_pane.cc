@@ -7,12 +7,12 @@
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
-#include <SDL.h>
 #include <spdlog/spdlog.h>
 
 #include "algorithm/image.h"
 #include "constants.h"
 #include "gui/action.h"
+#include "gui/backends/base.h"
 #include "utils/vec.h"
 #include "utils/vec_converters.h"
 
@@ -85,7 +85,7 @@ ResizeChecker::Status ResizeChecker::Check(ImVec2 window_size) {
   return Status::kIdle;
 }
 
-ThumbnailPane::ThumbnailPane(SDL_Renderer *renderer) : renderer_(renderer) {}
+ThumbnailPane::ThumbnailPane(backends::Base *backend) : backend_(backend) {}
 
 void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   int num_images = static_cast<int>(images.size());
@@ -107,10 +107,9 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
     coords_.emplace_back(coord);
   }
   scroll_.resize(coords_.size());
-  tex_.reset(SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
-                               SDL_TEXTUREACCESS_STATIC, size[0], size[1]));
-  SDL_UpdateTexture(tex_.get(), nullptr, atlas.data,
-                    static_cast<int>(atlas.step1()));
+
+  tex_ = backend_->CreateTexture(size);
+  backend_->UpdateTexture(tex_.get(), atlas);
   spdlog::info("Success Atlas!");
 }
 
@@ -133,13 +132,14 @@ Action ThumbnailPane::Draw() {
     }
   }
 
+  auto *texture = tex_.get();
   for (int coord_id = 0; coord_id < coords_.size(); coord_id++) {
     ImGui::PushID(coord_id);
     hover_checker_.SetColor(coord_id);
     float scroll_pre = ImGui::GetCursorPosX();
     const auto &coord = coords_[coord_id];
     if (ImGui::ImageButton(
-            tex_.get(),
+            texture,
             ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
             utils::ImVec(coord.uv0), utils::ImVec(coord.uv1))) {
       if (io_.KeyCtrl && hover_checker_.AllowsMofication()) {

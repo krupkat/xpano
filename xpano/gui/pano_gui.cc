@@ -10,7 +10,6 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
-#include <SDL.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
@@ -18,6 +17,7 @@
 #include "algorithm/image.h"
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
+#include "gui/backends/base.h"
 #include "gui/file_dialog.h"
 #include "gui/layout.h"
 #include "gui/preview_pane.h"
@@ -129,8 +129,8 @@ Action CheckKeybindings() {
 
 }  // namespace
 
-PanoGui::PanoGui(SDL_Renderer* renderer, logger::LoggerGui* logger)
-    : plot_pane_(renderer), thumbnail_pane_(renderer), logger_(logger) {}
+PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger)
+    : plot_pane_(backend), thumbnail_pane_(backend), logger_(logger) {}
 
 void PanoGui::Run() {
   auto action = DrawGui();

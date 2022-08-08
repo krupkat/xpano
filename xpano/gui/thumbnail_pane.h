@@ -3,12 +3,11 @@
 #include <vector>
 
 #include <imgui.h>
-#include <SDL.h>
 
 #include "algorithm/image.h"
 #include "constants.h"
 #include "gui/action.h"
-#include "utils/sdl_.h"
+#include "gui/backends/base.h"
 #include "utils/vec.h"
 
 namespace xpano::gui {
@@ -69,7 +68,7 @@ class ThumbnailPane {
   };
 
  public:
-  explicit ThumbnailPane(SDL_Renderer *renderer);
+  explicit ThumbnailPane(backends::Base *backend);
   void Load(const std::vector<algorithm::Image> &images);
   [[nodiscard]] bool Loaded() const;
 
@@ -85,7 +84,6 @@ class ThumbnailPane {
   void Reset();
 
  private:
-  utils::sdl::Texture tex_;
   std::vector<Coord> coords_;
   std::vector<float> scroll_;
 
@@ -95,7 +93,9 @@ class ThumbnailPane {
   float thumbnail_height_ = 0.0f;
 
   HoverChecker hover_checker_;
-  SDL_Renderer *renderer_;
+
+  backends::Texture tex_;
+  backends::Base *backend_;
 
   ImGuiIO &io_ = ImGui::GetIO();
 };

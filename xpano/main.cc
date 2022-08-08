@@ -8,6 +8,7 @@
 #include <spdlog/spdlog.h>
 
 #include "constants.h"
+#include "gui/backends/sdl.h"
 #include "gui/pano_gui.h"
 #include "log/logger.h"
 #include "utils/imgui_.h"
@@ -58,6 +59,7 @@ int main(int /*unused*/, char** /*unused*/) {
   spdlog::info("Current SDL_Renderer: {}", info.name);
   spdlog::info("Max tex width: {}", info.max_texture_width);
   spdlog::info("Max tex height: {}", info.max_texture_height);
+  xpano::gui::backends::Sdl backend{renderer};
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -73,7 +75,7 @@ int main(int /*unused*/, char** /*unused*/) {
 
   // Our state
   SDL_Color clear_color{114, 140, 165, 255};
-  xpano::gui::PanoGui gui(renderer, &logger);
+  xpano::gui::PanoGui gui(&backend, &logger);
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);
 

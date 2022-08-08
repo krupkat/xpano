@@ -4,10 +4,10 @@
 #include <optional>
 
 #include <opencv2/core.hpp>
-#include <SDL.h>
 
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
+#include "gui/backends/base.h"
 #include "gui/layout.h"
 #include "gui/preview_pane.h"
 #include "gui/thumbnail_pane.h"
@@ -17,7 +17,7 @@ namespace xpano::gui {
 
 class PanoGui {
  public:
-  explicit PanoGui(SDL_Renderer* renderer, logger::LoggerGui* logger);
+  explicit PanoGui(backends::Base* backend, logger::LoggerGui* logger);
 
   void Run();
 

@@ -3,7 +3,6 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
-
 #include <type_traits>
 
 namespace xpano::utils {
