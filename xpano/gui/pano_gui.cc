@@ -162,17 +162,20 @@ void PanoGui::PerformAction(Action action) {
       if (selected_pano_ >= 0) {
         spdlog::info("Exporting pano {}", selected_pano_);
         info_message_.clear();
-        pano_future_ = stitcher_pipeline_.RunStitching(
-            *stitcher_data_, {.pano_id = selected_pano_,
-                              .full_res = true,
-                              .export_path = "export.jpg"});
+        auto export_path = file_dialog::Save();
+        if (export_path) {
+          pano_future_ = stitcher_pipeline_.RunStitching(
+              *stitcher_data_, {.pano_id = selected_pano_,
+                                .full_res = true,
+                                .export_path = *export_path});
+        }
       }
       break;
     }
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      if (auto results = file_dialog::CallNfd(action); !results.empty()) {
+      if (auto results = file_dialog::Open(action); !results.empty()) {
         stitcher_data_.reset();
         thumbnail_pane_.Reset();
         info_message_.clear();

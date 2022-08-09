@@ -77,7 +77,7 @@ std::string LowercaseExtension(const std::filesystem::path& path) {
 
 }  // namespace
 
-std::vector<std::string> CallNfd(Action action) {
+std::vector<std::string> Open(Action action) {
   std::vector<std::filesystem::path> paths;
 
   if (action.type == ActionType::kOpenFiles) {
@@ -103,6 +103,28 @@ std::vector<std::string> CallNfd(Action action) {
       valid_paths.begin(), valid_paths.end(), std::back_inserter(results),
       [](const std::filesystem::path& path) { return path.string(); });
   return results;
+}
+
+std::optional<std::string> Save() {
+  NFD::UniquePath out_path;
+  std::array<nfdfilteritem_t, 1> filter_item;
+  auto extensions = fmt::to_string(fmt::join(kSupportedExtensions, ","));
+  filter_item[0] = {"Images", extensions.c_str()};
+
+  std::string default_path;
+  std::string default_name = "example.jpg";
+
+  nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
+                                       default_name.c_str());
+  if (result == NFD_OKAY) {
+    spdlog::info("Picked save file");
+    return {out_path.get()};
+  } else if (result == NFD_CANCEL) {
+    spdlog::info("User pressed cancel.");
+  } else {
+    spdlog::error("Error: %s", NFD::GetError());
+  }
+  return {};
 }
 
 }  // namespace xpano::gui::file_dialog
