@@ -10,8 +10,8 @@
 #include "gui/action.h"
 #include "gui/backends/base.h"
 #include "gui/layout.h"
-#include "gui/preview_pane.h"
-#include "gui/thumbnail_pane.h"
+#include "gui/panels/preview_pane.h"
+#include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
 
 namespace xpano::gui {

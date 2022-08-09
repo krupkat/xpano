@@ -1,4 +1,4 @@
-#include "gui/preview_pane.h"
+#include "gui/panels/preview_pane.h"
 
 #include <algorithm>
 #include <cmath>

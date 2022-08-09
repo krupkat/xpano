@@ -34,9 +34,10 @@ set(XPANO_SOURCES
   "xpano/gui/backends/sdl.cc"
   "xpano/gui/file_dialog.cc"  
   "xpano/gui/layout.cc"  
-  "xpano/gui/pano_gui.cc"
-  "xpano/gui/preview_pane.cc"  
-  "xpano/gui/thumbnail_pane.cc"
+  "xpano/gui/panels/preview_pane.cc"
+  "xpano/gui/panels/sidebar.cc"
+  "xpano/gui/panels/thumbnail_pane.cc"
+  "xpano/gui/pano_gui.cc"  
   "xpano/utils/imgui_.cc"
 )
 

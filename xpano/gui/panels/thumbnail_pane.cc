@@ -1,4 +1,4 @@
-#include "gui/thumbnail_pane.h"
+#include "gui/panels/thumbnail_pane.h"
 
 #include <algorithm>
 #include <functional>
