@@ -16,9 +16,8 @@ class HoverChecker {
  public:
   void SetColor(int img_id);
   void ResetColor(int img_id, bool ctrl_pressed);
-  void Highlight(const std::vector<int> &ids, bool allow_modification);
-
-  [[nodiscard]] bool AllowsMofication() const;
+  void Highlight(const std::vector<int> &ids);
+  void DisableHighlight();
 
  private:
   [[nodiscard]] bool WasHovered(int img_id) const;
@@ -27,7 +26,6 @@ class HoverChecker {
 
   int hover_id_ = -1;
   int styles_pushed_ = 0;
-  bool allow_modification_ = false;
   std::vector<int> highlighted_ids_;
 };
 
@@ -73,17 +71,23 @@ class ThumbnailPane {
   [[nodiscard]] bool Loaded() const;
 
   Action Draw();
+
+  void ThumbnailTooltip(const std::vector<int> &images) const;
+
   void SetScrollX(int img_id);
   void SetScrollX(int id1, int id2);
   void SetScrollX(const std::vector<int> &ids);
 
   void Highlight(int img_id);
   void Highlight(int id1, int id2);
-  void Highlight(const std::vector<int> &ids, bool allow_modification = false);
+  void Highlight(const std::vector<int> &ids);
+  void DisableHighlight();
 
   void Reset();
 
  private:
+  bool ThumbnailButton(int img_id, float height) const;
+
   std::vector<Coord> coords_;
   std::vector<float> scroll_;
 

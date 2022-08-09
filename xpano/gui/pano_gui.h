@@ -28,6 +28,9 @@ class PanoGui {
   void PerformAction(Action action);
   void ResolveFutures();
 
+  void ModifyPano(Action action);
+
+  int selected_image_ = -1;
   int selected_pano_ = -1;
   int selected_match_ = -1;
 

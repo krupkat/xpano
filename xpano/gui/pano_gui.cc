@@ -56,45 +56,46 @@ cv::Mat DrawMatches(const algorithm::Match& match,
 
 Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
                        int highlight_id) {
-  ImGui::Separator();
-  ImGui::BeginTable("table1", 3);
-
-  ImGui::TableSetupColumn("Matched");
-  ImGui::TableSetupColumn("Inliers");
-  ImGui::TableSetupColumn("Action");
-  ImGui::TableHeadersRow();
-
   Action action{};
+  ImGui::Separator();
+  if (ImGui::TreeNodeEx("Debug info", ImGuiTreeNodeFlags_NoTreePushOnOpen |
+                                          ImGuiTreeNodeFlags_SpanAvailWidth)) {
+    ImGui::BeginTable("table1", 3);
 
-  for (int i = 0; i < matches.size(); i++) {
-    ImGui::TableNextColumn();
-    ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
-    ImGui::TableNextColumn();
-    ImGui::Text("%d", matches[i].matches.size());
-    ImGui::TableNextColumn();
-    ImGui::PushID(i);
-    if (ImGui::SmallButton("Show")) {
-      action = {ActionType::kShowMatch, i};
-    }
-    ImGui::PopID();
+    ImGui::TableSetupColumn("Matched");
+    ImGui::TableSetupColumn("Inliers");
+    ImGui::TableSetupColumn("Action");
+    ImGui::TableHeadersRow();
 
-    if (i == highlight_id || ImGui::IsItemHovered()) {
-      ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
+    for (int i = 0; i < matches.size(); i++) {
+      ImGui::TableNextColumn();
+      ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
+      ImGui::TableNextColumn();
+      ImGui::Text("%d", matches[i].matches.size());
+      ImGui::TableNextColumn();
+      ImGui::PushID(i);
+      if (ImGui::SmallButton("Show")) {
+        action = {ActionType::kShowMatch, i};
+      }
+      ImGui::PopID();
+
+      if (i == highlight_id || ImGui::IsItemHovered()) {
+        ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
+      }
     }
+    ImGui::EndTable();
   }
-
-  ImGui::EndTable();
   return action;
 }
 
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
-                     int highlight_id) {
-  ImGui::Separator();
-  ImGui::BeginTable("table2", 2);
-
-  ImGui::TableSetupColumn("Pano");
-  ImGui::TableSetupColumn("Action");
+                     const ThumbnailPane& thumbnail_pane, int highlight_id) {
+  ImGui::Text("Panos:");
+  ImGui::BeginTable("table2", 3);
+  ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
+  ImGui::TableSetupColumn("Done", ImGuiTableColumnFlags_WidthFixed);
+  ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed);
   ImGui::TableHeadersRow();
 
   Action action{};
@@ -103,6 +104,8 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
     ImGui::TableNextColumn();
     auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
     ImGui::Text("%s", string.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text("x");
     ImGui::TableNextColumn();
     ImGui::PushID(i);
     if (ImGui::SmallButton("Show")) {
@@ -114,8 +117,11 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
       ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
     }
-  }
 
+    if (ImGui::IsItemHovered()) {
+      thumbnail_pane.ThumbnailTooltip(panos[i].ids);
+    }
+  }
   ImGui::EndTable();
   return action;
 }
@@ -167,7 +173,8 @@ Action PanoGui::DrawSidebar() {
   }
 
   if (stitcher_data_) {
-    action |= DrawPanosMenu(stitcher_data_->panos, selected_pano_);
+    action |=
+        DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
     action |= DrawMatchesMenu(stitcher_data_->matches, selected_match_);
   }
   ImGui::End();
@@ -180,8 +187,54 @@ void PanoGui::ResetSelections(Action action) {
     return;
   }
 
+  selected_image_ = -1;
   selected_pano_ = -1;
   selected_match_ = -1;
+}
+
+void PanoGui::ModifyPano(Action action) {
+  // Pano is being edited
+  if (selected_pano_ >= 0) {
+    auto& pano = stitcher_data_->panos[selected_pano_];
+    auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.id);
+    if (iter == pano.ids.end()) {
+      pano.ids.push_back(action.id);
+    } else {
+      pano.ids.erase(iter);
+    }
+    // Pano was deleted
+    if (pano.ids.empty()) {
+      auto pano_iter = stitcher_data_->panos.begin() + selected_pano_;
+      stitcher_data_->panos.erase(pano_iter);
+      selected_pano_ = -1;
+      thumbnail_pane_.DisableHighlight();
+    } else {
+      thumbnail_pane_.Highlight(pano.ids);
+    }
+  }
+
+  if (selected_image_ >= 0) {
+    // Deselect image
+    if (selected_image_ == action.id) {
+      selected_image_ = -1;
+      thumbnail_pane_.DisableHighlight();
+      return;
+    }
+
+    // Start a new pano from selected image
+    auto new_pano =
+        algorithm::Pano(std::vector<int>({selected_image_, action.id}));
+    stitcher_data_->panos.push_back(new_pano);
+    thumbnail_pane_.Highlight(new_pano.ids);
+    selected_pano_ = stitcher_data_->panos.size() - 1;
+    selected_image_ = -1;
+  }
+
+  // Queue pano stitching
+  if (selected_pano_ >= 0) {
+    pano_future_ =
+        stitcher_pipeline_.RunStitching(*stitcher_data_, selected_pano_);
+  }
 }
 
 void PanoGui::PerformAction(Action action) {
@@ -194,12 +247,6 @@ void PanoGui::PerformAction(Action action) {
       stitcher_data_.reset();
       thumbnail_pane_.Reset();
       stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
-      break;
-    }
-    case ActionType::kShowImage: {
-      const auto& img = stitcher_data_->images[action.id];
-      plot_pane_.Load(img.Draw());
-      thumbnail_pane_.Highlight(action.id);
       break;
     }
     case ActionType::kShowMatch: {
@@ -219,18 +266,21 @@ void PanoGui::PerformAction(Action action) {
           stitcher_pipeline_.RunStitching(*stitcher_data_, action.id);
       const auto& pano = stitcher_data_->panos[selected_pano_];
       thumbnail_pane_.SetScrollX(pano.ids);
-      thumbnail_pane_.Highlight(pano.ids, true);
+      thumbnail_pane_.Highlight(pano.ids);
       break;
     }
     case ActionType::kModifyPano: {
-      auto& pano = stitcher_data_->panos[selected_pano_];
-      auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.id);
-      if (iter == pano.ids.end()) {
-        pano.ids.push_back(action.id);
-      } else {
-        pano.ids.erase(iter);
+      if (selected_image_ >= 0 || selected_pano_ >= 0 || selected_match_ >= 0) {
+        ModifyPano(action);
+        break;
       }
-      thumbnail_pane_.Highlight(pano.ids, true);
+      [[fallthrough]];
+    }
+    case ActionType::kShowImage: {
+      selected_image_ = action.id;
+      const auto& img = stitcher_data_->images[action.id];
+      plot_pane_.Load(img.Draw());
+      thumbnail_pane_.Highlight(action.id);
       break;
     }
     case ActionType::kToggleDebugLog: {
