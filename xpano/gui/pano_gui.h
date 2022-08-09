@@ -19,15 +19,19 @@ class PanoGui {
  public:
   explicit PanoGui(backends::Base* backend, logger::LoggerGui* logger);
 
-  void Run();
+  bool Run();
 
  private:
   Action DrawGui();
   Action DrawSidebar();
+  Action DrawMenu();
   void ResetSelections(Action action);
   void PerformAction(Action action);
   void ResolveFutures();
 
+  void ModifyPano(Action action);
+
+  int selected_image_ = -1;
   int selected_pano_ = -1;
   int selected_match_ = -1;
 

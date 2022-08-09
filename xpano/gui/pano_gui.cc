@@ -55,16 +55,13 @@ cv::Mat DrawMatches(const algorithm::Match& match,
 }
 
 Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
-                       int highlight_id) {
-  ImGui::Separator();
+                       const ThumbnailPane& thumbnail_pane, int highlight_id) {
+  Action action{};
   ImGui::BeginTable("table1", 3);
-
   ImGui::TableSetupColumn("Matched");
   ImGui::TableSetupColumn("Inliers");
   ImGui::TableSetupColumn("Action");
   ImGui::TableHeadersRow();
-
-  Action action{};
 
   for (int i = 0; i < matches.size(); i++) {
     ImGui::TableNextColumn();
@@ -82,27 +79,31 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
       ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
     }
-  }
 
+    if (ImGui::IsItemHovered()) {
+      thumbnail_pane.ThumbnailTooltip({matches[i].id1, matches[i].id2});
+    }
+  }
   ImGui::EndTable();
   return action;
 }
 
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
-                     int highlight_id) {
-  ImGui::Separator();
-  ImGui::BeginTable("table2", 2);
-
-  ImGui::TableSetupColumn("Pano");
-  ImGui::TableSetupColumn("Action");
+                     const ThumbnailPane& thumbnail_pane, int highlight_id) {
+  ImGui::BeginTable("table2", 3);
+  ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
+  ImGui::TableSetupColumn("Done", ImGuiTableColumnFlags_WidthFixed);
+  ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed);
   ImGui::TableHeadersRow();
 
   Action action{};
 
   for (int i = 0; i < panos.size(); i++) {
     ImGui::TableNextColumn();
-    auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
+    auto string = fmt::to_string(fmt::join(panos[i].ids, ","));
     ImGui::Text("%s", string.c_str());
+    ImGui::TableNextColumn();
+    ImGui::Text(panos[i].exported ? "x" : " ");
     ImGui::TableNextColumn();
     ImGui::PushID(i);
     if (ImGui::SmallButton("Show")) {
@@ -114,14 +115,24 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
       ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
     }
-  }
 
+    if (ImGui::IsItemHovered()) {
+      thumbnail_pane.ThumbnailTooltip(panos[i].ids);
+    }
+  }
   ImGui::EndTable();
   return action;
 }
 
 Action CheckKeybindings() {
-  if (ImGui::IsKeyReleased(ImGuiKey_D)) {
+  bool ctrl = ImGui::GetIO().KeyCtrl;
+  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_O)) {
+    return {ActionType::kOpenFiles};
+  }
+  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_S)) {
+    return {ActionType::kExport};
+  }
+  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_D)) {
     return {ActionType::kToggleDebugLog};
   }
   return {ActionType::kNone};
@@ -132,7 +143,7 @@ Action CheckKeybindings() {
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger)
     : plot_pane_(backend), thumbnail_pane_(backend), logger_(logger) {}
 
-void PanoGui::Run() {
+bool PanoGui::Run() {
   auto action = DrawGui();
   action |= CheckKeybindings();
   if (action.type != ActionType::kNone) {
@@ -140,6 +151,7 @@ void PanoGui::Run() {
     PerformAction(action);
   }
   ResolveFutures();
+  return action.type == ActionType::kQuit;
 }
 
 Action PanoGui::DrawGui() {
@@ -147,28 +159,62 @@ Action PanoGui::DrawGui() {
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
   plot_pane_.Draw();
-  if (layout_.ShowLogger()) {
+  if (layout_.ShowDebugInfo()) {
     logger_->Draw();
   }
   return action;
 }
 
-Action PanoGui::DrawSidebar() {
-  ImGui::Begin("PanoSweep");
-  ImGui::Text("Welcome to PanoSweep");
+Action PanoGui::DrawMenu() {
   Action action{};
-
-  if (ImGui::Button("Open")) {
-    action |= {ActionType::kOpenFiles};
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Open files", "CTRL+O")) {
+        action |= {ActionType::kOpenFiles};
+      }
+      if (ImGui::MenuItem("Open directory")) {
+        action |= {ActionType::kOpenDirectory};
+      }
+      if (ImGui::MenuItem("Export", "CTRL+S")) {
+        action |= {ActionType::kExport};
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Quit")) {
+        action |= {ActionType::kQuit};
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Options")) {
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("View")) {
+      if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
+        action |= {ActionType::kToggleDebugLog};
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
   }
+  return action;
+}
+
+Action PanoGui::DrawSidebar() {
+  Action action{};
+  ImGui::Begin("PanoSweep", nullptr, ImGuiWindowFlags_MenuBar);
+  action |= DrawMenu();
+  ImGui::Text("Welcome to PanoSweep");
 
   if (float progress = stitcher_pipeline_.LoadingProgress(); progress > 0.0f) {
     DrawProgressBar(progress);
   }
 
   if (stitcher_data_) {
-    action |= DrawPanosMenu(stitcher_data_->panos, selected_pano_);
-    action |= DrawMatchesMenu(stitcher_data_->matches, selected_match_);
+    action |=
+        DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
+    if (layout_.ShowDebugInfo()) {
+      action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
+                                selected_match_);
+    }
   }
   ImGui::End();
   return action;
@@ -176,30 +222,82 @@ Action PanoGui::DrawSidebar() {
 
 void PanoGui::ResetSelections(Action action) {
   if (action.type == ActionType::kModifyPano ||
-      action.type == ActionType::kToggleDebugLog) {
+      action.type == ActionType::kToggleDebugLog ||
+      action.type == ActionType::kExport) {
     return;
   }
 
+  selected_image_ = -1;
   selected_pano_ = -1;
   selected_match_ = -1;
 }
 
+void PanoGui::ModifyPano(Action action) {
+  // Pano is being edited
+  if (selected_pano_ >= 0) {
+    auto& pano = stitcher_data_->panos[selected_pano_];
+    auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.id);
+    if (iter == pano.ids.end()) {
+      pano.ids.push_back(action.id);
+    } else {
+      pano.ids.erase(iter);
+    }
+    // Pano was deleted
+    if (pano.ids.empty()) {
+      auto pano_iter = stitcher_data_->panos.begin() + selected_pano_;
+      stitcher_data_->panos.erase(pano_iter);
+      selected_pano_ = -1;
+      thumbnail_pane_.DisableHighlight();
+    } else {
+      thumbnail_pane_.Highlight(pano.ids);
+    }
+  }
+
+  if (selected_image_ >= 0) {
+    // Deselect image
+    if (selected_image_ == action.id) {
+      selected_image_ = -1;
+      thumbnail_pane_.DisableHighlight();
+      return;
+    }
+
+    // Start a new pano from selected image
+    auto new_pano =
+        algorithm::Pano(std::vector<int>({selected_image_, action.id}));
+    stitcher_data_->panos.push_back(new_pano);
+    thumbnail_pane_.Highlight(new_pano.ids);
+    selected_pano_ = stitcher_data_->panos.size() - 1;
+    selected_image_ = -1;
+  }
+
+  // Queue pano stitching
+  if (selected_pano_ >= 0) {
+    pano_future_ =
+        stitcher_pipeline_.RunStitching(*stitcher_data_, selected_pano_);
+  }
+}
+
 void PanoGui::PerformAction(Action action) {
   switch (action.type) {
-    case ActionType::kNone: {
+    default: {
       break;
     }
+    case ActionType::kExport: {
+      if (selected_pano_ >= 0) {
+        auto& pano = stitcher_data_->panos[selected_pano_];
+        pano.exported = true;
+        spdlog::info("Exporting pano {}", selected_pano_);
+      }
+      break;
+    }
+    case ActionType::kOpenDirectory:
+      [[fallthrough]];
     case ActionType::kOpenFiles: {
-      auto results = file_dialog::CallNfd();
-      stitcher_data_.reset();
-      thumbnail_pane_.Reset();
-      stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
-      break;
-    }
-    case ActionType::kShowImage: {
-      const auto& img = stitcher_data_->images[action.id];
-      plot_pane_.Load(img.Draw());
-      thumbnail_pane_.Highlight(action.id);
+      if (auto results = file_dialog::CallNfd(action); !results.empty()) {
+        stitcher_data_.reset();
+        thumbnail_pane_.Reset();
+        stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
+      }
       break;
     }
     case ActionType::kShowMatch: {
@@ -219,22 +317,25 @@ void PanoGui::PerformAction(Action action) {
           stitcher_pipeline_.RunStitching(*stitcher_data_, action.id);
       const auto& pano = stitcher_data_->panos[selected_pano_];
       thumbnail_pane_.SetScrollX(pano.ids);
-      thumbnail_pane_.Highlight(pano.ids, true);
+      thumbnail_pane_.Highlight(pano.ids);
       break;
     }
     case ActionType::kModifyPano: {
-      auto& pano = stitcher_data_->panos[selected_pano_];
-      auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.id);
-      if (iter == pano.ids.end()) {
-        pano.ids.push_back(action.id);
-      } else {
-        pano.ids.erase(iter);
+      if (selected_image_ >= 0 || selected_pano_ >= 0 || selected_match_ >= 0) {
+        ModifyPano(action);
+        break;
       }
-      thumbnail_pane_.Highlight(pano.ids, true);
+      [[fallthrough]];
+    }
+    case ActionType::kShowImage: {
+      selected_image_ = action.id;
+      const auto& img = stitcher_data_->images[action.id];
+      plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
+      thumbnail_pane_.Highlight(action.id);
       break;
     }
     case ActionType::kToggleDebugLog: {
-      layout_.ToggleLogger();
+      layout_.ToggleDebugInfo();
       break;
     }
   }

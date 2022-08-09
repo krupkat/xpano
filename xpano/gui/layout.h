@@ -6,11 +6,11 @@ class Layout {
  public:
   void Begin();
 
-  void ToggleLogger();
-  [[nodiscard]] bool ShowLogger() const;
+  void ToggleDebugInfo();
+  [[nodiscard]] bool ShowDebugInfo() const;
 
  private:
-  bool show_logger_ = false;
+  bool show_debug_info_ = false;
 };
 
 }  // namespace xpano::gui

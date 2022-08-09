@@ -11,6 +11,7 @@ namespace xpano::algorithm {
 
 struct Pano {
   std::vector<int> ids;
+  bool exported = false;
 };
 
 struct Match {

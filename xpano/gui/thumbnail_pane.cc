@@ -22,7 +22,7 @@ void HoverChecker::SetColor(int img_id) {
   bool highlighted = std::find(highlighted_ids_.begin(), highlighted_ids_.end(),
                                img_id) != highlighted_ids_.end();
 
-  if (WasHovered(img_id) && allow_modification_) {
+  if (WasHovered(img_id)) {
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, highlighted
                                                       ? ImVec4(0.75, 0, 0, 1)
                                                       : ImVec4(0, 0.75, 0, 1));
@@ -45,13 +45,11 @@ void HoverChecker::ResetColor(int img_id, bool ctrl_pressed) {
   }
 }
 
-void HoverChecker::Highlight(const std::vector<int> &ids,
-                             bool allow_modification) {
+void HoverChecker::Highlight(const std::vector<int> &ids) {
   highlighted_ids_ = ids;
-  allow_modification_ = allow_modification;
 }
 
-bool HoverChecker::AllowsMofication() const { return allow_modification_; }
+void HoverChecker::DisableHighlight() { highlighted_ids_.clear(); }
 
 bool HoverChecker::WasHovered(int img_id) const { return hover_id_ == img_id; }
 void HoverChecker::RecordHover(int img_id) { hover_id_ = img_id; }
@@ -132,17 +130,12 @@ Action ThumbnailPane::Draw() {
     }
   }
 
-  auto *texture = tex_.get();
   for (int coord_id = 0; coord_id < coords_.size(); coord_id++) {
     ImGui::PushID(coord_id);
     hover_checker_.SetColor(coord_id);
     float scroll_pre = ImGui::GetCursorPosX();
-    const auto &coord = coords_[coord_id];
-    if (ImGui::ImageButton(
-            texture,
-            ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
-            utils::ImVec(coord.uv0), utils::ImVec(coord.uv1))) {
-      if (io_.KeyCtrl && hover_checker_.AllowsMofication()) {
+    if (ThumbnailButton(coord_id, thumbnail_height_)) {
+      if (io_.KeyCtrl) {
         action = {ActionType::kModifyPano, coord_id};
       } else {
         action = {ActionType::kShowImage, coord_id};
@@ -153,9 +146,34 @@ Action ThumbnailPane::Draw() {
     ImGui::SameLine();
     scroll_[coord_id] = (scroll_pre + ImGui::GetCursorPosX()) / 2.0f;
   }
+
+  if (ImGui::IsWindowHovered()) {
+    if (float mouse_wheel = io_.MouseWheel; mouse_wheel != 0) {
+      ImGui::SetScrollX(ImGui::GetScrollX() - mouse_wheel * kScrollingSpeed);
+    }
+  }
   ImGui::End();
 
   return action;
+}
+
+void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
+  if (images.empty()) {
+    return;
+  }
+  ImGui::BeginTooltip();
+  for (int img_id : images) {
+    ThumbnailButton(img_id, thumbnail_height_);
+    ImGui::SameLine();
+  }
+  ImGui::EndTooltip();
+}
+
+bool ThumbnailPane::ThumbnailButton(int img_id, float height) const {
+  const auto &coord = coords_[img_id];
+  return ImGui::ImageButton(
+      tex_.get(), ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
+      utils::ImVec(coord.uv0), utils::ImVec(coord.uv1));
 }
 
 void ThumbnailPane::SetScrollX(int img_id) {
@@ -181,10 +199,10 @@ void ThumbnailPane::Highlight(int img_id) {
 void ThumbnailPane::Highlight(int id1, int id2) {
   Highlight(std::vector<int>({id1, id2}));
 }
-void ThumbnailPane::Highlight(const std::vector<int> &ids,
-                              bool allow_modification) {
-  hover_checker_.Highlight(ids, allow_modification);
+void ThumbnailPane::Highlight(const std::vector<int> &ids) {
+  hover_checker_.Highlight(ids);
 }
+void ThumbnailPane::DisableHighlight() { hover_checker_.DisableHighlight(); }
 
 void ThumbnailPane::Reset() {
   tex_.reset(nullptr);
