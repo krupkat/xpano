@@ -52,8 +52,8 @@ void Layout::Begin() {
   }
 }
 
-void Layout::ToggleLogger() { show_logger_ = !show_logger_; }
+void Layout::ToggleDebugInfo() { show_debug_info_ = !show_debug_info_; }
 
-bool Layout::ShowLogger() const { return show_logger_; }
+bool Layout::ShowDebugInfo() const { return show_debug_info_; }
 
 }  // namespace xpano::gui

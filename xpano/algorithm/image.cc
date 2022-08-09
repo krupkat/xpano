@@ -40,11 +40,15 @@ float Image::GetAspect() const {
   return width / height;
 }
 
-cv::Mat Image::Draw() const {
-  cv::Mat tmp;
-  cv::drawKeypoints(image_data_, keypoints_, tmp, cv::Scalar::all(-1),
-                    cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-  return tmp;
+cv::Mat Image::Draw(bool show_debug) const {
+  if (show_debug) {
+    cv::Mat tmp;
+    cv::drawKeypoints(image_data_, keypoints_, tmp, cv::Scalar::all(-1),
+                      cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    return tmp;
+  } else {
+    return image_data_;
+  }
 }
 
 const std::vector<cv::KeyPoint>& Image::GetKeypoints() const {

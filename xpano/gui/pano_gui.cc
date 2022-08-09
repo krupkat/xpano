@@ -55,43 +55,41 @@ cv::Mat DrawMatches(const algorithm::Match& match,
 }
 
 Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
-                       int highlight_id) {
+                       const ThumbnailPane& thumbnail_pane, int highlight_id) {
   Action action{};
-  ImGui::Separator();
-  if (ImGui::TreeNodeEx("Debug info", ImGuiTreeNodeFlags_NoTreePushOnOpen |
-                                          ImGuiTreeNodeFlags_SpanAvailWidth)) {
-    ImGui::BeginTable("table1", 3);
+  ImGui::BeginTable("table1", 3);
+  ImGui::TableSetupColumn("Matched");
+  ImGui::TableSetupColumn("Inliers");
+  ImGui::TableSetupColumn("Action");
+  ImGui::TableHeadersRow();
 
-    ImGui::TableSetupColumn("Matched");
-    ImGui::TableSetupColumn("Inliers");
-    ImGui::TableSetupColumn("Action");
-    ImGui::TableHeadersRow();
-
-    for (int i = 0; i < matches.size(); i++) {
-      ImGui::TableNextColumn();
-      ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
-      ImGui::TableNextColumn();
-      ImGui::Text("%d", matches[i].matches.size());
-      ImGui::TableNextColumn();
-      ImGui::PushID(i);
-      if (ImGui::SmallButton("Show")) {
-        action = {ActionType::kShowMatch, i};
-      }
-      ImGui::PopID();
-
-      if (i == highlight_id || ImGui::IsItemHovered()) {
-        ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
-      }
+  for (int i = 0; i < matches.size(); i++) {
+    ImGui::TableNextColumn();
+    ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
+    ImGui::TableNextColumn();
+    ImGui::Text("%d", matches[i].matches.size());
+    ImGui::TableNextColumn();
+    ImGui::PushID(i);
+    if (ImGui::SmallButton("Show")) {
+      action = {ActionType::kShowMatch, i};
     }
-    ImGui::EndTable();
+    ImGui::PopID();
+
+    if (i == highlight_id || ImGui::IsItemHovered()) {
+      ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
+    }
+
+    if (ImGui::IsItemHovered()) {
+      thumbnail_pane.ThumbnailTooltip({matches[i].id1, matches[i].id2});
+    }
   }
+  ImGui::EndTable();
   return action;
 }
 
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id) {
-  ImGui::Text("Panos:");
   ImGui::BeginTable("table2", 3);
   ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
   ImGui::TableSetupColumn("Done", ImGuiTableColumnFlags_WidthFixed);
@@ -102,10 +100,10 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 
   for (int i = 0; i < panos.size(); i++) {
     ImGui::TableNextColumn();
-    auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
+    auto string = fmt::to_string(fmt::join(panos[i].ids, ","));
     ImGui::Text("%s", string.c_str());
     ImGui::TableNextColumn();
-    ImGui::Text("x");
+    ImGui::Text(panos[i].exported ? "x" : " ");
     ImGui::TableNextColumn();
     ImGui::PushID(i);
     if (ImGui::SmallButton("Show")) {
@@ -127,7 +125,14 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 }
 
 Action CheckKeybindings() {
-  if (ImGui::IsKeyReleased(ImGuiKey_D)) {
+  bool ctrl = ImGui::GetIO().KeyCtrl;
+  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_O)) {
+    return {ActionType::kOpenFiles};
+  }
+  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_S)) {
+    return {ActionType::kExport};
+  }
+  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_D)) {
     return {ActionType::kToggleDebugLog};
   }
   return {ActionType::kNone};
@@ -138,7 +143,7 @@ Action CheckKeybindings() {
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger)
     : plot_pane_(backend), thumbnail_pane_(backend), logger_(logger) {}
 
-void PanoGui::Run() {
+bool PanoGui::Run() {
   auto action = DrawGui();
   action |= CheckKeybindings();
   if (action.type != ActionType::kNone) {
@@ -146,6 +151,7 @@ void PanoGui::Run() {
     PerformAction(action);
   }
   ResolveFutures();
+  return action.type == ActionType::kQuit;
 }
 
 Action PanoGui::DrawGui() {
@@ -153,20 +159,50 @@ Action PanoGui::DrawGui() {
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
   plot_pane_.Draw();
-  if (layout_.ShowLogger()) {
+  if (layout_.ShowDebugInfo()) {
     logger_->Draw();
   }
   return action;
 }
 
-Action PanoGui::DrawSidebar() {
-  ImGui::Begin("PanoSweep");
-  ImGui::Text("Welcome to PanoSweep");
+Action PanoGui::DrawMenu() {
   Action action{};
-
-  if (ImGui::Button("Open")) {
-    action |= {ActionType::kOpenFiles};
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Open files", "CTRL+O")) {
+        action |= {ActionType::kOpenFiles};
+      }
+      if (ImGui::MenuItem("Open directory")) {
+        action |= {ActionType::kOpenDirectory};
+      }
+      if (ImGui::MenuItem("Export", "CTRL+S")) {
+        action |= {ActionType::kExport};
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Quit")) {
+        action |= {ActionType::kQuit};
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Options")) {
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("View")) {
+      if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
+        action |= {ActionType::kToggleDebugLog};
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
   }
+  return action;
+}
+
+Action PanoGui::DrawSidebar() {
+  Action action{};
+  ImGui::Begin("PanoSweep", nullptr, ImGuiWindowFlags_MenuBar);
+  action |= DrawMenu();
+  ImGui::Text("Welcome to PanoSweep");
 
   if (float progress = stitcher_pipeline_.LoadingProgress(); progress > 0.0f) {
     DrawProgressBar(progress);
@@ -175,7 +211,10 @@ Action PanoGui::DrawSidebar() {
   if (stitcher_data_) {
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
-    action |= DrawMatchesMenu(stitcher_data_->matches, selected_match_);
+    if (layout_.ShowDebugInfo()) {
+      action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
+                                selected_match_);
+    }
   }
   ImGui::End();
   return action;
@@ -183,7 +222,8 @@ Action PanoGui::DrawSidebar() {
 
 void PanoGui::ResetSelections(Action action) {
   if (action.type == ActionType::kModifyPano ||
-      action.type == ActionType::kToggleDebugLog) {
+      action.type == ActionType::kToggleDebugLog ||
+      action.type == ActionType::kExport) {
     return;
   }
 
@@ -239,11 +279,21 @@ void PanoGui::ModifyPano(Action action) {
 
 void PanoGui::PerformAction(Action action) {
   switch (action.type) {
-    case ActionType::kNone: {
+    default: {
       break;
     }
+    case ActionType::kExport: {
+      if (selected_pano_ >= 0) {
+        auto& pano = stitcher_data_->panos[selected_pano_];
+        pano.exported = true;
+        spdlog::info("Exporting pano {}", selected_pano_);
+      }
+      break;
+    }
+    case ActionType::kOpenDirectory:
+      [[fallthrough]];
     case ActionType::kOpenFiles: {
-      auto results = file_dialog::CallNfd();
+      auto results = file_dialog::CallNfd(action);
       stitcher_data_.reset();
       thumbnail_pane_.Reset();
       stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
@@ -279,12 +329,12 @@ void PanoGui::PerformAction(Action action) {
     case ActionType::kShowImage: {
       selected_image_ = action.id;
       const auto& img = stitcher_data_->images[action.id];
-      plot_pane_.Load(img.Draw());
+      plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
       thumbnail_pane_.Highlight(action.id);
       break;
     }
     case ActionType::kToggleDebugLog: {
-      layout_.ToggleLogger();
+      layout_.ToggleDebugInfo();
       break;
     }
   }

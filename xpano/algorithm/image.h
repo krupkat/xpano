@@ -17,7 +17,7 @@ class Image {
   [[nodiscard]] cv::Mat GetPreview() const;
   [[nodiscard]] cv::Mat GetImageData() const;
   [[nodiscard]] float GetAspect() const;
-  [[nodiscard]] cv::Mat Draw() const;
+  [[nodiscard]] cv::Mat Draw(bool show_debug) const;
   [[nodiscard]] const std::vector<cv::KeyPoint> &GetKeypoints() const;
   [[nodiscard]] cv::Mat GetDescriptors() const;
 

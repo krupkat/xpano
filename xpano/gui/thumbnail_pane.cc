@@ -148,7 +148,7 @@ Action ThumbnailPane::Draw() {
   }
 
   if (ImGui::IsWindowHovered()) {
-    if (float mouse_wheel = ImGui::GetIO().MouseWheel; mouse_wheel != 0) {
+    if (float mouse_wheel = io_.MouseWheel; mouse_wheel != 0) {
       ImGui::SetScrollX(ImGui::GetScrollX() - mouse_wheel * kScrollingSpeed);
     }
   }

@@ -4,11 +4,14 @@ namespace xpano::gui {
 
 enum class ActionType {
   kNone,
+  kExport,
+  kOpenDirectory,
   kOpenFiles,
   kShowImage,
   kShowMatch,
   kShowPano,
   kModifyPano,
+  kQuit,
   kToggleDebugLog
 };
 

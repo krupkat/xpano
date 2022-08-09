@@ -19,11 +19,12 @@ class PanoGui {
  public:
   explicit PanoGui(backends::Base* backend, logger::LoggerGui* logger);
 
-  void Run();
+  bool Run();
 
  private:
   Action DrawGui();
   Action DrawSidebar();
+  Action DrawMenu();
   void ResetSelections(Action action);
   void PerformAction(Action action);
   void ResolveFutures();

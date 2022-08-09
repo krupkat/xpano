@@ -101,7 +101,7 @@ int main(int /*unused*/, char** /*unused*/) {
     ImGui::NewFrame();
 
     // User code
-    gui.Run();
+    done |= gui.Run();
 
     // ImGui::ShowDemoWindow();
 

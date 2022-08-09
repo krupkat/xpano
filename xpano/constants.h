@@ -1,5 +1,8 @@
 #pragma once
 
+#include <array>
+#include <string>
+
 namespace xpano {
 constexpr int kNumFeatures = 3000;
 constexpr int kPreviewSize = 256;
@@ -15,4 +18,9 @@ constexpr int kZoomLevels = 10;
 
 constexpr int kResizingDelayFrames = 30;
 constexpr int kScrollingSpeed = 150;
+
+const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg",
+                                                         "tiff, "
+                                                         "png",
+                                                         "bmp"};
 }  // namespace xpano
