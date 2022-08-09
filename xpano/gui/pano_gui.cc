@@ -293,10 +293,11 @@ void PanoGui::PerformAction(Action action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      auto results = file_dialog::CallNfd(action);
-      stitcher_data_.reset();
-      thumbnail_pane_.Reset();
-      stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
+      if (auto results = file_dialog::CallNfd(action); !results.empty()) {
+        stitcher_data_.reset();
+        thumbnail_pane_.Reset();
+        stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
+      }
       break;
     }
     case ActionType::kShowMatch: {

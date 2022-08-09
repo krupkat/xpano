@@ -19,8 +19,6 @@ constexpr int kZoomLevels = 10;
 constexpr int kResizingDelayFrames = 30;
 constexpr int kScrollingSpeed = 150;
 
-const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg",
-                                                         "tiff, "
-                                                         "png",
-                                                         "bmp"};
+const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg", "tiff",
+                                                         "png", "bmp"};
 }  // namespace xpano

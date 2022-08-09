@@ -90,7 +90,7 @@ std::vector<std::string> CallNfd(Action action) {
   std::vector<std::filesystem::path> valid_paths;
   std::copy_if(paths.begin(), paths.end(), std::back_inserter(valid_paths),
                [](const std::filesystem::path& path) {
-                 return !path.has_extension() ||
+                 return path.has_extension() &&
                         std::find(kSupportedExtensions.begin(),
                                   kSupportedExtensions.end(),
                                   LowercaseExtension(path)) !=
