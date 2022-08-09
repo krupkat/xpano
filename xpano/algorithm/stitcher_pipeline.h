@@ -24,13 +24,28 @@ struct StitcherData {
   std::vector<algorithm::Pano> panos;
 };
 
+enum class ProgressType {
+  kNone,
+  kStitchingPano,
+  kDetectingKeypoints,
+  kMatchingImages
+};
+
+struct ProgressReport {
+  ProgressType type;
+  int tasks_done;
+  int num_tasks;
+};
+
 class ProgressMonitor {
  public:
-  void Monitor(int num_tasks);
-  float Progress() const;
+  void Monitor(ProgressType type, int num_tasks);
+  void Monitor(ProgressType type);
+  ProgressReport Progress() const;
   void NotifyTaskDone();
 
  private:
+  std::atomic<ProgressType> type_{ProgressType::kNone};
   std::atomic<int> done_ = 0;
   std::atomic<int> num_tasks_ = 0;
 };
@@ -42,7 +57,7 @@ class StitcherPipeline {
                                        const StitcherPipelineOptions &options);
   std::future<std::optional<cv::Mat>> RunStitching(const StitcherData &data,
                                                    int pano_id);
-  float LoadingProgress() const;
+  ProgressReport LoadingProgress() const;
 
  private:
   StitcherData RunLoadingPipeline(const std::vector<std::string> &inputs);

@@ -16,16 +16,16 @@
 
 namespace xpano::algorithm {
 
-void ProgressMonitor::Monitor(int num_tasks) {
+void ProgressMonitor::Monitor(ProgressType type, int num_tasks) {
+  type_ = type;
   done_ = 0;
   num_tasks_ = num_tasks;
 }
 
-float ProgressMonitor::Progress() const {
-  if (num_tasks_ == 0) {
-    return 0.0f;
-  }
-  return static_cast<float>(done_) / static_cast<float>(num_tasks_);
+void ProgressMonitor::Monitor(ProgressType type) { type_ = type; }
+
+ProgressReport ProgressMonitor::Progress() const {
+  return {type_, done_, num_tasks_};
 }
 
 void ProgressMonitor::NotifyTaskDone() { done_++; }
@@ -46,10 +46,15 @@ std::future<std::optional<cv::Mat>> StitcherPipeline::RunStitching(
     imgs.push_back(data.images[img_id].GetImageData());
   }
 
-  return pool_.submit([imgs = std::move(imgs)]() { return Stitch(imgs); });
+  return pool_.submit([imgs = std::move(imgs), this]() {
+    loading_progress_.Monitor(ProgressType::kStitchingPano, 1);
+    auto result = Stitch(imgs);
+    loading_progress_.NotifyTaskDone();
+    return result;
+  });
 }
 
-float StitcherPipeline::LoadingProgress() const {
+ProgressReport StitcherPipeline::LoadingProgress() const {
   return loading_progress_.Progress();
 }
 
@@ -58,7 +63,7 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
   auto images = std::vector<Image>{inputs.begin(), inputs.end()};
 
   int num_tasks = static_cast<int>(images.size()) * 2;
-  loading_progress_.Monitor(num_tasks);
+  loading_progress_.Monitor(ProgressType::kDetectingKeypoints, num_tasks);
   pool_
       .parallelize_loop(0, images.size(),
                         [this, &images](size_t start, size_t end) {
@@ -69,6 +74,7 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
                         })
       .wait();
 
+  loading_progress_.Monitor(ProgressType::kMatchingImages);
   BS::multi_future<Match> matches_future;
   for (int i = 1; i < images.size(); i++) {
     matches_future.push_back(pool_.submit([this, i, &images]() {

@@ -34,10 +34,29 @@ bool IsReady(const std::future<TType>& future) {
          future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
-void DrawProgressBar(float progress) {
-  int progress_int = static_cast<int>(progress * 100);
-  std::string label = fmt::format("{}%", progress_int);
-  ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.f), label.c_str());
+std::string ProgressLabel(algorithm::ProgressType type) {
+  switch (type) {
+    default:
+      return "";
+    case algorithm::ProgressType::kStitchingPano:
+      return "Stitching pano";
+    case algorithm::ProgressType::kDetectingKeypoints:
+      return "Detecting keypoints";
+    case algorithm::ProgressType::kMatchingImages:
+      return "Matching images";
+  }
+}
+
+void DrawProgressBar(algorithm::ProgressReport progress) {
+  if (progress.num_tasks == 0) {
+    return;
+  }
+  int percentage = progress.tasks_done * 100 / progress.num_tasks;
+  std::string label =
+      progress.tasks_done == progress.num_tasks
+          ? "100%"
+          : fmt::format("{}: {}%", ProgressLabel(progress.type), percentage);
+  ImGui::ProgressBar(percentage / 100.0f, ImVec2(-1.0f, 0.f), label.c_str());
 }
 
 cv::Mat DrawMatches(const algorithm::Match& match,
@@ -202,12 +221,10 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr, ImGuiWindowFlags_MenuBar);
   action |= DrawMenu();
+
   ImGui::Text("Welcome to PanoSweep");
-
-  if (float progress = stitcher_pipeline_.LoadingProgress(); progress > 0.0f) {
-    DrawProgressBar(progress);
-  }
-
+  DrawProgressBar(stitcher_pipeline_.LoadingProgress());
+  ImGui::Text("%s", info_message_.c_str());
   if (stitcher_data_) {
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
@@ -345,13 +362,17 @@ void PanoGui::ResolveFutures() {
   if (IsReady(stitcher_data_future_)) {
     stitcher_data_ = stitcher_data_future_.get();
     thumbnail_pane_.Load(stitcher_data_->images);
+    info_message_ =
+        fmt::format("Loaded {} images", stitcher_data_->images.size());
   }
-
   if (IsReady(pano_future_)) {
     auto pano = pano_future_.get();
     spdlog::info("Received pano");
     if (pano) {
       plot_pane_.Load(*pano);
+      info_message_ = fmt::format("Stitched pano {}", selected_pano_);
+    } else {
+      info_message_ = "Failed to stitch pano";
     }
   }
 }

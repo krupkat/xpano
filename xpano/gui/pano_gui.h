@@ -2,6 +2,7 @@
 
 #include <future>
 #include <optional>
+#include <string>
 
 #include <opencv2/core.hpp>
 
@@ -34,6 +35,8 @@ class PanoGui {
   int selected_image_ = -1;
   int selected_pano_ = -1;
   int selected_match_ = -1;
+
+  std::string info_message_;
 
   Layout layout_;
   logger::LoggerGui* logger_;
