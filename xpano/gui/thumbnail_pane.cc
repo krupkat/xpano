@@ -146,6 +146,12 @@ Action ThumbnailPane::Draw() {
     ImGui::SameLine();
     scroll_[coord_id] = (scroll_pre + ImGui::GetCursorPosX()) / 2.0f;
   }
+
+  if (ImGui::IsWindowHovered()) {
+    if (float mouse_wheel = ImGui::GetIO().MouseWheel; mouse_wheel != 0) {
+      ImGui::SetScrollX(ImGui::GetScrollX() - mouse_wheel * kScrollingSpeed);
+    }
+  }
   ImGui::End();
 
   return action;
