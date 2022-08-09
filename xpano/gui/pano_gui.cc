@@ -10,6 +10,7 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
@@ -38,6 +39,8 @@ std::string ProgressLabel(algorithm::ProgressType type) {
   switch (type) {
     default:
       return "";
+    case algorithm::ProgressType::kLoadingImages:
+      return "Loading images";
     case algorithm::ProgressType::kStitchingPano:
       return "Stitching pano";
     case algorithm::ProgressType::kDetectingKeypoints:
@@ -65,7 +68,7 @@ cv::Mat DrawMatches(const algorithm::Match& match,
   cv::Mat out;
   const auto& img1 = images[match.id1];
   const auto& img2 = images[match.id2];
-  cv::drawMatches(img1.GetImageData(), img1.GetKeypoints(), img2.GetImageData(),
+  cv::drawMatches(img1.GetPreview(), img1.GetKeypoints(), img2.GetPreview(),
                   img2.GetKeypoints(), match.matches, out, 1,
                   cv::Scalar(0, 255, 0), cv::Scalar::all(-1),
                   std::vector<char>(),
@@ -144,6 +147,39 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
+Action DrawMenu() {
+  Action action{};
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Open files", "CTRL+O")) {
+        action |= {ActionType::kOpenFiles};
+      }
+      if (ImGui::MenuItem("Open directory")) {
+        action |= {ActionType::kOpenDirectory};
+      }
+      if (ImGui::MenuItem("Export", "CTRL+S")) {
+        action |= {ActionType::kExport};
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Quit")) {
+        action |= {ActionType::kQuit};
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Options")) {
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("View")) {
+      if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
+        action |= {ActionType::kToggleDebugLog};
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
+  return action;
+}
+
 Action CheckKeybindings() {
   bool ctrl = ImGui::GetIO().KeyCtrl;
   if (ctrl && ImGui::IsKeyReleased(ImGuiKey_O)) {
@@ -181,39 +217,6 @@ Action PanoGui::DrawGui() {
   plot_pane_.Draw();
   if (layout_.ShowDebugInfo()) {
     logger_->Draw();
-  }
-  return action;
-}
-
-Action PanoGui::DrawMenu() {
-  Action action{};
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Open files", "CTRL+O")) {
-        action |= {ActionType::kOpenFiles};
-      }
-      if (ImGui::MenuItem("Open directory")) {
-        action |= {ActionType::kOpenDirectory};
-      }
-      if (ImGui::MenuItem("Export", "CTRL+S")) {
-        action |= {ActionType::kExport};
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Quit")) {
-        action |= {ActionType::kQuit};
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Options")) {
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("View")) {
-      if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
-        action |= {ActionType::kToggleDebugLog};
-      }
-      ImGui::EndMenu();
-    }
-    ImGui::EndMenuBar();
   }
   return action;
 }
@@ -290,8 +293,8 @@ void PanoGui::ModifyPano(Action action) {
 
   // Queue pano stitching
   if (selected_pano_ >= 0) {
-    pano_future_ =
-        stitcher_pipeline_.RunStitching(*stitcher_data_, selected_pano_);
+    pano_future_ = stitcher_pipeline_.RunStitching(*stitcher_data_,
+                                                   {.pano_id = selected_pano_});
   }
 }
 
@@ -302,9 +305,12 @@ void PanoGui::PerformAction(Action action) {
     }
     case ActionType::kExport: {
       if (selected_pano_ >= 0) {
-        auto& pano = stitcher_data_->panos[selected_pano_];
-        pano.exported = true;
         spdlog::info("Exporting pano {}", selected_pano_);
+        info_message_.clear();
+        pano_future_ = stitcher_pipeline_.RunStitching(
+            *stitcher_data_, {.pano_id = selected_pano_,
+                              .full_res = true,
+                              .export_path = "export.jpg"});
       }
       break;
     }
@@ -331,10 +337,10 @@ void PanoGui::PerformAction(Action action) {
     }
     case ActionType::kShowPano: {
       selected_pano_ = action.id;
-      spdlog::info("Clicked pano {}", action.id);
+      spdlog::info("Clicked pano {}", selected_pano_);
       info_message_.clear();
-      pano_future_ =
-          stitcher_pipeline_.RunStitching(*stitcher_data_, action.id);
+      pano_future_ = stitcher_pipeline_.RunStitching(
+          *stitcher_data_, {.pano_id = selected_pano_});
       const auto& pano = stitcher_data_->panos[selected_pano_];
       thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
@@ -369,11 +375,18 @@ void PanoGui::ResolveFutures() {
         fmt::format("Loaded {} images", stitcher_data_->images.size());
   }
   if (IsReady(pano_future_)) {
-    auto pano = pano_future_.get();
+    auto result = pano_future_.get();
     spdlog::info("Received pano");
-    if (pano) {
-      plot_pane_.Load(*pano);
-      info_message_ = fmt::format("Stitched pano {}", selected_pano_);
+    if (result.pano) {
+      plot_pane_.Load(*result.pano);
+      info_message_ = fmt::format("Stitched pano successfully");
+
+      if (result.options.full_res) {
+        cv::imwrite(result.options.export_path, *result.pano);
+        info_message_ =
+            fmt::format("Pano exported to {}", result.options.export_path);
+        stitcher_data_->panos[result.options.pano_id].exported = true;
+      }
     } else {
       info_message_ = "Failed to stitch pano";
     }

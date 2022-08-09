@@ -14,8 +14,9 @@ class Image {
 
   void Load();
 
+  [[nodiscard]] cv::Mat GetFullRes() const;
+  [[nodiscard]] cv::Mat GetThumbnail() const;
   [[nodiscard]] cv::Mat GetPreview() const;
-  [[nodiscard]] cv::Mat GetImageData() const;
   [[nodiscard]] float GetAspect() const;
   [[nodiscard]] cv::Mat Draw(bool show_debug) const;
   [[nodiscard]] const std::vector<cv::KeyPoint> &GetKeypoints() const;
@@ -23,8 +24,8 @@ class Image {
 
  private:
   std::string path_;
-  cv::Mat image_data_;
   cv::Mat preview_;
+  cv::Mat thumbnail_;
 
   std::vector<cv::KeyPoint> keypoints_;
   cv::Mat descriptors_;

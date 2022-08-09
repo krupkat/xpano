@@ -31,26 +31,35 @@ ProgressReport ProgressMonitor::Progress() const {
 void ProgressMonitor::NotifyTaskDone() { done_++; }
 
 std::future<StitcherData> StitcherPipeline::RunLoading(
-    const std::vector<std::string> &inputs,
-    const StitcherPipelineOptions &options) {
+    const std::vector<std::string> &inputs, const LoadingOptions &options) {
   pool_.wait_for_tasks();
   options_ = options;
 
   return pool_.submit([this, inputs]() { return RunLoadingPipeline(inputs); });
 }
 
-std::future<std::optional<cv::Mat>> StitcherPipeline::RunStitching(
-    const StitcherData &data, int pano_id) {
+std::future<StitchingResult> StitcherPipeline::RunStitching(
+    const StitcherData &data, const StitchingOptions &options) {
   std::vector<cv::Mat> imgs;
-  for (int img_id : data.panos[pano_id].ids) {
-    imgs.push_back(data.images[img_id].GetImageData());
-  }
+  auto pano = data.panos[options.pano_id];
 
-  return pool_.submit([imgs = std::move(imgs), this]() {
-    loading_progress_.Monitor(ProgressType::kStitchingPano, 1);
+  return pool_.submit([pano, &images = data.images, options, this]() {
+    int num_tasks = static_cast<int>(pano.ids.size()) + 1;
+    loading_progress_.Monitor(ProgressType::kLoadingImages, num_tasks);
+    std::vector<cv::Mat> imgs;
+    for (int img_id : pano.ids) {
+      if (options.full_res) {
+        imgs.push_back(images[img_id].GetFullRes());
+      } else {
+        imgs.push_back(images[img_id].GetPreview());
+      }
+      loading_progress_.NotifyTaskDone();
+    }
+
+    loading_progress_.Monitor(ProgressType::kStitchingPano);
     auto result = Stitch(imgs);
     loading_progress_.NotifyTaskDone();
-    return result;
+    return StitchingResult{result, options};
   });
 }
 
