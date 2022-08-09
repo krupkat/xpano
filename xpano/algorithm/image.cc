@@ -46,9 +46,8 @@ cv::Mat Image::Draw(bool show_debug) const {
     cv::drawKeypoints(image_data_, keypoints_, tmp, cv::Scalar::all(-1),
                       cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
     return tmp;
-  } else {
-    return image_data_;
   }
+  return image_data_;
 }
 
 const std::vector<cv::KeyPoint>& Image::GetKeypoints() const {

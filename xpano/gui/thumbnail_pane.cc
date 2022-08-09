@@ -134,7 +134,7 @@ Action ThumbnailPane::Draw() {
     ImGui::PushID(coord_id);
     hover_checker_.SetColor(coord_id);
     float scroll_pre = ImGui::GetCursorPosX();
-    if (ThumbnailButton(coord_id, thumbnail_height_)) {
+    if (ThumbnailButton(coord_id)) {
       if (io_.KeyCtrl) {
         action = {ActionType::kModifyPano, coord_id};
       } else {
@@ -163,13 +163,13 @@ void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
   }
   ImGui::BeginTooltip();
   for (int img_id : images) {
-    ThumbnailButton(img_id, thumbnail_height_);
+    ThumbnailButton(img_id);
     ImGui::SameLine();
   }
   ImGui::EndTooltip();
 }
 
-bool ThumbnailPane::ThumbnailButton(int img_id, float height) const {
+bool ThumbnailPane::ThumbnailButton(int img_id) const {
   const auto &coord = coords_[img_id];
   return ImGui::ImageButton(
       tex_.get(), ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),

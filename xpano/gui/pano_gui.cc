@@ -56,7 +56,8 @@ void DrawProgressBar(algorithm::ProgressReport progress) {
       progress.tasks_done == progress.num_tasks
           ? "100%"
           : fmt::format("{}: {}%", ProgressLabel(progress.type), percentage);
-  ImGui::ProgressBar(percentage / 100.0f, ImVec2(-1.0f, 0.f), label.c_str());
+  ImGui::ProgressBar(static_cast<float>(percentage) / 100.0f,
+                     ImVec2(-1.0f, 0.f), label.c_str());
 }
 
 cv::Mat DrawMatches(const algorithm::Match& match,
@@ -224,7 +225,7 @@ Action PanoGui::DrawSidebar() {
 
   ImGui::Text("Welcome to PanoSweep");
   DrawProgressBar(stitcher_pipeline_.LoadingProgress());
-  ImGui::Text("%s", info_message_.c_str());
+  ImGui::Text("%s ", info_message_.c_str());
   if (stitcher_data_) {
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
@@ -280,10 +281,10 @@ void PanoGui::ModifyPano(Action action) {
 
     // Start a new pano from selected image
     auto new_pano =
-        algorithm::Pano(std::vector<int>({selected_image_, action.id}));
+        algorithm::Pano{std::vector<int>({selected_image_, action.id})};
     stitcher_data_->panos.push_back(new_pano);
     thumbnail_pane_.Highlight(new_pano.ids);
-    selected_pano_ = stitcher_data_->panos.size() - 1;
+    selected_pano_ = static_cast<int>(stitcher_data_->panos.size()) - 1;
     selected_image_ = -1;
   }
 
@@ -313,6 +314,7 @@ void PanoGui::PerformAction(Action action) {
       if (auto results = file_dialog::CallNfd(action); !results.empty()) {
         stitcher_data_.reset();
         thumbnail_pane_.Reset();
+        info_message_.clear();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
       }
       break;
@@ -330,6 +332,7 @@ void PanoGui::PerformAction(Action action) {
     case ActionType::kShowPano: {
       selected_pano_ = action.id;
       spdlog::info("Clicked pano {}", action.id);
+      info_message_.clear();
       pano_future_ =
           stitcher_pipeline_.RunStitching(*stitcher_data_, action.id);
       const auto& pano = stitcher_data_->panos[selected_pano_];

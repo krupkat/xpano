@@ -4,6 +4,7 @@
 #include <array>
 #include <cctype>
 #include <filesystem>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -70,7 +71,7 @@ std::vector<std::filesystem::path> DirectoryOpen() {
 std::string LowercaseExtension(const std::filesystem::path& path) {
   auto extension = path.extension().string().substr(1);
   std::transform(extension.begin(), extension.end(), extension.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+                 [](unsigned char letter) { return std::tolower(letter); });
   return extension;
 }
 

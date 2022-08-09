@@ -86,7 +86,8 @@ class ThumbnailPane {
   void Reset();
 
  private:
-  bool ThumbnailButton(int img_id, float height) const;
+  // NOLINTNEXTLINE(modernize-use-nodiscard)
+  bool ThumbnailButton(int img_id) const;
 
   std::vector<Coord> coords_;
   std::vector<float> scroll_;
