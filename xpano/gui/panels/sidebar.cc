@@ -11,6 +11,7 @@
 
 namespace xpano::gui {
 
+namespace {
 std::string ProgressLabel(algorithm::ProgressType type) {
   switch (type) {
     default:
@@ -25,6 +26,7 @@ std::string ProgressLabel(algorithm::ProgressType type) {
       return "Matching images";
   }
 }
+}  // namespace
 
 void DrawProgressBar(algorithm::ProgressReport progress) {
   if (progress.num_tasks == 0) {

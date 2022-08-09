@@ -1,14 +1,10 @@
 #pragma once
 
-#include <string>
-
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
 #include "gui/panels/thumbnail_pane.h"
 
 namespace xpano::gui {
-
-std::string ProgressLabel(algorithm::ProgressType type);
 
 void DrawProgressBar(algorithm::ProgressReport progress);
 
