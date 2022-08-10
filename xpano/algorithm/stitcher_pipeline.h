@@ -14,8 +14,14 @@
 
 namespace xpano::algorithm {
 
-struct StitcherPipelineOptions {
+struct LoadingOptions {
   int image_downsample_factor = 1;
+};
+
+struct StitchingOptions {
+  int pano_id = 0;
+  bool full_res = false;
+  std::string export_path;
 };
 
 struct StitcherData {
@@ -24,8 +30,14 @@ struct StitcherData {
   std::vector<algorithm::Pano> panos;
 };
 
+struct StitchingResult {
+  std::optional<cv::Mat> pano;
+  StitchingOptions options;
+};
+
 enum class ProgressType {
   kNone,
+  kLoadingImages,
   kStitchingPano,
   kDetectingKeypoints,
   kMatchingImages
@@ -54,16 +66,16 @@ class StitcherPipeline {
  public:
   StitcherPipeline() = default;
   std::future<StitcherData> RunLoading(const std::vector<std::string> &inputs,
-                                       const StitcherPipelineOptions &options);
-  std::future<std::optional<cv::Mat>> RunStitching(const StitcherData &data,
-                                                   int pano_id);
+                                       const LoadingOptions &options);
+  std::future<StitchingResult> RunStitching(const StitcherData &data,
+                                            const StitchingOptions &options);
   ProgressReport LoadingProgress() const;
 
  private:
   StitcherData RunLoadingPipeline(const std::vector<std::string> &inputs);
 
   ProgressMonitor loading_progress_;
-  StitcherPipelineOptions options_;
+  LoadingOptions options_;
   BS::thread_pool pool_;
 };
 

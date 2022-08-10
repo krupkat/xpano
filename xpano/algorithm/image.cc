@@ -21,33 +21,34 @@ Image::Image(std::string path) : path_(std::move(path)) {}
 
 void Image::Load() {
   cv::Mat tmp = cv::imread(path_);
-  cv::resize(tmp, image_data_, cv::Size(), 0.5, 0.5, cv::INTER_AREA);
-  sift->detectAndCompute(image_data_, cv::Mat(), keypoints_, descriptors_);
-  cv::resize(image_data_, preview_, cv::Size(kPreviewSize, kPreviewSize), 0, 0,
+  cv::resize(tmp, preview_, cv::Size(), 0.5, 0.5, cv::INTER_AREA);
+  sift->detectAndCompute(preview_, cv::Mat(), keypoints_, descriptors_);
+  cv::resize(preview_, thumbnail_, cv::Size(kPreviewSize, kPreviewSize), 0, 0,
              cv::INTER_AREA);
 
   spdlog::info("Loaded {}", path_);
-  spdlog::info("Size: {} x {}, Keypoints: {}", image_data_.size[1],
-               image_data_.size[0], keypoints_.size());
+  spdlog::info("Size: {} x {}, Keypoints: {}", preview_.size[1],
+               preview_.size[0], keypoints_.size());
 }
 
+cv::Mat Image::GetFullRes() const { return cv::imread(path_); }
+cv::Mat Image::GetThumbnail() const { return thumbnail_; }
 cv::Mat Image::GetPreview() const { return preview_; }
-cv::Mat Image::GetImageData() const { return image_data_; }
 
 float Image::GetAspect() const {
-  auto width = static_cast<float>(image_data_.size[1]);
-  auto height = static_cast<float>(image_data_.size[0]);
+  auto width = static_cast<float>(preview_.size[1]);
+  auto height = static_cast<float>(preview_.size[0]);
   return width / height;
 }
 
 cv::Mat Image::Draw(bool show_debug) const {
   if (show_debug) {
     cv::Mat tmp;
-    cv::drawKeypoints(image_data_, keypoints_, tmp, cv::Scalar::all(-1),
+    cv::drawKeypoints(preview_, keypoints_, tmp, cv::Scalar::all(-1),
                       cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
     return tmp;
   }
-  return image_data_;
+  return preview_;
 }
 
 const std::vector<cv::KeyPoint>& Image::GetKeypoints() const {

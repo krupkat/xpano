@@ -1,3 +1,4 @@
+#include <clocale>
 #include <cstdio>
 
 #include <imgui.h>
@@ -35,6 +36,9 @@ int main(int /*unused*/, char** /*unused*/) {
   xpano::logger::LoggerGui logger{};
   logger.RedirectSpdlogOutput();
   logger.RedirectSDLOutput();
+
+  std::string result = std::setlocale(LC_ALL, "en_US.UTF-8");
+  spdlog::info("Current locale: {}", result);
 
   if (NFD_Init() != NFD_OKAY) {
     spdlog::error("Couldn't initialize NFD");
@@ -92,7 +96,7 @@ int main(int /*unused*/, char** /*unused*/) {
 
     // Handle DPI change
     if (dpi_handler.DpiChanged()) {
-      xpano::utils::imgui::ReloadFont("DroidSans.ttf", dpi_handler.DpiScale());
+      xpano::utils::imgui::ReloadFont("NotoSans-Regular.ttf", dpi_handler.DpiScale());
     }
 
     // Start the Dear ImGui frame

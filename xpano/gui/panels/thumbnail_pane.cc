@@ -1,4 +1,4 @@
-#include "gui/thumbnail_pane.h"
+#include "gui/panels/thumbnail_pane.h"
 
 #include <algorithm>
 #include <functional>
@@ -93,11 +93,11 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
     side++;
   }
   auto size = thumbnail_size * side;
-  auto type = images[0].GetPreview().type();
+  auto type = images[0].GetThumbnail().type();
   cv::Mat atlas{utils::CvSize(size), type};
   for (int i = 0; i < images.size(); i++) {
     auto tex_coord = thumbnail_size * utils::Ratio2i{i % side, i / side};
-    const auto preview = images[i].GetPreview();
+    const auto preview = images[i].GetThumbnail();
     preview.copyTo(
         atlas(utils::CvRect(utils::Point2i{0} + tex_coord, thumbnail_size)));
     Coord coord{tex_coord / size, (tex_coord + thumbnail_size) / size,

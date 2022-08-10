@@ -34,9 +34,10 @@ set(XPANO_SOURCES
   "xpano/gui/backends/sdl.cc"
   "xpano/gui/file_dialog.cc"  
   "xpano/gui/layout.cc"  
-  "xpano/gui/pano_gui.cc"
-  "xpano/gui/preview_pane.cc"  
-  "xpano/gui/thumbnail_pane.cc"
+  "xpano/gui/panels/preview_pane.cc"
+  "xpano/gui/panels/sidebar.cc"
+  "xpano/gui/panels/thumbnail_pane.cc"
+  "xpano/gui/pano_gui.cc"  
   "xpano/utils/imgui_.cc"
 )
 
@@ -75,7 +76,7 @@ target_link_libraries(SDLTest
 )
 
 copy_runtime_dlls(SDLTest)
-copy_file(SDLTest "${CMAKE_SOURCE_DIR}/external/imgui/misc/fonts/DroidSans.ttf")
+copy_file(SDLTest "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf")
 
 install(TARGETS
   SDLTest
@@ -83,7 +84,7 @@ install(TARGETS
 
 install(FILES 
   "$<TARGET_RUNTIME_DLLS:SDLTest>" 
-  "${CMAKE_SOURCE_DIR}/external/imgui/misc/fonts/DroidSans.ttf"
+  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
   TYPE BIN
 )
 

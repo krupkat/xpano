@@ -10,8 +10,8 @@
 #include "gui/action.h"
 #include "gui/backends/base.h"
 #include "gui/layout.h"
-#include "gui/preview_pane.h"
-#include "gui/thumbnail_pane.h"
+#include "gui/panels/preview_pane.h"
+#include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
 
 namespace xpano::gui {
@@ -25,7 +25,6 @@ class PanoGui {
  private:
   Action DrawGui();
   Action DrawSidebar();
-  Action DrawMenu();
   void ResetSelections(Action action);
   void PerformAction(Action action);
   void ResolveFutures();
@@ -47,7 +46,7 @@ class PanoGui {
   std::future<algorithm::StitcherData> stitcher_data_future_;
   std::optional<algorithm::StitcherData> stitcher_data_;
 
-  std::future<std::optional<cv::Mat>> pano_future_;
+  std::future<algorithm::StitchingResult> pano_future_;
 };
 
 }  // namespace xpano::gui

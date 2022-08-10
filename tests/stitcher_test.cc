@@ -30,12 +30,12 @@ TEST_CASE("Stitcher pipeline defaults") {
 
   const float eps = 0.01;
 
-  auto pano0 = stitcher.RunStitching(result, 0).get();
+  auto pano0 = stitcher.RunStitching(result, {.pano_id = 0}).get().pano;
   REQUIRE(pano0.has_value());
   CHECK_THAT(pano0->rows, WithinRel(804, eps));
   CHECK_THAT(pano0->cols, WithinRel(2145, eps));
 
-  auto pano1 = stitcher.RunStitching(result, 1).get();
+  auto pano1 = stitcher.RunStitching(result, {.pano_id = 1}).get().pano;
   REQUIRE(pano1.has_value());
   CHECK_THAT(pano1->rows, WithinRel(974, eps));
   CHECK_THAT(pano1->cols, WithinRel(1325, eps));
