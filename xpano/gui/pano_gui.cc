@@ -24,6 +24,7 @@
 #include "gui/panels/sidebar.h"
 #include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
+#include "utils/imgui_.h"
 
 namespace xpano::gui {
 
@@ -79,11 +80,15 @@ Action PanoGui::DrawGui() {
 Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr, ImGuiWindowFlags_MenuBar);
-  action |= DrawMenu();
+  action |= DrawMenu(&compression_options_);
 
   ImGui::Text("Welcome to PanoSweep");
   DrawProgressBar(stitcher_pipeline_.LoadingProgress());
-  ImGui::Text("%s ", info_message_.c_str());
+  ImGui::Text("%s", info_message_.c_str());
+  if (!tooltip_message_.empty()) {
+    ImGui::SameLine();
+    utils::imgui::InfoMarker(tooltip_message_.c_str());
+  }
   if (stitcher_data_) {
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
@@ -162,13 +167,14 @@ void PanoGui::PerformAction(Action action) {
       if (selected_pano_ >= 0) {
         spdlog::info("Exporting pano {}", selected_pano_);
         info_message_.clear();
+        tooltip_message_.clear();
         auto default_name = fmt::format("pano_{}.jpg", selected_pano_);
         auto export_path = file_dialog::Save(default_name);
         if (export_path) {
           pano_future_ = stitcher_pipeline_.RunStitching(
               *stitcher_data_, {.pano_id = selected_pano_,
-                                .full_res = true,
-                                .export_path = *export_path});
+                                .export_path = *export_path,
+                                .compression = compression_options_});
         }
       }
       break;
@@ -180,6 +186,7 @@ void PanoGui::PerformAction(Action action) {
         stitcher_data_.reset();
         thumbnail_pane_.Reset();
         info_message_.clear();
+        tooltip_message_.clear();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
       }
       break;
@@ -198,6 +205,7 @@ void PanoGui::PerformAction(Action action) {
       selected_pano_ = action.id;
       spdlog::info("Clicked pano {}", selected_pano_);
       info_message_.clear();
+      tooltip_message_.clear();
       pano_future_ = stitcher_pipeline_.RunStitching(
           *stitcher_data_, {.pano_id = selected_pano_});
       const auto& pano = stitcher_data_->panos[selected_pano_];
@@ -238,13 +246,11 @@ void PanoGui::ResolveFutures() {
     spdlog::info("Received pano");
     if (result.pano) {
       plot_pane_.Load(*result.pano);
-      info_message_ = fmt::format("Stitched pano successfully");
-
-      if (result.options.full_res) {
-        cv::imwrite(result.options.export_path, *result.pano);
-        info_message_ =
-            fmt::format("Pano exported to {}", result.options.export_path);
-        stitcher_data_->panos[result.options.pano_id].exported = true;
+      info_message_ = "Stitched pano successfully";
+      if (result.export_path) {
+        info_message_ = "Pano exported successfully";
+        tooltip_message_ = *result.export_path;
+        stitcher_data_->panos[result.pano_id].exported = true;
       }
     } else {
       info_message_ = "Failed to stitch pano";

@@ -17,6 +17,6 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id);
 
-Action DrawMenu();
+Action DrawMenu(algorithm::CompressionOptions* compression_options);
 
 }  // namespace xpano::gui

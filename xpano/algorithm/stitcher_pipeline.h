@@ -14,14 +14,21 @@
 
 namespace xpano::algorithm {
 
+struct CompressionOptions {
+  int jpeg_quality = 95;
+  bool jpeg_progressive = false;
+  bool jpeg_optimize = false;
+  int png_compression = 6;
+};
+
 struct LoadingOptions {
   int image_downsample_factor = 1;
 };
 
 struct StitchingOptions {
   int pano_id = 0;
-  bool full_res = false;
-  std::string export_path;
+  std::optional<std::string> export_path;
+  CompressionOptions compression;
 };
 
 struct StitcherData {
@@ -31,8 +38,9 @@ struct StitcherData {
 };
 
 struct StitchingResult {
+  int pano_id = 0;
   std::optional<cv::Mat> pano;
-  StitchingOptions options;
+  std::optional<std::string> export_path;
 };
 
 enum class ProgressType {

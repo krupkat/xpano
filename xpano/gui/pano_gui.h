@@ -36,12 +36,14 @@ class PanoGui {
   int selected_match_ = -1;
 
   std::string info_message_;
+  std::string tooltip_message_;
 
   Layout layout_;
   logger::LoggerGui* logger_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
   algorithm::StitcherPipeline stitcher_pipeline_;
+  algorithm::CompressionOptions compression_options_;
 
   std::future<algorithm::StitcherData> stitcher_data_future_;
   std::optional<algorithm::StitcherData> stitcher_data_;

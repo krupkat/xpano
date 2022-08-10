@@ -10,11 +10,22 @@
 
 #include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
 
 namespace xpano::algorithm {
+namespace {
+
+std::vector<int> CompressionParameters(const CompressionOptions &options) {
+  return {cv::IMWRITE_JPEG_QUALITY,     options.jpeg_quality,
+          cv::IMWRITE_JPEG_PROGRESSIVE, options.jpeg_progressive,
+          cv::IMWRITE_JPEG_OPTIMIZE,    options.jpeg_optimize,
+          cv::IMWRITE_PNG_COMPRESSION,  options.png_compression};
+}
+
+}  // namespace
 
 void ProgressMonitor::Monitor(ProgressType type, int num_tasks) {
   type_ = type;
@@ -44,11 +55,12 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
   auto pano = data.panos[options.pano_id];
 
   return pool_.submit([pano, &images = data.images, options, this]() {
-    int num_tasks = static_cast<int>(pano.ids.size()) + 1;
+    int num_tasks =
+        static_cast<int>(pano.ids.size()) + 1 + options.export_path.has_value();
     loading_progress_.Monitor(ProgressType::kLoadingImages, num_tasks);
     std::vector<cv::Mat> imgs;
     for (int img_id : pano.ids) {
-      if (options.full_res) {
+      if (options.export_path) {
         imgs.push_back(images[img_id].GetFullRes());
       } else {
         imgs.push_back(images[img_id].GetPreview());
@@ -57,9 +69,21 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     loading_progress_.Monitor(ProgressType::kStitchingPano);
-    auto result = Stitch(imgs);
+    auto pano = Stitch(imgs);
     loading_progress_.NotifyTaskDone();
-    return StitchingResult{result, options};
+
+    std::optional<std::string> export_path;
+    if (options.export_path) {
+      if (pano) {
+        if (cv::imwrite(*options.export_path, *pano,
+                        CompressionParameters(options.compression))) {
+          export_path = options.export_path;
+        }
+      }
+      loading_progress_.NotifyTaskDone();
+    }
+
+    return StitchingResult{options.pano_id, pano, export_path};
   });
 }
 

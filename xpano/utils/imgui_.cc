@@ -22,4 +22,13 @@ void ReloadFont(const std::string& font_path, float scale) {
   ImGui::GetStyle().ScaleAllSizes(scale);
 }
 
+void InfoMarker(const char* desc) {
+  ImGui::TextDisabled("(info)");
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::TextUnformatted(desc);
+    ImGui::EndTooltip();
+  }
+}
+
 }  // namespace xpano::utils::imgui

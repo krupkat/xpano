@@ -124,7 +124,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu() {
+Action DrawMenu(algorithm::CompressionOptions* compression_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("File")) {
@@ -144,6 +144,16 @@ Action DrawMenu() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Options")) {
+      if (ImGui::BeginMenu("Export compression")) {
+        ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
+                         100);
+        ImGui::Checkbox("JPEG progressive",
+                        &compression_options->jpeg_progressive);
+        ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
+        ImGui::SliderInt("PNG compression",
+                         &compression_options->png_compression, 0, 9);
+        ImGui::EndMenu();
+      }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("View")) {
