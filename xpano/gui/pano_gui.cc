@@ -37,13 +37,13 @@ bool IsReady(const std::future<TType>& future) {
 
 Action CheckKeybindings() {
   bool ctrl = ImGui::GetIO().KeyCtrl;
-  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_O)) {
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
     return {ActionType::kOpenFiles};
   }
-  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_S)) {
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
     return {ActionType::kExport};
   }
-  if (ctrl && ImGui::IsKeyReleased(ImGuiKey_D)) {
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
     return {ActionType::kToggleDebugLog};
   }
   return {ActionType::kNone};
