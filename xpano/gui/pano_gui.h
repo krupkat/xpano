@@ -25,10 +25,9 @@ class PanoGui {
  private:
   Action DrawGui();
   Action DrawSidebar();
+  Action ResolveFutures();
   void ResetSelections(Action action);
   void PerformAction(Action action);
-  void ResolveFutures();
-
   void ModifyPano(Action action);
 
   int selected_image_ = -1;

@@ -58,11 +58,11 @@ PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger)
 bool PanoGui::Run() {
   auto action = DrawGui();
   action |= CheckKeybindings();
+  action |= ResolveFutures();
   if (action.type != ActionType::kNone) {
     ResetSelections(action);
     PerformAction(action);
   }
-  ResolveFutures();
   return action.type == ActionType::kQuit;
 }
 
@@ -234,12 +234,16 @@ void PanoGui::PerformAction(Action action) {
   }
 }
 
-void PanoGui::ResolveFutures() {
+Action PanoGui::ResolveFutures() {
+  Action action{};
   if (IsReady(stitcher_data_future_)) {
     stitcher_data_ = stitcher_data_future_.get();
     thumbnail_pane_.Load(stitcher_data_->images);
     info_message_ =
         fmt::format("Loaded {} images", stitcher_data_->images.size());
+    if (!stitcher_data_->panos.empty()) {
+      action |= {.type = ActionType::kShowPano, .id = 0};
+    }
   }
   if (IsReady(pano_future_)) {
     auto result = pano_future_.get();
@@ -256,6 +260,7 @@ void PanoGui::ResolveFutures() {
       info_message_ = "Failed to stitch pano";
     }
   }
+  return action;
 }
 
 }  // namespace xpano::gui
