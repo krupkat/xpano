@@ -17,13 +17,20 @@ enum class ActionType {
 
 struct Action {
   ActionType type = ActionType::kNone;
-  int id;
+  int target_id;
+  bool delayed = false;
 };
+
+inline Action RemoveDelay(Action action) {
+  action.delayed = false;
+  return action;
+}
 
 inline Action& operator|=(Action& lhs, const Action& rhs) {
   if (rhs.type != ActionType::kNone) {
     lhs.type = rhs.type;
-    lhs.id = rhs.id;
+    lhs.target_id = rhs.target_id;
+    lhs.delayed = rhs.delayed;
   }
   return lhs;
 }

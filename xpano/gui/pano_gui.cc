@@ -56,7 +56,10 @@ PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger)
     : plot_pane_(backend), thumbnail_pane_(backend), logger_(logger) {}
 
 bool PanoGui::Run() {
-  auto action = DrawGui();
+  Action action{};
+  std::swap(action, delayed_action_);
+
+  action |= DrawGui();
   action |= CheckKeybindings();
   action |= ResolveFutures();
   if (action.type != ActionType::kNone) {
@@ -79,16 +82,32 @@ Action PanoGui::DrawGui() {
 
 Action PanoGui::DrawSidebar() {
   Action action{};
-  ImGui::Begin("PanoSweep", nullptr, ImGuiWindowFlags_MenuBar);
+  ImGui::Begin("PanoSweep", nullptr,
+               ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
   action |= DrawMenu(&compression_options_);
 
-  ImGui::Text("Welcome to PanoSweep");
+  ImGui::Text("Welcome to Xpano!");
+  ImGui::Text(" 1) Import your images");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)", "a) Import individual files\nb) Import all files in a directory");
+  ImGui::Text(" 2) Select a panorama");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)",
+      "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
+      "to add / edit / delete panoramas");
+  ImGui::Text(" 3) Export");
+
   DrawProgressBar(stitcher_pipeline_.LoadingProgress());
   ImGui::Text("%s", info_message_.c_str());
   if (!tooltip_message_.empty()) {
     ImGui::SameLine();
-    utils::imgui::InfoMarker(tooltip_message_.c_str());
+    utils::imgui::InfoMarker("(info)", tooltip_message_);
   }
+
+  ImGui::Separator();
+  ImGui::BeginChild("Panos");
   if (stitcher_data_) {
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
@@ -97,6 +116,8 @@ Action PanoGui::DrawSidebar() {
                                 selected_match_);
     }
   }
+
+  ImGui::EndChild();
   ImGui::End();
   return action;
 }
@@ -117,9 +138,9 @@ void PanoGui::ModifyPano(Action action) {
   // Pano is being edited
   if (selected_pano_ >= 0) {
     auto& pano = stitcher_data_->panos[selected_pano_];
-    auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.id);
+    auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.target_id);
     if (iter == pano.ids.end()) {
-      pano.ids.push_back(action.id);
+      pano.ids.push_back(action.target_id);
     } else {
       pano.ids.erase(iter);
     }
@@ -136,7 +157,7 @@ void PanoGui::ModifyPano(Action action) {
 
   if (selected_image_ >= 0) {
     // Deselect image
-    if (selected_image_ == action.id) {
+    if (selected_image_ == action.target_id) {
       selected_image_ = -1;
       thumbnail_pane_.DisableHighlight();
       return;
@@ -144,7 +165,7 @@ void PanoGui::ModifyPano(Action action) {
 
     // Start a new pano from selected image
     auto new_pano =
-        algorithm::Pano{std::vector<int>({selected_image_, action.id})};
+        algorithm::Pano{std::vector<int>({selected_image_, action.target_id})};
     stitcher_data_->panos.push_back(new_pano);
     thumbnail_pane_.Highlight(new_pano.ids);
     selected_pano_ = static_cast<int>(stitcher_data_->panos.size()) - 1;
@@ -159,6 +180,11 @@ void PanoGui::ModifyPano(Action action) {
 }
 
 void PanoGui::PerformAction(Action action) {
+  if (action.delayed) {
+    delayed_action_ = RemoveDelay(action);
+    return;
+  }
+
   switch (action.type) {
     default: {
       break;
@@ -192,9 +218,9 @@ void PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kShowMatch: {
-      selected_match_ = action.id;
-      spdlog::info("Clicked match {}", action.id);
-      const auto& match = stitcher_data_->matches[action.id];
+      selected_match_ = action.target_id;
+      spdlog::info("Clicked match {}", action.target_id);
+      const auto& match = stitcher_data_->matches[action.target_id];
       auto img = DrawMatches(match, stitcher_data_->images);
       plot_pane_.Load(img);
       thumbnail_pane_.SetScrollX(match.id1, match.id2);
@@ -202,7 +228,7 @@ void PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kShowPano: {
-      selected_pano_ = action.id;
+      selected_pano_ = action.target_id;
       spdlog::info("Clicked pano {}", selected_pano_);
       info_message_.clear();
       tooltip_message_.clear();
@@ -221,10 +247,10 @@ void PanoGui::PerformAction(Action action) {
       [[fallthrough]];
     }
     case ActionType::kShowImage: {
-      selected_image_ = action.id;
-      const auto& img = stitcher_data_->images[action.id];
+      selected_image_ = action.target_id;
+      const auto& img = stitcher_data_->images[action.target_id];
       plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
-      thumbnail_pane_.Highlight(action.id);
+      thumbnail_pane_.Highlight(action.target_id);
       break;
     }
     case ActionType::kToggleDebugLog: {
@@ -242,7 +268,8 @@ Action PanoGui::ResolveFutures() {
     info_message_ =
         fmt::format("Loaded {} images", stitcher_data_->images.size());
     if (!stitcher_data_->panos.empty()) {
-      action |= {.type = ActionType::kShowPano, .id = 0};
+      action |=
+          {.type = ActionType::kShowPano, .target_id = 0, .delayed = true};
     }
   }
   if (IsReady(pano_future_)) {

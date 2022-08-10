@@ -33,6 +33,7 @@ class PanoGui {
   int selected_image_ = -1;
   int selected_pano_ = -1;
   int selected_match_ = -1;
+  Action delayed_action_ = {ActionType::kNone};
 
   std::string info_message_;
   std::string tooltip_message_;

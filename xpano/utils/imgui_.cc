@@ -22,11 +22,11 @@ void ReloadFont(const std::string& font_path, float scale) {
   ImGui::GetStyle().ScaleAllSizes(scale);
 }
 
-void InfoMarker(const char* desc) {
-  ImGui::TextDisabled("(info)");
+void InfoMarker(const std::string& label, const std::string& desc) {
+  ImGui::TextDisabled(label.c_str());
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::TextUnformatted(desc);
+    ImGui::TextUnformatted(desc.c_str());
     ImGui::EndTooltip();
   }
 }
