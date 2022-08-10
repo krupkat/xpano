@@ -11,7 +11,10 @@
 #include <spdlog/common.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/logger.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/spdlog.h>
+
+#include "constants.h"
 
 namespace xpano::logger {
 
@@ -63,7 +66,14 @@ Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
 
 void Logger::RedirectSpdlogOutput() {
   sink_->set_pattern("[%l] %v");
-  spdlog::set_default_logger(std::make_shared<spdlog::logger>("XPano", sink_));
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(sink_);
+  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+      kLogFilename, kMaxLogSize, kMaxLogFiles, true));
+  auto logger =
+      std::make_shared<spdlog::logger>("XPano", sinks.begin(), sinks.end());
+  logger->flush_on(spdlog::level::err);
+  spdlog::set_default_logger(logger);
 }
 
 const std::vector<std::string> &Logger::Log() {

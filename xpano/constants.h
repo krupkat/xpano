@@ -4,6 +4,7 @@
 #include <string>
 
 namespace xpano {
+
 constexpr int kNumFeatures = 3000;
 constexpr int kPreviewSize = 256;
 constexpr int kMaxTexSize = 16384;
@@ -21,4 +22,9 @@ constexpr int kScrollingSpeed = 150;
 
 const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg", "tiff",
                                                          "png", "bmp"};
+
+const std::string kLogFilename = "logs/xpano.log";
+constexpr int kMaxLogSize = 5 * 1024 * 1024;
+constexpr int kMaxLogFiles = 5;
+
 }  // namespace xpano

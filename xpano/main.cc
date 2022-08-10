@@ -96,7 +96,8 @@ int main(int /*unused*/, char** /*unused*/) {
 
     // Handle DPI change
     if (dpi_handler.DpiChanged()) {
-      xpano::utils::imgui::ReloadFont("NotoSans-Regular.ttf", dpi_handler.DpiScale());
+      xpano::utils::imgui::ReloadFont("NotoSans-Regular.ttf",
+                                      dpi_handler.DpiScale());
     }
 
     // Start the Dear ImGui frame
