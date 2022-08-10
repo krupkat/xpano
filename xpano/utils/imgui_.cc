@@ -12,7 +12,8 @@ void ReloadFont(const std::string& font_path, float scale) {
 
   imgui_io.Fonts->Clear();
   imgui_io.Fonts->AddFontFromFileTTF(font_path.c_str(),
-                                     std::roundf(14.0f * scale));
+                                     std::roundf(18.0f * scale), nullptr,
+                                     imgui_io.Fonts->GetGlyphRangesDefault());
 
   ImGui_ImplSDLRenderer_DestroyDeviceObjects();
   ImGui_ImplSDLRenderer_CreateDeviceObjects();

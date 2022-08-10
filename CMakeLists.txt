@@ -76,7 +76,7 @@ target_link_libraries(SDLTest
 )
 
 copy_runtime_dlls(SDLTest)
-copy_file(SDLTest "${CMAKE_SOURCE_DIR}/external/imgui/misc/fonts/DroidSans.ttf")
+copy_file(SDLTest "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf")
 
 install(TARGETS
   SDLTest
@@ -84,7 +84,7 @@ install(TARGETS
 
 install(FILES 
   "$<TARGET_RUNTIME_DLLS:SDLTest>" 
-  "${CMAKE_SOURCE_DIR}/external/imgui/misc/fonts/DroidSans.ttf"
+  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
   TYPE BIN
 )
 
