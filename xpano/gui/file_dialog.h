@@ -10,6 +10,6 @@ namespace xpano::gui::file_dialog {
 
 std::vector<std::string> Open(Action action);
 
-std::optional<std::string> Save();
+std::optional<std::string> Save(std::string default_name);
 
 }  // namespace xpano::gui::file_dialog

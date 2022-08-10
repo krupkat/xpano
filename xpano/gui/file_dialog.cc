@@ -75,6 +75,12 @@ std::string LowercaseExtension(const std::filesystem::path& path) {
   return extension;
 }
 
+bool IsExtensionSupported(const std::filesystem::path& path) {
+  return path.has_extension() &&
+         std::find(kSupportedExtensions.begin(), kSupportedExtensions.end(),
+                   LowercaseExtension(path)) != kSupportedExtensions.end();
+}
+
 }  // namespace
 
 std::vector<std::string> Open(Action action) {
@@ -90,13 +96,7 @@ std::vector<std::string> Open(Action action) {
 
   std::vector<std::filesystem::path> valid_paths;
   std::copy_if(paths.begin(), paths.end(), std::back_inserter(valid_paths),
-               [](const std::filesystem::path& path) {
-                 return path.has_extension() &&
-                        std::find(kSupportedExtensions.begin(),
-                                  kSupportedExtensions.end(),
-                                  LowercaseExtension(path)) !=
-                            kSupportedExtensions.end();
-               });
+               IsExtensionSupported);
 
   std::vector<std::string> results;
   std::transform(
@@ -105,20 +105,21 @@ std::vector<std::string> Open(Action action) {
   return results;
 }
 
-std::optional<std::string> Save() {
+std::optional<std::string> Save(std::string default_name) {
   NFD::UniquePath out_path;
   std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::to_string(fmt::join(kSupportedExtensions, ","));
   filter_item[0] = {"Images", extensions.c_str()};
 
-  std::string default_path;
-  std::string default_name = "example.jpg";
-
   nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
                                        default_name.c_str());
   if (result == NFD_OKAY) {
     spdlog::info("Picked save file");
-    return {out_path.get()};
+    if (IsExtensionSupported(out_path.get())) {
+      return out_path.get();
+    } else {
+      spdlog::error("Unsupported extension");
+    }
   } else if (result == NFD_CANCEL) {
     spdlog::info("User pressed cancel.");
   } else {

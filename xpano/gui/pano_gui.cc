@@ -162,7 +162,8 @@ void PanoGui::PerformAction(Action action) {
       if (selected_pano_ >= 0) {
         spdlog::info("Exporting pano {}", selected_pano_);
         info_message_.clear();
-        auto export_path = file_dialog::Save();
+        auto default_name = fmt::format("pano_{}.jpg", selected_pano_);
+        auto export_path = file_dialog::Save(default_name);
         if (export_path) {
           pano_future_ = stitcher_pipeline_.RunStitching(
               *stitcher_data_, {.pano_id = selected_pano_,
