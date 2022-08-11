@@ -263,8 +263,13 @@ void PanoGui::PerformAction(Action action) {
 Action PanoGui::ResolveFutures() {
   Action action{};
   if (IsReady(stitcher_data_future_)) {
-    stitcher_data_ = stitcher_data_future_.get();
-    thumbnail_pane_.Load(stitcher_data_->images);
+    try {
+      stitcher_data_ = stitcher_data_future_.get();
+      thumbnail_pane_.Load(stitcher_data_->images);
+    } catch (const std::exception& e) {
+      spdlog::error("{} ", e.what());
+    }
+
     info_message_ =
         fmt::format("Loaded {} images", stitcher_data_->images.size());
     if (!stitcher_data_->panos.empty()) {

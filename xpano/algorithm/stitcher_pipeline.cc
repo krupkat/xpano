@@ -11,6 +11,7 @@
 #include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <spdlog/spdlog.h>
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
@@ -117,7 +118,14 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
     }));
   }
 
-  auto matches = matches_future.get();
+  std::vector<algorithm::Match> matches;
+  try {
+    matches = matches_future.get();
+  } catch (const std::exception &e) {
+    spdlog::error("{} ", e.what());
+    return {};
+  }
+
   auto panos = FindPanos(matches);
   loading_progress_.NotifyTaskDone();
 

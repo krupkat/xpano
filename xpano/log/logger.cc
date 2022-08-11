@@ -91,7 +91,7 @@ void LoggerGui::Draw() {
   const auto &log = logger_.Log();
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   for (const auto &line : log) {
-    ImGui::TextUnformatted(line.c_str());
+    ImGui::TextUnformatted(&line[0], &line[line.size()]);
   }
   ImGui::PopStyleVar();
   if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {

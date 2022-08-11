@@ -12,6 +12,8 @@ include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
 
+add_compile_options(/fsanitize=address)
+
 add_subdirectory("external/nativefiledialog-extended" EXCLUDE_FROM_ALL)
 
 set(IMGUI_SOURCES 
@@ -45,7 +47,7 @@ find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc stitching)
 find_package(spdlog REQUIRED)
 
-add_executable(SDLTest WIN32
+add_executable(SDLTest
   ${XPANO_SOURCES}
   ${IMGUI_SOURCES}
 )

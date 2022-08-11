@@ -8,6 +8,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/stitching.hpp>
+#include <spdlog/spdlog.h>
 
 #include "algorithm/image.h"
 #include "constants.h"
@@ -49,6 +50,10 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
     idx++;
   }
   cv::Mat h_mat = cv::findHomography(src_points, dst_points, cv::RANSAC, 3);
+  if (h_mat.empty()) {
+    spdlog::info("Detected empty h_mat");
+    return {};
+  }
   perspectiveTransform(src_points, dst_points_proj, h_mat);
 
   // FILTER OUTLIERS
