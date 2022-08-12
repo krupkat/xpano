@@ -27,4 +27,6 @@ const std::string kLogFilename = "logs/xpano.log";
 constexpr int kMaxLogSize = 5 * 1024 * 1024;
 constexpr int kMaxLogFiles = 5;
 
+const char* const kCheckMark = reinterpret_cast<const char*>(u8"✓");
+
 }  // namespace xpano

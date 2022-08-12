@@ -114,7 +114,9 @@ Action PanoGui::DrawSidebar() {
       "mouse");
   ImGui::Text(" 3) Export");
   ImGui::SameLine();
-  utils::imgui::InfoMarker("(?)", "a) Keyboard shortcut: CTRL+S");
+  utils::imgui::InfoMarker("(?)",
+                           "a) Keyboard shortcut: CTRL+S\nb) Exported panos "
+                           "will be marked by a check mark");
 
   DrawProgressBar(stitcher_pipeline_.LoadingProgress());
   ImGui::Text("%s", info_message_.c_str());

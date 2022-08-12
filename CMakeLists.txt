@@ -9,6 +9,10 @@ project(SDLTest)
 include(CTest)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
+if (MSVC)
+  add_compile_options(/utf-8)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(ABSL_PROPAGATE_CXX_STD ON)
 
@@ -76,7 +80,10 @@ target_link_libraries(SDLTest
 )
 
 copy_runtime_dlls(SDLTest)
-copy_file(SDLTest "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf")
+copy_file(SDLTest 
+  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
+  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSansSymbols2-Regular.ttf"
+)
 
 install(TARGETS
   SDLTest
@@ -85,6 +92,7 @@ install(TARGETS
 install(FILES 
   "$<TARGET_RUNTIME_DLLS:SDLTest>" 
   "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
+  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSansSymbols2-Regular.ttf"
   TYPE BIN
 )
 

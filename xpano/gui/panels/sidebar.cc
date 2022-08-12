@@ -95,7 +95,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   ImGui::TextUnformatted("List of panos:");
   ImGui::BeginTable("table2", 3);
   ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
-  ImGui::TableSetupColumn("Done", ImGuiTableColumnFlags_WidthFixed);
+  ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
   ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed);
   ImGui::TableHeadersRow();
 
@@ -106,7 +106,9 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
     auto string = fmt::to_string(fmt::join(panos[i].ids, ","));
     ImGui::Text("%s", string.c_str());
     ImGui::TableNextColumn();
-    ImGui::Text(panos[i].exported ? "x" : " ");
+    if (panos[i].exported) {
+      ImGui::Text(kCheckMark);
+    }
     ImGui::TableNextColumn();
     ImGui::PushID(i);
     if (ImGui::SmallButton("Show")) {

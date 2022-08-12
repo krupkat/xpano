@@ -14,9 +14,9 @@ function(copy_directory target directory)
   )
 endfunction()
 
-function(copy_file target file)
+function(copy_file target)
   add_custom_command(TARGET ${target} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${file} $<TARGET_FILE_DIR:${target}>
+    COMMAND ${CMAKE_COMMAND} -E copy ${ARGN} $<TARGET_FILE_DIR:${target}>
     COMMAND_EXPAND_LISTS
   )
 endfunction()
