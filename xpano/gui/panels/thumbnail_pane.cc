@@ -86,6 +86,7 @@ ResizeChecker::Status ResizeChecker::Check(ImVec2 window_size) {
 ThumbnailPane::ThumbnailPane(backends::Base *backend) : backend_(backend) {}
 
 void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
+  spdlog::info("Loading {} thumbnails", images.size());
   int num_images = static_cast<int>(images.size());
   auto thumbnail_size = utils::Vec2i{kPreviewSize};
   int side = 0;
@@ -93,6 +94,7 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
     side++;
   }
   auto size = thumbnail_size * side;
+  spdlog::info("Thumbnail texture size: {} x {}", size[0], size[1]);
   auto type = images[0].GetThumbnail().type();
   cv::Mat atlas{utils::CvSize(size), type};
   for (int i = 0; i < images.size(); i++) {
@@ -108,7 +110,7 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
 
   tex_ = backend_->CreateTexture(size);
   backend_->UpdateTexture(tex_.get(), atlas);
-  spdlog::info("Success Atlas!");
+  spdlog::info("Thumbnails loaded successfully");
 }
 
 bool ThumbnailPane::Loaded() const { return !coords_.empty(); }

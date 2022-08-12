@@ -56,12 +56,14 @@ cv::Mat DrawMatches(const algorithm::Match& match,
 
 Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
                        const ThumbnailPane& thumbnail_pane, int highlight_id) {
-  Action action{};
+  ImGui::TextUnformatted("List of matches:");
   ImGui::BeginTable("table1", 3);
   ImGui::TableSetupColumn("Matched");
   ImGui::TableSetupColumn("Inliers");
   ImGui::TableSetupColumn("Action");
   ImGui::TableHeadersRow();
+
+  Action action{};
 
   for (int i = 0; i < matches.size(); i++) {
     ImGui::TableNextColumn();
@@ -90,6 +92,7 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
 
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id) {
+  ImGui::TextUnformatted("List of panos:");
   ImGui::BeginTable("table2", 3);
   ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
   ImGui::TableSetupColumn("Done", ImGuiTableColumnFlags_WidthFixed);

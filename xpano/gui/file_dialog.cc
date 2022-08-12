@@ -31,7 +31,7 @@ std::vector<std::filesystem::path> MultifileOpen() {
   nfdresult_t result =
       NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
   if (result == NFD_OKAY) {
-    spdlog::info("Selected files");
+    spdlog::info("Selected files [OpenDialogMultiple]");
 
     nfdpathsetsize_t num_paths;
     NFD::PathSet::Count(out_paths, num_paths);
@@ -55,7 +55,7 @@ std::vector<std::filesystem::path> DirectoryOpen() {
   std::vector<std::filesystem::path> results;
   nfdresult_t result = NFD::PickFolder(out_path);
   if (result == NFD_OKAY) {
-    spdlog::info("Selected directory");
+    spdlog::info("Selected directory {}", out_path.get());
     for (const auto& file :
          std::filesystem::directory_iterator(out_path.get())) {
       results.emplace_back(file.path());
@@ -114,7 +114,7 @@ std::optional<std::string> Save(std::string default_name) {
   nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
                                        default_name.c_str());
   if (result == NFD_OKAY) {
-    spdlog::info("Picked save file");
+    spdlog::info("Picked save file {}", out_path.get());
     if (IsExtensionSupported(out_path.get())) {
       return out_path.get();
     } else {

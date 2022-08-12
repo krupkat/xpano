@@ -27,13 +27,15 @@ std::vector<int> CompressionParameters(const CompressionOptions &options) {
 
 }  // namespace
 
-void ProgressMonitor::Monitor(ProgressType type, int num_tasks) {
+void ProgressMonitor::Reset(ProgressType type, int num_tasks) {
   type_ = type;
   done_ = 0;
   num_tasks_ = num_tasks;
 }
 
-void ProgressMonitor::Monitor(ProgressType type) { type_ = type; }
+void ProgressMonitor::SetTaskType(ProgressType type) { type_ = type; }
+
+void ProgressMonitor::SetNumTasks(int num_tasks) { num_tasks_ = num_tasks; }
 
 ProgressReport ProgressMonitor::Progress() const {
   return {type_, done_, num_tasks_};
@@ -57,7 +59,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
   return pool_.submit([pano, &images = data.images, options, this]() {
     int num_tasks =
         static_cast<int>(pano.ids.size()) + 1 + options.export_path.has_value();
-    loading_progress_.Monitor(ProgressType::kLoadingImages, num_tasks);
+    loading_progress_.Reset(ProgressType::kLoadingImages, num_tasks);
     std::vector<cv::Mat> imgs;
     for (int img_id : pano.ids) {
       if (options.export_path) {
@@ -68,7 +70,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
       loading_progress_.NotifyTaskDone();
     }
 
-    loading_progress_.Monitor(ProgressType::kStitchingPano);
+    loading_progress_.SetTaskType(ProgressType::kStitchingPano);
     auto pano = Stitch(imgs);
     loading_progress_.NotifyTaskDone();
 
@@ -95,8 +97,8 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
     const std::vector<std::string> &inputs) {
   auto images = std::vector<Image>{inputs.begin(), inputs.end()};
 
-  int num_tasks = static_cast<int>(images.size()) * 2;
-  loading_progress_.Monitor(ProgressType::kDetectingKeypoints, num_tasks);
+  int num_tasks = static_cast<int>(images.size()) * 2 + 1;
+  loading_progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
   pool_
       .parallelize_loop(0, images.size(),
                         [this, &images](size_t start, size_t end) {
@@ -107,7 +109,11 @@ StitcherData StitcherPipeline::RunLoadingPipeline(
                         })
       .wait();
 
-  loading_progress_.Monitor(ProgressType::kMatchingImages);
+  auto erased =
+      std::erase_if(images, [](const Image &img) { return !img.IsLoaded(); });
+  loading_progress_.SetNumTasks(num_tasks - erased);
+
+  loading_progress_.SetTaskType(ProgressType::kMatchingImages);
   BS::multi_future<Match> matches_future;
   for (int i = 1; i < images.size(); i++) {
     matches_future.push_back(pool_.submit([this, i, &images]() {

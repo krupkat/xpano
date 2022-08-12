@@ -29,6 +29,7 @@ class PanoGui {
   void ResetSelections(Action action);
   void PerformAction(Action action);
   void ModifyPano(Action action);
+  std::string PreviewMessage() const;
 
   int selected_image_ = -1;
   int selected_pano_ = -1;

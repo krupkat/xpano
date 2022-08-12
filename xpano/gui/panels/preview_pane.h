@@ -14,7 +14,8 @@ class PreviewPane {
  public:
   explicit PreviewPane(backends::Base* backend);
   void Load(cv::Mat image);
-  void Draw();
+  void Draw(const std::string& message);
+  void Reset();
 
  private:
   [[nodiscard]] float Zoom() const;

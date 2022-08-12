@@ -21,6 +21,7 @@ class Image {
   [[nodiscard]] cv::Mat Draw(bool show_debug) const;
   [[nodiscard]] const std::vector<cv::KeyPoint> &GetKeypoints() const;
   [[nodiscard]] cv::Mat GetDescriptors() const;
+  [[nodiscard]] bool IsLoaded() const;
 
  private:
   std::string path_;

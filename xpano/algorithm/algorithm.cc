@@ -49,6 +49,9 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
     idx++;
   }
   cv::Mat h_mat = cv::findHomography(src_points, dst_points, cv::RANSAC, 3);
+  if (h_mat.empty()) {
+    return {};
+  }
   perspectiveTransform(src_points, dst_points_proj, h_mat);
 
   // FILTER OUTLIERS

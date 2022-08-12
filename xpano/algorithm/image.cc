@@ -21,6 +21,10 @@ Image::Image(std::string path) : path_(std::move(path)) {}
 
 void Image::Load() {
   cv::Mat tmp = cv::imread(path_);
+  if (tmp.empty()) {
+    spdlog::error("Failed to load image {}", path_);
+    return;
+  }
   cv::resize(tmp, preview_, cv::Size(), 0.5, 0.5, cv::INTER_AREA);
   sift->detectAndCompute(preview_, cv::Mat(), keypoints_, descriptors_);
   cv::resize(preview_, thumbnail_, cv::Size(kPreviewSize, kPreviewSize), 0, 0,
@@ -30,6 +34,8 @@ void Image::Load() {
   spdlog::info("Size: {} x {}, Keypoints: {}", preview_.size[1],
                preview_.size[0], keypoints_.size());
 }
+
+bool Image::IsLoaded() const { return !preview_.empty(); }
 
 cv::Mat Image::GetFullRes() const { return cv::imread(path_); }
 cv::Mat Image::GetThumbnail() const { return thumbnail_; }

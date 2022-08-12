@@ -59,8 +59,9 @@ struct ProgressReport {
 
 class ProgressMonitor {
  public:
-  void Monitor(ProgressType type, int num_tasks);
-  void Monitor(ProgressType type);
+  void Reset(ProgressType type, int num_tasks);
+  void SetNumTasks(int num_tasks);
+  void SetTaskType(ProgressType type);
   ProgressReport Progress() const;
   void NotifyTaskDone();
 

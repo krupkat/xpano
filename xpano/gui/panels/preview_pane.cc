@@ -15,6 +15,24 @@
 
 namespace xpano::gui {
 
+namespace {
+void DrawMessage(utils::Point2f pos, const std::string& message) {
+  if (message.empty()) {
+    return;
+  }
+  ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking |
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
+      ImGuiWindowFlags_NoMove;
+  ImGui::SetNextWindowPos(utils::ImVec(pos), ImGuiCond_Always,
+                          ImVec2(0.0f, 1.0f));
+  ImGui::Begin("Overlay", nullptr, window_flags);
+  ImGui::TextUnformatted(message.c_str());
+  ImGui::End();
+}
+}  // namespace
+
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
   std::iota(zoom_.begin(), zoom_.end(), 0.0f);
   std::transform(zoom_.begin(), zoom_.end(), zoom_.begin(),
@@ -66,12 +84,20 @@ void PreviewPane::Load(cv::Mat image) {
   ResetZoom();
 }
 
-void PreviewPane::Draw() {
+void PreviewPane::Reset() {
+  tex_ = nullptr;
+  ResetZoom();
+}
+
+void PreviewPane::Draw(const std::string& message) {
   ImGui::Begin("Preview");
+
+  auto window_start = utils::ToPoint(ImGui::GetCursorScreenPos());
+  auto available_size = utils::ToVec(ImGui::GetContentRegionAvail());
+  DrawMessage(window_start + utils::Vec2f{0.0f, available_size[1]}, message);
+
   if (tex_) {
-    auto available_size = utils::ToVec(ImGui::GetContentRegionAvail());
-    auto mid =
-        utils::ToPoint(ImGui::GetCursorScreenPos()) + available_size / 2.0f;
+    auto mid = window_start + available_size / 2.0f;
 
     float image_aspect = tex_coord_.Aspect();
     auto image_size =
@@ -98,7 +124,6 @@ void PreviewPane::Draw() {
       float mouse_wheel = ImGui::GetIO().MouseWheel;
 
       if (mouse_clicked || mouse_dragging || mouse_wheel != 0) {
-        auto window_start = utils::ToPoint(ImGui::GetCursorScreenPos());
         auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
         screen_offset_ = (mouse_pos - window_start) / available_size;
         if (!mouse_dragging) {
