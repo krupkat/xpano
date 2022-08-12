@@ -27,8 +27,8 @@ class PanoGui {
   Action DrawSidebar();
   Action ResolveFutures();
   void ResetSelections(Action action);
-  void PerformAction(Action action);
-  void ModifyPano(Action action);
+  Action PerformAction(Action action);
+  Action ModifyPano(Action action);
   std::string PreviewMessage() const;
 
   int selected_image_ = -1;

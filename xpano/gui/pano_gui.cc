@@ -64,7 +64,11 @@ bool PanoGui::Run() {
   action |= ResolveFutures();
   if (action.type != ActionType::kNone) {
     ResetSelections(action);
-    PerformAction(action);
+    action |= PerformAction(action);
+  }
+
+  if (action.delayed) {
+    delayed_action_ = RemoveDelay(action);
   }
   return action.type == ActionType::kQuit;
 }
@@ -147,7 +151,7 @@ void PanoGui::ResetSelections(Action action) {
   selected_match_ = -1;
 }
 
-void PanoGui::ModifyPano(Action action) {
+Action PanoGui::ModifyPano(Action action) {
   // Pano is being edited
   if (selected_pano_ >= 0) {
     auto& pano = stitcher_data_->panos[selected_pano_];
@@ -163,8 +167,6 @@ void PanoGui::ModifyPano(Action action) {
       stitcher_data_->panos.erase(pano_iter);
       selected_pano_ = -1;
       thumbnail_pane_.DisableHighlight();
-    } else {
-      thumbnail_pane_.Highlight(pano.ids);
     }
   }
 
@@ -173,30 +175,28 @@ void PanoGui::ModifyPano(Action action) {
     if (selected_image_ == action.target_id) {
       selected_image_ = -1;
       thumbnail_pane_.DisableHighlight();
-      return;
+      return {};
     }
 
     // Start a new pano from selected image
-    auto new_pano =
-        algorithm::Pano{std::vector<int>({selected_image_, action.target_id})};
-    stitcher_data_->panos.push_back(new_pano);
-    thumbnail_pane_.Highlight(new_pano.ids);
-    plot_pane_.Reset();
-    selected_pano_ = static_cast<int>(stitcher_data_->panos.size()) - 1;
+    selected_pano_ = static_cast<int>(stitcher_data_->panos.size());
+    stitcher_data_->panos.push_back(
+        {.ids = {selected_image_, action.target_id}});
     selected_image_ = -1;
   }
 
   // Queue pano stitching
   if (selected_pano_ >= 0) {
-    pano_future_ = stitcher_pipeline_.RunStitching(*stitcher_data_,
-                                                   {.pano_id = selected_pano_});
+    return {.type = ActionType::kShowPano,
+            .target_id = selected_pano_,
+            .delayed = true};
   }
+  return {};
 }
 
-void PanoGui::PerformAction(Action action) {
+Action PanoGui::PerformAction(Action action) {
   if (action.delayed) {
-    delayed_action_ = RemoveDelay(action);
-    return;
+    return action;
   }
 
   switch (action.type) {
@@ -257,8 +257,7 @@ void PanoGui::PerformAction(Action action) {
     }
     case ActionType::kModifyPano: {
       if (selected_image_ >= 0 || selected_pano_ >= 0 || selected_match_ >= 0) {
-        ModifyPano(action);
-        break;
+        return ModifyPano(action);
       }
       [[fallthrough]];
     }
@@ -274,6 +273,7 @@ void PanoGui::PerformAction(Action action) {
       break;
     }
   }
+  return action;
 }
 
 Action PanoGui::ResolveFutures() {
