@@ -4,5 +4,8 @@ opencv/
 SDL/
 catch/
 spdlog/
+out/
 imgui.ini
 .vscode
+.vs
+CMakeSettings.json
