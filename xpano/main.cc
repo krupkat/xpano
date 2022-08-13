@@ -109,7 +109,7 @@ int main(int /*unused*/, char** /*unused*/) {
     // User code
     done |= gui.Run();
 
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 
     // Rendering
     SDL_SetRenderDrawColor(renderer, clear_color.r, clear_color.g,

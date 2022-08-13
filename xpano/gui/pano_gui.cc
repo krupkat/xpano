@@ -117,8 +117,17 @@ Action PanoGui::DrawSidebar() {
   utils::imgui::InfoMarker("(?)",
                            "a) Keyboard shortcut: CTRL+S\nb) Exported panos "
                            "will be marked by a check mark");
+  ImGui::Separator();
 
-  DrawProgressBar(stitcher_pipeline_.LoadingProgress());
+  auto progress = stitcher_pipeline_.LoadingProgress();
+  DrawProgressBar(progress);
+  if (progress.tasks_done < progress.num_tasks) {
+    if (ImGui::Button("Cancel")) {
+      action |= Action{ActionType::kCancelPipeline};
+    }
+    ImGui::SameLine();
+  }
+
   ImGui::Text("%s", info_message_.c_str());
   if (!tooltip_message_.empty()) {
     ImGui::SameLine();
@@ -205,6 +214,10 @@ Action PanoGui::PerformAction(Action action) {
     default: {
       break;
     }
+    case ActionType::kCancelPipeline: {
+      stitcher_pipeline_.Cancel();
+      break;
+    }
     case ActionType::kExport: {
       if (selected_pano_ >= 0) {
         spdlog::info("Exporting pano {}", selected_pano_);
@@ -225,11 +238,12 @@ Action PanoGui::PerformAction(Action action) {
       [[fallthrough]];
     case ActionType::kOpenFiles: {
       if (auto results = file_dialog::Open(action); !results.empty()) {
-        stitcher_data_.reset();
         thumbnail_pane_.Reset();
         plot_pane_.Reset();
         info_message_.clear();
         tooltip_message_.clear();
+        stitcher_pipeline_.Cancel();
+        stitcher_data_.reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
       }
       break;
@@ -282,14 +296,20 @@ Action PanoGui::ResolveFutures() {
   if (IsReady(stitcher_data_future_)) {
     try {
       stitcher_data_ = stitcher_data_future_.get();
-      thumbnail_pane_.Load(stitcher_data_->images);
     } catch (const std::exception& e) {
       spdlog::error("Error loading images: {}", e.what());
       info_message_ = "Couldn't load images";
       tooltip_message_ = e.what();
       return {};
     }
+    if (stitcher_data_->images.empty()) {
+      spdlog::info("No images loaded");
+      info_message_ = "No images loaded";
+      stitcher_data_.reset();
+      return {};
+    }
 
+    thumbnail_pane_.Load(stitcher_data_->images);
     info_message_ =
         fmt::format("Loaded {} images", stitcher_data_->images.size());
     spdlog::info(info_message_);

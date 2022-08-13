@@ -74,17 +74,24 @@ class ProgressMonitor {
 class StitcherPipeline {
  public:
   StitcherPipeline() = default;
+  ~StitcherPipeline();
   std::future<StitcherData> RunLoading(const std::vector<std::string> &inputs,
                                        const LoadingOptions &options);
   std::future<StitchingResult> RunStitching(const StitcherData &data,
                                             const StitchingOptions &options);
   ProgressReport LoadingProgress() const;
 
+  void Cancel();
+
  private:
-  StitcherData RunLoadingPipeline(const std::vector<std::string> &inputs);
+  std::vector<algorithm::Image> RunLoadingPipeline(
+      const std::vector<std::string> &inputs);
+  StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images);
 
   ProgressMonitor loading_progress_;
   LoadingOptions options_;
+
+  std::atomic<bool> cancel_tasks_ = false;
   BS::thread_pool pool_;
 };
 

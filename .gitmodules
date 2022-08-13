@@ -6,4 +6,4 @@
 	url = git@github.com:btzy/nativefiledialog-extended.git
 [submodule "external/thread-pool"]
 	path = external/thread-pool
-	url = git@github.com:bshoshany/thread-pool.git
+	url = git@github.com:krupkat/thread-pool.git
