@@ -1,5 +1,11 @@
 #pragma once
 
+#include <vector>
+
+#include <opencv2/core.hpp>
+
+#include "algorithm/algorithm.h"
+#include "algorithm/image.h"
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
 #include "gui/panels/thumbnail_pane.h"

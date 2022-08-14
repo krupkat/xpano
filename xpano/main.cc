@@ -1,5 +1,6 @@
 #include <clocale>
 #include <cstdio>
+#include <string>
 
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
@@ -73,7 +74,7 @@ int main(int /*unused*/, char** /*unused*/) {
   imgui_io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // Our state
-  SDL_Color clear_color{114, 140, 165, 255};
+  const SDL_Color clear_color{114, 140, 165, 255};
   xpano::gui::PanoGui gui(&backend, &logger);
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);
@@ -109,7 +110,7 @@ int main(int /*unused*/, char** /*unused*/) {
     // User code
     done |= gui.Run();
 
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 
     // Rendering
     SDL_SetRenderDrawColor(renderer, clear_color.r, clear_color.g,

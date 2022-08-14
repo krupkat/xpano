@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <string>
 
 namespace xpano {
@@ -28,5 +29,12 @@ constexpr int kMaxLogSize = 5 * 1024 * 1024;
 constexpr int kMaxLogFiles = 5;
 
 const char* const kCheckMark = reinterpret_cast<const char*>(u8"✓");
+
+constexpr auto kTaskCancellationTimeout = std::chrono::milliseconds(500);
+
+constexpr int kDefaultJpegQuality = 95;
+constexpr int kMaxJpegQuality = 100;
+constexpr int kDefaultPngCompression = 6;
+constexpr int kMaxPngCompression = 9;
 
 }  // namespace xpano

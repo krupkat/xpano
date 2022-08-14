@@ -1,10 +1,10 @@
 #include "imgui_.h"
 
 #include <cmath>
+#include <utility>
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer.h>
-#include <spdlog/spdlog.h>
 
 #include "constants.h"
 
@@ -12,8 +12,8 @@ namespace xpano::utils::imgui {
 
 FontLoader::FontLoader(std::string alphabet_font_path,
                        std::string symbols_font_path)
-    : alphabet_font_path_(alphabet_font_path),
-      symbols_font_path_(symbols_font_path) {}
+    : alphabet_font_path_(std::move(alphabet_font_path)),
+      symbols_font_path_(std::move(symbols_font_path)) {}
 
 void FontLoader::ComputeGlyphRanges() {
   ImFontGlyphRangesBuilder builder;

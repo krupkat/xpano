@@ -9,4 +9,5 @@
   { symbol: [ "std::plus", private, "<functional>", public ] },
   { include: ["<spdlog/fmt/bundled/core.h>", "private", "<spdlog/fmt/fmt.h>", "public"] },
   { include: ["<spdlog/fmt/bundled/format.h>", "private", "<spdlog/fmt/fmt.h>", "public"] },
+  { include: ["<__msvc_chrono.hpp>", "private", "<chrono>", "public"] },
 ]

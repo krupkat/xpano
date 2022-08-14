@@ -14,6 +14,8 @@ using xpano::utils::Ratio2i;
 using xpano::utils::Vec2f;
 using xpano::utils::Vec2i;
 
+// NOLINTBEGIN(readability-magic-numbers)
+
 TEMPLATE_TEST_CASE("Vec constructor + access", "[Vec]", Vec2f, Point2f,
                    Ratio2f) {
   TestType vec{1.0f, 2.0f};
@@ -292,3 +294,5 @@ TEST_CASE("Multiply type checks") {
     REQUIRE(!Multiplicable<Point2f, Point2f>);
   }
 }
+
+// NOLINTEND(readability-magic-numbers)
