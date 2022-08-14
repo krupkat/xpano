@@ -84,10 +84,13 @@ copy_directory(SDLTest
   "${CMAKE_SOURCE_DIR}/misc/fonts"
 )
 
-IF (WIN32)
+if (WIN32)
   set(CMAKE_INSTALL_BINDIR ".")
   set(CMAKE_INSTALL_DATADIR ".")
-ENDIF()
+else()
+  set(CMAKE_INSTALL_BINDIR "bin")
+  set(CMAKE_INSTALL_DATADIR "share")
+endif()
 
 install(TARGETS
   SDLTest RUNTIME
