@@ -1,11 +1,9 @@
 #include "algorithm/stitcher_pipeline.h"
 
 #include <atomic>
-#include <cstddef>
 #include <future>
 #include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <BS_thread_pool.hpp>

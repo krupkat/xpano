@@ -1,11 +1,17 @@
 #include "gui/panels/sidebar.h"
 
 #include <string>
+#include <vector>
 
+#include <imgui.h>
+#include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <spdlog/fmt/fmt.h>
 
+#include "algorithm/algorithm.h"
+#include "algorithm/image.h"
 #include "algorithm/stitcher_pipeline.h"
+#include "constants.h"
 #include "gui/action.h"
 #include "gui/panels/thumbnail_pane.h"
 

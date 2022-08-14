@@ -1,5 +1,6 @@
 #include <clocale>
 #include <cstdio>
+#include <string>
 
 #include <imgui.h>
 #include <imgui_impl_sdl.h>

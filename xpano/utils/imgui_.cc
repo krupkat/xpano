@@ -4,7 +4,6 @@
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer.h>
-#include <spdlog/spdlog.h>
 
 #include "constants.h"
 

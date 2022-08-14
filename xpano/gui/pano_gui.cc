@@ -5,11 +5,10 @@
 #include <future>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <imgui.h>
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 

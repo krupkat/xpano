@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 #include <opencv2/core.hpp>
 

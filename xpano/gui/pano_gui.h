@@ -4,8 +4,6 @@
 #include <optional>
 #include <string>
 
-#include <opencv2/core.hpp>
-
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
 #include "gui/backends/base.h"
