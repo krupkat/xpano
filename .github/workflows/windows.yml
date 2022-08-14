@@ -102,11 +102,18 @@ jobs:
         cmake --build build --target install --config $env:BUILD_TYPE
         cd ..
 
+    - name: Bundle extra licenses
+      run: |
+        New-Item -Name "licenses" -ItemType "directory"
+        Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
+        Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
+
     - name: Configure CMake
       run: |
         cmake -B build -G "$env:GENERATOR" `
           -DBUILD_TESTING=ON `
           -DXPANO_INSTALL_LICENSES=ON `
+          -DXPANO_EXTRA_LICENSES=licenses `
           -DXPANO_STATIC_VCRT=ON `
           -DCMAKE_INSTALL_PREFIX=install `
           -DSDL2_DIR="sdl/install/cmake" `

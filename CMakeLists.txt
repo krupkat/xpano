@@ -113,6 +113,27 @@ if(XPANO_INSTALL_LICENSES)
     DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
     RENAME "opencv-license.txt"
   )
+  install(FILES
+    "external/imgui/LICENSE.txt"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "imgui-license.txt"
+  )
+  install(FILES
+    "external/nativefiledialog-extended/LICENSE"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "nativefiledialog-extended-license.txt"
+  )
+  install(FILES
+    "external/thread-pool/LICENSE.txt"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "thread-pool-license.txt"
+  )
+  if(DEFINED XPANO_EXTRA_LICENSES)
+    install(DIRECTORY
+      "${XPANO_EXTRA_LICENSES}"
+      TYPE DATA
+    )
+  endif()
 endif()
 
 if(BUILD_TESTING)
