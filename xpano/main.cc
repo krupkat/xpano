@@ -1,3 +1,21 @@
+/*
+    Xpano - a tool for stitching photos into panoramas.
+    Copyright (C) 2022  Tomas Krupka
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include <clocale>
 #include <cstdio>
 #include <string>
@@ -20,7 +38,7 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-int main(int /*unused*/, char** /*unused*/) {
+int main(int /*unused*/, char** argv) {
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
 #endif
@@ -57,7 +75,7 @@ int main(int /*unused*/, char** /*unused*/) {
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
   if (renderer == nullptr) {
     spdlog::error("Error creating SDL_Renderer!");
-    return 0;
+    return -1;
   }
   xpano::gui::backends::Sdl backend{renderer};
 
@@ -78,8 +96,12 @@ int main(int /*unused*/, char** /*unused*/) {
   xpano::gui::PanoGui gui(&backend, &logger);
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);
-  xpano::utils::imgui::FontLoader font_loader("NotoSans-Regular.ttf",
-                                              "NotoSansSymbols2-Regular.ttf");
+  xpano::utils::imgui::FontLoader font_loader(
+      "fonts/NotoSans-Regular.ttf", "fonts/NotoSansSymbols2-Regular.ttf");
+  if (!font_loader.Init(argv[0])) {
+    spdlog::error("Font location not found!");
+    return -1;
+  }
 
   // Main loop
   bool done = false;

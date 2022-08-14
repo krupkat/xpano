@@ -47,8 +47,13 @@ cmake -B build -G "$env:GENERATOR" `
 cmake --build build --target install --config $env:BUILD_TYPE
 cd ..
 
+New-Item -Name "licenses" -ItemType "directory"
+Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
+Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
+
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_TESTING=ON `
+  -DXPANO_EXTRA_LICENSES=licenses `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DSDL2_DIR="sdl/install/cmake" `

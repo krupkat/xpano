@@ -80,21 +80,69 @@ target_link_libraries(SDLTest
 )
 
 copy_runtime_dlls(SDLTest)
-copy_file(SDLTest 
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSansSymbols2-Regular.ttf"
+copy_directory(SDLTest 
+  "${CMAKE_SOURCE_DIR}/misc/fonts"
 )
 
+if (WIN32)
+  set(CMAKE_INSTALL_BINDIR ".")
+  set(CMAKE_INSTALL_DATADIR ".")
+else()
+  set(CMAKE_INSTALL_BINDIR "bin")
+  set(CMAKE_INSTALL_DATADIR "share")
+endif()
+
 install(TARGETS
-  SDLTest
+  SDLTest RUNTIME
 )
 
 install(FILES 
   "$<TARGET_RUNTIME_DLLS:SDLTest>" 
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSansSymbols2-Regular.ttf"
   TYPE BIN
 )
+
+install(DIRECTORY
+  "${CMAKE_SOURCE_DIR}/misc/fonts"
+  TYPE DATA
+)
+
+install(FILES
+  "external/imgui/LICENSE.txt"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "imgui-license.txt"
+)
+install(FILES
+  "external/nativefiledialog-extended/LICENSE"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "nativefiledialog-extended-license.txt"
+)
+install(FILES
+  "external/thread-pool/LICENSE.txt"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "thread-pool-license.txt"
+)
+install(FILES
+  "LICENSE"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "xpano-license.txt"
+)
+install(DIRECTORY
+  "${OpenCV_DIR}/etc/licenses"
+  TYPE DATA
+  OPTIONAL
+)
+install(FILES
+  "${OpenCV_DIR}/LICENSE"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "opencv-license.txt"
+  OPTIONAL
+)
+if(DEFINED XPANO_EXTRA_LICENSES)
+  install(DIRECTORY
+    "${XPANO_EXTRA_LICENSES}"
+    TYPE DATA
+  )
+endif()
 
 if(BUILD_TESTING)
   add_subdirectory(tests)
