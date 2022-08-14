@@ -10,31 +10,9 @@
 #include <spdlog/spdlog.h>
 
 #include "constants.h"
+#include "utils/resource.h"
 
 namespace xpano::utils::imgui {
-
-namespace {
-
-std::optional<std::string> FindFont(const std::string& executable_path,
-                                    const std::string& font_rel_path) {
-  std::filesystem::path base =
-      std::filesystem::path(executable_path).parent_path();
-  auto font_path = base / font_rel_path;
-  if (std::filesystem::exists(font_path)) {
-    return font_path.string();
-  }
-
-  const auto linux_prefix = std::filesystem::path("../share");
-  auto linux_font_path = base / linux_prefix / font_rel_path;
-  if (std::filesystem::exists(linux_font_path)) {
-    return linux_font_path.string();
-  }
-
-  spdlog::error("Couldn't find font: {}", font_rel_path);
-  return {};
-}
-
-}  // namespace
 
 FontLoader::FontLoader(std::string alphabet_font_path,
                        std::string symbols_font_path)
@@ -54,13 +32,13 @@ void FontLoader::ComputeGlyphRanges() {
 bool FontLoader::Init(std::string executable_path) {
   ComputeGlyphRanges();
 
-  if (auto font = FindFont(executable_path, alphabet_font_path_); font) {
+  if (auto font = resource::Find(executable_path, alphabet_font_path_); font) {
     alphabet_font_path_ = *font;
   } else {
     return false;
   }
 
-  if (auto font = FindFont(executable_path, symbols_font_path_); font) {
+  if (auto font = resource::Find(executable_path, symbols_font_path_); font) {
     symbols_font_path_ = *font;
   } else {
     return false;

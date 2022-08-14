@@ -168,9 +168,13 @@ Action DrawMenu(algorithm::CompressionOptions* compression_options) {
       }
       ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("View")) {
+    if (ImGui::BeginMenu("Help")) {
       if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
         action |= {ActionType::kToggleDebugLog};
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("About")) {
+        action |= {ActionType::kShowAbout};
       }
       ImGui::EndMenu();
     }

@@ -1,0 +1,104 @@
+#include "gui/panels/about.h"
+
+#include <algorithm>
+#include <iterator>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <imgui.h>
+#include <spdlog/fmt/fmt.h>
+
+#include "utils/text.h"
+
+namespace xpano::gui {
+
+namespace {
+
+const std::string kAboutText =
+    R"(Here you can check out the licenses of the libraries used in Xpano as well
+as the full terms of the GPL license under which this app is distributed.
+
+=============
+
+This software is based in part on the work of the Independent JPEG Group.
+
+=============
+
+Xpano - a tool for stitching photos into panoramas.
+Copyright (C) 2022  Tomas Krupka
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.)";
+
+utils::Text DefaultNotice() {
+  auto text = utils::Text{.name = "Readme", .lines = {}};
+  std::istringstream stream(kAboutText);
+  for (std::string line; std::getline(stream, line);) {
+    text.lines.push_back(line);
+  }
+  return text;
+}
+}  // namespace
+
+AboutPane::AboutPane(std::vector<utils::Text> licenses)
+    : licenses_(std::move(licenses)) {
+  licenses_.insert(licenses_.begin(), DefaultNotice());
+}
+
+void AboutPane::Show() { show_ = true; }
+
+void AboutPane::Draw() {
+  if (!show_) {
+    return;
+  }
+
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking |
+                                  ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoSavedSettings;
+
+  const auto text_base_width = ImGui::CalcTextSize("A").x;
+  ImGui::SetNextWindowSize(
+      ImVec2(70 * text_base_width, 30 * ImGui::GetTextLineHeight()),
+      ImGuiCond_Once);
+  ImGui::Begin("About", &show_, window_flags);
+
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::BeginCombo("##license_combo",
+                        licenses_[current_license_].name.c_str())) {
+    for (int i = 0; i < licenses_.size(); ++i) {
+      if (ImGui::Selectable(licenses_[i].name.c_str(), current_license_ == i)) {
+        current_license_ = i;
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  ImGui::BeginChild("License", ImVec2(0, 0));
+  const auto& license = licenses_[current_license_];
+
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+  ImGuiListClipper clipper;
+  clipper.Begin(license.lines.size());
+  while (clipper.Step())
+    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+      ImGui::TextUnformatted(license.lines[i].c_str());
+  ImGui::PopStyleVar();
+  ImGui::EndChild();
+
+  ImGui::End();
+  return;
+}
+
+}  // namespace xpano::gui
