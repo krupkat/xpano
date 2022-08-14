@@ -128,6 +128,11 @@ if(XPANO_INSTALL_LICENSES)
     DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
     RENAME "thread-pool-license.txt"
   )
+  install(FILES
+    "LICENSE"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "xpano-license.txt"
+  )
   if(DEFINED XPANO_EXTRA_LICENSES)
     install(DIRECTORY
       "${XPANO_EXTRA_LICENSES}"
