@@ -53,7 +53,6 @@ Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
 
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_TESTING=ON `
-  -DXPANO_INSTALL_LICENSES=ON `
   -DXPANO_EXTRA_LICENSES=licenses `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
