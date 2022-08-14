@@ -49,6 +49,7 @@ cd ..
 
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_TESTING=ON `
+  -DXPANO_INSTALL_LICENSES=ON `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DSDL2_DIR="sdl/install/cmake" `

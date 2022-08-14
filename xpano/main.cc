@@ -20,7 +20,7 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-int main(int /*unused*/, char** /*unused*/) {
+int main(int /*unused*/, char** argv) {
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
 #endif
@@ -80,7 +80,7 @@ int main(int /*unused*/, char** /*unused*/) {
   xpano::utils::sdl::DpiHandler dpi_handler(window);
   xpano::utils::imgui::FontLoader font_loader(
       "fonts/NotoSans-Regular.ttf", "fonts/NotoSansSymbols2-Regular.ttf");
-  if (!font_loader.Init()) {
+  if (!font_loader.Init(argv[0])) {
     spdlog::error("Font location not found!");
     return -1;
   }

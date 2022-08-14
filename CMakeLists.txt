@@ -103,7 +103,7 @@ install(DIRECTORY
   TYPE DATA
 )
 
-if(DEFINED OpenCV_DIR)
+if(XPANO_INSTALL_LICENSES)
   install(DIRECTORY
     "${OpenCV_DIR}/etc/licenses"
     TYPE DATA
