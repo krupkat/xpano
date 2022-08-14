@@ -157,12 +157,13 @@ Action DrawMenu(algorithm::CompressionOptions* compression_options) {
     if (ImGui::BeginMenu("Options")) {
       if (ImGui::BeginMenu("Export compression")) {
         ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
-                         100);
+                         kMaxJpegQuality);
         ImGui::Checkbox("JPEG progressive",
                         &compression_options->jpeg_progressive);
         ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
         ImGui::SliderInt("PNG compression",
-                         &compression_options->png_compression, 0, 9);
+                         &compression_options->png_compression, 0,
+                         kMaxPngCompression);
         ImGui::EndMenu();
       }
       ImGui::EndMenu();

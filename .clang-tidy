@@ -1,6 +1,10 @@
+# Disabled bugprone-exception-escape because of a bug in clang-tidy:
+# https://github.com/llvm/llvm-project/issues/54668
+
 Checks: >
   -*,
   bugprone-*,
+  -bugprone-exception-escape,
   google-*,
   misc-*,
   modernize-*,

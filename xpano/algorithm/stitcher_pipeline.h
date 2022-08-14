@@ -11,14 +11,15 @@
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
+#include "constants.h"
 
 namespace xpano::algorithm {
 
 struct CompressionOptions {
-  int jpeg_quality = 95;
+  int jpeg_quality = kDefaultJpegQuality;
   bool jpeg_progressive = false;
   bool jpeg_optimize = false;
-  int png_compression = 6;
+  int png_compression = kDefaultPngCompression;
 };
 
 struct LoadingOptions {

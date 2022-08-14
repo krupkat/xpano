@@ -105,7 +105,7 @@ std::vector<std::string> Open(Action action) {
   return results;
 }
 
-std::optional<std::string> Save(std::string default_name) {
+std::optional<std::string> Save(const std::string& default_name) {
   NFD::UniquePath out_path;
   std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::to_string(fmt::join(kSupportedExtensions, ","));
@@ -117,9 +117,8 @@ std::optional<std::string> Save(std::string default_name) {
     spdlog::info("Picked save file {}", out_path.get());
     if (IsExtensionSupported(out_path.get())) {
       return out_path.get();
-    } else {
-      spdlog::error("Unsupported extension");
     }
+    spdlog::error("Unsupported extension");
   } else if (result == NFD_CANCEL) {
     spdlog::info("User pressed cancel.");
   } else {

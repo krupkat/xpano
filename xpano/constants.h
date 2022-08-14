@@ -32,4 +32,9 @@ const char* const kCheckMark = reinterpret_cast<const char*>(u8"✓");
 
 constexpr auto kTaskCancellationTimeout = std::chrono::milliseconds(500);
 
+constexpr int kDefaultJpegQuality = 95;
+constexpr int kMaxJpegQuality = 100;
+constexpr int kDefaultPngCompression = 6;
+constexpr int kMaxPngCompression = 9;
+
 }  // namespace xpano

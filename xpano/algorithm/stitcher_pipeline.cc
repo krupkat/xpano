@@ -19,10 +19,11 @@ namespace xpano::algorithm {
 namespace {
 
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
-  return {cv::IMWRITE_JPEG_QUALITY,     options.jpeg_quality,
-          cv::IMWRITE_JPEG_PROGRESSIVE, options.jpeg_progressive,
-          cv::IMWRITE_JPEG_OPTIMIZE,    options.jpeg_optimize,
-          cv::IMWRITE_PNG_COMPRESSION,  options.png_compression};
+  return {
+      cv::IMWRITE_JPEG_QUALITY,     options.jpeg_quality,
+      cv::IMWRITE_JPEG_PROGRESSIVE, static_cast<int>(options.jpeg_progressive),
+      cv::IMWRITE_JPEG_OPTIMIZE,    static_cast<int>(options.jpeg_optimize),
+      cv::IMWRITE_PNG_COMPRESSION,  options.png_compression};
 }
 
 }  // namespace
@@ -78,8 +79,8 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
   auto pano = data.panos[options.pano_id];
 
   return pool_.submit([pano, &images = data.images, options, this]() {
-    int num_tasks =
-        static_cast<int>(pano.ids.size()) + 1 + options.export_path.has_value();
+    int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
+                    static_cast<int>(options.export_path.has_value());
     loading_progress_.Reset(ProgressType::kLoadingImages, num_tasks);
     std::vector<cv::Mat> imgs;
     for (int img_id : pano.ids) {
