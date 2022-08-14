@@ -57,7 +57,7 @@ int main(int /*unused*/, char** /*unused*/) {
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
   if (renderer == nullptr) {
     spdlog::error("Error creating SDL_Renderer!");
-    return 0;
+    return -1;
   }
   xpano::gui::backends::Sdl backend{renderer};
 
@@ -78,8 +78,12 @@ int main(int /*unused*/, char** /*unused*/) {
   xpano::gui::PanoGui gui(&backend, &logger);
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);
-  xpano::utils::imgui::FontLoader font_loader("NotoSans-Regular.ttf",
-                                              "NotoSansSymbols2-Regular.ttf");
+  xpano::utils::imgui::FontLoader font_loader(
+      "fonts/NotoSans-Regular.ttf", "fonts/NotoSansSymbols2-Regular.ttf");
+  if (!font_loader.Init()) {
+    spdlog::error("Font location not found!");
+    return -1;
+  }
 
   // Main loop
   bool done = false;

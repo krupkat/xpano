@@ -80,21 +80,40 @@ target_link_libraries(SDLTest
 )
 
 copy_runtime_dlls(SDLTest)
-copy_file(SDLTest 
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSansSymbols2-Regular.ttf"
+copy_directory(SDLTest 
+  "${CMAKE_SOURCE_DIR}/misc/fonts"
 )
 
+IF (WIN32)
+  set(CMAKE_INSTALL_BINDIR ".")
+  set(CMAKE_INSTALL_DATADIR ".")
+ENDIF()
+
 install(TARGETS
-  SDLTest
+  SDLTest RUNTIME
 )
 
 install(FILES 
   "$<TARGET_RUNTIME_DLLS:SDLTest>" 
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSans-Regular.ttf"
-  "${CMAKE_SOURCE_DIR}/misc/fonts/NotoSansSymbols2-Regular.ttf"
   TYPE BIN
 )
+
+install(DIRECTORY
+  "${CMAKE_SOURCE_DIR}/misc/fonts"
+  TYPE DATA
+)
+
+if(DEFINED OpenCV_DIR)
+  install(DIRECTORY
+    "${OpenCV_DIR}/etc/licenses"
+    TYPE DATA
+  )
+  install(FILES
+    "${OpenCV_DIR}/LICENSE"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "opencv-license.txt"
+  )
+endif()
 
 if(BUILD_TESTING)
   add_subdirectory(tests)

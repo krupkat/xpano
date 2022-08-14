@@ -1,14 +1,36 @@
 #include "imgui_.h"
 
 #include <cmath>
+#include <filesystem>
+#include <optional>
 #include <utility>
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer.h>
+#include <spdlog/spdlog.h>
 
 #include "constants.h"
 
 namespace xpano::utils::imgui {
+
+namespace {
+
+std::optional<std::string> FindFont(const std::string& path) {
+  if (std::filesystem::exists(path)) {
+    return path;
+  }
+
+  const auto linux_prefix = std::filesystem::path("../share");
+  auto linux_path = linux_prefix / path;
+  if (std::filesystem::exists(linux_path)) {
+    return linux_path.string();
+  }
+
+  spdlog::error("Couldn't find font: {}", path);
+  return {};
+}
+
+}  // namespace
 
 FontLoader::FontLoader(std::string alphabet_font_path,
                        std::string symbols_font_path)
@@ -25,15 +47,27 @@ void FontLoader::ComputeGlyphRanges() {
   builder.BuildRanges(&symbol_ranges_);
 }
 
-void FontLoader::Reload(float scale) {
-  if (alphabet_ranges_.empty() || symbol_ranges_.empty()) {
-    ComputeGlyphRanges();
+bool FontLoader::Init() {
+  ComputeGlyphRanges();
+
+  if (auto font = FindFont(alphabet_font_path_); font) {
+    alphabet_font_path_ = *font;
+  } else {
+    return false;
   }
 
+  if (auto font = FindFont(symbols_font_path_); font) {
+    symbols_font_path_ = *font;
+  } else {
+    return false;
+  }
+
+  return true;
+}
+
+void FontLoader::Reload(float scale) {
   ImGuiIO& imgui_io = ImGui::GetIO();
-
   imgui_io.Fonts->Clear();
-
   imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path_.c_str(),
                                      std::roundf(18.0f * scale), nullptr,
                                      alphabet_ranges_.Data);
