@@ -5,7 +5,7 @@
 
 Tool for stitching photos with focus on simplicity and ease of use.
 
-After you import your images in the app you can select from a list of autodetected panoramas to check their preview and then run export to save the full resolution result.
+After you import your images, the app autodetects groups of images to stitch into panoramas. You can then check the panorama previews and run export to save the full resolution results.
 
 ## Built with
 
@@ -25,7 +25,7 @@ Currently there are [release packages](https://github.com/krupkat/xpano/releases
 
 ## Local build
 
-The project can be built by running a single script from the `misc/build` directory. On both supported systems you will need at least CMake 3.21 and a compiler with C++20 support.
+The project can be built by running a single script from the `misc/build` directory. On both supported systems you will need at least CMake 3.21, git and a compiler with C++20 support.
 
 ### Ubuntu
 
@@ -48,6 +48,14 @@ Open the "Developer PowerShell for VS 2022" profile in Windows Terminal and run 
 ```
 ./misc/build/build-windows-latest.ps1
 ```
+
+## Contributions
+
+Contributions are more than welcome, there is a couple of ideas for enhancements in [open issues](https://github.com/krupkat/xpano/issues) which you could take on - if you start working on one of them, please add a comment there. 
+
+Feel free to open an issue with your comments / encountered bugs / requests for features. 
+
+In case you want to contribute a PR, please open an issue first with a bit of details about the planned change.
 
 ## License
 
