@@ -52,7 +52,7 @@ find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc stitching)
 find_package(spdlog REQUIRED)
 
-add_executable(SDLTest WIN32
+add_executable(SDLTest
   ${XPANO_SOURCES}
   ${IMGUI_SOURCES}
 )
