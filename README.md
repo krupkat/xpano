@@ -13,7 +13,7 @@ The project can be built by running a single script from the `misc/build` direct
 Library prerequisites:
 
 ```
-sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev
+sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
 ```
 
 Run the install script from the root of the repository:
