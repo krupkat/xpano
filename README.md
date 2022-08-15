@@ -19,7 +19,11 @@ This is how the app looks after importing a directory of 200 images.
 
 ![Main Xpano gui](misc/screenshots/xpano.jpg)
 
-## Build
+## Releases
+
+Currently there are [release packages](https://github.com/krupkat/xpano/releases) available for the Windows x64 platform. The binaries are built by [xpano-release-builder](https://github.com/krupkat/xpano-release-builder).
+
+## Local build
 
 The project can be built by running a single script from the `misc/build` directory. On both supported systems you will need at least CMake 3.21 and a compiler with C++20 support.
 
@@ -44,3 +48,11 @@ Open the "Developer PowerShell for VS 2022" profile in Windows Terminal and run 
 ```
 ./misc/build/build-windows-latest.ps1
 ```
+
+## License
+
+Distributed under the GPL-3.0 license. See `LICENSE` for more information.
+
+## Contact
+
+Tomas Krupka - [krupkat.cz](https://krupkat.cz)
