@@ -13,9 +13,9 @@ The app uses the excellent [OpenCV](https://opencv.org/) library for image manip
 
 Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](https://github.com/libsdl-org/SDL), [spdlog](https://github.com/gabime/spdlog/), [Catch2](https://github.com/catchorg/Catch2), [nativefiledialog-extended](https://github.com/btzy/nativefiledialog-extended), [thread-pool](https://github.com/bshoshany/thread-pool) and the [Google Noto](https://fonts.google.com/noto) fonts.
 
-## Screenshot
+## Demo
 
-This is how the app looks after importing a directory of 200 images.
+Checkout the demo on [YouTube](https://youtu.be/-TuKaO9gxsU). This is how the app looks after importing a directory of 200 images.
 
 ![Main Xpano gui](misc/screenshots/xpano.jpg)
 
