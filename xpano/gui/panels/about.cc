@@ -1,15 +1,13 @@
 #include "gui/panels/about.h"
 
-#include <algorithm>
-#include <iterator>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include <imgui.h>
-#include <spdlog/fmt/fmt.h>
 
+#include "constants.h"
 #include "utils/text.h"
 
 namespace xpano::gui {
@@ -69,9 +67,9 @@ void AboutPane::Draw() {
                                   ImGuiWindowFlags_NoSavedSettings;
 
   const auto text_base_width = ImGui::CalcTextSize("A").x;
-  ImGui::SetNextWindowSize(
-      ImVec2(70 * text_base_width, 30 * ImGui::GetTextLineHeight()),
-      ImGuiCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(kAboutBoxWidth * text_base_width,
+                                  kAboutBoxHeight * ImGui::GetTextLineHeight()),
+                           ImGuiCond_Once);
   ImGui::Begin("About", &show_, window_flags);
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -90,15 +88,17 @@ void AboutPane::Draw() {
 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   ImGuiListClipper clipper;
-  clipper.Begin(license.lines.size());
-  while (clipper.Step())
-    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+  int num_lines = static_cast<int>(license.lines.size());
+  clipper.Begin(num_lines);
+  while (clipper.Step()) {
+    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
       ImGui::TextUnformatted(license.lines[i].c_str());
+    }
+  }
   ImGui::PopStyleVar();
   ImGui::EndChild();
 
   ImGui::End();
-  return;
 }
 
 }  // namespace xpano::gui

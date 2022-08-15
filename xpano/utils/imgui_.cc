@@ -1,13 +1,11 @@
 #include "imgui_.h"
 
 #include <cmath>
-#include <filesystem>
 #include <optional>
 #include <utility>
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer.h>
-#include <spdlog/spdlog.h>
 
 #include "constants.h"
 #include "utils/resource.h"
@@ -29,7 +27,7 @@ void FontLoader::ComputeGlyphRanges() {
   builder.BuildRanges(&symbol_ranges_);
 }
 
-bool FontLoader::Init(std::string executable_path) {
+bool FontLoader::Init(const std::string& executable_path) {
   ComputeGlyphRanges();
 
   if (auto font = resource::Find(executable_path, alphabet_font_path_); font) {

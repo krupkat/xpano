@@ -3,6 +3,7 @@
 #include <future>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
