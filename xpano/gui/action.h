@@ -8,6 +8,7 @@ enum class ActionType {
   kExport,
   kOpenDirectory,
   kOpenFiles,
+  kShowAbout,
   kShowImage,
   kShowMatch,
   kShowPano,

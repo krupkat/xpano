@@ -3,20 +3,24 @@
 #include <future>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
 #include "gui/backends/base.h"
 #include "gui/layout.h"
+#include "gui/panels/about.h"
 #include "gui/panels/preview_pane.h"
 #include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
+#include "utils/text.h"
 
 namespace xpano::gui {
 
 class PanoGui {
  public:
-  explicit PanoGui(backends::Base* backend, logger::LoggerGui* logger);
+  PanoGui(backends::Base* backend, logger::LoggerGui* logger,
+          std::vector<utils::Text> licenses);
 
   bool Run();
 
@@ -39,6 +43,7 @@ class PanoGui {
 
   Layout layout_;
   logger::LoggerGui* logger_;
+  AboutPane about_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
   algorithm::StitcherPipeline stitcher_pipeline_;

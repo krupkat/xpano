@@ -36,13 +36,16 @@ set(XPANO_SOURCES
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
   "xpano/gui/backends/sdl.cc"
-  "xpano/gui/file_dialog.cc"  
-  "xpano/gui/layout.cc"  
+  "xpano/gui/file_dialog.cc"
+  "xpano/gui/layout.cc"
+  "xpano/gui/panels/about.cc"
   "xpano/gui/panels/preview_pane.cc"
   "xpano/gui/panels/sidebar.cc"
   "xpano/gui/panels/thumbnail_pane.cc"
-  "xpano/gui/pano_gui.cc"  
+  "xpano/gui/pano_gui.cc"
   "xpano/utils/imgui_.cc"
+  "xpano/utils/resource.cc"
+  "xpano/utils/text.cc"
 )
 
 find_package(SDL2 REQUIRED)

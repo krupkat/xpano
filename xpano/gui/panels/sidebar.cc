@@ -32,6 +32,60 @@ std::string ProgressLabel(algorithm::ProgressType type) {
       return "Matching images";
   }
 }
+
+Action DrawFileMenu() {
+  Action action{};
+  if (ImGui::BeginMenu("File")) {
+    if (ImGui::MenuItem("Open files", "CTRL+O")) {
+      action |= {ActionType::kOpenFiles};
+    }
+    if (ImGui::MenuItem("Open directory")) {
+      action |= {ActionType::kOpenDirectory};
+    }
+    if (ImGui::MenuItem("Export", "CTRL+S")) {
+      action |= {ActionType::kExport};
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Quit")) {
+      action |= {ActionType::kQuit};
+    }
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
+Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options) {
+  Action action{};
+  if (ImGui::BeginMenu("Options")) {
+    if (ImGui::BeginMenu("Export compression")) {
+      ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
+                       kMaxJpegQuality);
+      ImGui::Checkbox("JPEG progressive",
+                      &compression_options->jpeg_progressive);
+      ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
+      ImGui::SliderInt("PNG compression", &compression_options->png_compression,
+                       0, kMaxPngCompression);
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
+Action DrawHelpMenu() {
+  Action action{};
+  if (ImGui::BeginMenu("Help")) {
+    if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
+      action |= {ActionType::kToggleDebugLog};
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("About")) {
+      action |= {ActionType::kShowAbout};
+    }
+    ImGui::EndMenu();
+  }
+  return action;
+}
 }  // namespace
 
 void DrawProgressBar(algorithm::ProgressReport progress) {
@@ -138,42 +192,9 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 Action DrawMenu(algorithm::CompressionOptions* compression_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Open files", "CTRL+O")) {
-        action |= {ActionType::kOpenFiles};
-      }
-      if (ImGui::MenuItem("Open directory")) {
-        action |= {ActionType::kOpenDirectory};
-      }
-      if (ImGui::MenuItem("Export", "CTRL+S")) {
-        action |= {ActionType::kExport};
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("Quit")) {
-        action |= {ActionType::kQuit};
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Options")) {
-      if (ImGui::BeginMenu("Export compression")) {
-        ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
-                         kMaxJpegQuality);
-        ImGui::Checkbox("JPEG progressive",
-                        &compression_options->jpeg_progressive);
-        ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
-        ImGui::SliderInt("PNG compression",
-                         &compression_options->png_compression, 0,
-                         kMaxPngCompression);
-        ImGui::EndMenu();
-      }
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("View")) {
-      if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
-        action |= {ActionType::kToggleDebugLog};
-      }
-      ImGui::EndMenu();
-    }
+    action |= DrawFileMenu();
+    action |= DrawOptionsMenu(compression_options);
+    action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }
   return action;

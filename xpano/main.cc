@@ -19,6 +19,7 @@
 #include <clocale>
 #include <cstdio>
 #include <string>
+#include <utility>
 
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
@@ -33,6 +34,7 @@
 #include "log/logger.h"
 #include "utils/imgui_.h"
 #include "utils/sdl_.h"
+#include "utils/text.h"
 
 #if !SDL_VERSION_ATLEAST(2, 0, 17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
@@ -79,6 +81,8 @@ int main(int /*unused*/, char** argv) {
   }
   xpano::gui::backends::Sdl backend{renderer};
 
+  auto license_texts = xpano::utils::LoadTexts(argv[0], "licenses");
+
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -93,7 +97,7 @@ int main(int /*unused*/, char** argv) {
 
   // Our state
   const SDL_Color clear_color{114, 140, 165, 255};
-  xpano::gui::PanoGui gui(&backend, &logger);
+  xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);
   xpano::utils::imgui::FontLoader font_loader(

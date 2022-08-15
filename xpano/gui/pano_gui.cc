@@ -51,8 +51,12 @@ Action CheckKeybindings() {
 
 }  // namespace
 
-PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger)
-    : plot_pane_(backend), thumbnail_pane_(backend), logger_(logger) {}
+PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
+                 std::vector<utils::Text> licenses)
+    : plot_pane_(backend),
+      thumbnail_pane_(backend),
+      logger_(logger),
+      about_pane_(std::move(licenses)) {}
 
 bool PanoGui::Run() {
   Action action{};
@@ -90,6 +94,7 @@ Action PanoGui::DrawGui() {
   if (layout_.ShowDebugInfo()) {
     logger_->Draw();
   }
+  about_pane_.Draw();
   return action;
 }
 
@@ -152,7 +157,8 @@ Action PanoGui::DrawSidebar() {
 void PanoGui::ResetSelections(Action action) {
   if (action.type == ActionType::kModifyPano ||
       action.type == ActionType::kToggleDebugLog ||
-      action.type == ActionType::kExport) {
+      action.type == ActionType::kExport ||
+      action.type == ActionType::kShowAbout) {
     return;
   }
 
@@ -281,6 +287,10 @@ Action PanoGui::PerformAction(Action action) {
       const auto& img = stitcher_data_->images[action.target_id];
       plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
       thumbnail_pane_.Highlight(action.target_id);
+      break;
+    }
+    case ActionType::kShowAbout: {
+      about_pane_.Show();
       break;
     }
     case ActionType::kToggleDebugLog: {

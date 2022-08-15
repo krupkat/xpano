@@ -37,4 +37,7 @@ constexpr int kMaxJpegQuality = 100;
 constexpr int kDefaultPngCompression = 6;
 constexpr int kMaxPngCompression = 9;
 
+constexpr int kAboutBoxWidth = 70;
+constexpr int kAboutBoxHeight = 30;
+
 }  // namespace xpano
