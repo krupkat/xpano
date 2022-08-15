@@ -5,7 +5,7 @@ if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-project(SDLTest)
+project(Xpano)
 include(CTest)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
@@ -52,12 +52,12 @@ find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc stitching)
 find_package(spdlog REQUIRED)
 
-add_executable(SDLTest WIN32
+add_executable(Xpano WIN32
   ${XPANO_SOURCES}
   ${IMGUI_SOURCES}
 )
 
-target_include_directories(SDLTest PRIVATE 
+target_include_directories(Xpano PRIVATE 
   "external/imgui" 
   "external/imgui/backends"
   "external/thread-pool"
@@ -74,7 +74,7 @@ set(OPENCV_TARGETS
   opencv_stitching
 )
 
-target_link_libraries(SDLTest
+target_link_libraries(Xpano
   nfd
   ${OPENCV_TARGETS}
   SDL2::SDL2
@@ -82,8 +82,8 @@ target_link_libraries(SDLTest
   spdlog::spdlog
 )
 
-copy_runtime_dlls(SDLTest)
-copy_directory(SDLTest 
+copy_runtime_dlls(Xpano)
+copy_directory(Xpano 
   "${CMAKE_SOURCE_DIR}/misc/fonts"
 )
 
@@ -96,11 +96,11 @@ else()
 endif()
 
 install(TARGETS
-  SDLTest RUNTIME
+  Xpano RUNTIME
 )
 
 install(FILES 
-  "$<TARGET_RUNTIME_DLLS:SDLTest>" 
+  "$<TARGET_RUNTIME_DLLS:Xpano>" 
   TYPE BIN
 )
 

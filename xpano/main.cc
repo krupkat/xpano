@@ -68,8 +68,7 @@ int main(int /*unused*/, char** argv) {
   // Setup window
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
   SDL_Window* window =
-      SDL_CreateWindow("Dear ImGui SDL2+SDL_Renderer example",
-                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      SDL_CreateWindow("Xpano", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        xpano::kWindowWidth, xpano::kWindowHeight, window_flags);
 
   // Setup SDL_Renderer instance
