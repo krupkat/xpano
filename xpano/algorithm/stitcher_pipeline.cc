@@ -93,13 +93,13 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     loading_progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto pano = Stitch(imgs);
+    auto [status, pano] = Stitch(imgs);
     loading_progress_.NotifyTaskDone();
 
     std::optional<std::string> export_path;
     if (options.export_path) {
-      if (pano) {
-        if (cv::imwrite(*options.export_path, *pano,
+      if (status == cv::Stitcher::OK) {
+        if (cv::imwrite(*options.export_path, pano,
                         CompressionParameters(options.compression))) {
           export_path = options.export_path;
         }
@@ -107,7 +107,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
       loading_progress_.NotifyTaskDone();
     }
 
-    return StitchingResult{options.pano_id, pano, export_path};
+    return StitchingResult{options.pano_id, status, pano, export_path};
   });
 }
 
