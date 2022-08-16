@@ -40,7 +40,7 @@ struct StitcherData {
 
 struct StitchingResult {
   int pano_id = 0;
-  int export_code;
+  cv::Stitcher::Status status;
   std::optional<cv::Mat> pano;
   std::optional<std::string> export_path;
 };
