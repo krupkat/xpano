@@ -1,0 +1,17 @@
+title: Xpano
+description: |
+  Automated photo stiching tool.<br>Import a directory of images and then export auto detected panoramas.
+show_downloads: true
+url: https://krupkat.github.io
+baseurl: "/xpano"
+
+theme: jekyll-theme-cayman
+
+github:
+  zip_url: https://github.com/krupkat/xpano/releases/download/v0.1.0/xpano-v0.1.0-windows-x64.zip
+  tar_url: https://github.com/krupkat/xpano/archive/refs/tags/v0.1.0.tar.gz
+  is_project_page: true
+  repository_url: https://github.com/krupkat/xpano
+  repository_name: xpano
+  owner_name: Tomas Krupka
+  owner_url: https://krupkat.cz
