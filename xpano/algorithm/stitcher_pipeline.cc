@@ -98,8 +98,8 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
 
     std::optional<std::string> export_path;
     if (options.export_path) {
-      if (pano) {
-        if (cv::imwrite(*options.export_path, *pano,
+      if (pano.second) {
+        if (cv::imwrite(*options.export_path, *pano.second,
                         CompressionParameters(options.compression))) {
           export_path = options.export_path;
         }
@@ -107,7 +107,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
       loading_progress_.NotifyTaskDone();
     }
 
-    return StitchingResult{options.pano_id, pano, export_path};
+    return StitchingResult{options.pano_id, pano.first, pano.second, export_path};
   });
 }
 

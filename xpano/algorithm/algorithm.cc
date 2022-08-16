@@ -101,14 +101,14 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches) {
   return result;
 }
 
-std::optional<cv::Mat> Stitch(const std::vector<cv::Mat>& images) {
+std::pair<int, std::optional<cv::Mat>> Stitch(const std::vector<cv::Mat>& images) {
   cv::Mat out;
   cv::Ptr<cv::Stitcher> stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
   cv::Stitcher::Status status = stitcher->stitch(images, out);
   if (status == cv::Stitcher::OK) {
-    return {out};
+    return {static_cast<int>(status), out};
   }
-  return {};
+  return {static_cast<int>(status), out};
 }
 
 }  // namespace xpano::algorithm

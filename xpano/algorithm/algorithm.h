@@ -24,6 +24,6 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2);
 
 std::vector<Pano> FindPanos(const std::vector<Match>& matches);
 
-std::optional<cv::Mat> Stitch(const std::vector<cv::Mat>& images);
+std::pair<int, std::optional<cv::Mat>> Stitch(const std::vector<cv::Mat>& images);
 
 }  // namespace xpano::algorithm

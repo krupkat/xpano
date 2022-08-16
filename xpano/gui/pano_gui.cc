@@ -343,6 +343,14 @@ Action PanoGui::ResolveFutures() {
     if (!result.pano) {
       info_message_ = fmt::format("Failed to stitch pano {}", result.pano_id);
       spdlog::info(info_message_);
+      switch(result.export_code) {
+        case 1: tooltip_message_ = "Error: Need more images";
+                break;
+        case 2: tooltip_message_ = "Error: Homography test failed";
+                break;
+        case 3: tooltip_message_ = "Error: Camera parameters adjust failed";
+                break;
+      }
       return {};
     }
 
