@@ -1,4 +1,5 @@
 title: Xpano
+tagline: Automated photo stiching tool
 description: |
   Automated photo stiching tool.<br>Import a directory of images and then export auto detected panoramas.
 show_downloads: true

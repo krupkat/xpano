@@ -22,4 +22,4 @@ Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](http
 
 ## License
 
-Distributed under the GPL-3.0 license. See [`LICENSE`](https://github.com/krupkat/xpano/blob/main/LICENSE) for more information.
+Distributed under the GPL-3.0 license. See the [license](https://github.com/krupkat/xpano/blob/main/LICENSE) page for more information.
