@@ -1,7 +1,9 @@
 name: Ubuntu
+
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: [ "misc/site/**" ]
   pull_request:
     branches: [ "main" ]
 
