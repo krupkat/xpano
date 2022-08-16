@@ -20,6 +20,12 @@ The app uses the excellent [OpenCV](https://opencv.org/) library for image manip
 
 Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](https://github.com/libsdl-org/SDL), [spdlog](https://github.com/gabime/spdlog/), [Catch2](https://github.com/catchorg/Catch2), [nativefiledialog-extended](https://github.com/btzy/nativefiledialog-extended), [thread-pool](https://github.com/bshoshany/thread-pool) and the [Google Noto](https://fonts.google.com/noto) fonts.
 
+## Package verification
+
+You can verify that the binaries were built from the repository source by checking the [build logs](https://github.com/krupkat/xpano-release-builder/runs/7839011577):
+- The commit hash that was used for the build (in the "Checkout target repo" step)
+- The sha256 checksum value (in the "Compute checksum" step)
+
 ## License
 
 Distributed under the GPL-3.0 license. See the [license](https://github.com/krupkat/xpano/blob/main/LICENSE) page for more information.
