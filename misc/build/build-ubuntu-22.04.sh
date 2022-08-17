@@ -3,6 +3,8 @@
 export BUILD_TYPE='Release'
 export CATCH_VERSION='v3.1.0'
 
+git submodule update --init
+
 
 git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
 cd catch
