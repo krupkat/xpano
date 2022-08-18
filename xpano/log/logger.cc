@@ -4,6 +4,7 @@
 #include <iterator>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <imgui.h>
@@ -114,7 +115,7 @@ void LoggerGui::RedirectOpenCVOutput() {}
 
 void LoggerGui::RedirectSpdlogOutput(
     std::optional<std::filesystem::path> app_data_path) {
-  logger_.RedirectSpdlogOutput(app_data_path);
+  logger_.RedirectSpdlogOutput(std::move(app_data_path));
 }
 
 }  // namespace xpano::logger
