@@ -9,6 +9,7 @@
 #include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/stitching.hpp>
 #include <spdlog/spdlog.h>
 
 #include "algorithm/algorithm.h"
@@ -96,13 +97,15 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     auto [status, pano] = Stitch(imgs);
     loading_progress_.NotifyTaskDone();
 
+    if (status != cv::Stitcher::OK) {
+      return StitchingResult{options.pano_id, status};
+    }
+
     std::optional<std::string> export_path;
     if (options.export_path) {
-      if (status == cv::Stitcher::OK) {
-        if (cv::imwrite(*options.export_path, pano,
-                        CompressionParameters(options.compression))) {
-          export_path = options.export_path;
-        }
+      if (cv::imwrite(*options.export_path, pano,
+                      CompressionParameters(options.compression))) {
+        export_path = options.export_path;
       }
       loading_progress_.NotifyTaskDone();
     }

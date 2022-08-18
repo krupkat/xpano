@@ -8,6 +8,7 @@
 
 #include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/stitching.hpp>
 
 #include "algorithm/algorithm.h"
 #include "algorithm/image.h"
