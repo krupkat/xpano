@@ -25,7 +25,8 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2);
 
 std::vector<Pano> FindPanos(const std::vector<Match>& matches);
 
-std::pair<cv::Stitcher::Status, cv::Mat> Stitch(const std::vector<cv::Mat>& images);
+std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
+    const std::vector<cv::Mat>& images);
 
 std::string ToString(cv::Stitcher::Status& status);
 

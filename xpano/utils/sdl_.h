@@ -1,6 +1,8 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
+#include <optional>
 
 #include <SDL.h>
 
@@ -8,27 +10,18 @@ namespace xpano::utils::sdl {
 
 class DpiHandler {
  public:
-  explicit DpiHandler(SDL_Window* window) : window_(window) {}
+  explicit DpiHandler(SDL_Window* window);
 
-  bool DpiChanged() {
-    if (float dpi_scale = QueryDpiScale(); dpi_scale != dpi_scale_) {
-      dpi_scale_ = dpi_scale;
-      return true;
-    }
-    return false;
-  }
-
-  [[nodiscard]] float DpiScale() const { return dpi_scale_; }
+  bool DpiChanged();
+  [[nodiscard]] float DpiScale() const;
 
  private:
-  [[nodiscard]] float QueryDpiScale() const {
-    float dpi;
-    SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(window_), &dpi, nullptr,
-                      nullptr);
-    return dpi / 96.0f;
-  }
+  [[nodiscard]] float QueryDpiScale() const;
+
   SDL_Window* window_;
   float dpi_scale_ = 0.0f;
 };
+
+std::optional<std::filesystem::path> InitializePrefPath();
 
 }  // namespace xpano::utils::sdl

@@ -53,54 +53,63 @@ int main(int /*unused*/, char** argv) {
     return -1;
   }
 
+  auto app_data_path = xpano::utils::sdl::InitializePrefPath();
+
   // Setup logging
   xpano::logger::LoggerGui logger{};
-  logger.RedirectSpdlogOutput();
+  logger.RedirectSpdlogOutput(app_data_path);
   logger.RedirectSDLOutput();
 
   std::string result = std::setlocale(LC_ALL, "en_US.UTF-8");
   spdlog::info("Current locale: {}", result);
 
+  if (!app_data_path) {
+    spdlog::warn(
+        "Failed to initialize application data path, skipping logging to "
+        "files.");
+  }
+
+  // Setup file dialog library
   if (NFD_Init() != NFD_OKAY) {
     spdlog::error("Couldn't initialize NFD");
   }
 
-  // Setup window
+  // Setup SDL Window + Renderer
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
   SDL_Window* window =
       SDL_CreateWindow("Xpano", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        xpano::kWindowWidth, xpano::kWindowHeight, window_flags);
 
-  // Setup SDL_Renderer instance
   SDL_Renderer* renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
   if (renderer == nullptr) {
     spdlog::error("Error creating SDL_Renderer!");
     return -1;
   }
-  xpano::gui::backends::Sdl backend{renderer};
-
-  auto license_texts = xpano::utils::LoadTexts(argv[0], "licenses");
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  // ImGui::StyleColorsClassic();
+
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  auto imgui_ini_file = xpano::utils::imgui::InitIniFilePath(app_data_path);
+  imgui_io.IniFilename = app_data_path ? imgui_ini_file.c_str() : nullptr;
+  imgui_io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
   ImGui_ImplSDLRenderer_Init(renderer);
 
-  ImGuiIO& imgui_io = ImGui::GetIO();
-  imgui_io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-  // Our state
   const SDL_Color clear_color{114, 140, 165, 255};
+
+  // Application specific
+  auto backend = xpano::gui::backends::Sdl{renderer};
+  auto license_texts = xpano::utils::LoadTexts(argv[0], xpano::kLicensePath);
   xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);
-  xpano::utils::imgui::FontLoader font_loader(
-      "fonts/NotoSans-Regular.ttf", "fonts/NotoSansSymbols2-Regular.ttf");
+  xpano::utils::imgui::FontLoader font_loader(xpano::kFontPath,
+                                              xpano::kSymbolsFontPath);
   if (!font_loader.Init(argv[0])) {
     spdlog::error("Font location not found!");
     return -1;

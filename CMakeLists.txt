@@ -45,6 +45,7 @@ set(XPANO_SOURCES
   "xpano/gui/pano_gui.cc"
   "xpano/utils/imgui_.cc"
   "xpano/utils/resource.cc"
+  "xpano/utils/sdl_.cc"
   "xpano/utils/text.cc"
 )
 
