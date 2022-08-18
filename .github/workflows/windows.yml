@@ -133,3 +133,4 @@ jobs:
       run: |
         cd build
         ctest -C $env:BUILD_TYPE
+        cd ..

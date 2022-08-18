@@ -21,3 +21,4 @@ cmake -B build \
 cmake --build build -j $(nproc) --target install
 cd build
 ctest
+cd ..
