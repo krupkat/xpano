@@ -344,7 +344,6 @@ Action PanoGui::ResolveFutures() {
       info_message_ = fmt::format("Failed to stitch pano {}", result.pano_id);
       spdlog::info(info_message_);
       tooltip_message_ = xpano::algorithm::ToString(result.status);
-
       return {};
     }
 

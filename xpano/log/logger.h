@@ -1,7 +1,9 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -26,7 +28,7 @@ class Logger {
  public:
   Logger();
   const std::vector<std::string> &Log();
-  void RedirectSpdlogOutput();
+  void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
 
  private:
   void Concatenate();
@@ -40,7 +42,7 @@ class LoggerGui {
   void Draw();
   void RedirectSDLOutput();
   void RedirectOpenCVOutput();
-  void RedirectSpdlogOutput();
+  void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
 
  private:
   Logger logger_;

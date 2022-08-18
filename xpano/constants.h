@@ -40,4 +40,11 @@ constexpr int kMaxPngCompression = 9;
 constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
 
+const std::string kOrgName = "krupkat";
+const std::string kAppName = "Xpano";
+
+const std::string kLicensePath = "licenses";
+const std::string kFontPath = "fonts/NotoSans-Regular.ttf";
+const std::string kSymbolsFontPath = "fonts/NotoSansSymbols2-Regular.ttf";
+
 }  // namespace xpano

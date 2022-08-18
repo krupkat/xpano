@@ -1,6 +1,7 @@
 #include "imgui_.h"
 
 #include <cmath>
+#include <filesystem>
 #include <optional>
 #include <utility>
 
@@ -71,6 +72,13 @@ void InfoMarker(const std::string& label, const std::string& desc) {
     ImGui::TextUnformatted(desc.c_str());
     ImGui::EndTooltip();
   }
+}
+
+std::string InitIniFilePath(
+    std::optional<std::filesystem::path> app_data_path) {
+  auto ini_file_name = std::string(ImGui::GetIO().IniFilename);
+  return app_data_path ? (*app_data_path / ini_file_name).string()
+                       : ini_file_name;
 }
 
 }  // namespace xpano::utils::imgui

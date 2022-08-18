@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+#include <optional>
 #include <string>
 
 #include <imgui.h>
@@ -22,5 +24,7 @@ class FontLoader {
 };
 
 void InfoMarker(const std::string& label, const std::string& desc);
+
+std::string InitIniFilePath(std::optional<std::filesystem::path> app_data_path);
 
 }  // namespace xpano::utils::imgui

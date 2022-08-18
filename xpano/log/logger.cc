@@ -4,6 +4,7 @@
 #include <iterator>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <imgui.h>
@@ -64,12 +65,18 @@ void BufferSinkMt::flush_() {}
 
 Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
 
-void Logger::RedirectSpdlogOutput() {
-  sink_->set_pattern("[%l] %v");
+void Logger::RedirectSpdlogOutput(
+    std::optional<std::filesystem::path> app_data_path) {
   std::vector<spdlog::sink_ptr> sinks;
+  sink_->set_pattern("[%l] %v");
   sinks.push_back(sink_);
-  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-      kLogFilename, kMaxLogSize, kMaxLogFiles, true));
+
+  if (app_data_path) {
+    auto log_path = *app_data_path / kLogFilename;
+    sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+        log_path.string(), kMaxLogSize, kMaxLogFiles, true));
+  }
+
   auto logger =
       std::make_shared<spdlog::logger>("XPano", sinks.begin(), sinks.end());
   logger->flush_on(spdlog::level::err);
@@ -106,6 +113,9 @@ void LoggerGui::RedirectSDLOutput() {
 
 void LoggerGui::RedirectOpenCVOutput() {}
 
-void LoggerGui::RedirectSpdlogOutput() { logger_.RedirectSpdlogOutput(); }
+void LoggerGui::RedirectSpdlogOutput(
+    std::optional<std::filesystem::path> app_data_path) {
+  logger_.RedirectSpdlogOutput(std::move(app_data_path));
+}
 
 }  // namespace xpano::logger
