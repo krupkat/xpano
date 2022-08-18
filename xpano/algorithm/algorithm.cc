@@ -1,6 +1,6 @@
 #include "algorithm/algorithm.h"
 
-#include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -106,8 +106,7 @@ std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
   cv::Mat out;
   cv::Ptr<cv::Stitcher> stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
   cv::Stitcher::Status status = stitcher->stitch(images, out);
-
-  return std::make_pair(status, out);
+  return {status, out};
 }
 
 std::string ToString(cv::Stitcher::Status& status) {
@@ -123,7 +122,6 @@ std::string ToString(cv::Stitcher::Status& status) {
     default:
       return "ERR_UNKNOWN";
   }
-  return "ERR_UNKNOWN";
 }
 
 }  // namespace xpano::algorithm
