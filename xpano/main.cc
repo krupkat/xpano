@@ -33,6 +33,7 @@
 #include "gui/pano_gui.h"
 #include "log/logger.h"
 #include "utils/imgui_.h"
+#include "utils/resource.h"
 #include "utils/sdl_.h"
 #include "utils/text.h"
 
@@ -86,6 +87,9 @@ int main(int /*unused*/, char** argv) {
     spdlog::error("Error creating SDL_Renderer!");
     return -1;
   }
+
+  auto icon = xpano::utils::resource::LoadIcon(argv[0], xpano::kIconPath);
+  SDL_SetWindowIcon(window, icon.get());
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();

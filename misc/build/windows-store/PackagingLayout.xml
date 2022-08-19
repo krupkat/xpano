@@ -5,7 +5,7 @@
         <File DestinationPath="Xpano.exe" SourcePath="Xpano.exe"/>
         <File DestinationPath="images\*.png" SourcePath="images\*.png"/>
         <File DestinationPath="*.pri" SourcePath="*.pri"/>
-        <File DestinationPath="fonts\*" SourcePath="fonts\*"/>
+        <File DestinationPath="assets\*" SourcePath="assets\*"/>
         <File DestinationPath="licenses\*" SourcePath="licenses\*"/>
       </Files>
     </Package>

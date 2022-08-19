@@ -85,7 +85,7 @@ target_link_libraries(Xpano
 
 copy_runtime_dlls(Xpano)
 copy_directory(Xpano 
-  "${CMAKE_SOURCE_DIR}/misc/fonts"
+  "${CMAKE_SOURCE_DIR}/misc/assets"
 )
 
 if (WIN32)
@@ -106,7 +106,7 @@ install(FILES
 )
 
 install(DIRECTORY
-  "${CMAKE_SOURCE_DIR}/misc/fonts"
+  "${CMAKE_SOURCE_DIR}/misc/assets"
   TYPE DATA
 )
 
@@ -124,6 +124,11 @@ install(FILES
   "external/thread-pool/LICENSE.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "thread-pool-license.txt"
+)
+install(FILES
+  "misc/assets/OFL.txt"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "google-noto-license.txt"
 )
 install(FILES
   "LICENSE"
