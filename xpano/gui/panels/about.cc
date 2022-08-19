@@ -14,6 +14,12 @@ namespace xpano::gui {
 
 namespace {
 
+template <typename TType>
+bool IsReady(const std::future<TType>& future) {
+  return future.valid() &&
+         future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+}
+
 const std::string kAboutText =
     R"(Here you can check out the full app changelog, licenses of the
 libraries used in Xpano as well as the full terms of the GPL license
@@ -51,9 +57,11 @@ utils::Text DefaultNotice() {
 }
 }  // namespace
 
-AboutPane::AboutPane(std::vector<utils::Text> licenses)
+AboutPane::AboutPane(std::future<std::vector<utils::Text>> licenses)
     : licenses_(std::move(licenses)) {
-  licenses_.insert(licenses_.begin(), DefaultNotice());
+  // licenses_.insert(licenses_.begin(), DefaultNotice());
+  license_text.push_back({});
+  license_text.push_back(DefaultNotice());
 }
 
 void AboutPane::Show() { show_ = true; }
@@ -74,10 +82,18 @@ void AboutPane::Draw() {
   ImGui::Begin("About", &show_, window_flags);
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+
+  if(license_text[1] == DefaultNotice() && IsReady(licenses_)) {
+    auto temp = licenses_.get();
+    license_text.clear();
+    license_text = temp;
+    license_text.insert(license_text.begin(), DefaultNotice());
+  }
+
   if (ImGui::BeginCombo("##license_combo",
-                        licenses_[current_license_].name.c_str())) {
-    for (int i = 0; i < licenses_.size(); ++i) {
-      if (ImGui::Selectable(licenses_[i].name.c_str(), current_license_ == i)) {
+                        license_text[current_license_].name.c_str())) {
+    for (int i = 0; i < license_text.size(); ++i) {
+      if (ImGui::Selectable(license_text[i].name.c_str(), current_license_ == i)) {
         current_license_ = i;
       }
     }
@@ -85,7 +101,7 @@ void AboutPane::Draw() {
   }
 
   ImGui::BeginChild("License", ImVec2(0, 0));
-  const auto& license = licenses_[current_license_];
+  const auto& license = license_text[current_license_];
 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   ImGuiListClipper clipper;

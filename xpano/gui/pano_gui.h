@@ -20,7 +20,7 @@ namespace xpano::gui {
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-          std::vector<utils::Text> licenses);
+          std::future<std::vector<utils::Text>> *licenses);
 
   bool Run();
 

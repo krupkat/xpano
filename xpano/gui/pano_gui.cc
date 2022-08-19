@@ -52,11 +52,11 @@ Action CheckKeybindings() {
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-                 std::vector<utils::Text> licenses)
+                 std::future<std::vector<utils::Text>> *licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       logger_(logger),
-      about_pane_(std::move(licenses)) {}
+      about_pane_(std::move(*licenses)) {}
 
 bool PanoGui::Run() {
   Action action{};

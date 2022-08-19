@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <future>
 
 #include "utils/text.h"
 
@@ -8,14 +9,15 @@ namespace xpano::gui {
 
 class AboutPane {
  public:
-  explicit AboutPane(std::vector<utils::Text> licenses);
+  explicit AboutPane(std::future<std::vector<utils::Text>> licenses);
   void Draw();
   void Show();
 
  private:
   bool show_ = false;
   int current_license_ = 0;
-  std::vector<utils::Text> licenses_;
+  std::future<std::vector<utils::Text>> licenses_;
+  std::vector<utils::Text> license_text;
 };
 
 }  // namespace xpano::gui
