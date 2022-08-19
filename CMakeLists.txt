@@ -130,6 +130,10 @@ install(FILES
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "xpano-license.txt"
 )
+install(FILES
+  "changelog.md"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+)
 install(DIRECTORY
   "${OpenCV_DIR}/etc/licenses"
   TYPE DATA

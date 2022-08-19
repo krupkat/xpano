@@ -15,8 +15,9 @@ namespace xpano::gui {
 namespace {
 
 const std::string kAboutText =
-    R"(Here you can check out the licenses of the libraries used in Xpano as well
-as the full terms of the GPL license under which this app is distributed.
+    R"(Here you can check out the full app changelog, licenses of the
+libraries used in Xpano as well as the full terms of the GPL license
+under which this app is distributed.
 
 =============
 
