@@ -54,6 +54,18 @@ int main(int /*unused*/, char** argv) {
     return -1;
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
   auto app_data_path = xpano::utils::sdl::InitializePrefPath();
 
   // Setup logging
