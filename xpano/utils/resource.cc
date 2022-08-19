@@ -1,7 +1,6 @@
 #include "utils/resource.h"
 
 #include <filesystem>
-#include <memory>
 #include <optional>
 #include <string>
 
@@ -11,8 +10,6 @@
 #include <spdlog/spdlog.h>
 
 namespace xpano::utils::resource {
-
-namespace {}  // namespace
 
 std::optional<std::string> Find(const std::string& executable_path,
                                 const std::string& rel_path) {
