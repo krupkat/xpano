@@ -3,10 +3,10 @@ name: Check clang-format
 on:
   push:
     branches: [ "main" ]
-    paths: [ "xpano", "tests" ]
+    paths: [ "xpano/**", "tests/**" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "xpano", "tests" ]
+    paths: [ "xpano/**", "tests/**" ]
 
 jobs:
   formatting-check:
