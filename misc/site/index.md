@@ -22,7 +22,7 @@ Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](http
 
 ## Package verification
 
-You can verify that the binaries were built from the repository source by checking the [build logs](https://github.com/krupkat/xpano-release-builder/runs/7839011577):
+You can verify that the binaries were built from the repository source by checking the [build logs]({{ site.build_log }}):
 - The commit hash that was used for the build (in the "Checkout target repo" step)
 - The sha256 checksum value (in the "Compute checksum" step)
 

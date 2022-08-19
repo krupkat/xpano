@@ -56,3 +56,4 @@ jobs:
       run: |
         cd build
         ctest
+        cd ..
