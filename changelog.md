@@ -1,3 +1,11 @@
+# Xpano 0.2.0
+
+First release targeting Microsoft Store:
+
+- Microsoft Store support + app icons
+- Window state + logs are saved in appdata folders
+- Show stitching error code in gui (thanks @GhostVaibhav)
+
 # Xpano 0.1.0
 
 This release satisfies the "minimum viable product" status, supporting the
