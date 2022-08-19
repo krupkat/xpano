@@ -6,7 +6,6 @@ on:
     paths: [ "xpano/**", "tests/**" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "xpano/**", "tests/**" ]
 
 jobs:
   formatting-check:
