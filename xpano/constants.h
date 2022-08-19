@@ -44,7 +44,8 @@ const std::string kOrgName = "krupkat";
 const std::string kAppName = "Xpano";
 
 const std::string kLicensePath = "licenses";
-const std::string kFontPath = "fonts/NotoSans-Regular.ttf";
-const std::string kSymbolsFontPath = "fonts/NotoSansSymbols2-Regular.ttf";
+const std::string kFontPath = "assets/NotoSans-Regular.ttf";
+const std::string kSymbolsFontPath = "assets/NotoSansSymbols2-Regular.ttf";
+const std::string kIconPath = "assets/icon.png";
 
 }  // namespace xpano

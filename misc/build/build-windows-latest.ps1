@@ -25,7 +25,8 @@ cd sdl
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
-  -DSDL_FORCE_STATIC_VCRT=ON
+  -DSDL_FORCE_STATIC_VCRT=ON `
+  -DSDL_MISC=OFF
 cmake --build build --target install --config Release
 cd ..
 
@@ -67,3 +68,4 @@ cmake -B build -G "$env:GENERATOR" `
 cmake --build build --config $env:BUILD_TYPE --target install
 cd build
 ctest -C $env:BUILD_TYPE
+cd ..

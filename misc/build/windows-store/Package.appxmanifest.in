@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package 
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+  
+  <Identity Name="{{ XPANO_IDENTITY_NAME }}"
+            Version="{{ XPANO_VERSION }}.0"
+            Publisher="{{ XPANO_PUBLISHER }}"
+            ProcessorArchitecture="x64"/>
+
+  <Properties>
+    <DisplayName>Xpano</DisplayName>
+    <PublisherDisplayName>Tomas Krupka</PublisherDisplayName>
+    <Logo>images/StoreLogo.png</Logo>
+  </Properties>
+  
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.20348.0"/>
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="Xpano" Executable="Xpano.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements 
+        DisplayName="Xpano"
+        Description="Automated photo stiching tool"
+        Square150x150Logo="images/Square150x150Logo.png"
+        Square44x44Logo="images/Square44x44Logo.png"
+        BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="images/Wide310x150Logo.png" Square71x71Logo="images/SmallTile.png" Square310x310Logo="images/LargeTile.png" ShortName="Xpano">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo"/>
+            <uap:ShowOn Tile="wide310x150Logo"/>
+            <uap:ShowOn Tile="square310x310Logo"/>
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="images/SplashScreen.png"/>
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust"/>
+  </Capabilities>
+</Package>

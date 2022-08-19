@@ -1,0 +1,13 @@
+<PackagingLayout xmlns="http://schemas.microsoft.com/appx/makeappx/2017">
+  <PackageFamily ID="Xpano" FlatBundle="false" ManifestPath=".\manifests\Package.appxmanifest" ResourceManager="false">
+    <Package ID="x64" ProcessorArchitecture="x64">
+      <Files>
+        <File DestinationPath="Xpano.exe" SourcePath="Xpano.exe"/>
+        <File DestinationPath="images\*.png" SourcePath="images\*.png"/>
+        <File DestinationPath="*.pri" SourcePath="*.pri"/>
+        <File DestinationPath="assets\*" SourcePath="assets\*"/>
+        <File DestinationPath="licenses\*" SourcePath="licenses\*"/>
+      </Files>
+    </Package>
+  </PackageFamily>
+</PackagingLayout>
