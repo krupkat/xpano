@@ -40,7 +40,7 @@ SdlSurface LoadIcon(const std::string& executable_path,
     return {nullptr, &SDL_FreeSurface};
   }
 
-  auto icon = cv::imread(path, cv::IMREAD_UNCHANGED);
+  auto icon = cv::imread(*full_path, cv::IMREAD_UNCHANGED);
   if (icon.depth() != CV_8U || icon.channels() != 4) {
     spdlog::error("Icon is not RGBA");
     return {nullptr, &SDL_FreeSurface};
