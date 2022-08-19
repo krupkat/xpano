@@ -49,12 +49,6 @@ int main(int /*unused*/, char** argv) {
   // This feature isn't compatible with ImGui as of v1.88
   // SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
 
-
-
-
-
-
-
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
     printf("Error: %s\n", SDL_GetError());
     return -1;
