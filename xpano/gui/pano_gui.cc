@@ -27,13 +27,13 @@
 
 namespace xpano::gui {
 
-namespace {
-
 template <typename TType>
 bool IsReady(const std::future<TType>& future) {
   return future.valid() &&
          future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
+
+namespace {
 
 Action CheckKeybindings() {
   bool ctrl = ImGui::GetIO().KeyCtrl;
@@ -52,11 +52,11 @@ Action CheckKeybindings() {
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-                 std::future<std::vector<utils::Text>> *licenses)
+                 std::future<std::vector<utils::Text>> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       logger_(logger),
-      about_pane_(std::move(*licenses)) {}
+      about_pane_(std::move(licenses)) {}
 
 bool PanoGui::Run() {
   Action action{};
