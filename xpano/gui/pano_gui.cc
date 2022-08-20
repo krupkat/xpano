@@ -47,7 +47,7 @@ Action CheckKeybindings() {
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-                 std::future<std::vector<utils::Text>> licenses)
+                 std::future<Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       logger_(logger),

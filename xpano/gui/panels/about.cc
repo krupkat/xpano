@@ -52,7 +52,7 @@ utils::Text DefaultNotice() {
 }
 }  // namespace
 
-AboutPane::AboutPane(std::future<std::vector<utils::Text>> licenses)
+AboutPane::AboutPane(std::future<Texts> licenses)
     : licenses_future_(std::move(licenses)), licenses_{DefaultNotice()} {}
 
 void AboutPane::Show() { show_ = true; }
