@@ -9,16 +9,11 @@
 
 #include "constants.h"
 #include "utils/text.h"
+#include "utils/future.h"
 
 namespace xpano::gui {
 
 namespace {
-
-template <typename TType>
-bool IsReady(const std::future<TType>& future) {
-  return future.valid() &&
-         future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-}
 
 const std::string kAboutText =
     R"(Here you can check out the full app changelog, licenses of the
@@ -58,11 +53,8 @@ utils::Text DefaultNotice() {
 }  // namespace
 
 AboutPane::AboutPane(std::future<std::vector<utils::Text>> licenses)
-    : licenses_(std::move(licenses)) {
-  // licenses_.insert(licenses_.begin(), DefaultNotice());
-  license_text.push_back({});
-  license_text.push_back(DefaultNotice());
-}
+    : licenses_future_(std::move(licenses)),
+      licenses_{DefaultNotice()} {}
 
 void AboutPane::Show() { show_ = true; }
 
@@ -83,17 +75,15 @@ void AboutPane::Draw() {
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
-  if(license_text[1] == DefaultNotice() && IsReady(licenses_)) {
-    auto temp = licenses_.get();
-    license_text.clear();
-    license_text = temp;
-    license_text.insert(license_text.begin(), DefaultNotice());
+  if(licenses_.size() == 1 && xpano::utils::future::IsReady(licenses_future_)) {
+    auto temp_licenses_ = licenses_future_.get();
+    std::copy(temp_licenses_.begin(), temp_licenses_.end(), std::back_inserter(licenses_));
   }
 
   if (ImGui::BeginCombo("##license_combo",
-                        license_text[current_license_].name.c_str())) {
-    for (int i = 0; i < license_text.size(); ++i) {
-      if (ImGui::Selectable(license_text[i].name.c_str(), current_license_ == i)) {
+                        licenses_[current_license_].name.c_str())) {
+    for (int i = 0; i < licenses_.size(); ++i) {
+      if (ImGui::Selectable(licenses_[i].name.c_str(), current_license_ == i)) {
         current_license_ = i;
       }
     }
@@ -101,7 +91,7 @@ void AboutPane::Draw() {
   }
 
   ImGui::BeginChild("License", ImVec2(0, 0));
-  const auto& license = license_text[current_license_];
+  const auto& license = licenses_[current_license_];
 
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   ImGuiListClipper clipper;

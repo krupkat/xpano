@@ -24,14 +24,9 @@
 #include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
 #include "utils/imgui_.h"
+#include "utils/future.h"
 
 namespace xpano::gui {
-
-template <typename TType>
-bool IsReady(const std::future<TType>& future) {
-  return future.valid() &&
-         future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-}
 
 namespace {
 
@@ -302,7 +297,7 @@ Action PanoGui::PerformAction(Action action) {
 }
 
 Action PanoGui::ResolveFutures() {
-  if (IsReady(stitcher_data_future_)) {
+  if (xpano::utils::future::IsReady(stitcher_data_future_)) {
     try {
       stitcher_data_ = stitcher_data_future_.get();
     } catch (const std::exception& e) {
@@ -327,7 +322,7 @@ Action PanoGui::ResolveFutures() {
     }
   }
 
-  if (IsReady(pano_future_)) {
+  if (xpano::utils::future::IsReady(pano_future_)) {
     algorithm::StitchingResult result;
     try {
       result = pano_future_.get();

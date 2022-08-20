@@ -109,8 +109,10 @@ int main(int /*unused*/, char** argv) {
   // Application specific
   auto backend = xpano::gui::backends::Sdl{renderer};
 
-  std::future<std::vector<xpano::utils::Text>> license_texts = std::async(std::launch::async, xpano::utils::LoadTexts, argv[0], xpano::kLicensePath);
-  
+  std::future<std::vector<xpano::utils::Text>> license_texts =
+      std::async(std::launch::async, xpano::utils::LoadTexts, argv[0],
+                 xpano::kLicensePath);
+
   xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
 
   xpano::utils::sdl::DpiHandler dpi_handler(window);

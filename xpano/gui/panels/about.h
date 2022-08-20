@@ -16,8 +16,8 @@ class AboutPane {
  private:
   bool show_ = false;
   int current_license_ = 0;
-  std::future<std::vector<utils::Text>> licenses_;
-  std::vector<utils::Text> license_text;
+  std::future<std::vector<utils::Text>> licenses_future_;
+  std::vector<utils::Text> licenses_;
 };
 
 }  // namespace xpano::gui
