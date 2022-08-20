@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <future>
+#include <vector>
 
 #include "utils/text.h"
 

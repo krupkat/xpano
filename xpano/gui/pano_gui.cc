@@ -23,8 +23,8 @@
 #include "gui/panels/sidebar.h"
 #include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
-#include "utils/imgui_.h"
 #include "utils/future.h"
+#include "utils/imgui_.h"
 
 namespace xpano::gui {
 

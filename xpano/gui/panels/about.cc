@@ -8,8 +8,8 @@
 #include <imgui.h>
 
 #include "constants.h"
-#include "utils/text.h"
 #include "utils/future.h"
+#include "utils/text.h"
 
 namespace xpano::gui {
 
@@ -53,8 +53,7 @@ utils::Text DefaultNotice() {
 }  // namespace
 
 AboutPane::AboutPane(std::future<std::vector<utils::Text>> licenses)
-    : licenses_future_(std::move(licenses)),
-      licenses_{DefaultNotice()} {}
+    : licenses_future_(std::move(licenses)), licenses_{DefaultNotice()} {}
 
 void AboutPane::Show() { show_ = true; }
 
@@ -75,9 +74,11 @@ void AboutPane::Draw() {
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
-  if(licenses_.size() == 1 && xpano::utils::future::IsReady(licenses_future_)) {
+  if (licenses_.size() == 1 &&
+      xpano::utils::future::IsReady(licenses_future_)) {
     auto temp_licenses_ = licenses_future_.get();
-    std::copy(temp_licenses_.begin(), temp_licenses_.end(), std::back_inserter(licenses_));
+    std::copy(temp_licenses_.begin(), temp_licenses_.end(),
+              std::back_inserter(licenses_));
   }
 
   if (ImGui::BeginCombo("##license_combo",
