@@ -23,17 +23,12 @@
 #include "gui/panels/sidebar.h"
 #include "gui/panels/thumbnail_pane.h"
 #include "log/logger.h"
+#include "utils/future.h"
 #include "utils/imgui_.h"
 
 namespace xpano::gui {
 
 namespace {
-
-template <typename TType>
-bool IsReady(const std::future<TType>& future) {
-  return future.valid() &&
-         future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-}
 
 Action CheckKeybindings() {
   bool ctrl = ImGui::GetIO().KeyCtrl;
@@ -52,7 +47,7 @@ Action CheckKeybindings() {
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-                 std::vector<utils::Text> licenses)
+                 std::future<utils::Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       logger_(logger),
@@ -302,7 +297,7 @@ Action PanoGui::PerformAction(Action action) {
 }
 
 Action PanoGui::ResolveFutures() {
-  if (IsReady(stitcher_data_future_)) {
+  if (utils::future::IsReady(stitcher_data_future_)) {
     try {
       stitcher_data_ = stitcher_data_future_.get();
     } catch (const std::exception& e) {
@@ -327,7 +322,7 @@ Action PanoGui::ResolveFutures() {
     }
   }
 
-  if (IsReady(pano_future_)) {
+  if (utils::future::IsReady(pano_future_)) {
     algorithm::StitchingResult result;
     try {
       result = pano_future_.get();

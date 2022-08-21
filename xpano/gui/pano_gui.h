@@ -17,10 +17,13 @@
 
 namespace xpano::gui {
 
+template <typename TType>
+bool IsReady(const std::future<TType>& future);
+
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-          std::vector<utils::Text> licenses);
+          std::future<utils::Texts> licenses);
 
   bool Run();
 
