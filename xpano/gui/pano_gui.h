@@ -23,7 +23,7 @@ bool IsReady(const std::future<TType>& future);
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-          std::future<Texts> licenses);
+          std::future<utils::Texts> licenses);
 
   bool Run();
 

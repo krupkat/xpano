@@ -109,7 +109,7 @@ int main(int /*unused*/, char** argv) {
   // Application specific
   auto backend = xpano::gui::backends::Sdl{renderer};
 
-  std::future<Texts> license_texts =
+  std::future<xpano::utils::Texts> license_texts =
       std::async(std::launch::async, xpano::utils::LoadTexts, argv[0],
                  xpano::kLicensePath);
 

@@ -13,4 +13,6 @@ struct Text {
 std::vector<Text> LoadTexts(const std::string& executable_path,
                             const std::string& rel_path);
 
+using Texts = std::vector<Text>;
+
 }  // namespace xpano::utils

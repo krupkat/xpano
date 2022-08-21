@@ -47,7 +47,7 @@ Action CheckKeybindings() {
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
-                 std::future<Texts> licenses)
+                 std::future<utils::Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       logger_(logger),
@@ -297,7 +297,7 @@ Action PanoGui::PerformAction(Action action) {
 }
 
 Action PanoGui::ResolveFutures() {
-  if (xpano::utils::future::IsReady(stitcher_data_future_)) {
+  if (utils::future::IsReady(stitcher_data_future_)) {
     try {
       stitcher_data_ = stitcher_data_future_.get();
     } catch (const std::exception& e) {
@@ -322,7 +322,7 @@ Action PanoGui::ResolveFutures() {
     }
   }
 
-  if (xpano::utils::future::IsReady(pano_future_)) {
+  if (utils::future::IsReady(pano_future_)) {
     algorithm::StitchingResult result;
     try {
       result = pano_future_.get();
