@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - misc/site/**
+  workflow_dispatch:
 
 jobs:
   jekyll:
