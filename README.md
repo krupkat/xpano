@@ -21,7 +21,7 @@ Check out the demo on [YouTube](https://youtu.be/-TuKaO9gxsU). This is how the a
 
 ## Releases
 
-Currently there are release packages available for the Windows x64 platform. You can either get the app from the [Microsoft Store](https://apps.microsoft.com/store/detail/xpano/9PGQ5X33L0SC) or here on GitHub from the [release page](https://github.com/krupkat/xpano/releases). In case you download the binaries from here, you can verify the build commit and checksum in the [build logs](https://github.com/krupkat/xpano-release-builder/actions/workflows/build.yml).
+Currently there are release packages available for the Windows x64 platform. You can either get the app from the [Microsoft Store](https://www.microsoft.com/store/productId/9PGQ5X33L0SC) or here on GitHub from the [release page](https://github.com/krupkat/xpano/releases). In case you download the binaries from here, you can verify the build commit and checksum in the [build logs](https://github.com/krupkat/xpano-release-builder/actions/workflows/build.yml).
 
 ## Local build
 

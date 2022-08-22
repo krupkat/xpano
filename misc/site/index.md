@@ -20,11 +20,11 @@ The app uses the excellent [OpenCV](https://opencv.org/) library for image manip
 
 Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](https://github.com/libsdl-org/SDL), [spdlog](https://github.com/gabime/spdlog/), [Catch2](https://github.com/catchorg/Catch2), [nativefiledialog-extended](https://github.com/btzy/nativefiledialog-extended), [thread-pool](https://github.com/bshoshany/thread-pool) and the [Google Noto](https://fonts.google.com/noto) fonts.
 
-## Package verification
+## Download
 
-You can verify that the binaries were built from the repository source by checking the [build logs]({{ site.build_log }}):
-- The commit hash that was used for the build (in the "Checkout target repo" step)
-- The sha256 checksum value (in the "Compute checksum" step)
+- From the [Microsoft Store](https://www.microsoft.com/store/productId/9PGQ5X33L0SC)
+- Windows binaries available from [GitHub](https://github.com/krupkat/xpano/releases)
+- See [build instructions](https://github.com/krupkat/xpano#local-build) for Linux
 
 ## License
 
