@@ -3,15 +3,21 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include "constants.h"
+
 namespace xpano::gui {
 
 namespace {
-void InitDockSpace(ImGuiID dockspace_id) {
+void InitDockSpace(ImGuiID dockspace_id, ImVec2 viewport_size) {
+  const auto text_base_width = ImGui::CalcTextSize("A").x;
+  const auto sidebar_width = kSidebarWidth * text_base_width;
+
   ImGuiID dock_main_id = dockspace_id;
   ImGuiID dock_id_thumbnails = ImGui::DockBuilderSplitNode(
       dock_main_id, ImGuiDir_Down, 0.20f, nullptr, &dock_main_id);
   ImGuiID dock_id_sidebar = ImGui::DockBuilderSplitNode(
-      dock_main_id, ImGuiDir_Left, 0.20f, nullptr, &dock_main_id);
+      dock_main_id, ImGuiDir_Left, sidebar_width / viewport_size.x, nullptr,
+      &dock_main_id);
   ImGuiID dock_id_logger = ImGui::DockBuilderSplitNode(
       dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
 
@@ -48,7 +54,7 @@ void Layout::Begin() {
   ImGui::End();
 
   if (init_dockspace) {
-    InitDockSpace(dockspace_id);
+    InitDockSpace(dockspace_id, viewport->Size);
   }
 }
 
