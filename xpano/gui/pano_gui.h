@@ -21,8 +21,8 @@ template <typename TType>
 bool IsReady(const std::future<TType>& future);
 
 struct StatusMessage {
-  std::string basic;
-  std::string details;
+  std::string text;
+  std::string tooltip;
 };
 
 enum class SelectionType {

@@ -46,10 +46,10 @@ Action CheckKeybindings() {
 }
 
 void DrawInfoMessage(const StatusMessage& status_message) {
-  ImGui::Text("%s", status_message.basic.c_str());
-  if (!status_message.details.empty()) {
+  ImGui::Text("%s", status_message.text.c_str());
+  if (!status_message.tooltip.empty()) {
     ImGui::SameLine();
-    utils::imgui::InfoMarker("(info)", status_message.details);
+    utils::imgui::InfoMarker("(info)", status_message.tooltip);
   }
 }
 
@@ -88,7 +88,7 @@ Action ModifyPano(int clicked_image, Selection* selection,
       auto pano_iter = panos->begin() + selection->target_id;
       panos->erase(pano_iter);
       *selection = {};
-      return {};
+      return {.type = ActionType::kDisableHighlight, .delayed = true};
     }
   }
 
@@ -96,7 +96,7 @@ Action ModifyPano(int clicked_image, Selection* selection,
     // Deselect image
     if (selection->target_id == clicked_image) {
       *selection = {};
-      return {};
+      return {.type = ActionType::kDisableHighlight, .delayed = true};
     }
 
     // Start a new pano from selected image
@@ -116,7 +116,7 @@ Action ModifyPano(int clicked_image, Selection* selection,
 
 std::ostream& operator<<(std::ostream& oss,
                          const StatusMessage& status_message) {
-  return oss << status_message.basic << " " << status_message.details;
+  return oss << status_message.text << " " << status_message.tooltip;
 }
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
@@ -217,6 +217,10 @@ Action PanoGui::PerformAction(Action action) {
       stitcher_pipeline_.Cancel();
       break;
     }
+    case ActionType::kDisableHighlight: {
+      thumbnail_pane_.DisableHighlight();
+      break;
+    }
     case ActionType::kExport: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Exporting pano {}", selection_.target_id);
@@ -263,12 +267,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kModifyPano: {
-      auto modify_action =
-          ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
-      if (selection_.type == SelectionType::kNone) {
-        thumbnail_pane_.DisableHighlight();
-      }
-      return modify_action;
+      return ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
     }
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};
