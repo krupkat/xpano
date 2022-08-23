@@ -10,6 +10,7 @@
 
 #include <imgui.h>
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
 #include "algorithm/algorithm.h"
@@ -44,7 +45,20 @@ Action CheckKeybindings() {
   return {ActionType::kNone};
 }
 
+void DrawInfoMessage(const StatusMessage& status_message) {
+  ImGui::Text("%s", status_message.basic.c_str());
+  if (!status_message.details.empty()) {
+    ImGui::SameLine();
+    utils::imgui::InfoMarker("(info)", status_message.details);
+  }
+}
+
 }  // namespace
+
+std::ostream& operator<<(std::ostream& oss,
+                         const StatusMessage& status_message) {
+  return oss << status_message.basic << " " << status_message.details;
+}
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
                  std::future<utils::Texts> licenses)
@@ -126,12 +140,7 @@ Action PanoGui::DrawSidebar() {
     }
     ImGui::SameLine();
   }
-
-  ImGui::Text("%s", info_message_.c_str());
-  if (!tooltip_message_.empty()) {
-    ImGui::SameLine();
-    utils::imgui::InfoMarker("(info)", tooltip_message_);
-  }
+  DrawInfoMessage(status_message_);
 
   ImGui::Separator();
   ImGui::BeginChild("Panos");
@@ -221,8 +230,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kExport: {
       if (selected_pano_ >= 0) {
         spdlog::info("Exporting pano {}", selected_pano_);
-        info_message_.clear();
-        tooltip_message_.clear();
+        status_message_ = {};
         auto default_name = fmt::format("pano_{}.jpg", selected_pano_);
         auto export_path = file_dialog::Save(default_name);
         if (export_path) {
@@ -240,8 +248,7 @@ Action PanoGui::PerformAction(Action action) {
       if (auto results = file_dialog::Open(action); !results.empty()) {
         thumbnail_pane_.Reset();
         plot_pane_.Reset();
-        info_message_.clear();
-        tooltip_message_.clear();
+        status_message_ = {};
         stitcher_pipeline_.Cancel();
         stitcher_data_.reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
@@ -261,8 +268,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kShowPano: {
       selected_pano_ = action.target_id;
       spdlog::info("Clicked pano {}", selected_pano_);
-      info_message_.clear();
-      tooltip_message_.clear();
+      status_message_ = {};
       plot_pane_.Reset();
       pano_future_ = stitcher_pipeline_.RunStitching(
           *stitcher_data_, {.pano_id = selected_pano_});
@@ -302,21 +308,20 @@ Action PanoGui::ResolveFutures() {
       stitcher_data_ = stitcher_data_future_.get();
     } catch (const std::exception& e) {
       spdlog::error("Error loading images: {}", e.what());
-      info_message_ = "Couldn't load images";
-      tooltip_message_ = e.what();
+      status_message_ = {"Couldn't load images", e.what()};
       return {};
     }
     if (stitcher_data_->images.empty()) {
       spdlog::info("No images loaded");
-      info_message_ = "No images loaded";
+      status_message_ = {"No images loaded"};
       stitcher_data_.reset();
       return {};
     }
 
     thumbnail_pane_.Load(stitcher_data_->images);
-    info_message_ =
-        fmt::format("Loaded {} images", stitcher_data_->images.size());
-    spdlog::info(info_message_);
+    status_message_ = {
+        fmt::format("Loaded {} images", stitcher_data_->images.size())};
+    spdlog::info(status_message_);
     if (!stitcher_data_->panos.empty()) {
       return {.type = ActionType::kShowPano, .target_id = 0, .delayed = true};
     }
@@ -331,25 +336,25 @@ Action PanoGui::ResolveFutures() {
       }
     } catch (const std::exception& e) {
       spdlog::error("Error stitching pano: {}", e.what());
-      info_message_ = "Failed to stitch pano";
-      tooltip_message_ = e.what();
+      status_message_ = {"Failed to stitch pano", e.what()};
       return {};
     }
     if (!result.pano) {
-      info_message_ = fmt::format("Failed to stitch pano {}", result.pano_id);
-      spdlog::info(info_message_);
-      tooltip_message_ = xpano::algorithm::ToString(result.status);
+      status_message_ = {
+          fmt::format("Failed to stitch pano {}", result.pano_id),
+          algorithm::ToString(result.status)};
+      spdlog::info(status_message_);
       return {};
     }
 
-    info_message_ =
-        fmt::format("Stitched pano {} successfully", result.pano_id);
-    spdlog::info(info_message_);
+    status_message_ = {
+        fmt::format("Stitched pano {} successfully", result.pano_id)};
+    spdlog::info(status_message_);
     if (result.export_path) {
-      info_message_ =
-          fmt::format("Exported pano {} successfully", result.pano_id);
-      spdlog::info(info_message_);
-      tooltip_message_ = *result.export_path;
+      status_message_ = {
+          fmt::format("Exported pano {} successfully", result.pano_id),
+          *result.export_path};
+      spdlog::info(status_message_);
       stitcher_data_->panos[result.pano_id].exported = true;
     }
   }

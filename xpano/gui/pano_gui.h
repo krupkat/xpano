@@ -20,6 +20,11 @@ namespace xpano::gui {
 template <typename TType>
 bool IsReady(const std::future<TType>& future);
 
+struct StatusMessage {
+  std::string basic;
+  std::string details;
+};
+
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::LoggerGui* logger,
@@ -41,8 +46,7 @@ class PanoGui {
   int selected_match_ = -1;
   Action delayed_action_ = {ActionType::kNone};
 
-  std::string info_message_;
-  std::string tooltip_message_;
+  StatusMessage status_message_;
 
   Layout layout_;
   logger::LoggerGui* logger_;
