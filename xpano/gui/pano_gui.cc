@@ -113,23 +113,7 @@ Action PanoGui::DrawSidebar() {
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
   action |= DrawMenu(&compression_options_);
 
-  ImGui::Text("Welcome to Xpano!");
-  ImGui::Text(" 1) Import your images");
-  ImGui::SameLine();
-  utils::imgui::InfoMarker(
-      "(?)", "a) Import individual files\nb) Import all files in a directory");
-  ImGui::Text(" 2) Select a panorama");
-  ImGui::SameLine();
-  utils::imgui::InfoMarker(
-      "(?)",
-      "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
-      "to add / edit / delete panoramas\nc) Zoom and pan the images with your "
-      "mouse");
-  ImGui::Text(" 3) Export");
-  ImGui::SameLine();
-  utils::imgui::InfoMarker("(?)",
-                           "a) Keyboard shortcut: CTRL+S\nb) Exported panos "
-                           "will be marked by a check mark");
+  DrawWelcomeText();
   ImGui::Separator();
 
   auto progress = stitcher_pipeline_.LoadingProgress();
@@ -307,13 +291,13 @@ Action PanoGui::ResolveFutures() {
     try {
       stitcher_data_ = stitcher_data_future_.get();
     } catch (const std::exception& e) {
-      spdlog::error("Error loading images: {}", e.what());
       status_message_ = {"Couldn't load images", e.what()};
+      spdlog::error(status_message_);
       return {};
     }
     if (stitcher_data_->images.empty()) {
-      spdlog::info("No images loaded");
       status_message_ = {"No images loaded"};
+      spdlog::info(status_message_);
       stitcher_data_.reset();
       return {};
     }
@@ -335,8 +319,8 @@ Action PanoGui::ResolveFutures() {
         plot_pane_.Load(*result.pano);
       }
     } catch (const std::exception& e) {
-      spdlog::error("Error stitching pano: {}", e.what());
       status_message_ = {"Failed to stitch pano", e.what()};
+      spdlog::error(status_message_);
       return {};
     }
     if (!result.pano) {

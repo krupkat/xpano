@@ -14,6 +14,7 @@
 #include "constants.h"
 #include "gui/action.h"
 #include "gui/panels/thumbnail_pane.h"
+#include "utils/imgui_.h"
 
 namespace xpano::gui {
 
@@ -198,6 +199,26 @@ Action DrawMenu(algorithm::CompressionOptions* compression_options) {
     ImGui::EndMenuBar();
   }
   return action;
+}
+
+void DrawWelcomeText() {
+  ImGui::Text("Welcome to Xpano!");
+  ImGui::Text(" 1) Import your images");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)", "a) Import individual files\nb) Import all files in a directory");
+  ImGui::Text(" 2) Select a panorama");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)",
+      "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
+      "to add / edit / delete panoramas\nc) Zoom and pan the images with your "
+      "mouse");
+  ImGui::Text(" 3) Export");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker("(?)",
+                           "a) Keyboard shortcut: CTRL+S\nb) Exported panos "
+                           "will be marked by a check mark");
 }
 
 }  // namespace xpano::gui
