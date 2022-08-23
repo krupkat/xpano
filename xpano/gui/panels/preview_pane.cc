@@ -108,8 +108,7 @@ void PreviewPane::Draw(const std::string& message) {
     auto p_min = mid - image_size / 2.0f;
     auto p_max = mid + image_size / 2.0f;
     if (IsZoomed()) {
-      p_min = utils::ToPoint(ImGui::GetCursorScreenPos()) +
-              available_size * screen_offset_ -
+      p_min = window_start + available_size * screen_offset_ -
               image_size * image_offset_ * Zoom();
       p_max = p_min + image_size * Zoom();
     }
