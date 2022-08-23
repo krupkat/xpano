@@ -18,6 +18,7 @@
 
 #include <clocale>
 #include <cstdio>
+#include <future>
 #include <string>
 #include <utility>
 

@@ -3,7 +3,6 @@
 #include <future>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "algorithm/stitcher_pipeline.h"
 #include "gui/action.h"
@@ -20,6 +19,23 @@ namespace xpano::gui {
 template <typename TType>
 bool IsReady(const std::future<TType>& future);
 
+struct StatusMessage {
+  std::string text;
+  std::string tooltip;
+};
+
+enum class SelectionType {
+  kNone,
+  kImage,
+  kMatch,
+  kPano,
+};
+
+struct Selection {
+  SelectionType type = SelectionType::kNone;
+  int target_id = -1;
+};
+
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::LoggerGui* logger,
@@ -31,18 +47,12 @@ class PanoGui {
   Action DrawGui();
   Action DrawSidebar();
   Action ResolveFutures();
-  void ResetSelections(Action action);
   Action PerformAction(Action action);
-  Action ModifyPano(Action action);
-  std::string PreviewMessage() const;
+  void Reset();
 
-  int selected_image_ = -1;
-  int selected_pano_ = -1;
-  int selected_match_ = -1;
+  Selection selection_;
   Action delayed_action_ = {ActionType::kNone};
-
-  std::string info_message_;
-  std::string tooltip_message_;
+  StatusMessage status_message_;
 
   Layout layout_;
   logger::LoggerGui* logger_;

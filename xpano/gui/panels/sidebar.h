@@ -25,4 +25,6 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 
 Action DrawMenu(algorithm::CompressionOptions* compression_options);
 
+void DrawWelcomeText();
+
 }  // namespace xpano::gui
