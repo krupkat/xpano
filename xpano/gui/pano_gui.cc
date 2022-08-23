@@ -53,6 +53,19 @@ void DrawInfoMessage(const StatusMessage& status_message) {
   }
 }
 
+std::string PreviewMessage(const Selection& selection) {
+  switch (selection.type) {
+    case SelectionType::kImage:
+      return fmt::format("Image {}", selection.target_id);
+    case SelectionType::kMatch:
+      return fmt::format("Match {}", selection.target_id);
+    case SelectionType::kPano:
+      return fmt::format("Pano {}", selection.target_id);
+    default:
+      return "";
+  }
+}
+
 }  // namespace
 
 std::ostream& operator<<(std::ostream& oss,
@@ -85,21 +98,11 @@ bool PanoGui::Run() {
   return action.type == ActionType::kQuit;
 }
 
-std::string PanoGui::PreviewMessage() const {
-  if (selected_image_ >= 0) {
-    return fmt::format("Image {}", selected_image_);
-  }
-  if (selected_pano_ >= 0) {
-    return fmt::format("Pano {}", selected_pano_);
-  }
-  return "";
-}
-
 Action PanoGui::DrawGui() {
   layout_.Begin();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
-  plot_pane_.Draw(PreviewMessage());
+  plot_pane_.Draw(PreviewMessage(selection_));
   if (layout_.ShowDebugInfo()) {
     logger_->Draw();
   }
@@ -129,11 +132,15 @@ Action PanoGui::DrawSidebar() {
   ImGui::Separator();
   ImGui::BeginChild("Panos");
   if (stitcher_data_) {
+    auto highlight_id =
+        selection_.type == SelectionType::kPano ? selection_.target_id : -1;
     action |=
-        DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, selected_pano_);
+        DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, highlight_id);
     if (layout_.ShowDebugInfo()) {
+      auto highlight_id =
+          selection_.type == SelectionType::kMatch ? selection_.target_id : -1;
       action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
-                                selected_match_);
+                                highlight_id);
     }
   }
 
@@ -150,15 +157,13 @@ void PanoGui::ResetSelections(Action action) {
     return;
   }
 
-  selected_image_ = -1;
-  selected_pano_ = -1;
-  selected_match_ = -1;
+  selection_ = {};
 }
 
 Action PanoGui::ModifyPano(Action action) {
   // Pano is being edited
-  if (selected_pano_ >= 0) {
-    auto& pano = stitcher_data_->panos[selected_pano_];
+  if (selection_.type == SelectionType::kPano) {
+    auto& pano = stitcher_data_->panos[selection_.target_id];
     auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.target_id);
     if (iter == pano.ids.end()) {
       pano.ids.push_back(action.target_id);
@@ -167,32 +172,30 @@ Action PanoGui::ModifyPano(Action action) {
     }
     // Pano was deleted
     if (pano.ids.empty()) {
-      auto pano_iter = stitcher_data_->panos.begin() + selected_pano_;
+      auto pano_iter = stitcher_data_->panos.begin() + selection_.target_id;
       stitcher_data_->panos.erase(pano_iter);
-      selected_pano_ = -1;
-      thumbnail_pane_.DisableHighlight();
+      selection_ = {};
     }
   }
 
-  if (selected_image_ >= 0) {
+  if (selection_.type == SelectionType::kImage) {
     // Deselect image
-    if (selected_image_ == action.target_id) {
-      selected_image_ = -1;
-      thumbnail_pane_.DisableHighlight();
+    if (selection_.target_id == action.target_id) {
+      selection_ = {};
       return {};
     }
 
     // Start a new pano from selected image
-    selected_pano_ = static_cast<int>(stitcher_data_->panos.size());
+    selection_ = {SelectionType::kPano,
+                  static_cast<int>(stitcher_data_->panos.size())};
     stitcher_data_->panos.push_back(
-        {.ids = {selected_image_, action.target_id}});
-    selected_image_ = -1;
+        {.ids = {selection_.target_id, action.target_id}});
   }
 
   // Queue pano stitching
-  if (selected_pano_ >= 0) {
+  if (selection_.type == SelectionType::kPano) {
     return {.type = ActionType::kShowPano,
-            .target_id = selected_pano_,
+            .target_id = selection_.target_id,
             .delayed = true};
   }
   return {};
@@ -212,14 +215,13 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kExport: {
-      if (selected_pano_ >= 0) {
-        spdlog::info("Exporting pano {}", selected_pano_);
+      if (selection_.type == SelectionType::kPano) {
+        spdlog::info("Exporting pano {}", selection_.target_id);
         status_message_ = {};
-        auto default_name = fmt::format("pano_{}.jpg", selected_pano_);
-        auto export_path = file_dialog::Save(default_name);
-        if (export_path) {
+        auto default_name = fmt::format("pano_{}.jpg", selection_.target_id);
+        if (auto export_path = file_dialog::Save(default_name); export_path) {
           pano_future_ = stitcher_pipeline_.RunStitching(
-              *stitcher_data_, {.pano_id = selected_pano_,
+              *stitcher_data_, {.pano_id = selection_.target_id,
                                 .export_path = *export_path,
                                 .compression = compression_options_});
         }
@@ -240,7 +242,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kShowMatch: {
-      selected_match_ = action.target_id;
+      selection_ = {SelectionType::kMatch, action.target_id};
       spdlog::info("Clicked match {}", action.target_id);
       const auto& match = stitcher_data_->matches[action.target_id];
       auto img = DrawMatches(match, stitcher_data_->images);
@@ -250,25 +252,30 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kShowPano: {
-      selected_pano_ = action.target_id;
-      spdlog::info("Clicked pano {}", selected_pano_);
+      selection_ = {SelectionType::kPano, action.target_id};
+      spdlog::info("Clicked pano {}", selection_.target_id);
       status_message_ = {};
       plot_pane_.Reset();
       pano_future_ = stitcher_pipeline_.RunStitching(
-          *stitcher_data_, {.pano_id = selected_pano_});
-      const auto& pano = stitcher_data_->panos[selected_pano_];
+          *stitcher_data_, {.pano_id = selection_.target_id});
+      const auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
       break;
     }
     case ActionType::kModifyPano: {
-      if (selected_image_ >= 0 || selected_pano_ >= 0 || selected_match_ >= 0) {
-        return ModifyPano(action);
+      if (selection_.type != SelectionType::kNone) {
+        action |= ModifyPano(action);
+        if (selection_.type == SelectionType::kNone) {
+          thumbnail_pane_.DisableHighlight();
+        }
+        break;
       }
-      [[fallthrough]];
+      [[fallthrough]];  // If nothing was selected and the user CTRL clicks an
+                        // image, just select the image
     }
     case ActionType::kShowImage: {
-      selected_image_ = action.target_id;
+      selection_ = {SelectionType::kImage, action.target_id};
       const auto& img = stitcher_data_->images[action.target_id];
       plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
       thumbnail_pane_.Highlight(action.target_id);

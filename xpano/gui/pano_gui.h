@@ -25,6 +25,18 @@ struct StatusMessage {
   std::string details;
 };
 
+enum class SelectionType {
+  kNone,
+  kImage,
+  kMatch,
+  kPano,
+};
+
+struct Selection {
+  SelectionType type = SelectionType::kNone;
+  int target_id = -1;
+};
+
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::LoggerGui* logger,
@@ -39,11 +51,8 @@ class PanoGui {
   void ResetSelections(Action action);
   Action PerformAction(Action action);
   Action ModifyPano(Action action);
-  std::string PreviewMessage() const;
 
-  int selected_image_ = -1;
-  int selected_pano_ = -1;
-  int selected_match_ = -1;
+  Selection selection_;
   Action delayed_action_ = {ActionType::kNone};
 
   StatusMessage status_message_;
