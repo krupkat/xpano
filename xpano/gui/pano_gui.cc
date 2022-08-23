@@ -66,6 +66,52 @@ std::string PreviewMessage(const Selection& selection) {
   }
 }
 
+Action ModifyPano(int clicked_image, Selection* selection,
+                  std::vector<algorithm::Pano>* panos) {
+  // Nothing was selected and an image was ctrl clicked
+  if (selection->type == SelectionType::kNone) {
+    return {.type = ActionType::kShowImage,
+            .target_id = clicked_image,
+            .delayed = true};
+  }
+  // Existing pano is being edited
+  if (selection->type == SelectionType::kPano) {
+    auto& pano = panos->at(selection->target_id);
+    auto iter = std::find(pano.ids.begin(), pano.ids.end(), clicked_image);
+    if (iter == pano.ids.end()) {
+      pano.ids.push_back(clicked_image);
+    } else {
+      pano.ids.erase(iter);
+    }
+    // Pano was deleted
+    if (pano.ids.empty()) {
+      auto pano_iter = panos->begin() + selection->target_id;
+      panos->erase(pano_iter);
+      *selection = {};
+      return {};
+    }
+  }
+
+  if (selection->type == SelectionType::kImage) {
+    // Deselect image
+    if (selection->target_id == clicked_image) {
+      *selection = {};
+      return {};
+    }
+
+    // Start a new pano from selected image
+    panos->push_back({.ids = {selection->target_id, clicked_image}});
+    *selection = {SelectionType::kPano, static_cast<int>(panos->size()) - 1};
+  }
+
+  // Queue pano stitching
+  if (selection->type == SelectionType::kPano) {
+    return {.type = ActionType::kShowPano,
+            .target_id = selection->target_id,
+            .delayed = true};
+  }
+  return {};
+}
 }  // namespace
 
 std::ostream& operator<<(std::ostream& oss,
@@ -88,7 +134,6 @@ bool PanoGui::Run() {
   action |= CheckKeybindings();
   action |= ResolveFutures();
   if (action.type != ActionType::kNone) {
-    ResetSelections(action);
     action |= PerformAction(action);
   }
 
@@ -149,56 +194,14 @@ Action PanoGui::DrawSidebar() {
   return action;
 }
 
-void PanoGui::ResetSelections(Action action) {
-  if (action.type == ActionType::kModifyPano ||
-      action.type == ActionType::kToggleDebugLog ||
-      action.type == ActionType::kExport ||
-      action.type == ActionType::kShowAbout) {
-    return;
-  }
-
+void PanoGui::Reset() {
+  thumbnail_pane_.Reset();
+  plot_pane_.Reset();
   selection_ = {};
-}
-
-Action PanoGui::ModifyPano(Action action) {
-  // Pano is being edited
-  if (selection_.type == SelectionType::kPano) {
-    auto& pano = stitcher_data_->panos[selection_.target_id];
-    auto iter = std::find(pano.ids.begin(), pano.ids.end(), action.target_id);
-    if (iter == pano.ids.end()) {
-      pano.ids.push_back(action.target_id);
-    } else {
-      pano.ids.erase(iter);
-    }
-    // Pano was deleted
-    if (pano.ids.empty()) {
-      auto pano_iter = stitcher_data_->panos.begin() + selection_.target_id;
-      stitcher_data_->panos.erase(pano_iter);
-      selection_ = {};
-    }
-  }
-
-  if (selection_.type == SelectionType::kImage) {
-    // Deselect image
-    if (selection_.target_id == action.target_id) {
-      selection_ = {};
-      return {};
-    }
-
-    // Start a new pano from selected image
-    selection_ = {SelectionType::kPano,
-                  static_cast<int>(stitcher_data_->panos.size())};
-    stitcher_data_->panos.push_back(
-        {.ids = {selection_.target_id, action.target_id}});
-  }
-
-  // Queue pano stitching
-  if (selection_.type == SelectionType::kPano) {
-    return {.type = ActionType::kShowPano,
-            .target_id = selection_.target_id,
-            .delayed = true};
-  }
-  return {};
+  status_message_ = {};
+  // Order of the following two lines is important
+  stitcher_pipeline_.Cancel();
+  stitcher_data_.reset();
 }
 
 Action PanoGui::PerformAction(Action action) {
@@ -232,11 +235,7 @@ Action PanoGui::PerformAction(Action action) {
       [[fallthrough]];
     case ActionType::kOpenFiles: {
       if (auto results = file_dialog::Open(action); !results.empty()) {
-        thumbnail_pane_.Reset();
-        plot_pane_.Reset();
-        status_message_ = {};
-        stitcher_pipeline_.Cancel();
-        stitcher_data_.reset();
+        Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
       }
       break;
@@ -264,15 +263,12 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kModifyPano: {
-      if (selection_.type != SelectionType::kNone) {
-        action |= ModifyPano(action);
-        if (selection_.type == SelectionType::kNone) {
-          thumbnail_pane_.DisableHighlight();
-        }
-        break;
+      auto modify_action =
+          ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
+      if (selection_.type == SelectionType::kNone) {
+        thumbnail_pane_.DisableHighlight();
       }
-      [[fallthrough]];  // If nothing was selected and the user CTRL clicks an
-                        // image, just select the image
+      return modify_action;
     }
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};

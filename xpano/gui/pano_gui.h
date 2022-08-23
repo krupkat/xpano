@@ -48,13 +48,11 @@ class PanoGui {
   Action DrawGui();
   Action DrawSidebar();
   Action ResolveFutures();
-  void ResetSelections(Action action);
   Action PerformAction(Action action);
-  Action ModifyPano(Action action);
+  void Reset();
 
   Selection selection_;
   Action delayed_action_ = {ActionType::kNone};
-
   StatusMessage status_message_;
 
   Layout layout_;
