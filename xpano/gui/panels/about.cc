@@ -1,5 +1,7 @@
 #include "gui/panels/about.h"
 
+#include <algorithm>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -76,8 +78,8 @@ void AboutPane::Draw() {
 
   if (licenses_.size() == 1 &&
       xpano::utils::future::IsReady(licenses_future_)) {
-    auto temp_licenses_ = licenses_future_.get();
-    std::copy(temp_licenses_.begin(), temp_licenses_.end(),
+    auto temp_licenses = licenses_future_.get();
+    std::copy(temp_licenses.begin(), temp_licenses.end(),
               std::back_inserter(licenses_));
   }
 
