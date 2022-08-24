@@ -49,4 +49,6 @@ const std::string kFontPath = "assets/NotoSans-Regular.ttf";
 const std::string kSymbolsFontPath = "assets/NotoSansSymbols2-Regular.ttf";
 const std::string kIconPath = "assets/icon.png";
 
+constexpr int kDefaultNeighborhoodSearchSize = 2;
+
 }  // namespace xpano

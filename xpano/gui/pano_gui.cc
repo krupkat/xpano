@@ -240,7 +240,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kOpenFiles: {
       if (auto results = file_dialog::Open(action); !results.empty()) {
         Reset();
-        stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
+        stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {}, {});
       }
       break;
     }

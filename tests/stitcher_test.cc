@@ -20,10 +20,12 @@ const std::vector<std::string> kInputs = {
 TEST_CASE("Stitcher pipeline defaults") {
   xpano::algorithm::StitcherPipeline stitcher;
 
-  auto result = stitcher.RunLoading(kInputs, {}).get();
+  auto result = stitcher.RunLoading(kInputs, {}, {}).get();
+  auto progress = stitcher.LoadingProgress();
+  CHECK(progress.tasks_done == progress.num_tasks);
 
   CHECK(result.images.size() == 10);
-  CHECK(result.matches.size() == 9);
+  CHECK(result.matches.size() == 17);
   REQUIRE(result.panos.size() == 2);
   REQUIRE_THAT(result.panos[0].ids, Equals<int>({1, 2, 3, 4, 5}));
   REQUIRE_THAT(result.panos[1].ids, Equals<int>({6, 7, 8}));
@@ -39,4 +41,71 @@ TEST_CASE("Stitcher pipeline defaults") {
   REQUIRE(pano1.has_value());
   CHECK_THAT(pano1->rows, WithinRel(974, eps));
   CHECK_THAT(pano1->cols, WithinRel(1325, eps));
+}
+
+const std::vector<std::string> kShuffledInputs = {
+    "data/image01.jpg",  // Pano 1
+    "data/image06.jpg",  // 2
+    "data/image02.jpg",  // Pano 1
+    "data/image07.jpg",  // 2
+    "data/image03.jpg",  // Pano 1
+    "data/image00.jpg",
+    "data/image08.jpg",  // 2
+    "data/image04.jpg",  // Pano 1
+    "data/image09.jpg",
+    "data/image05.jpg",  // Pano 1
+};
+
+TEST_CASE("Stitcher pipeline custom matching neighborhood") {
+  xpano::algorithm::StitcherPipeline stitcher;
+
+  auto result =
+      stitcher.RunLoading(kShuffledInputs, {}, {.neighborhood_search_size = 3})
+          .get();
+  auto progress = stitcher.LoadingProgress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 10);
+  CHECK(result.matches.size() == 24);
+  REQUIRE(result.panos.size() == 2);
+  REQUIRE_THAT(result.panos[0].ids, Equals<int>({0, 2, 4, 7, 9}));
+  REQUIRE_THAT(result.panos[1].ids, Equals<int>({1, 3, 6}));
+}
+
+TEST_CASE("Stitcher pipeline larger neighborhood size") {
+  xpano::algorithm::StitcherPipeline stitcher;
+
+  auto result = stitcher
+                    .RunLoading({"data/image01.jpg", "data/image02.jpg",
+                                 "data/image03.jpg"},
+                                {}, {.neighborhood_search_size = 10})
+                    .get();
+
+  auto progress = stitcher.LoadingProgress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.size() == 3);
+  REQUIRE(result.matches.size() == 3);  // [0 + 1], [0 + 2], [1 + 2]
+}
+
+TEST_CASE("Stitcher pipeline single image") {
+  xpano::algorithm::StitcherPipeline stitcher;
+
+  auto result = stitcher.RunLoading({"data/image01.jpg"}, {}, {}).get();
+  auto progress = stitcher.LoadingProgress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.size() == 1);
+  REQUIRE(result.matches.size() == 0);
+}
+
+TEST_CASE("Stitcher pipeline no images") {
+  xpano::algorithm::StitcherPipeline stitcher;
+
+  auto result = stitcher.RunLoading({}, {}, {}).get();
+  auto progress = stitcher.LoadingProgress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.size() == 0);
+  REQUIRE(result.matches.size() == 0);
 }

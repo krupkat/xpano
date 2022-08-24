@@ -23,8 +23,12 @@ struct CompressionOptions {
   int png_compression = kDefaultPngCompression;
 };
 
+struct MatchingOptions {
+  int neighborhood_search_size = kDefaultNeighborhoodSearchSize;
+};
+
 struct LoadingOptions {
-  int image_downsample_factor = 1;
+  // int image_downsample_factor = 1;
 };
 
 struct StitchingOptions {
@@ -79,7 +83,8 @@ class StitcherPipeline {
   StitcherPipeline() = default;
   ~StitcherPipeline();
   std::future<StitcherData> RunLoading(const std::vector<std::string> &inputs,
-                                       const LoadingOptions &options);
+                                       const LoadingOptions &loading_options,
+                                       const MatchingOptions &matching_options);
   std::future<StitchingResult> RunStitching(const StitcherData &data,
                                             const StitchingOptions &options);
   ProgressReport LoadingProgress() const;
@@ -89,10 +94,10 @@ class StitcherPipeline {
  private:
   std::vector<algorithm::Image> RunLoadingPipeline(
       const std::vector<std::string> &inputs);
-  StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images);
+  StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
+                                   const MatchingOptions &options);
 
   ProgressMonitor loading_progress_;
-  LoadingOptions options_;
 
   std::atomic<bool> cancel_tasks_ = false;
   BS::thread_pool pool_;
