@@ -44,6 +44,8 @@ std::vector<Text> LoadTexts(const std::string& executable_path,
       texts.emplace_back(std::move(*text));
     }
   }
+  std::sort(texts.begin(), texts.end(),
+            [](const Text& a, const Text& b) { return a.name < b.name; });
   return texts;
 }
 

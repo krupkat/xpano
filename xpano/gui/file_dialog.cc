@@ -65,6 +65,7 @@ std::vector<std::filesystem::path> DirectoryOpen() {
   } else {
     spdlog::error("Error: %s", NFD::GetError());
   }
+  std::sort(results.begin(), results.end());
   return results;
 }
 
