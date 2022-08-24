@@ -70,6 +70,10 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Panorama detection")) {
+      ImGui::Text(
+          "Experiment with this if the app cannot find the panoramas you "
+          "want.");
+      ImGui::Spacing();
       ImGui::SliderInt("Matching distance",
                        &matching_options->neighborhood_search_size, 0,
                        kMaxNeighborhoodSearchSize);
@@ -78,6 +82,13 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
           "(?)",
           "Select how many neighboring images will be considered for panorama "
           "auto detection.");
+      ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
+                       kMinMatchThreshold, kMaxMatchThreshold);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)",
+          "Number of keypoints that need to match in order to include the two "
+          "images in a panorama.");
       ImGui::EndMenu();
     }
     ImGui::EndMenu();

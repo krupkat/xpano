@@ -25,6 +25,7 @@ struct CompressionOptions {
 
 struct MatchingOptions {
   int neighborhood_search_size = kDefaultNeighborhoodSearchSize;
+  int match_threshold = kDefaultMatchThreshold;
 };
 
 struct LoadingOptions {

@@ -79,12 +79,13 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
   return inliers;
 }
 
-std::vector<Pano> FindPanos(const std::vector<Match>& matches, int num_images) {
+std::vector<Pano> FindPanos(const std::vector<Match>& matches, int num_images,
+                            int match_threshold) {
   auto pano_ds = utils::DisjointSet(num_images);
 
   std::unordered_set<int> images_in_panos;
   for (const auto& match : matches) {
-    if (match.matches.size() > kMatchThreshold) {
+    if (match.matches.size() > match_threshold) {
       pano_ds.Union(match.id1, match.id2);
       images_in_panos.insert(match.id1);
       images_in_panos.insert(match.id2);
