@@ -10,4 +10,7 @@
   { include: ["<spdlog/fmt/bundled/core.h>", "private", "<spdlog/fmt/fmt.h>", "public"] },
   { include: ["<spdlog/fmt/bundled/format.h>", "private", "<spdlog/fmt/fmt.h>", "public"] },
   { include: ["<__msvc_chrono.hpp>", "private", "<chrono>", "public"] },
+  { symbol: [ "std::min", private, "<algorithm>", public ] },
+  { symbol: [ "std::max", private, "<algorithm>", public ] },
+  { include: ["<compare>", "public", "<string>", "public"] },
 ]
