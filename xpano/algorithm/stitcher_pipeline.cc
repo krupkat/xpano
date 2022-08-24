@@ -1,5 +1,6 @@
 #include "algorithm/stitcher_pipeline.h"
 
+#include <algorithm>
 #include <atomic>
 #include <future>
 #include <optional>
@@ -65,12 +66,12 @@ void StitcherPipeline::Cancel() {
 }
 
 std::future<StitcherData> StitcherPipeline::RunLoading(
-    const std::vector<std::string> &inputs, const LoadingOptions &options) {
-  options_ = options;
-
-  return pool_.submit([this, inputs]() {
+    const std::vector<std::string> &inputs,
+    const LoadingOptions & /*loading_options*/,
+    const MatchingOptions &matching_options) {
+  return pool_.submit([this, matching_options, inputs]() {
     auto images = RunLoadingPipeline(inputs);
-    return RunMatchingPipeline(images);
+    return RunMatchingPipeline(images, matching_options);
   });
 }
 
@@ -150,21 +151,30 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
 }
 
 StitcherData StitcherPipeline::RunMatchingPipeline(
-    std::vector<algorithm::Image> images) {
+    std::vector<algorithm::Image> images, const MatchingOptions &options) {
   if (images.empty()) {
     return {};
   }
 
-  int num_tasks = static_cast<int>(images.size());
+  int num_images = static_cast<int>(images.size());
+  int num_neighbors =
+      std::min(options.neighborhood_search_size, num_images - 1);
+  int num_tasks =
+      1 +                                             // FindPanos
+      (num_images - num_neighbors) * num_neighbors +  // full n-tuples
+      ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
+
   loading_progress_.Reset(ProgressType::kMatchingImages, num_tasks);
   BS::multi_future<Match> matches_future;
-  for (int i = 1; i < images.size(); i++) {
-    matches_future.push_back(
-        pool_.submit([this, i, left = images[i - 1], right = images[i]]() {
-          auto match = Match{i - 1, i, MatchImages(left, right)};
-          loading_progress_.NotifyTaskDone();
-          return match;
-        }));
+  for (int j = 0; j < images.size(); j++) {
+    for (int i = std::max(0, j - num_neighbors); i < j; i++) {
+      matches_future.push_back(
+          pool_.submit([this, i, j, left = images[i], right = images[j]]() {
+            auto match = Match{i, j, MatchImages(left, right)};
+            loading_progress_.NotifyTaskDone();
+            return match;
+          }));
+    }
   }
 
   std::future_status status;
@@ -176,7 +186,7 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   }
   auto matches = matches_future.get();
 
-  auto panos = FindPanos(matches);
+  auto panos = FindPanos(matches, num_images, options.match_threshold);
   loading_progress_.NotifyTaskDone();
   return StitcherData{images, matches, panos};
 }

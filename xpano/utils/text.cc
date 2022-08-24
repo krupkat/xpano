@@ -1,5 +1,6 @@
 #include "utils/text.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -44,6 +45,9 @@ std::vector<Text> LoadTexts(const std::string& executable_path,
       texts.emplace_back(std::move(*text));
     }
   }
+  std::sort(texts.begin(), texts.end(), [](const Text& lhs, const Text& rhs) {
+    return lhs.name < rhs.name;
+  });
   return texts;
 }
 

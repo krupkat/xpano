@@ -159,7 +159,7 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |= DrawMenu(&compression_options_);
+  action |= DrawMenu(&compression_options_, &matching_options_);
 
   DrawWelcomeText();
   ImGui::Separator();
@@ -240,7 +240,8 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kOpenFiles: {
       if (auto results = file_dialog::Open(action); !results.empty()) {
         Reset();
-        stitcher_data_future_ = stitcher_pipeline_.RunLoading(results, {});
+        stitcher_data_future_ =
+            stitcher_pipeline_.RunLoading(results, {}, matching_options_);
       }
       break;
     }

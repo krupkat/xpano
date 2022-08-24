@@ -8,7 +8,8 @@ add_executable(StitcherTest
   stitcher_test.cc
   ../xpano/algorithm/algorithm.cc
   ../xpano/algorithm/image.cc
-  ../xpano/algorithm/stitcher_pipeline.cc)
+  ../xpano/algorithm/stitcher_pipeline.cc
+  ../xpano/utils/disjoint_set.cc)
 
 target_link_libraries(StitcherTest 
   Catch2::Catch2WithMain
@@ -35,7 +36,21 @@ target_include_directories(VecTest PRIVATE
   "../xpano"
 )
 
+add_executable(DisjointSetTest 
+  disjoint_set_test.cc
+  ../xpano/utils/disjoint_set.cc
+)
+
+target_link_libraries(DisjointSetTest 
+  Catch2::Catch2WithMain
+)
+
+target_include_directories(DisjointSetTest PRIVATE 
+  "../xpano"
+)
+
 set(ALL_TEST_TARGETS
+  DisjointSetTest
   StitcherTest
   VecTest
 )

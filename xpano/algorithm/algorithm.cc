@@ -1,6 +1,10 @@
 #include "algorithm/algorithm.h"
 
+#include <algorithm>
+#include <iterator>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -11,8 +15,16 @@
 
 #include "algorithm/image.h"
 #include "constants.h"
+#include "utils/disjoint_set.h"
 
 namespace xpano::algorithm {
+
+namespace {
+void InsertInOrder(int value, std::vector<int>* vec) {
+  auto iter = std::lower_bound(vec->begin(), vec->end(), value);
+  vec->insert(iter, value);
+}
+}  // namespace
 
 std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
   if (img1.GetKeypoints().empty() || img2.GetKeypoints().empty()) {
@@ -67,37 +79,39 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
   return inliers;
 }
 
-std::vector<Pano> FindPanos(const std::vector<Match>& matches) {
-  using MMatch = std::pair<int, int>;
+std::vector<Pano> FindPanos(const std::vector<Match>& matches, int num_images,
+                            int match_threshold) {
+  auto pano_ds = utils::DisjointSet(num_images);
 
-  std::vector<MMatch> good_matches;
+  std::unordered_set<int> images_in_panos;
   for (const auto& match : matches) {
-    if (match.matches.size() > kMatchThreshold) {
-      good_matches.emplace_back(match.id1, match.id2);
+    if (match.matches.size() > match_threshold) {
+      pano_ds.Union(match.id1, match.id2);
+      images_in_panos.insert(match.id1);
+      images_in_panos.insert(match.id2);
     }
   }
 
-  if (good_matches.empty()) {
+  if (images_in_panos.empty()) {
     return {};
   }
 
-  std::vector<Pano> result;
-  Pano next{};
-  next.ids.push_back(good_matches[0].first);
-  next.ids.push_back(good_matches[0].second);
-
-  for (int i = 1; i < good_matches.size(); i++) {
-    const auto& match = good_matches[i];
-    if (next.ids.back() == match.first) {
-      next.ids.push_back(match.second);
+  std::unordered_map<int, Pano> pano_map;
+  for (auto image_id : images_in_panos) {
+    int root = pano_ds.Find(image_id);
+    if (auto pano = pano_map.find(root); pano != pano_map.end()) {
+      InsertInOrder(image_id, &pano->second.ids);
     } else {
-      result.push_back(next);
-      next.ids.resize(0);
-      next.ids.push_back(match.first);
-      next.ids.push_back(match.second);
+      pano_map.emplace(root, Pano{.ids = {image_id}});
     }
   }
-  result.push_back(next);
+
+  std::vector<Pano> result;
+  std::transform(pano_map.begin(), pano_map.end(), std::back_inserter(result),
+                 [](const auto& pano) { return pano.second; });
+  std::sort(result.begin(), result.end(), [](const Pano& lhs, const Pano& rhs) {
+    return lhs.ids[0] < rhs.ids[0];
+  });
   return result;
 }
 

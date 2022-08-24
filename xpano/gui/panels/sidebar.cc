@@ -55,7 +55,8 @@ Action DrawFileMenu() {
   return action;
 }
 
-Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options) {
+Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
+                       algorithm::MatchingOptions* matching_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     if (ImGui::BeginMenu("Export compression")) {
@@ -66,6 +67,28 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options) {
       ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
       ImGui::SliderInt("PNG compression", &compression_options->png_compression,
                        0, kMaxPngCompression);
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Panorama detection")) {
+      ImGui::Text(
+          "Experiment with this if the app cannot find the panoramas you "
+          "want.");
+      ImGui::Spacing();
+      ImGui::SliderInt("Matching distance",
+                       &matching_options->neighborhood_search_size, 0,
+                       kMaxNeighborhoodSearchSize);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)",
+          "Select how many neighboring images will be considered for panorama "
+          "auto detection.");
+      ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
+                       kMinMatchThreshold, kMaxMatchThreshold);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)",
+          "Number of keypoints that need to match in order to include the two "
+          "images in a panorama.");
       ImGui::EndMenu();
     }
     ImGui::EndMenu();
@@ -190,11 +213,12 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(algorithm::CompressionOptions* compression_options) {
+Action DrawMenu(algorithm::CompressionOptions* compression_options,
+                algorithm::MatchingOptions* matching_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |= DrawOptionsMenu(compression_options);
+    action |= DrawOptionsMenu(compression_options, matching_options);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

@@ -43,6 +43,7 @@ set(XPANO_SOURCES
   "xpano/gui/panels/sidebar.cc"
   "xpano/gui/panels/thumbnail_pane.cc"
   "xpano/gui/pano_gui.cc"
+  "xpano/utils/disjoint_set.cc"
   "xpano/utils/imgui_.cc"
   "xpano/utils/resource.cc"
   "xpano/utils/sdl_.cc"
