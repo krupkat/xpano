@@ -23,7 +23,8 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id);
 
-Action DrawMenu(algorithm::CompressionOptions* compression_options);
+Action DrawMenu(algorithm::CompressionOptions* compression_options,
+                algorithm::MatchingOptions* matching_options);
 
 void DrawWelcomeText();
 

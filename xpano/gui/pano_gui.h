@@ -61,6 +61,7 @@ class PanoGui {
   ThumbnailPane thumbnail_pane_;
   algorithm::StitcherPipeline stitcher_pipeline_;
   algorithm::CompressionOptions compression_options_;
+  algorithm::MatchingOptions matching_options_;
 
   std::future<algorithm::StitcherData> stitcher_data_future_;
   std::optional<algorithm::StitcherData> stitcher_data_;
