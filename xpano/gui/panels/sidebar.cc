@@ -71,7 +71,8 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
     }
     if (ImGui::BeginMenu("Panorama detection")) {
       ImGui::SliderInt("Matching distance",
-                       &matching_options->neighborhood_search_size, 0, 10);
+                       &matching_options->neighborhood_search_size, 0,
+                       kMaxNeighborhoodSearchSize);
       ImGui::SameLine();
       utils::imgui::InfoMarker(
           "(?)",

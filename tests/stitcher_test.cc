@@ -96,7 +96,7 @@ TEST_CASE("Stitcher pipeline single image") {
   CHECK(progress.tasks_done == progress.num_tasks);
 
   REQUIRE(result.images.size() == 1);
-  REQUIRE(result.matches.size() == 0);
+  REQUIRE(result.matches.empty());
 }
 
 TEST_CASE("Stitcher pipeline no images") {
@@ -106,6 +106,6 @@ TEST_CASE("Stitcher pipeline no images") {
   auto progress = stitcher.LoadingProgress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
-  REQUIRE(result.images.size() == 0);
-  REQUIRE(result.matches.size() == 0);
+  REQUIRE(result.images.empty());
+  REQUIRE(result.matches.empty());
 }

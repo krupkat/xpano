@@ -66,7 +66,7 @@ void StitcherPipeline::Cancel() {
 
 std::future<StitcherData> StitcherPipeline::RunLoading(
     const std::vector<std::string> &inputs,
-    const LoadingOptions &loading_options,
+    const LoadingOptions & /*loading_options*/,
     const MatchingOptions &matching_options) {
   return pool_.submit([this, matching_options, inputs]() {
     auto images = RunLoadingPipeline(inputs);
