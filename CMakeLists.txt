@@ -80,7 +80,6 @@ target_link_libraries(Xpano
   nfd
   ${OPENCV_TARGETS}
   SDL2::SDL2
-  SDL2::SDL2main
   spdlog::spdlog
 )
 
