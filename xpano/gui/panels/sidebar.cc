@@ -34,16 +34,44 @@ std::string ProgressLabel(algorithm::ProgressType type) {
   }
 }
 
+enum class ShortcutType { kOpen, kExport, kDebug };
+
+const char* Shortcut(ShortcutType type) {
+#if defined(__APPLE__)
+  switch (type) {
+    case ShortcutType::kOpen:
+      return reinterpret_cast<const char*>(u8"⌘ O");
+    case ShortcutType::kExport:
+      return reinterpret_cast<const char*>(u8"⌘ S");
+    case ShortcutType::kDebug:
+      return reinterpret_cast<const char*>(u8"⌘ D");
+    default:
+      return "";
+  }
+#else
+  switch (type) {
+    case ShortcutType::kOpen:
+      return "CTRL+O";
+    case ShortcutType::kExport:
+      return "CTRL+S";
+    case ShortcutType::kDebug:
+      return "CTRL+D";
+    default:
+      return "";
+  }
+#endif
+}
+
 Action DrawFileMenu() {
   Action action{};
   if (ImGui::BeginMenu("File")) {
-    if (ImGui::MenuItem("Open files", "CTRL+O")) {
+    if (ImGui::MenuItem("Open files", Shortcut(ShortcutType::kOpen))) {
       action |= {ActionType::kOpenFiles};
     }
     if (ImGui::MenuItem("Open directory")) {
       action |= {ActionType::kOpenDirectory};
     }
-    if (ImGui::MenuItem("Export", "CTRL+S")) {
+    if (ImGui::MenuItem("Export", Shortcut(ShortcutType::kExport))) {
       action |= {ActionType::kExport};
     }
     ImGui::Separator();
@@ -99,7 +127,7 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
 Action DrawHelpMenu() {
   Action action{};
   if (ImGui::BeginMenu("Help")) {
-    if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
+    if (ImGui::MenuItem("Show debug info", Shortcut(ShortcutType::kDebug))) {
       action |= {ActionType::kToggleDebugLog};
     }
     ImGui::Separator();

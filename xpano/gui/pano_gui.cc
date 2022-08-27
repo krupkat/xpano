@@ -40,7 +40,11 @@ namespace xpano::gui {
 namespace {
 
 Action CheckKeybindings() {
+#if defined(__APPLE__)
+  bool ctrl = ImGui::GetIO().KeySuper;
+#else
   bool ctrl = ImGui::GetIO().KeyCtrl;
+#endif
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
     return {ActionType::kOpenFiles};
   }

@@ -25,6 +25,7 @@ void FontLoader::ComputeGlyphRanges() {
 
   builder.Clear();
   builder.AddText(kCheckMark);
+  builder.AddText(kCommandSymbol);
   builder.BuildRanges(&symbol_ranges_);
 }
 

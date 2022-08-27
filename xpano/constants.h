@@ -31,6 +31,7 @@ constexpr int kMaxLogSize = 5 * 1024 * 1024;
 constexpr int kMaxLogFiles = 5;
 
 const char* const kCheckMark = reinterpret_cast<const char*>(u8"✓");
+const char* const kCommandSymbol = reinterpret_cast<const char*>(u8"⌘");
 
 constexpr auto kTaskCancellationTimeout = std::chrono::milliseconds(500);
 
