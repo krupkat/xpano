@@ -5,7 +5,6 @@
 #include <optional>
 
 #include <SDL.h>
-#include <spdlog/spdlog.h>
 
 #include "constants.h"
 
@@ -26,8 +25,7 @@ float DpiHandler::DpiScale() const { return dpi_scale_; }
 float DpiHandler::QueryDpiScale() const {
   float dpi;
   SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(window_), &dpi, nullptr, nullptr);
-  //spdlog::info("dpi: {}, scale: {}", dpi, dpi / 96.0f);
-  return dpi / 52.0f;
+  return dpi / 96.0f;
 }
 
 std::optional<std::filesystem::path> InitializePrefPath() {
