@@ -10,7 +10,6 @@
 
 #include <imgui.h>
 #include <spdlog/fmt/fmt.h>
-#include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
 #include "algorithm/algorithm.h"
@@ -26,6 +25,15 @@
 #include "log/logger.h"
 #include "utils/future.h"
 #include "utils/imgui_.h"
+
+template <>
+struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {
+  template <typename FormatContext>
+  auto format(const xpano::gui::StatusMessage& message,
+              FormatContext& ctx) const -> decltype(ctx.out()) {
+    return fmt::format_to(ctx.out(), "{} {}", message.text, message.tooltip);
+  }
+};
 
 namespace xpano::gui {
 
@@ -113,11 +121,6 @@ Action ModifyPano(int clicked_image, Selection* selection,
   return {};
 }
 }  // namespace
-
-std::ostream& operator<<(std::ostream& oss,
-                         const StatusMessage& status_message) {
-  return oss << status_message.text << " " << status_message.tooltip;
-}
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
                  std::future<utils::Texts> licenses)

@@ -1,6 +1,6 @@
 [submodule "external/imgui"]
 	path = external/imgui
-	url = git@github.com:ocornut/imgui.git
+	url = git@github.com:krupkat/imgui.git
 [submodule "external/nativefiledialog-extended"]
 	path = external/nativefiledialog-extended
 	url = git@github.com:btzy/nativefiledialog-extended.git
