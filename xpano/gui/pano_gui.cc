@@ -22,6 +22,7 @@
 #include "gui/panels/preview_pane.h"
 #include "gui/panels/sidebar.h"
 #include "gui/panels/thumbnail_pane.h"
+#include "gui/shortcut.h"
 #include "log/logger.h"
 #include "utils/future.h"
 #include "utils/imgui_.h"
@@ -38,24 +39,6 @@ struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {
 namespace xpano::gui {
 
 namespace {
-
-Action CheckKeybindings() {
-#if defined(__APPLE__)
-  bool ctrl = ImGui::GetIO().KeySuper;
-#else
-  bool ctrl = ImGui::GetIO().KeyCtrl;
-#endif
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
-    return {ActionType::kOpenFiles};
-  }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
-    return {ActionType::kExport};
-  }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
-    return {ActionType::kToggleDebugLog};
-  }
-  return {ActionType::kNone};
-}
 
 void DrawInfoMessage(const StatusMessage& status_message) {
   ImGui::Text("%s", status_message.text.c_str());
