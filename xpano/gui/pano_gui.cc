@@ -10,7 +10,6 @@
 
 #include <imgui.h>
 #include <spdlog/fmt/fmt.h>
-#include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 
 #include "algorithm/algorithm.h"
@@ -26,6 +25,15 @@
 #include "log/logger.h"
 #include "utils/future.h"
 #include "utils/imgui_.h"
+
+template <>
+struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {
+  template <typename FormatContext>
+  auto format(const xpano::gui::StatusMessage& message,
+              FormatContext& ctx) const -> decltype(ctx.out()) {
+    return fmt::format_to(ctx.out(), "{} {}", message.text, message.tooltip);
+  }
+};
 
 namespace xpano::gui {
 
@@ -113,11 +121,6 @@ Action ModifyPano(int clicked_image, Selection* selection,
   return {};
 }
 }  // namespace
-
-std::ostream& operator<<(std::ostream& oss,
-                         const StatusMessage& status_message) {
-  return oss << status_message.text << " " << status_message.tooltip;
-}
 
 PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
                  std::future<utils::Texts> licenses)
@@ -295,12 +298,12 @@ Action PanoGui::ResolveFutures() {
       stitcher_data_ = stitcher_data_future_.get();
     } catch (const std::exception& e) {
       status_message_ = {"Couldn't load images", e.what()};
-      //spdlog::error(status_message_);
+      spdlog::error(status_message_);
       return {};
     }
     if (stitcher_data_->images.empty()) {
       status_message_ = {"No images loaded"};
-      //spdlog::info(status_message_);
+      spdlog::info(status_message_);
       stitcher_data_.reset();
       return {};
     }
@@ -308,7 +311,7 @@ Action PanoGui::ResolveFutures() {
     thumbnail_pane_.Load(stitcher_data_->images);
     status_message_ = {
         fmt::format("Loaded {} images", stitcher_data_->images.size())};
-    //spdlog::info(status_message_);
+    spdlog::info(status_message_);
     if (!stitcher_data_->panos.empty()) {
       return {.type = ActionType::kShowPano, .target_id = 0, .delayed = true};
     }
@@ -323,25 +326,25 @@ Action PanoGui::ResolveFutures() {
       }
     } catch (const std::exception& e) {
       status_message_ = {"Failed to stitch pano", e.what()};
-      //spdlog::error(status_message_);
+      spdlog::error(status_message_);
       return {};
     }
     if (!result.pano) {
       status_message_ = {
           fmt::format("Failed to stitch pano {}", result.pano_id),
           algorithm::ToString(result.status)};
-      //spdlog::info(status_message_);
+      spdlog::info(status_message_);
       return {};
     }
 
     status_message_ = {
         fmt::format("Stitched pano {} successfully", result.pano_id)};
-    //spdlog::info(status_message_);
+    spdlog::info(status_message_);
     if (result.export_path) {
       status_message_ = {
           fmt::format("Exported pano {} successfully", result.pano_id),
           *result.export_path};
-      //spdlog::info(status_message_);
+      spdlog::info(status_message_);
       stitcher_data_->panos[result.pano_id].exported = true;
     }
   }
