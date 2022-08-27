@@ -24,7 +24,7 @@ Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](http
 
 - From the [Microsoft Store](https://www.microsoft.com/store/productId/9PGQ5X33L0SC)
 - Windows binaries available from [GitHub](https://github.com/krupkat/xpano/releases)
-- See [build instructions](https://github.com/krupkat/xpano#local-build) for Linux
+- See [build instructions](https://github.com/krupkat/xpano#local-build) for Linux and MacOS
 
 ## License
 

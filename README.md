@@ -1,3 +1,4 @@
+[![MacOS](https://github.com/krupkat/xpano/actions/workflows/macos.yml/badge.svg)](https://github.com/krupkat/xpano/actions/workflows/macos.yml)
 [![Ubuntu](https://github.com/krupkat/xpano/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/krupkat/xpano/actions/workflows/ubuntu.yml)
 [![Windows](https://github.com/krupkat/xpano/actions/workflows/windows.yml/badge.svg)](https://github.com/krupkat/xpano/actions/workflows/windows.yml)
 
@@ -25,7 +26,15 @@ Currently there are release packages available for the Windows x64 platform. You
 
 ## Local build
 
-The project can be built by running a single script from the `misc/build` directory. On both supported systems you will need at least CMake 3.21, git and a compiler with C++20 support.
+The project can be built by running a single script from the `misc/build` directory. You will need at least CMake 3.21, git and a compiler with C++20 support.
+
+### MacOS
+
+Run the install script from the root of the repository:
+
+```
+./misc/build/build-macos-12.sh
+```
 
 ### Ubuntu
 
