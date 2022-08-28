@@ -9,7 +9,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  SDL_VERSION: prerelease-2.23.1
+  SDL_VERSION: "release-2.24.0"
   OPENCV_VERSION: "4.6.0"
   CATCH_VERSION: "v3.1.0"
   SPDLOG_VERSION: "v1.10.0"
