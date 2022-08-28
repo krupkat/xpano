@@ -14,6 +14,7 @@
 #include "constants.h"
 #include "gui/action.h"
 #include "gui/panels/thumbnail_pane.h"
+#include "gui/shortcut.h"
 #include "utils/imgui_.h"
 
 namespace xpano::gui {
@@ -37,13 +38,13 @@ std::string ProgressLabel(algorithm::ProgressType type) {
 Action DrawFileMenu() {
   Action action{};
   if (ImGui::BeginMenu("File")) {
-    if (ImGui::MenuItem("Open files", "CTRL+O")) {
+    if (ImGui::MenuItem("Open files", Label(ShortcutType::kOpen))) {
       action |= {ActionType::kOpenFiles};
     }
     if (ImGui::MenuItem("Open directory")) {
       action |= {ActionType::kOpenDirectory};
     }
-    if (ImGui::MenuItem("Export", "CTRL+S")) {
+    if (ImGui::MenuItem("Export", Label(ShortcutType::kExport))) {
       action |= {ActionType::kExport};
     }
     ImGui::Separator();
@@ -99,7 +100,7 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
 Action DrawHelpMenu() {
   Action action{};
   if (ImGui::BeginMenu("Help")) {
-    if (ImGui::MenuItem("Show debug info", "CTRL+D")) {
+    if (ImGui::MenuItem("Show debug info", Label(ShortcutType::kDebug))) {
       action |= {ActionType::kToggleDebugLog};
     }
     ImGui::Separator();
