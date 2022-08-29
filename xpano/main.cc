@@ -43,6 +43,8 @@
 #endif
 
 int main(int /*unused*/, char** argv) {
+  SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
+
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
   // This feature isn't compatible with ImGui as of v1.88
@@ -107,7 +109,7 @@ int main(int /*unused*/, char** argv) {
   const SDL_Color clear_color{114, 140, 165, 255};
 
   // Application specific
-  auto backend = xpano::gui::backends::Sdl{renderer};
+  auto backend = xpano::gui::backends::Sdl{renderer, window};
 
   std::future<xpano::utils::Texts> license_texts =
       std::async(std::launch::async, xpano::utils::LoadTexts, argv[0],

@@ -11,7 +11,8 @@
 
 namespace xpano::gui::backends {
 
-Sdl::Sdl(SDL_Renderer *renderer) : renderer_(renderer) {
+Sdl::Sdl(SDL_Renderer *renderer, SDL_Window *window)
+    : renderer_(renderer), window_(window) {
   if (SDL_GetRendererInfo(renderer, &info_) == 0) {
     spdlog::info("Current SDL_Renderer: {}", info_.name);
     spdlog::info("Max tex width: {}", info_.max_texture_width);
@@ -19,6 +20,46 @@ Sdl::Sdl(SDL_Renderer *renderer) : renderer_(renderer) {
   } else {
     spdlog::error("Failed to get SDL_RendererInfo: {}", SDL_GetError());
   }
+  int num_displays = SDL_GetNumVideoDisplays();
+  for (int i = 0; i < num_displays; i++) {
+    float dpi;
+    SDL_GetDisplayDPI(i, &dpi, nullptr, nullptr);
+    spdlog::info("Display {}, dpi = {}", i, dpi);
+
+    int num_modes = SDL_GetNumDisplayModes(i);
+    for (int j = 0; j < num_modes; j++) {
+      SDL_DisplayMode mode;
+      if (SDL_GetDisplayMode(i, j, &mode) == 0) {
+        spdlog::info("Display {}, mode {}, {}x{}@{}, {}", i, j, mode.w, mode.h,
+                     mode.refresh_rate, SDL_GetPixelFormatName(mode.format));
+      }
+    }
+  }
+  SDL_DisplayMode mode;
+  if (SDL_GetWindowDisplayMode(window, &mode) == 0) {
+    spdlog::info("Selected mode, {}x{}@{}, {}", mode.w, mode.h,
+                 mode.refresh_rate, SDL_GetPixelFormatName(mode.format));
+  }
+
+  int num_drivers = SDL_GetNumVideoDrivers();
+  for (int i = 0; i < num_drivers; i++) {
+    const char *video_driver = SDL_GetVideoDriver(i);
+    spdlog::info("Video driver {}: {}", i, video_driver);
+  }
+  const char *video_driver = SDL_GetCurrentVideoDriver();
+  spdlog::info("Selected: {}", video_driver);
+
+  int rw, rh;
+  SDL_GetRendererOutputSize(renderer, &rw, &rh);
+
+  int ww, wh;
+  SDL_GL_GetDrawableSize(window, &ww, &wh);
+
+  int w, h;
+  SDL_GetWindowSize(window, &w, &h);
+  spdlog::info("Renderer: {}x{}", rw, rh);
+  spdlog::info("GL Window: {}x{}", ww, wh);
+  spdlog::info("Window: {}x{}", w, h);
 }
 
 Texture Sdl::CreateTexture(utils::Vec2i size) {

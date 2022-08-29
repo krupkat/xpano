@@ -19,6 +19,7 @@ class DpiHandler {
 
   SDL_Window* window_;
   float dpi_scale_ = 0.0f;
+  bool linux_ = false;
 };
 
 std::optional<std::filesystem::path> InitializePrefPath();

@@ -11,7 +11,7 @@ namespace xpano::gui::backends {
 
 class Sdl final : public Base {
  public:
-  explicit Sdl(SDL_Renderer* renderer);
+  explicit Sdl(SDL_Renderer* renderer, SDL_Window* window);
 
   Texture CreateTexture(utils::Vec2i size) override;
   void UpdateTexture(ImTextureID tex, cv::Mat image) override;
@@ -19,6 +19,7 @@ class Sdl final : public Base {
 
  private:
   SDL_Renderer* renderer_;
+  SDL_Window* window_;
   SDL_RendererInfo info_;
 };
 
