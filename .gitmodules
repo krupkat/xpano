@@ -1,9 +1,9 @@
 [submodule "external/imgui"]
 	path = external/imgui
-	url = git@github.com:krupkat/imgui.git
+	url = ../imgui.git
 [submodule "external/nativefiledialog-extended"]
 	path = external/nativefiledialog-extended
-	url = git@github.com:btzy/nativefiledialog-extended.git
+	url = ../../btzy/nativefiledialog-extended.git
 [submodule "external/thread-pool"]
 	path = external/thread-pool
-	url = git@github.com:krupkat/thread-pool.git
+	url = ../thread-pool.git
