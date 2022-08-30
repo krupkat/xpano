@@ -43,7 +43,10 @@
 #endif
 
 int main(int /*unused*/, char** argv) {
+#if SDL_VERSION_ATLEAST(2, 0, 22)
+  // Wayland provides non-blurry app scaling
   SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
+#endif
 
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
@@ -109,7 +112,7 @@ int main(int /*unused*/, char** argv) {
   const SDL_Color clear_color{114, 140, 165, 255};
 
   // Application specific
-  auto backend = xpano::gui::backends::Sdl{renderer, window};
+  auto backend = xpano::gui::backends::Sdl{renderer};
 
   std::future<xpano::utils::Texts> license_texts =
       std::async(std::launch::async, xpano::utils::LoadTexts, argv[0],

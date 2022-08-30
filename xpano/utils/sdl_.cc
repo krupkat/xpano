@@ -14,14 +14,14 @@ namespace xpano::utils::sdl {
 
 DpiHandler::DpiHandler(SDL_Window* window) : window_(window) {
   const char* video_driver = SDL_GetCurrentVideoDriver();
-  linux_ = (std::strcmp(video_driver, "wayland") == 0) ||
-           (std::strcmp(video_driver, "x11") == 0);
+  running_on_linux_ = (std::strcmp(video_driver, "wayland") == 0) ||
+                      (std::strcmp(video_driver, "x11") == 0);
 }
 
 bool DpiHandler::DpiChanged() {
   if (float dpi_scale = QueryDpiScale(); dpi_scale != dpi_scale_) {
     dpi_scale_ = dpi_scale;
-    spdlog::info("Loading at {}", dpi_scale);
+    spdlog::info("Loading fonts at {}x scale", dpi_scale);
     return true;
   }
   return false;
@@ -30,7 +30,9 @@ bool DpiHandler::DpiChanged() {
 float DpiHandler::DpiScale() const { return dpi_scale_; }
 
 float DpiHandler::QueryDpiScale() const {
-  if (linux_) {
+  // DPI values returned on Linux are unreliable, compute framebuffer scaling
+  // instead
+  if (running_on_linux_) {
     int width, height;
     int display_width, display_height;
     SDL_GetWindowSize(window_, &width, &height);
