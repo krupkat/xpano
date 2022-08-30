@@ -8,11 +8,9 @@ baseurl: "/xpano"
 
 theme: jekyll-theme-cayman
 
-build_log: https://github.com/krupkat/xpano-release-builder/runs/7918818551
-
 github:
-  zip_url: https://github.com/krupkat/xpano/releases/download/v0.2.0/xpano-v0.2.0-windows-x64.zip
-  tar_url: https://github.com/krupkat/xpano/archive/refs/tags/v0.2.0.tar.gz
+  zip_url: https://github.com/krupkat/xpano/releases/download/v0.3.0/xpano-v0.3.0-windows-x64.zip
+  tar_url: https://github.com/krupkat/xpano/archive/refs/tags/v0.3.0.tar.gz
   is_project_page: true
   repository_url: https://github.com/krupkat/xpano
   repository_name: xpano

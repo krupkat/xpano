@@ -1,3 +1,16 @@
+# Xpano 0.3.0
+
+- MacOS build support
+  - Support for Retina display and command key shortcuts
+- Linux multi-monitor support
+  - Sharp fractional scaling on X11, Wayland, blurry on XWayland
+- Control the auto detection algorithm with two new options:
+  - Matching distance: 
+    - How many neighboring images will be considered for panorama auto detection
+  - Matching threshold: 
+    - Number of keypoints that need to match in two images to include them in a panorama
+- Faster startup time thanks to async asset loading (thanks @GhostVaibhav)
+
 # Xpano 0.2.0
 
 First release targeting Microsoft Store:

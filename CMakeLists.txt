@@ -144,7 +144,7 @@ install(FILES
   RENAME "xpano-license.txt"
 )
 install(FILES
-  "changelog.md"
+  "CHANGELOG.md"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
 )
 install(DIRECTORY
