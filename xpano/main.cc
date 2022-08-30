@@ -43,11 +43,6 @@
 #endif
 
 int main(int /*unused*/, char** argv) {
-#if SDL_VERSION_ATLEAST(2, 0, 22)
-  // Wayland provides non-blurry app scaling
-  SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
-#endif
-
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
   // This feature isn't compatible with ImGui as of v1.88
@@ -55,6 +50,13 @@ int main(int /*unused*/, char** argv) {
 #endif
 
   bool has_wayland_support = (SDL_VideoInit("wayland") == 0);
+
+#if SDL_VERSION_ATLEAST(2, 0, 22)
+  // Prefer Wayland as it provides non-blurry fractional scaling
+  if (has_wayland_support) {
+    SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
+  }
+#endif
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
     printf("Error: %s\n", SDL_GetError());
