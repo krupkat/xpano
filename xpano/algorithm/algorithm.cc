@@ -14,7 +14,6 @@
 #include <opencv2/stitching.hpp>
 
 #include "algorithm/image.h"
-#include "constants.h"
 #include "utils/disjoint_set.h"
 
 namespace xpano::algorithm {
