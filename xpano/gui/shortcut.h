@@ -1,6 +1,3 @@
-
-#include <imgui.h>
-
 #include "gui/action.h"
 
 namespace xpano::gui {

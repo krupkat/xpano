@@ -34,10 +34,9 @@ WindowManager DetermineWindowManager(bool wayland_supported) {
           "Wayland by running \"export "
           "SDL_VIDEODRIVER=wayland\"");
       return WindowManager::kXWayland;
-    } else {
-      spdlog::info("WM: x11");
-      return WindowManager::kX11;
     }
+    spdlog::info("WM: x11");
+    return WindowManager::kX11;
   }
   spdlog::info("WM: GenericLinux: {}", video_driver);
   return WindowManager::kGenericLinux;
@@ -57,6 +56,8 @@ bool DpiHandler::DpiChanged() {
 
 float DpiHandler::DpiScale() const { return dpi_scale_; }
 
+// NOLINTBEGIN(bugprone-branch-clone): doesn't work with [[fallthrough]]
+
 float DpiHandler::QueryDpiScale() const {
   switch (window_manager_) {
     case WindowManager::kWindows:
@@ -70,8 +71,10 @@ float DpiHandler::QueryDpiScale() const {
     // Wayland supports sharp fractional scaling, use framebuffer scale
     // instead of unreliable https://wiki.libsdl.org/SDL_GetDisplayDPI
     case WindowManager::kWayland: {
-      int width, height;
-      int display_width, display_height;
+      int width;
+      int height;
+      int display_width;
+      int display_height;
       SDL_GetWindowSize(window_, &width, &height);
       SDL_GL_GetDrawableSize(window_, &display_width, &display_height);
       return static_cast<float>(display_width) / static_cast<float>(width);
@@ -105,6 +108,8 @@ float DpiHandler::QueryDpiScale() const {
       return 1.0f;
   }
 }
+
+// NOLINTEND(bugprone-branch-clone)
 
 std::optional<std::filesystem::path> InitializePrefPath() {
   auto sdl_pref_path = std::unique_ptr<char, decltype(&SDL_free)>(
