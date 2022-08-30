@@ -54,6 +54,8 @@ int main(int /*unused*/, char** argv) {
   // SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
 #endif
 
+  bool has_wayland_support = (SDL_VideoInit("wayland") == 0);
+
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
     printf("Error: %s\n", SDL_GetError());
     return -1;
@@ -120,7 +122,9 @@ int main(int /*unused*/, char** argv) {
 
   xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
 
-  xpano::utils::sdl::DpiHandler dpi_handler(window);
+  auto window_manager =
+      xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
+  xpano::utils::sdl::DpiHandler dpi_handler(window, window_manager);
   xpano::utils::imgui::FontLoader font_loader(xpano::kFontPath,
                                               xpano::kSymbolsFontPath);
   if (!font_loader.Init(argv[0])) {

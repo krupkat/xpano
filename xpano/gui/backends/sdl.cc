@@ -19,8 +19,6 @@ Sdl::Sdl(SDL_Renderer *renderer) : renderer_(renderer) {
   } else {
     spdlog::error("Failed to get SDL_RendererInfo: {}", SDL_GetError());
   }
-  const char *video_driver = SDL_GetCurrentVideoDriver();
-  spdlog::info("Video driver: {}", video_driver);
 }
 
 Texture Sdl::CreateTexture(utils::Vec2i size) {
