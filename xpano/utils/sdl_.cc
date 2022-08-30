@@ -31,7 +31,7 @@ float DpiHandler::DpiScale() const { return dpi_scale_; }
 
 float DpiHandler::QueryDpiScale() const {
   // DPI values returned on Linux are unreliable, compute framebuffer scaling
-  // instead
+  // instead: https://wiki.libsdl.org/SDL_GetDisplayDPI
   if (running_on_linux_) {
     int width, height;
     int display_width, display_height;
