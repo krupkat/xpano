@@ -64,6 +64,7 @@ int main(int /*unused*/, char** argv) {
   }
 
   auto app_data_path = xpano::utils::sdl::InitializePrefPath();
+  auto app_exe_path = xpano::utils::sdl::InitializeBasePath();
 
   // Setup logging
   xpano::logger::LoggerGui logger{};
@@ -77,6 +78,12 @@ int main(int /*unused*/, char** argv) {
     spdlog::warn(
         "Failed to initialize application data path, skipping logging to "
         "files.");
+  }
+
+  if (!app_exe_path) {
+    spdlog::error(
+        "Failed to initialize application executable path, shutting down.");
+    return -1;
   }
 
   // Setup file dialog library
@@ -97,7 +104,7 @@ int main(int /*unused*/, char** argv) {
     return -1;
   }
 
-  auto icon = xpano::utils::resource::LoadIcon(argv[0], xpano::kIconPath);
+  auto icon = xpano::utils::resource::LoadIcon(*app_exe_path, xpano::kIconPath);
   SDL_SetWindowIcon(window, icon.get());
 
   // Setup Dear ImGui context
@@ -119,7 +126,7 @@ int main(int /*unused*/, char** argv) {
   auto backend = xpano::gui::backends::Sdl{renderer};
 
   std::future<xpano::utils::Texts> license_texts =
-      std::async(std::launch::async, xpano::utils::LoadTexts, argv[0],
+      std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
   xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
@@ -129,7 +136,7 @@ int main(int /*unused*/, char** argv) {
   xpano::utils::sdl::DpiHandler dpi_handler(window, window_manager);
   xpano::utils::imgui::FontLoader font_loader(xpano::kFontPath,
                                               xpano::kSymbolsFontPath);
-  if (!font_loader.Init(argv[0])) {
+  if (!font_loader.Init(*app_exe_path)) {
     spdlog::error("Font location not found!");
     return -1;
   }

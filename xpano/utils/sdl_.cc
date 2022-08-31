@@ -120,4 +120,13 @@ std::optional<std::filesystem::path> InitializePrefPath() {
   return {sdl_pref_path.get()};
 }
 
+std::optional<std::filesystem::path> InitializeBasePath() {
+  auto sdl_base_path =
+      std::unique_ptr<char, decltype(&SDL_free)>(SDL_GetBasePath(), &SDL_free);
+  if (!sdl_base_path) {
+    return {};
+  }
+  return {sdl_base_path.get()};
+}
+
 }  // namespace xpano::utils::sdl

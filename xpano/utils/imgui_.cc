@@ -29,7 +29,7 @@ void FontLoader::ComputeGlyphRanges() {
   builder.BuildRanges(&symbol_ranges_);
 }
 
-bool FontLoader::Init(const std::string& executable_path) {
+bool FontLoader::Init(const std::filesystem::path& executable_path) {
   ComputeGlyphRanges();
 
   if (auto font = resource::Find(executable_path, alphabet_font_path_); font) {
