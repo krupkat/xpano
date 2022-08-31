@@ -35,4 +35,6 @@ class DpiHandler {
 
 std::optional<std::filesystem::path> InitializePrefPath();
 
+std::optional<std::filesystem::path> InitializeBasePath();
+
 }  // namespace xpano::utils::sdl

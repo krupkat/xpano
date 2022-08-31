@@ -101,7 +101,7 @@ if (WIN32)
   set(CMAKE_INSTALL_DATADIR ".")
 else()
   set(CMAKE_INSTALL_BINDIR "bin")
-  set(CMAKE_INSTALL_DATADIR "share")
+  set(CMAKE_INSTALL_DATADIR "share/xpano")
 endif()
 
 install(TARGETS

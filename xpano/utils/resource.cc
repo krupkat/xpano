@@ -11,17 +11,15 @@
 
 namespace xpano::utils::resource {
 
-std::optional<std::string> Find(const std::string& executable_path,
+std::optional<std::string> Find(const std::filesystem::path& executable_path,
                                 const std::string& rel_path) {
-  std::filesystem::path base =
-      std::filesystem::path(executable_path).parent_path();
-  auto path = base / rel_path;
+  auto path = executable_path / rel_path;
   if (std::filesystem::exists(path)) {
     return path.string();
   }
 
-  const auto linux_prefix = std::filesystem::path("../share");
-  auto linux_path = base / linux_prefix / rel_path;
+  const auto linux_prefix = std::filesystem::path("../share/xpano");
+  auto linux_path = executable_path / linux_prefix / rel_path;
   if (std::filesystem::exists(linux_path)) {
     return linux_path.string();
   }
@@ -30,7 +28,7 @@ std::optional<std::string> Find(const std::string& executable_path,
   return {};
 }
 
-SdlSurface LoadIcon(const std::string& executable_path,
+SdlSurface LoadIcon(const std::filesystem::path& executable_path,
                     const std::string& path) {
   auto full_path = Find(executable_path, path);
   if (!full_path) {

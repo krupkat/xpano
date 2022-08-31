@@ -11,7 +11,7 @@ namespace xpano::utils::imgui {
 class FontLoader {
  public:
   FontLoader(std::string alphabet_font_path, std::string symbols_font_path);
-  bool Init(const std::string& executable_path);
+  bool Init(const std::filesystem::path& executable_path);
   void Reload(float scale);
 
  private:

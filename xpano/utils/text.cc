@@ -32,7 +32,7 @@ std::optional<Text> LoadText(const std::filesystem::path& path) {
 
 }  // namespace
 
-std::vector<Text> LoadTexts(const std::string& executable_path,
+std::vector<Text> LoadTexts(const std::filesystem::path& executable_path,
                             const std::string& rel_path) {
   auto license_dir = resource::Find(executable_path, rel_path);
   if (!license_dir) {
