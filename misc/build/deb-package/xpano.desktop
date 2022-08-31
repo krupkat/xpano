@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Xpano
+Comment=Automated photo stiching tool
+Type=Application
+Keywords=pano
+Exec=hello
+Terminal=false
+Icon=xpano.png
+Categories=Graphics;

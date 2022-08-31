@@ -113,11 +113,21 @@ install(FILES
   TYPE BIN
 )
 
+if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*")
+  install(FILES
+    "misc/build/deb-package/xpano.desktop"
+    DESTINATION "/usr/share/applications"
+  )
+  install(FILES
+    "misc/build/deb-package/xpano.png"
+    DESTINATION "/usr/share/pixmaps"
+  )
+endif()
+
 install(DIRECTORY
   "${CMAKE_SOURCE_DIR}/misc/assets"
   TYPE DATA
 )
-
 install(FILES
   "external/imgui/LICENSE.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
