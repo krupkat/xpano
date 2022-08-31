@@ -20,6 +20,9 @@ git submodule foreach --recursive \
 
 mkdir packages
 mv "${PACKAGE}.tar" packages && cd packages
-tar xf "${PACKAGE}.tar"
+gzip "${PACKAGE}.tar"
+tar xf "${PACKAGE}.tar.gz"
 cd "${PACKAGE}"
-pwd
+
+debmake
+debuild
