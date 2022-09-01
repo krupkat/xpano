@@ -27,7 +27,7 @@ git submodule foreach --recursive \
    rm \$sha1.tar"
 
 # create and unpack tar.gz in packages directory
-mkdir packages
+mkdir -p packages
 mv "${PACKAGE}.tar" packages && cd packages
 gzip "${PACKAGE}.tar"
 tar xf "${PACKAGE}.tar.gz"
@@ -35,9 +35,9 @@ cd "${PACKAGE}"
 
 # prepare debian directory
 cp -r misc/build/deb-package/debian .
-jinja -D "DISTRIBUTION" $DISTRIBUTION debian/changelog.in -o debian/changelog
+jinja -D "dist" $DISTRIBUTION debian/changelog.in -o debian/changelog
 rm debian/changelog.in
 
-# build without signing
+# build source package
 debmake
-debuild -i -us -uc -S
+debuild -i -S
