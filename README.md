@@ -36,7 +36,7 @@ Run the install script from the root of the repository:
 ./misc/build/build-macos-12.sh
 ```
 
-### Ubuntu
+### Ubuntu 22.04
 
 Library prerequisites:
 
@@ -48,6 +48,22 @@ Run the install script from the root of the repository:
 
 ```
 ./misc/build/build-ubuntu-22.04.sh
+```
+
+### Ubuntu 20.04
+
+Build works with `g++-10` from the system repository. You will have to install a more recent version of CMake, e.g. from [Kitware](https://apt.kitware.com/).
+
+Library prerequisites:
+
+```
+sudo apt install libgtk-3-dev libspdlog-dev
+```
+
+Run the install script from the root of the repository:
+
+```
+./misc/build/build-ubuntu-20.04.sh
 ```
 
 ### Windows
