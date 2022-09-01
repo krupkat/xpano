@@ -10,11 +10,12 @@ on:
 env:
   BUILD_TYPE: Release
   CATCH_VERSION: "v3.1.0"
+  OPENCV_VERSION: "4.6.0"
+  SDL_VERSION: "release-2.24.0"
 
 jobs:
-  build:
+  build-jammy:
     runs-on: ubuntu-22.04
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
     - uses: actions/checkout@v3
@@ -48,6 +49,105 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2
+
+    - name: Build
+      run: cmake --build build -j $(nproc) --target install
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest
+        cd ..
+
+  build-focal:
+    runs-on: ubuntu-20.04
+
+    # Build OpenCV from source, as the one included in 20.04 repos doesn't have SIFT features
+    # Build SDL from source as it the one included in 20.04 doesn't export modern cmake targets
+    # Use gcc 10 instead of default gcc 9, because of required concepts library
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    
+    - uses: awalsh128/cache-apt-pkgs-action@v1.1.0
+      with:
+          packages: libgtk-3-dev libspdlog-dev
+
+    - name: Cache Catch
+      uses: actions/cache@v3
+      id: cache-catch
+      with:
+        path: catch/install
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}
+
+    - name: Install Catch
+      if: steps.cache-catch.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
+        cd catch
+        cmake -B build \
+          -DCMAKE_C_COMPILER=gcc-10 \
+          -DCMAKE_CXX_COMPILER=g++-10 \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DBUILD_TESTING=OFF
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
+    - name: Cache OpenCV
+      uses: actions/cache@v3
+      id: cache-opencv
+      with:
+        path: opencv/install
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
+
+    - name: Install OpenCV
+      if: steps.cache-opencv.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
+        cd opencv
+        cmake -B build \
+          -DCMAKE_C_COMPILER=gcc-10 \
+          -DCMAKE_CXX_COMPILER=g++-10 \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/opencv_minimal_flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
+    - name: Cache SDL
+      uses: actions/cache@v3
+      id: cache-sdl
+      with:
+        path: sdl/install
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}
+
+    - name: Install SDL
+      if: steps.cache-sdl.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $SDL_VERSION
+        cd SDL
+        cmake -B build \
+          -DCMAKE_C_COMPILER=gcc-10 \
+          -DCMAKE_CXX_COMPILER=g++-10 \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=install
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_C_COMPILER=gcc-10 \
+          -DCMAKE_CXX_COMPILER=g++-10 \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DBUILD_TESTING=ON \
+          -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
+          -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
+          -DSDL2_DIR=SDL/install/lib/cmake/SDL2
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install

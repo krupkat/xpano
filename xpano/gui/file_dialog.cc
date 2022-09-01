@@ -23,7 +23,7 @@ std::vector<std::filesystem::path> MultifileOpen() {
   NFD::UniquePathSet out_paths;
 
   std::array<nfdfilteritem_t, 1> filter_item;
-  auto extensions = fmt::to_string(fmt::join(kSupportedExtensions, ","));
+  auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
   filter_item[0] = {"Images", extensions.c_str()};
   std::vector<std::filesystem::path> results;
 
@@ -109,7 +109,7 @@ std::vector<std::string> Open(Action action) {
 std::optional<std::string> Save(const std::string& default_name) {
   NFD::UniquePath out_path;
   std::array<nfdfilteritem_t, 1> filter_item;
-  auto extensions = fmt::to_string(fmt::join(kSupportedExtensions, ","));
+  auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
   filter_item[0] = {"Images", extensions.c_str()};
 
   nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,

@@ -188,7 +188,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 
   for (int i = 0; i < panos.size(); i++) {
     ImGui::TableNextColumn();
-    auto string = fmt::to_string(fmt::join(panos[i].ids, ","));
+    auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
     ImGui::Text("%s", string.c_str());
     ImGui::TableNextColumn();
     if (panos[i].exported) {

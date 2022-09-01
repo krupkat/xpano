@@ -2,6 +2,8 @@
 
 export BUILD_TYPE='Release'
 export CATCH_VERSION='v3.1.0'
+export OPENCV_VERSION='4.6.0'
+export SDL_VERSION='release-2.24.0'
 
 git submodule update --init
 
