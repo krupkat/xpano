@@ -14,7 +14,7 @@ env:
   SDL_VERSION: "release-2.24.0"
 
 jobs:
-  build-ubuntu-22.04:
+  build-ubuntu-22:
     runs-on: ubuntu-22.04
 
     steps:
@@ -59,7 +59,7 @@ jobs:
         ctest
         cd ..
 
-  build-ubuntu-20.04:
+  build-ubuntu-20:
     runs-on: ubuntu-20.04
 
     # Build OpenCV from source, as the one included in 20.04 repos doesn't have SIFT features
