@@ -5,6 +5,11 @@ if [ -z $1 ]; then
     exit 1
 fi
 
+if [ -z $2 ]; then
+    echo "You must specify a distribution."
+    exit 1
+fi
+
 PACKAGE="xpano-$1"
 
 git submodule update --init
@@ -23,6 +28,11 @@ mv "${PACKAGE}.tar" packages && cd packages
 gzip "${PACKAGE}.tar"
 tar xf "${PACKAGE}.tar.gz"
 cd "${PACKAGE}"
+
+cp -r misc/build/deb-package/debian .
+
+jinja -D "DISTRIBUTION" $2 debian/changelog.in -o debian/changelog
+rm debian/changelog.in
 
 debmake
 debuild
