@@ -47,7 +47,7 @@ sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
 Run the install script from the root of the repository:
 
 ```
-./misc/build/build-ubuntu-22.04.sh
+./misc/build/build-ubuntu-22.sh
 ```
 
 ### Ubuntu 20.04
@@ -63,7 +63,7 @@ sudo apt install libgtk-3-dev libspdlog-dev
 Run the install script from the root of the repository:
 
 ```
-./misc/build/build-ubuntu-20.04.sh
+./misc/build/build-ubuntu-20.sh
 ```
 
 ### Windows
