@@ -1,3 +1,9 @@
+xpano (0.3.3-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Support multiple distros, currently jammy and focal.
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Thu, 01 Sep 2022 13:11:19 +0200
+
 xpano (0.3.2-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Initial release.

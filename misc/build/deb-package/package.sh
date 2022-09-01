@@ -10,26 +10,14 @@ if [ -z $2 ]; then
     exit 1
 fi
 
-TAG=$1
-VERSION=${TAG:1}
+VERSION=$1
 PACKAGE="xpano-$VERSION"
 DISTRIBUTION=$2
 
-git submodule update --init
-
-# archive xpano
-git archive --prefix "${PACKAGE}/" -o "${PACKAGE}.tar" HEAD
-
-# add submodules
-git submodule foreach --recursive \
-  "git archive --prefix=${PACKAGE}/\$path/ --output=\$sha1.tar HEAD && 
-   tar --concatenate --file=$(pwd)/${PACKAGE}.tar \$sha1.tar && 
-   rm \$sha1.tar"
-
-# create and unpack tar.gz in packages directory
-mkdir -p packages
-mv "${PACKAGE}.tar" packages && cd packages
-gzip "${PACKAGE}.tar"
+# create and unpack tar.gz in packages/distribution directory
+cd packages
+mkdir -p ${DISTRIBUTION} && cd ${DISTRIBUTION}
+cp "../${PACKAGE}.tar.gz" .
 tar xf "${PACKAGE}.tar.gz"
 cd "${PACKAGE}"
 
