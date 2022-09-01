@@ -6,6 +6,7 @@ catch/
 spdlog/
 out/
 licenses/
+packages/
 imgui.ini
 .vscode
 .vs
