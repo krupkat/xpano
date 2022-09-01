@@ -10,7 +10,10 @@ if [ -z $2 ]; then
     exit 1
 fi
 
-PACKAGE="xpano-$1"
+TAG=$1
+VERSION=${TAG:1}
+PACKAGE="xpano-$VERSION"
+DISTRIBUTION=$2
 
 git submodule update --init
 
@@ -23,16 +26,18 @@ git submodule foreach --recursive \
    tar --concatenate --file=$(pwd)/${PACKAGE}.tar \$sha1.tar && 
    rm \$sha1.tar"
 
+# create and unpack tar.gz in packages directory
 mkdir packages
 mv "${PACKAGE}.tar" packages && cd packages
 gzip "${PACKAGE}.tar"
 tar xf "${PACKAGE}.tar.gz"
 cd "${PACKAGE}"
 
+# prepare debian directory
 cp -r misc/build/deb-package/debian .
-
-jinja -D "DISTRIBUTION" $2 debian/changelog.in -o debian/changelog
+jinja -D "DISTRIBUTION" $DISTRIBUTION debian/changelog.in -o debian/changelog
 rm debian/changelog.in
 
+# build without signing
 debmake
-debuild
+debuild -i -us -uc -b
