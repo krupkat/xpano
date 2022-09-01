@@ -1,4 +1,4 @@
-xpano (0.3.1-0ubuntu1) {{ DISTRIBUTION }}; urgency=low
+xpano (0.3.1-0ubuntu1-{{ DISTRIBUTION }}) {{ DISTRIBUTION }}; urgency=low
 
   * Initial release.
 

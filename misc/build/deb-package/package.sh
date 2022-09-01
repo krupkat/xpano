@@ -40,4 +40,4 @@ rm debian/changelog.in
 
 # build without signing
 debmake
-debuild -i -us -uc -b
+debuild -i -us -uc -S
