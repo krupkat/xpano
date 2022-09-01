@@ -10,6 +10,7 @@ Package: xpano
 Architecture: any
 Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends}
+Build-Depends: libgtk-3-dev, libopencv-dev, libsdl2-dev, libspdlog-dev
 Description: Automated photo stiching tool.
  Import a directory of images, run panorama auto 
  detection and export full resolution panoramas to disk.
