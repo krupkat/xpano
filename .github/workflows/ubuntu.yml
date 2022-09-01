@@ -14,7 +14,7 @@ env:
   SDL_VERSION: "release-2.24.0"
 
 jobs:
-  build-jammy:
+  build-ubuntu-22.04:
     runs-on: ubuntu-22.04
 
     steps:
@@ -59,7 +59,7 @@ jobs:
         ctest
         cd ..
 
-  build-focal:
+  build-ubuntu-20.04:
     runs-on: ubuntu-20.04
 
     # Build OpenCV from source, as the one included in 20.04 repos doesn't have SIFT features
@@ -121,7 +121,7 @@ jobs:
       uses: actions/cache@v3
       id: cache-sdl
       with:
-        path: sdl/install
+        path: SDL/install
         key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-20.04
 
     - name: Install SDL
