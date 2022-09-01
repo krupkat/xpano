@@ -1,10 +1,4 @@
-xpano (0.3.1-0ubuntu2~{{dist}}) {{dist}}; urgency=medium
-
-  * Fix Build-depends in debian control file
-
- -- Tomas Krupka <tomas@krupkat.cz>  Thu, 01 Sep 2022 11:52:58 +0200
-
-xpano (0.3.1-0ubuntu1~{{dist}}) {{dist}}; urgency=low
+xpano (0.3.1-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Initial release.
 
