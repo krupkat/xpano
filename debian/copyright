@@ -17,9 +17,9 @@ License:   GPL-3.0+
  GNU General Public License for more details.
  .
  You should have received a copy of the GNU General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ along with this program.  If not, see /usr/share/common-licenses.
 
-Files:     external/imgui
+Files:     external/imgui/*
 Copyright: 2014-2022 Omar Cornut
 License:   MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -40,7 +40,7 @@ License:   MIT
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
 
-Files:     external/nativefiledialog-extended
+Files:     external/nativefiledialog-extended/*
 Copyright: 2019 Michael Labbe
            2022 Bernard Teo
 License:   Zlib
@@ -60,7 +60,7 @@ License:   Zlib
     misrepresented as being the original software.
  3. This notice may not be removed or altered from any source distribution.
 
-Files:     external/thread-pool
+Files:     external/thread-pool/*
 Copyright: 2022 Barak Shoshany
 License:   MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -85,7 +85,7 @@ Files:     misc/assets/OFL.txt
            misc/assets/NotoSansSymbols2-Regular.ttf
            misc/assets/NotoSans-Regular.ttf
 Copyright: 2015-2021 Google LLC.
-License:   SIL Open Font Lincense
+License:   SIL-Open-Font-Lincense
  This Font Software is licensed under the SIL Open Font License, Version 1.1.
  This license is copied below, and is also available with a FAQ at:
  http://scripts.sil.org/OFL
