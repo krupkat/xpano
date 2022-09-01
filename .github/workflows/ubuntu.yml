@@ -31,7 +31,7 @@ jobs:
       id: cache-catch
       with:
         path: catch/install
-        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}-22.04
 
     - name: Install Catch
       if: steps.cache-catch.outputs.cache-hit != 'true'
@@ -80,7 +80,7 @@ jobs:
       id: cache-catch
       with:
         path: catch/install
-        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}-20.04
 
     - name: Install Catch
       if: steps.cache-catch.outputs.cache-hit != 'true'
@@ -101,7 +101,7 @@ jobs:
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}-${{env.BUILD_TYPE}}-20.04
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
@@ -122,7 +122,7 @@ jobs:
       id: cache-sdl
       with:
         path: sdl/install
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-20.04
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
