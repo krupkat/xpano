@@ -28,4 +28,4 @@ rm debian/changelog.in
 
 # build source package
 debmake
-debuild -i -S
+debuild -S
