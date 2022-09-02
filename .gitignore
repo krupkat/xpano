@@ -6,10 +6,10 @@ catch/
 spdlog/
 out/
 licenses/
+packages/
 imgui.ini
 .vscode
 .vs
 CMakeSettings.json
 .jekyll-cache
 _site
-packages

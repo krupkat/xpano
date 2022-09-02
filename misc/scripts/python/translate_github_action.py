@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     for job_name, job in action["jobs"].items():
         system = job["runs-on"]
-        filename = "{}-{}.{}".format(job_name, system, ShellExtension(system))
+        filename = "{}.{}".format(job_name, ShellExtension(system))
 
         header = Header(args.action_path)
         exports = OutputEnvironment(env, system)
