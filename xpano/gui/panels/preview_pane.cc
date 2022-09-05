@@ -1,4 +1,4 @@
-#include "gui/panels/preview_pane.h"
+#include "xpano/gui/panels/preview_pane.h"
 
 #include <algorithm>
 #include <cmath>
@@ -8,10 +8,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "constants.h"
-#include "gui/backends/base.h"
-#include "utils/vec.h"
-#include "utils/vec_converters.h"
+#include "xpano/constants.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/utils/vec.h"
+#include "xpano/utils/vec_converters.h"
 
 namespace xpano::gui {
 

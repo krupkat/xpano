@@ -1,4 +1,4 @@
-#include "utils/disjoint_set.h"
+#include "xpano/utils/disjoint_set.h"
 
 #include <catch2/catch_test_macros.hpp>
 

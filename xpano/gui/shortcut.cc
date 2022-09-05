@@ -1,4 +1,4 @@
-#include "gui/shortcut.h"
+#include "xpano/gui/shortcut.h"
 
 #include <imgui.h>
 

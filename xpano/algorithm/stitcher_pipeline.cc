@@ -1,4 +1,4 @@
-#include "algorithm/stitcher_pipeline.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
 
 #include <algorithm>
 #include <atomic>
@@ -13,9 +13,9 @@
 #include <opencv2/stitching.hpp>
 #include <spdlog/spdlog.h>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "constants.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
 
 namespace xpano::algorithm {
 namespace {

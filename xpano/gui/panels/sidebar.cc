@@ -1,4 +1,4 @@
-#include "gui/panels/sidebar.h"
+#include "xpano/gui/panels/sidebar.h"
 
 #include <string>
 #include <vector>
@@ -8,14 +8,14 @@
 #include <opencv2/features2d.hpp>
 #include <spdlog/fmt/fmt.h>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "algorithm/stitcher_pipeline.h"
-#include "constants.h"
-#include "gui/action.h"
-#include "gui/panels/thumbnail_pane.h"
-#include "gui/shortcut.h"
-#include "utils/imgui_.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/constants.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/shortcut.h"
+#include "xpano/utils/imgui_.h"
 
 namespace xpano::gui {
 

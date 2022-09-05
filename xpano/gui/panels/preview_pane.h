@@ -5,9 +5,9 @@
 
 #include <opencv2/core.hpp>
 
-#include "constants.h"
-#include "gui/backends/base.h"
-#include "utils/vec.h"
+#include "xpano/constants.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::gui {
 

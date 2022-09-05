@@ -1,4 +1,4 @@
-#include "algorithm/algorithm.h"
+#include "xpano/algorithm/algorithm.h"
 
 #include <algorithm>
 #include <iterator>
@@ -13,8 +13,8 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/image.h"
-#include "utils/disjoint_set.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/utils/disjoint_set.h"
 
 namespace xpano::algorithm {
 

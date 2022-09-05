@@ -1,4 +1,4 @@
-#include "algorithm/image.h"
+#include "xpano/algorithm/image.h"
 
 #include <string>
 #include <utility>
@@ -10,7 +10,7 @@
 #include <opencv2/imgproc.hpp>
 #include <spdlog/spdlog.h>
 
-#include "constants.h"
+#include "xpano/constants.h"
 
 namespace xpano::algorithm {
 namespace {

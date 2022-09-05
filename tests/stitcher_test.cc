@@ -5,7 +5,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include "algorithm/stitcher_pipeline.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
 
 using Catch::Matchers::Equals;
 using Catch::Matchers::WithinRel;

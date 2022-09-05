@@ -7,7 +7,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/image.h"
+#include "xpano/algorithm/image.h"
 
 namespace xpano::algorithm {
 

@@ -1,4 +1,4 @@
-#include "gui/file_dialog.h"
+#include "xpano/gui/file_dialog.h"
 
 #include <algorithm>
 #include <array>
@@ -13,7 +13,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
-#include "constants.h"
+#include "xpano/constants.h"
 
 namespace xpano::gui::file_dialog {
 

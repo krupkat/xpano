@@ -14,7 +14,6 @@ if (MSVC)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
-set(ABSL_PROPAGATE_CXX_STD ON)
 
 add_subdirectory("external/nativefiledialog-extended" EXCLUDE_FROM_ALL)
 
@@ -64,7 +63,7 @@ target_include_directories(Xpano PRIVATE
   "external/imgui" 
   "external/imgui/backends"
   "external/thread-pool"
-  "xpano"
+  "."
 )
 
 set(OPENCV_TARGETS

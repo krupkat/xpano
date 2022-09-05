@@ -29,14 +29,14 @@
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
-#include "constants.h"
-#include "gui/backends/sdl.h"
-#include "gui/pano_gui.h"
-#include "log/logger.h"
-#include "utils/imgui_.h"
-#include "utils/resource.h"
-#include "utils/sdl_.h"
-#include "utils/text.h"
+#include "xpano/constants.h"
+#include "xpano/gui/backends/sdl.h"
+#include "xpano/gui/pano_gui.h"
+#include "xpano/log/logger.h"
+#include "xpano/utils/imgui_.h"
+#include "xpano/utils/resource.h"
+#include "xpano/utils/sdl_.h"
+#include "xpano/utils/text.h"
 
 #if !SDL_VERSION_ATLEAST(2, 0, 17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function

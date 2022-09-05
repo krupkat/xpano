@@ -1,4 +1,4 @@
-#include "gui/pano_gui.h"
+#include "xpano/gui/pano_gui.h"
 
 #include <algorithm>
 #include <future>
@@ -11,20 +11,20 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "algorithm/stitcher_pipeline.h"
-#include "gui/action.h"
-#include "gui/backends/base.h"
-#include "gui/file_dialog.h"
-#include "gui/layout.h"
-#include "gui/panels/preview_pane.h"
-#include "gui/panels/sidebar.h"
-#include "gui/panels/thumbnail_pane.h"
-#include "gui/shortcut.h"
-#include "log/logger.h"
-#include "utils/future.h"
-#include "utils/imgui_.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/layout.h"
+#include "xpano/gui/panels/preview_pane.h"
+#include "xpano/gui/panels/sidebar.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/shortcut.h"
+#include "xpano/log/logger.h"
+#include "xpano/utils/future.h"
+#include "xpano/utils/imgui_.h"
 
 template <>
 struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {

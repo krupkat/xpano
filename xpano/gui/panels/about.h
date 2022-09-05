@@ -2,7 +2,7 @@
 
 #include <future>
 
-#include "utils/text.h"
+#include "xpano/utils/text.h"
 
 namespace xpano::gui {
 

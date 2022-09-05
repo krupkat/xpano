@@ -1,4 +1,4 @@
-#include "gui/panels/about.h"
+#include "xpano/gui/panels/about.h"
 
 #include <algorithm>
 #include <iterator>
@@ -9,9 +9,9 @@
 
 #include <imgui.h>
 
-#include "constants.h"
-#include "utils/future.h"
-#include "utils/text.h"
+#include "xpano/constants.h"
+#include "xpano/utils/future.h"
+#include "xpano/utils/text.h"
 
 namespace xpano::gui {
 

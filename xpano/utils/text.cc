@@ -1,4 +1,4 @@
-#include "utils/text.h"
+#include "xpano/utils/text.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -10,7 +10,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "utils/resource.h"
+#include "xpano/utils/resource.h"
 
 namespace xpano::utils {
 

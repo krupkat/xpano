@@ -1,9 +1,9 @@
-#include "gui/layout.h"
+#include "xpano/gui/layout.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include "constants.h"
+#include "xpano/constants.h"
 
 namespace xpano::gui {
 

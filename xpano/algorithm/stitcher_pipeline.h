@@ -10,9 +10,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "constants.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
 
 namespace xpano::algorithm {
 

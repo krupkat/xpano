@@ -1,4 +1,4 @@
-#include "utils/resource.h"
+#include "xpano/utils/resource.h"
 
 #include <filesystem>
 #include <optional>
