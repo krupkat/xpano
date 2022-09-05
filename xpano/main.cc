@@ -67,7 +67,7 @@ int main(int /*unused*/, char** argv) {
   auto app_exe_path = xpano::utils::sdl::InitializeBasePath();
 
   // Setup logging
-  xpano::logger::LoggerGui logger{};
+  xpano::logger::Logger logger{};
   logger.RedirectSpdlogOutput(app_data_path);
   logger.RedirectSDLOutput();
 

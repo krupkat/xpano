@@ -9,6 +9,7 @@
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/layout.h"
 #include "xpano/gui/panels/about.h"
+#include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/log/logger.h"
@@ -35,7 +36,7 @@ struct Selection {
 
 class PanoGui {
  public:
-  PanoGui(backends::Base* backend, logger::LoggerGui* logger,
+  PanoGui(backends::Base* backend, logger::Logger* logger,
           std::future<utils::Texts> licenses);
 
   bool Run();
@@ -54,12 +55,11 @@ class PanoGui {
 
   algorithm::CompressionOptions compression_options_;
   algorithm::MatchingOptions matching_options_;
-
   std::optional<algorithm::StitcherData> stitcher_data_;
-  // Gui panels
 
+  // Gui panels
   Layout layout_;
-  logger::LoggerGui* logger_;
+  LogPane log_pane_;
   AboutPane about_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;

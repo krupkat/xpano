@@ -29,23 +29,13 @@ class Logger {
   Logger();
   const std::vector<std::string> &Log();
   void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
+  void RedirectSDLOutput();
 
  private:
   void Concatenate();
 
   std::vector<std::string> log_;
   std::shared_ptr<BufferSinkMt> sink_;
-};
-
-class LoggerGui {
- public:
-  void Draw();
-  void RedirectSDLOutput();
-  void RedirectOpenCVOutput();
-  void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
-
- private:
-  Logger logger_;
 };
 
 }  // namespace xpano::logger

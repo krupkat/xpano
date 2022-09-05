@@ -93,29 +93,8 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
-void LoggerGui::Draw() {
-  ImGui::Begin("Logger");
-  const auto &log = logger_.Log();
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-  for (const auto &line : log) {
-    ImGui::TextUnformatted(line.c_str());
-  }
-  ImGui::PopStyleVar();
-  if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-    ImGui::SetScrollHereY(1.0f);
-  }
-  ImGui::End();
-}
-
-void LoggerGui::RedirectSDLOutput() {
+void Logger::RedirectSDLOutput() {
   SDL_LogSetOutputFunction(CustomLog, nullptr);
-}
-
-void LoggerGui::RedirectOpenCVOutput() {}
-
-void LoggerGui::RedirectSpdlogOutput(
-    std::optional<std::filesystem::path> app_data_path) {
-  logger_.RedirectSpdlogOutput(std::move(app_data_path));
 }
 
 }  // namespace xpano::logger

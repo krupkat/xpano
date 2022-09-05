@@ -108,11 +108,11 @@ Action ModifyPano(int clicked_image, Selection* selection,
 }
 }  // namespace
 
-PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
+PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
                  std::future<utils::Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
-      logger_(logger),
+      log_pane_(logger),
       about_pane_(std::move(licenses)) {}
 
 bool PanoGui::Run() {
@@ -138,7 +138,7 @@ Action PanoGui::DrawGui() {
   action |= thumbnail_pane_.Draw();
   plot_pane_.Draw(PreviewMessage(selection_));
   if (layout_.ShowDebugInfo()) {
-    logger_->Draw();
+    log_pane_.Draw();
   }
   about_pane_.Draw();
   return action;
