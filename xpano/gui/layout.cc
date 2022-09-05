@@ -5,10 +5,10 @@
 
 #include "xpano/constants.h"
 
-namespace xpano::gui {
+namespace xpano::gui::layout {
 
 namespace {
-void InitDockSpace(ImGuiID dockspace_id, ImVec2 viewport_size) {
+void InitDockSpaceFirstTime(ImGuiID dockspace_id, ImVec2 viewport_size) {
   const auto text_base_width = ImGui::CalcTextSize("A").x;
   const auto sidebar_width = kSidebarWidth * text_base_width;
 
@@ -29,7 +29,7 @@ void InitDockSpace(ImGuiID dockspace_id, ImVec2 viewport_size) {
 }
 }  // namespace
 
-void Layout::Begin() {
+void InitDockSpace() {
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(viewport->WorkPos);
   ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -54,12 +54,8 @@ void Layout::Begin() {
   ImGui::End();
 
   if (init_dockspace) {
-    InitDockSpace(dockspace_id, viewport->Size);
+    InitDockSpaceFirstTime(dockspace_id, viewport->Size);
   }
 }
 
-void Layout::ToggleDebugInfo() { show_debug_info_ = !show_debug_info_; }
-
-bool Layout::ShowDebugInfo() const { return show_debug_info_; }
-
-}  // namespace xpano::gui
+}  // namespace xpano::gui::layout

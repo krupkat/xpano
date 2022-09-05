@@ -133,13 +133,11 @@ bool PanoGui::Run() {
 }
 
 Action PanoGui::DrawGui() {
-  layout_.Begin();
+  layout::InitDockSpace();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
   plot_pane_.Draw(PreviewMessage(selection_));
-  if (layout_.ShowDebugInfo()) {
-    log_pane_.Draw();
-  }
+  log_pane_.Draw();
   about_pane_.Draw();
   return action;
 }
@@ -170,7 +168,7 @@ Action PanoGui::DrawSidebar() {
         selection_.type == SelectionType::kPano ? selection_.target_id : -1;
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, highlight_id);
-    if (layout_.ShowDebugInfo()) {
+    if (log_pane_.IsShown()) {
       auto highlight_id =
           selection_.type == SelectionType::kMatch ? selection_.target_id : -1;
       action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
@@ -262,7 +260,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};
       const auto& img = stitcher_data_->images[action.target_id];
-      plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
+      plot_pane_.Load(img.Draw(log_pane_.IsShown()));
       thumbnail_pane_.Highlight(action.target_id);
       break;
     }
@@ -271,7 +269,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kToggleDebugLog: {
-      layout_.ToggleDebugInfo();
+      log_pane_.ToggleShow();
       break;
     }
   }

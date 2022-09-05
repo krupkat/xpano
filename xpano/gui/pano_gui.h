@@ -58,7 +58,6 @@ class PanoGui {
   std::optional<algorithm::StitcherData> stitcher_data_;
 
   // Gui panels
-  Layout layout_;
   LogPane log_pane_;
   AboutPane about_pane_;
   PreviewPane plot_pane_;
