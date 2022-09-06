@@ -62,4 +62,13 @@ jobs:
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 
     - name: Run clang-tidy
-      run: run-clang-tidy `pwd`/xpano `pwd`/tests -p build -quiet -header-filter=xpano/xpano.*xpano
+      run: run-clang-tidy `pwd`/xpano `pwd`/tests \
+        -p=build \
+        -quiet \
+        -header-filter=xpano/xpano.*xpano \
+        -export-fixes=fixes.yml
+
+    - name: Check clang-tidy results
+      run: |
+        pip install -r misc/scripts/python/requirements.txt
+        python misc/scripts/python/check_fixes.py fixes.yml
