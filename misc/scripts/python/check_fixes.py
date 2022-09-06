@@ -11,8 +11,7 @@ if __name__ == "__main__":
     with open(args.fixes_path, "r") as file:
         fixes = yaml.safe_load(file)
 
-    diagnostics = fixes.get("Diagnostics", [])
-    if len(diagnostics) > 0:
+    if fixes and len(fixes.get("Diagnostics", [])) > 0:
         print("Found warnings in clang-tidy export, please fix them.")
         exit(1)
 
