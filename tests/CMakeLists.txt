@@ -5,7 +5,7 @@ include(Catch)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
 add_executable(StitcherTest 
-  stitcher_test.cc
+  stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc
   ../xpano/algorithm/image.cc
   ../xpano/algorithm/stitcher_pipeline.cc
