@@ -44,15 +44,7 @@ jobs:
         cmake --build build -j $(nproc) --target install
         cd ..
 
-    - name: Cache compilation database
-      uses: actions/cache@v3
-      id: cache-compile-commands
-      with:
-        path: build/compile_commands.json
-        key: ${{runner.os}}-compile-commands-${{hashFiles('**/CMakeLists.txt', '**/*.cmake')}}-${{env.BUILD_TYPE}}-22.04
-
     - name: Configure CMake
-      if: steps.cache-compile-commands.outputs.cache-hit != 'true'
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
