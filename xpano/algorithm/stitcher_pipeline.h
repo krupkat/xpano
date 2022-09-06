@@ -10,9 +10,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "constants.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
 
 namespace xpano::algorithm {
 
@@ -70,7 +70,7 @@ class ProgressMonitor {
   void Reset(ProgressType type, int num_tasks);
   void SetNumTasks(int num_tasks);
   void SetTaskType(ProgressType type);
-  ProgressReport Progress() const;
+  [[nodiscard]] ProgressReport Progress() const;
   void NotifyTaskDone();
 
  private:

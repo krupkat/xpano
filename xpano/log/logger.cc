@@ -1,13 +1,11 @@
-#include "log/logger.h"
+#include "xpano/log/logger.h"
 
 #include <algorithm>
 #include <iterator>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include <imgui.h>
 #include <SDL.h>
 #include <spdlog/common.h>
 #include <spdlog/fmt/fmt.h>
@@ -15,7 +13,7 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/spdlog.h>
 
-#include "constants.h"
+#include "xpano/constants.h"
 
 namespace xpano::logger {
 
@@ -93,29 +91,6 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
-void LoggerGui::Draw() {
-  ImGui::Begin("Logger");
-  const auto &log = logger_.Log();
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-  for (const auto &line : log) {
-    ImGui::TextUnformatted(line.c_str());
-  }
-  ImGui::PopStyleVar();
-  if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-    ImGui::SetScrollHereY(1.0f);
-  }
-  ImGui::End();
-}
-
-void LoggerGui::RedirectSDLOutput() {
-  SDL_LogSetOutputFunction(CustomLog, nullptr);
-}
-
-void LoggerGui::RedirectOpenCVOutput() {}
-
-void LoggerGui::RedirectSpdlogOutput(
-    std::optional<std::filesystem::path> app_data_path) {
-  logger_.RedirectSpdlogOutput(std::move(app_data_path));
-}
+void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 
 }  // namespace xpano::logger

@@ -7,7 +7,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/image.h"
+#include "xpano/algorithm/image.h"
 
 namespace xpano::algorithm {
 
@@ -24,7 +24,7 @@ struct Match {
 
 std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2);
 
-std::vector<Pano> FindPanos(const std::vector<Match>& matches, int num_images,
+std::vector<Pano> FindPanos(const std::vector<Match>& matches,
                             int match_threshold);
 
 std::pair<cv::Stitcher::Status, cv::Mat> Stitch(

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "gui/action.h"
+#include "xpano/gui/action.h"
 
 namespace xpano::gui::file_dialog {
 

@@ -1,13 +1,13 @@
-#include "gui/backends/sdl.h"
+#include "xpano/gui/backends/sdl.h"
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
-#include "gui/backends/base.h"
-#include "utils/vec.h"
-#include "utils/vec_converters.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/utils/vec.h"
+#include "xpano/utils/vec_converters.h"
 
 namespace xpano::gui::backends {
 

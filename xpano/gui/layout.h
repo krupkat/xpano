@@ -1,16 +1,7 @@
 #pragma once
 
-namespace xpano::gui {
+namespace xpano::gui::layout {
 
-class Layout {
- public:
-  void Begin();
+void InitDockSpace();
 
-  void ToggleDebugInfo();
-  [[nodiscard]] bool ShowDebugInfo() const;
-
- private:
-  bool show_debug_info_ = false;
-};
-
-}  // namespace xpano::gui
+}  // namespace xpano::gui::layout

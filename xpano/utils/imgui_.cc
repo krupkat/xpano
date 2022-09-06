@@ -1,4 +1,4 @@
-#include "imgui_.h"
+#include "xpano/utils/imgui_.h"
 
 #include <cmath>
 #include <filesystem>
@@ -8,8 +8,8 @@
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer.h>
 
-#include "constants.h"
-#include "utils/resource.h"
+#include "xpano/constants.h"
+#include "xpano/utils/resource.h"
 
 namespace xpano::utils::imgui {
 

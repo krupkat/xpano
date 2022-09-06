@@ -1,4 +1,4 @@
-#include "algorithm/algorithm.h"
+#include "xpano/algorithm/algorithm.h"
 
 #include <algorithm>
 #include <iterator>
@@ -13,8 +13,8 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/image.h"
-#include "utils/disjoint_set.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/utils/disjoint_set.h"
 
 namespace xpano::algorithm {
 
@@ -78,9 +78,9 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
   return inliers;
 }
 
-std::vector<Pano> FindPanos(const std::vector<Match>& matches, int num_images,
+std::vector<Pano> FindPanos(const std::vector<Match>& matches,
                             int match_threshold) {
-  auto pano_ds = utils::DisjointSet(num_images);
+  auto pano_ds = utils::DisjointSet();
 
   std::unordered_set<int> images_in_panos;
   for (const auto& match : matches) {

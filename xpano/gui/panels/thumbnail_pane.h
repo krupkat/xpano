@@ -4,11 +4,11 @@
 
 #include <imgui.h>
 
-#include "algorithm/image.h"
-#include "constants.h"
-#include "gui/action.h"
-#include "gui/backends/base.h"
-#include "utils/vec.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::gui {
 

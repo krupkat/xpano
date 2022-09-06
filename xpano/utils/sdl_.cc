@@ -1,4 +1,4 @@
-#include "utils/sdl_.h"
+#include "xpano/utils/sdl_.h"
 
 #include <cstring>
 #include <filesystem>
@@ -8,7 +8,7 @@
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
-#include "constants.h"
+#include "xpano/constants.h"
 
 namespace xpano::utils::sdl {
 
