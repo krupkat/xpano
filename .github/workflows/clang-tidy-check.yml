@@ -1,4 +1,4 @@
-name: Check clang-tidy
+name: Static analysis
 
 on:
   push:
@@ -57,7 +57,7 @@ jobs:
         cmake -B build \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_INSTALL_PREFIX=install \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DBUILD_TESTING=ON \
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 
