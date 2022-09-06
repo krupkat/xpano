@@ -7,7 +7,6 @@
 #include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
-#include "xpano/gui/layout.h"
 #include "xpano/gui/panels/about.h"
 #include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"

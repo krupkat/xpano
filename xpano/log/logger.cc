@@ -4,10 +4,8 @@
 #include <iterator>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include <imgui.h>
 #include <SDL.h>
 #include <spdlog/common.h>
 #include <spdlog/fmt/fmt.h>

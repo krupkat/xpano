@@ -2,6 +2,7 @@
 
 #include <numeric>
 #include <utility>
+#include <vector>
 
 namespace xpano::utils {
 
