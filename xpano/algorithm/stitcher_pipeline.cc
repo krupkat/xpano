@@ -186,7 +186,7 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   }
   auto matches = matches_future.get();
 
-  auto panos = FindPanos(matches, num_images, options.match_threshold);
+  auto panos = FindPanos(matches, options.match_threshold);
   loading_progress_.NotifyTaskDone();
   return StitcherData{images, matches, panos};
 }

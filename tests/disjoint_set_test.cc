@@ -5,14 +5,14 @@
 using xpano::utils::DisjointSet;
 
 TEST_CASE("DisjointSet constructor") {
-  auto set = DisjointSet(3);
+  auto set = DisjointSet();
   CHECK(set.Find(0) == 0);
   CHECK(set.Find(1) == 1);
   CHECK(set.Find(2) == 2);
 }
 
 TEST_CASE("DisjointSet Union/Find") {
-  auto set = DisjointSet(3);
+  auto set = DisjointSet();
 
   set.Union(0, 1);
   CHECK(set.Find(0) == set.Find(1));

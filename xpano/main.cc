@@ -42,7 +42,7 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-int main(int /*unused*/, char** argv) {
+int main(int /*unused*/, char** /*unused*/) {
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
   // This feature isn't compatible with ImGui as of v1.88

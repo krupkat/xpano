@@ -5,10 +5,6 @@
 
 namespace xpano::utils {
 
-DisjointSet::DisjointSet(int size) : parent_(size), rank_(size, 0) {
-  std::iota(parent_.begin(), parent_.end(), 0);
-};
-
 void DisjointSet::Union(int left, int right) {
   left = Find(left);
   right = Find(right);
@@ -31,11 +27,21 @@ void DisjointSet::Union(int left, int right) {
 // Path halving algorithm from
 // https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 int DisjointSet::Find(int element) {
+  Resize(element);
   while (element != parent_[element]) {
     parent_[element] = parent_[parent_[element]];
     element = parent_[element];
   }
   return element;
+}
+
+void DisjointSet::Resize(int element) {
+  if (auto old_size = parent_.size(); element >= old_size) {
+    parent_.resize(element + 1);
+    std::iota(parent_.begin() + old_size, parent_.end(),
+              static_cast<int>(old_size));
+    rank_.resize(element + 1, 0);
+  }
 }
 
 }  // namespace xpano::utils
