@@ -49,7 +49,7 @@ namespace internal {
 template <typename TType, size_t N, typename Tag, typename TRight,
           std::size_t... Index>
 constexpr auto DivideByConstant(const Vec<TType, N, Tag>& lhs, TRight rhs,
-                                std::index_sequence<Index...> /*unused*/)
+                                std::index_sequence<Index...> idx)
     -> Vec<std::common_type_t<TType, TRight>, N, Tag> {
   return {lhs[Index] / rhs...};
 }

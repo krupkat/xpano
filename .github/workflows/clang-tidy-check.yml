@@ -62,4 +62,4 @@ jobs:
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 
     - name: Run clang-tidy
-      run: run-clang-tidy xpano tests -p build -quiet
+      run: run-clang-tidy `pwd`/xpano `pwd`/tests -p build -quiet -header-filter=xpano/xpano.*xpano
