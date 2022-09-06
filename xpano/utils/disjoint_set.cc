@@ -36,7 +36,7 @@ int DisjointSet::Find(int element) {
 }
 
 void DisjointSet::Resize(int element) {
-  if (auto old_size = parent_.size(); element >= old_size) {
+  if (auto old_size = std::ssize(parent_); element >= old_size) {
     parent_.resize(element + 1);
     std::iota(parent_.begin() + old_size, parent_.end(),
               static_cast<int>(old_size));

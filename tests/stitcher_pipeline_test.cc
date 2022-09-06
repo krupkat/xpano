@@ -72,6 +72,8 @@ TEST_CASE("Stitcher pipeline custom matching neighborhood") {
   REQUIRE_THAT(result.panos[1].ids, Equals<int>({1, 3, 6}));
 }
 
+// NOLINTBEGIN(readability-magic-numbers)
+
 TEST_CASE("Stitcher pipeline larger neighborhood size") {
   xpano::algorithm::StitcherPipeline stitcher;
 
@@ -87,6 +89,8 @@ TEST_CASE("Stitcher pipeline larger neighborhood size") {
   REQUIRE(result.images.size() == 3);
   REQUIRE(result.matches.size() == 3);  // [0 + 1], [0 + 2], [1 + 2]
 }
+
+// NOLINTEND(readability-magic-numbers)
 
 TEST_CASE("Stitcher pipeline single image") {
   xpano::algorithm::StitcherPipeline stitcher;

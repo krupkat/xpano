@@ -117,13 +117,15 @@ void DrawProgressBar(algorithm::ProgressReport progress) {
   if (progress.num_tasks == 0) {
     return;
   }
-  int percentage = progress.tasks_done * 100 / progress.num_tasks;
+  const int max_percent = 100;
+  float progress_ratio = static_cast<float>(progress.tasks_done) /
+                         static_cast<float>(progress.num_tasks);
   std::string label =
       progress.tasks_done == progress.num_tasks
           ? "100%"
-          : fmt::format("{}: {}%", ProgressLabel(progress.type), percentage);
-  ImGui::ProgressBar(static_cast<float>(percentage) / 100.0f,
-                     ImVec2(-1.0f, 0.f), label.c_str());
+          : fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
+                        progress_ratio * max_percent);
+  ImGui::ProgressBar(progress_ratio, ImVec2(-1.0f, 0.f), label.c_str());
 }
 
 cv::Mat DrawMatches(const algorithm::Match& match,
@@ -131,10 +133,13 @@ cv::Mat DrawMatches(const algorithm::Match& match,
   cv::Mat out;
   const auto& img1 = images[match.id1];
   const auto& img2 = images[match.id2];
+  const int match_thickness = 1;
+  const auto match_color = cv::Scalar(0, 255, 0);
+  const auto single_point_color = cv::Scalar::all(-1);
+  const auto matches_mask = std::vector<char>();
   cv::drawMatches(img1.GetPreview(), img1.GetKeypoints(), img2.GetPreview(),
-                  img2.GetKeypoints(), match.matches, out, 1,
-                  cv::Scalar(0, 255, 0), cv::Scalar::all(-1),
-                  std::vector<char>(),
+                  img2.GetKeypoints(), match.matches, out, match_thickness,
+                  match_color, single_point_color, matches_mask,
                   cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
   return out;
 }

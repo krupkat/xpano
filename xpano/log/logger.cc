@@ -93,8 +93,6 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
-void Logger::RedirectSDLOutput() {
-  SDL_LogSetOutputFunction(CustomLog, nullptr);
-}
+void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 
 }  // namespace xpano::logger

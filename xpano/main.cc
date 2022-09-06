@@ -69,7 +69,7 @@ int main(int /*unused*/, char** /*unused*/) {
   // Setup logging
   xpano::logger::Logger logger{};
   logger.RedirectSpdlogOutput(app_data_path);
-  logger.RedirectSDLOutput();
+  xpano::logger::RedirectSDLOutput();
 
   std::string result = std::setlocale(LC_ALL, "en_US.UTF-8");
   spdlog::info("Current locale: {}", result);

@@ -29,7 +29,6 @@ class Logger {
   Logger();
   const std::vector<std::string> &Log();
   void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
-  void RedirectSDLOutput();
 
  private:
   void Concatenate();
@@ -37,5 +36,7 @@ class Logger {
   std::vector<std::string> log_;
   std::shared_ptr<BufferSinkMt> sink_;
 };
+
+void RedirectSDLOutput();
 
 }  // namespace xpano::logger
