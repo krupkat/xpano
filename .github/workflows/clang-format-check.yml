@@ -3,12 +3,16 @@ name: Check clang-format
 on:
   push:
     branches: [ "main" ]
-    paths: [ "xpano/**", "tests/**" ]
+    paths: 
+      - "xpano/**"
+      - "tests/**"
+      - "misc/scripts/format.sh"
+      - ".clang-format"
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  formatting-check:
+  clang-format-check:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
