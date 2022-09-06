@@ -8,7 +8,7 @@ if __name__ == "__main__":
     parser.add_argument("fixes_path", help="Path to fixes exported from clang-tidy")
     args = parser.parse_args()
 
-    with open(args.action_path, "r") as file:
+    with open(args.fixes_path, "r") as file:
         fixes = yaml.safe_load(file)
 
     diagnostics = fixes.get("Diagnostics", [])
