@@ -70,7 +70,7 @@ class ProgressMonitor {
   void Reset(ProgressType type, int num_tasks);
   void SetNumTasks(int num_tasks);
   void SetTaskType(ProgressType type);
-  ProgressReport Progress() const;
+  [[nodiscard]] ProgressReport Progress() const;
   void NotifyTaskDone();
 
  private:
