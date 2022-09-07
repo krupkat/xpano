@@ -53,6 +53,7 @@ class PanoGui {
   StatusMessage status_message_;
 
   algorithm::CompressionOptions compression_options_;
+  algorithm::LoadingOptions loading_options_;
   algorithm::MatchingOptions matching_options_;
   std::optional<algorithm::StitcherData> stitcher_data_;
 

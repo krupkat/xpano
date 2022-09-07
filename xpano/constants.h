@@ -7,7 +7,7 @@
 namespace xpano {
 
 constexpr int kNumFeatures = 3000;
-constexpr int kPreviewSize = 256;
+constexpr int kThumbnailSize = 256;
 constexpr int kMaxTexSize = 16384;
 constexpr int kLoupeSize = 4096;
 constexpr int kMinMatchThreshold = 4;
@@ -54,5 +54,10 @@ const std::string kIconPath = "assets/icon.png";
 
 constexpr int kDefaultNeighborhoodSearchSize = 2;
 constexpr int kMaxNeighborhoodSearchSize = 10;
+
+constexpr int kDefaultPreviewLongerSide = 1024;
+constexpr int kMinPreviewLongerSide = 512;
+constexpr int kMaxPreviewLongerSide = 2048;
+constexpr int kStepPreviewLongerSide = 256;
 
 }  // namespace xpano

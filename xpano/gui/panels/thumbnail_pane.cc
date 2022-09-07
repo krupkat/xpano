@@ -88,7 +88,7 @@ ThumbnailPane::ThumbnailPane(backends::Base *backend) : backend_(backend) {}
 void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   spdlog::info("Loading {} thumbnails", images.size());
   int num_images = static_cast<int>(images.size());
-  auto thumbnail_size = utils::Vec2i{kPreviewSize};
+  auto thumbnail_size = utils::Vec2i{kThumbnailSize};
   int side = 0;
   while (side * side < num_images) {
     side++;
