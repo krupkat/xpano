@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+# use git archive to create a tar.gz with the project sources including submodules
+
 if [ -z $1 ]; then
     echo "You must specify a version"
     exit 1
