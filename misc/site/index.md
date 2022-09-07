@@ -22,8 +22,9 @@ Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](http
 
 ## Download
 
-- From the [Microsoft Store](https://www.microsoft.com/store/productId/9PGQ5X33L0SC)
-- Windows binaries available from [GitHub](https://github.com/krupkat/xpano/releases)
+- Install the Windows app from the [Microsoft Store](https://www.microsoft.com/store/productId/9PGQ5X33L0SC)
+- Download Windows binaries from [GitHub](https://github.com/krupkat/xpano/releases)
+- Install Ubuntu packages from [Launchpad](https://launchpad.net/~krupkat/+archive/ubuntu/code)
 - See [build instructions](https://github.com/krupkat/xpano#local-build) for Linux and MacOS
 
 ## License
