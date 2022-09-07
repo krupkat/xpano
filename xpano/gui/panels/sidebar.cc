@@ -1,5 +1,6 @@
 #include "xpano/gui/panels/sidebar.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 

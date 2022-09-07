@@ -1,5 +1,6 @@
 #include "xpano/algorithm/image.h"
 
+#include <algorithm>
 #include <string>
 #include <utility>
 #include <vector>
@@ -31,8 +32,10 @@ void Image::Load(int preview_longer_side) {
     auto preview_size =
         (full_size.width > full_size.height)
             ? cv::Size(preview_longer_side,
-                       preview_longer_side / full_size.aspectRatio())
-            : cv::Size(preview_longer_side * full_size.aspectRatio(),
+                       static_cast<int>(preview_longer_side /
+                                        full_size.aspectRatio()))
+            : cv::Size(static_cast<int>(preview_longer_side *
+                                        full_size.aspectRatio()),
                        preview_longer_side);
     cv::resize(tmp, preview_, preview_size, 0.0, 0.0, cv::INTER_AREA);
   } else {
