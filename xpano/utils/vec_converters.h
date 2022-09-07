@@ -4,7 +4,7 @@
 #include <opencv2/core.hpp>
 #include <SDL.h>
 
-#include "vec.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::utils {
 

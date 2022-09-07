@@ -37,15 +37,6 @@ class Logger {
   std::shared_ptr<BufferSinkMt> sink_;
 };
 
-class LoggerGui {
- public:
-  void Draw();
-  void RedirectSDLOutput();
-  void RedirectOpenCVOutput();
-  void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
-
- private:
-  Logger logger_;
-};
+void RedirectSDLOutput();
 
 }  // namespace xpano::logger

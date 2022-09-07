@@ -1,4 +1,4 @@
-#include "gui/pano_gui.h"
+#include "xpano/gui/pano_gui.h"
 
 #include <algorithm>
 #include <future>
@@ -11,20 +11,20 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "algorithm/stitcher_pipeline.h"
-#include "gui/action.h"
-#include "gui/backends/base.h"
-#include "gui/file_dialog.h"
-#include "gui/layout.h"
-#include "gui/panels/preview_pane.h"
-#include "gui/panels/sidebar.h"
-#include "gui/panels/thumbnail_pane.h"
-#include "gui/shortcut.h"
-#include "log/logger.h"
-#include "utils/future.h"
-#include "utils/imgui_.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/layout.h"
+#include "xpano/gui/panels/preview_pane.h"
+#include "xpano/gui/panels/sidebar.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/shortcut.h"
+#include "xpano/log/logger.h"
+#include "xpano/utils/future.h"
+#include "xpano/utils/imgui_.h"
 
 template <>
 struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {
@@ -108,11 +108,11 @@ Action ModifyPano(int clicked_image, Selection* selection,
 }
 }  // namespace
 
-PanoGui::PanoGui(backends::Base* backend, logger::LoggerGui* logger,
+PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
                  std::future<utils::Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
-      logger_(logger),
+      log_pane_(logger),
       about_pane_(std::move(licenses)) {}
 
 bool PanoGui::Run() {
@@ -133,13 +133,11 @@ bool PanoGui::Run() {
 }
 
 Action PanoGui::DrawGui() {
-  layout_.Begin();
+  layout::InitDockSpace();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
   plot_pane_.Draw(PreviewMessage(selection_));
-  if (layout_.ShowDebugInfo()) {
-    logger_->Draw();
-  }
+  log_pane_.Draw();
   about_pane_.Draw();
   return action;
 }
@@ -148,7 +146,8 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |= DrawMenu(&compression_options_, &matching_options_);
+  action |=
+      DrawMenu(&compression_options_, &loading_options_, &matching_options_);
 
   DrawWelcomeText();
   ImGui::Separator();
@@ -170,7 +169,7 @@ Action PanoGui::DrawSidebar() {
         selection_.type == SelectionType::kPano ? selection_.target_id : -1;
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, highlight_id);
-    if (layout_.ShowDebugInfo()) {
+    if (log_pane_.IsShown()) {
       auto highlight_id =
           selection_.type == SelectionType::kMatch ? selection_.target_id : -1;
       action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
@@ -229,8 +228,8 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kOpenFiles: {
       if (auto results = file_dialog::Open(action); !results.empty()) {
         Reset();
-        stitcher_data_future_ =
-            stitcher_pipeline_.RunLoading(results, {}, matching_options_);
+        stitcher_data_future_ = stitcher_pipeline_.RunLoading(
+            results, loading_options_, matching_options_);
       }
       break;
     }
@@ -262,7 +261,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};
       const auto& img = stitcher_data_->images[action.target_id];
-      plot_pane_.Load(img.Draw(layout_.ShowDebugInfo()));
+      plot_pane_.Load(img.Draw(log_pane_.IsShown()));
       thumbnail_pane_.Highlight(action.target_id);
       break;
     }
@@ -271,7 +270,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kToggleDebugLog: {
-      layout_.ToggleDebugInfo();
+      log_pane_.ToggleShow();
       break;
     }
   }

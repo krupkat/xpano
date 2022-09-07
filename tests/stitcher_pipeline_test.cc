@@ -1,3 +1,5 @@
+#include "xpano/algorithm/stitcher_pipeline.h"
+
 #include <string>
 #include <vector>
 
@@ -5,9 +7,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include "algorithm/stitcher_pipeline.h"
-
 using Catch::Matchers::Equals;
+using Catch::Matchers::WithinAbs;
 using Catch::Matchers::WithinRel;
 
 const std::vector<std::string> kInputs = {
@@ -72,6 +73,8 @@ TEST_CASE("Stitcher pipeline custom matching neighborhood") {
   REQUIRE_THAT(result.panos[1].ids, Equals<int>({1, 3, 6}));
 }
 
+// NOLINTBEGIN(readability-magic-numbers)
+
 TEST_CASE("Stitcher pipeline larger neighborhood size") {
   xpano::algorithm::StitcherPipeline stitcher;
 
@@ -87,6 +90,8 @@ TEST_CASE("Stitcher pipeline larger neighborhood size") {
   REQUIRE(result.images.size() == 3);
   REQUIRE(result.matches.size() == 3);  // [0 + 1], [0 + 2], [1 + 2]
 }
+
+// NOLINTEND(readability-magic-numbers)
 
 TEST_CASE("Stitcher pipeline single image") {
   xpano::algorithm::StitcherPipeline stitcher;
@@ -108,4 +113,40 @@ TEST_CASE("Stitcher pipeline no images") {
 
   REQUIRE(result.images.empty());
   REQUIRE(result.matches.empty());
+}
+
+TEST_CASE("Stitcher pipeline loading options") {
+  xpano::algorithm::StitcherPipeline stitcher;
+
+  const int preview_size = 512;
+  const int allowed_margin = 1.0;
+
+  auto result = stitcher
+                    .RunLoading({"data/image05.jpg", "data/image06.jpg"},
+                                {.preview_longer_side = preview_size}, {})
+                    .get();
+  auto progress = stitcher.LoadingProgress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.size() == 2);
+
+  auto landscape_full = result.images[0].GetFullRes();
+  auto landscape_full_size = landscape_full.size();
+  auto landscape_preview = result.images[0].GetPreview();
+  auto landscape_preview_size = landscape_preview.size();
+
+  CHECK(landscape_preview_size.width == preview_size);
+  CHECK_THAT(landscape_preview_size.height,
+             WithinAbs(preview_size / landscape_full_size.aspectRatio(),
+                       allowed_margin));
+
+  auto portrait_full = result.images[1].GetFullRes();
+  auto portrait_full_size = portrait_full.size();
+  auto portrait_preview = result.images[1].GetPreview();
+  auto portrait_preview_size = portrait_preview.size();
+
+  CHECK(portrait_preview_size.height == preview_size);
+  CHECK_THAT(portrait_preview_size.width,
+             WithinAbs(preview_size * portrait_full_size.aspectRatio(),
+                       allowed_margin));
 }

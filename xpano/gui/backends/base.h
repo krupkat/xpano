@@ -6,7 +6,7 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 
-#include "utils/vec.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::gui::backends {
 

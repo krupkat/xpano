@@ -10,9 +10,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/stitching.hpp>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "constants.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
 
 namespace xpano::algorithm {
 
@@ -29,7 +29,7 @@ struct MatchingOptions {
 };
 
 struct LoadingOptions {
-  // int image_downsample_factor = 1;
+  int preview_longer_side = kDefaultPreviewLongerSide;
 };
 
 struct StitchingOptions {
@@ -70,7 +70,7 @@ class ProgressMonitor {
   void Reset(ProgressType type, int num_tasks);
   void SetNumTasks(int num_tasks);
   void SetTaskType(ProgressType type);
-  ProgressReport Progress() const;
+  [[nodiscard]] ProgressReport Progress() const;
   void NotifyTaskDone();
 
  private:
@@ -94,7 +94,7 @@ class StitcherPipeline {
 
  private:
   std::vector<algorithm::Image> RunLoadingPipeline(
-      const std::vector<std::string> &inputs);
+      const std::vector<std::string> &inputs, const LoadingOptions &options);
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
                                    const MatchingOptions &options);
 

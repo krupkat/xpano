@@ -29,20 +29,20 @@
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
-#include "constants.h"
-#include "gui/backends/sdl.h"
-#include "gui/pano_gui.h"
-#include "log/logger.h"
-#include "utils/imgui_.h"
-#include "utils/resource.h"
-#include "utils/sdl_.h"
-#include "utils/text.h"
+#include "xpano/constants.h"
+#include "xpano/gui/backends/sdl.h"
+#include "xpano/gui/pano_gui.h"
+#include "xpano/log/logger.h"
+#include "xpano/utils/imgui_.h"
+#include "xpano/utils/resource.h"
+#include "xpano/utils/sdl_.h"
+#include "xpano/utils/text.h"
 
 #if !SDL_VERSION_ATLEAST(2, 0, 17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-int main(int /*unused*/, char** argv) {
+int main(int /*unused*/, char** /*unused*/) {
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
   // This feature isn't compatible with ImGui as of v1.88
@@ -67,9 +67,9 @@ int main(int /*unused*/, char** argv) {
   auto app_exe_path = xpano::utils::sdl::InitializeBasePath();
 
   // Setup logging
-  xpano::logger::LoggerGui logger{};
+  xpano::logger::Logger logger{};
   logger.RedirectSpdlogOutput(app_data_path);
-  logger.RedirectSDLOutput();
+  xpano::logger::RedirectSDLOutput();
 
   std::string result = std::setlocale(LC_ALL, "en_US.UTF-8");
   spdlog::info("Current locale: {}", result);

@@ -1,5 +1,6 @@
-#include "gui/panels/sidebar.h"
+#include "xpano/gui/panels/sidebar.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -8,14 +9,14 @@
 #include <opencv2/features2d.hpp>
 #include <spdlog/fmt/fmt.h>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "algorithm/stitcher_pipeline.h"
-#include "constants.h"
-#include "gui/action.h"
-#include "gui/panels/thumbnail_pane.h"
-#include "gui/shortcut.h"
-#include "utils/imgui_.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/constants.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/shortcut.h"
+#include "xpano/utils/imgui_.h"
 
 namespace xpano::gui {
 
@@ -57,6 +58,7 @@ Action DrawFileMenu() {
 }
 
 Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
+                       algorithm::LoadingOptions* loading_options,
                        algorithm::MatchingOptions* matching_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
@@ -68,6 +70,26 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
       ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
       ImGui::SliderInt("PNG compression", &compression_options->png_compression,
                        0, kMaxPngCompression);
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Image loading")) {
+      ImGui::Text(
+          "Modify this for faster image loading / more precision in panorama "
+          "detection.");
+      ImGui::Spacing();
+      if (ImGui::InputInt("Preview size", &loading_options->preview_longer_side,
+                          kStepPreviewLongerSide, kStepPreviewLongerSide)) {
+        loading_options->preview_longer_side = std::max(
+            loading_options->preview_longer_side, kMinPreviewLongerSide);
+        loading_options->preview_longer_side = std::min(
+            loading_options->preview_longer_side, kMaxPreviewLongerSide);
+      }
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)",
+          "Size of the preview image's longer side in pixels.\n - decrease to "
+          "get faster loading times.\n - increase to get more precision for "
+          "panorama detection.");
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Panorama detection")) {
@@ -117,13 +139,15 @@ void DrawProgressBar(algorithm::ProgressReport progress) {
   if (progress.num_tasks == 0) {
     return;
   }
-  int percentage = progress.tasks_done * 100 / progress.num_tasks;
+  const int max_percent = 100;
+  float progress_ratio = static_cast<float>(progress.tasks_done) /
+                         static_cast<float>(progress.num_tasks);
   std::string label =
       progress.tasks_done == progress.num_tasks
           ? "100%"
-          : fmt::format("{}: {}%", ProgressLabel(progress.type), percentage);
-  ImGui::ProgressBar(static_cast<float>(percentage) / 100.0f,
-                     ImVec2(-1.0f, 0.f), label.c_str());
+          : fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
+                        progress_ratio * max_percent);
+  ImGui::ProgressBar(progress_ratio, ImVec2(-1.0f, 0.f), label.c_str());
 }
 
 cv::Mat DrawMatches(const algorithm::Match& match,
@@ -131,10 +155,13 @@ cv::Mat DrawMatches(const algorithm::Match& match,
   cv::Mat out;
   const auto& img1 = images[match.id1];
   const auto& img2 = images[match.id2];
+  const int match_thickness = 1;
+  const auto match_color = cv::Scalar(0, 255, 0);
+  const auto single_point_color = cv::Scalar::all(-1);
+  const auto matches_mask = std::vector<char>();
   cv::drawMatches(img1.GetPreview(), img1.GetKeypoints(), img2.GetPreview(),
-                  img2.GetKeypoints(), match.matches, out, 1,
-                  cv::Scalar(0, 255, 0), cv::Scalar::all(-1),
-                  std::vector<char>(),
+                  img2.GetKeypoints(), match.matches, out, match_thickness,
+                  match_color, single_point_color, matches_mask,
                   cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
   return out;
 }
@@ -215,11 +242,13 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 }
 
 Action DrawMenu(algorithm::CompressionOptions* compression_options,
+                algorithm::LoadingOptions* loading_options,
                 algorithm::MatchingOptions* matching_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |= DrawOptionsMenu(compression_options, matching_options);
+    action |=
+        DrawOptionsMenu(compression_options, loading_options, matching_options);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

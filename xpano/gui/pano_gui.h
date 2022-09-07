@@ -4,20 +4,17 @@
 #include <optional>
 #include <string>
 
-#include "algorithm/stitcher_pipeline.h"
-#include "gui/action.h"
-#include "gui/backends/base.h"
-#include "gui/layout.h"
-#include "gui/panels/about.h"
-#include "gui/panels/preview_pane.h"
-#include "gui/panels/thumbnail_pane.h"
-#include "log/logger.h"
-#include "utils/text.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/gui/panels/about.h"
+#include "xpano/gui/panels/log_pane.h"
+#include "xpano/gui/panels/preview_pane.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/log/logger.h"
+#include "xpano/utils/text.h"
 
 namespace xpano::gui {
-
-template <typename TType>
-bool IsReady(const std::future<TType>& future);
 
 struct StatusMessage {
   std::string text;
@@ -38,7 +35,7 @@ struct Selection {
 
 class PanoGui {
  public:
-  PanoGui(backends::Base* backend, logger::LoggerGui* logger,
+  PanoGui(backends::Base* backend, logger::Logger* logger,
           std::future<utils::Texts> licenses);
 
   bool Run();
@@ -50,22 +47,25 @@ class PanoGui {
   Action PerformAction(Action action);
   void Reset();
 
+  // PODs
   Selection selection_;
   Action delayed_action_ = {ActionType::kNone};
   StatusMessage status_message_;
 
-  Layout layout_;
-  logger::LoggerGui* logger_;
+  algorithm::CompressionOptions compression_options_;
+  algorithm::LoadingOptions loading_options_;
+  algorithm::MatchingOptions matching_options_;
+  std::optional<algorithm::StitcherData> stitcher_data_;
+
+  // Gui panels
+  LogPane log_pane_;
   AboutPane about_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
+
+  // Algorithm
   algorithm::StitcherPipeline stitcher_pipeline_;
-  algorithm::CompressionOptions compression_options_;
-  algorithm::MatchingOptions matching_options_;
-
   std::future<algorithm::StitcherData> stitcher_data_future_;
-  std::optional<algorithm::StitcherData> stitcher_data_;
-
   std::future<algorithm::StitchingResult> pano_future_;
 };
 

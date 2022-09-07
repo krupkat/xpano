@@ -1,4 +1,4 @@
-#include "gui/action.h"
+#include "xpano/gui/action.h"
 
 namespace xpano::gui {
 

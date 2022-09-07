@@ -1,4 +1,4 @@
-#include "gui/panels/thumbnail_pane.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
 
 #include <algorithm>
 #include <functional>
@@ -9,12 +9,12 @@
 #include <opencv2/core.hpp>
 #include <spdlog/spdlog.h>
 
-#include "algorithm/image.h"
-#include "constants.h"
-#include "gui/action.h"
-#include "gui/backends/base.h"
-#include "utils/vec.h"
-#include "utils/vec_converters.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/backends/base.h"
+#include "xpano/utils/vec.h"
+#include "xpano/utils/vec_converters.h"
 
 namespace xpano::gui {
 
@@ -88,7 +88,7 @@ ThumbnailPane::ThumbnailPane(backends::Base *backend) : backend_(backend) {}
 void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   spdlog::info("Loading {} thumbnails", images.size());
   int num_images = static_cast<int>(images.size());
-  auto thumbnail_size = utils::Vec2i{kPreviewSize};
+  auto thumbnail_size = utils::Vec2i{kThumbnailSize};
   int side = 0;
   while (side * side < num_images) {
     side++;

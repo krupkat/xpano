@@ -5,7 +5,7 @@ include(Catch)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
 add_executable(StitcherTest 
-  stitcher_test.cc
+  stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc
   ../xpano/algorithm/image.cc
   ../xpano/algorithm/stitcher_pipeline.cc
@@ -18,7 +18,7 @@ target_link_libraries(StitcherTest
 )
 
 target_include_directories(StitcherTest PRIVATE 
-  "../xpano"
+  ".."
   "../external/thread-pool"
 )
 
@@ -33,7 +33,7 @@ target_link_libraries(VecTest
 )
 
 target_include_directories(VecTest PRIVATE 
-  "../xpano"
+  ".."
 )
 
 add_executable(DisjointSetTest 
@@ -46,7 +46,7 @@ target_link_libraries(DisjointSetTest
 )
 
 target_include_directories(DisjointSetTest PRIVATE 
-  "../xpano"
+  ".."
 )
 
 set(ALL_TEST_TARGETS

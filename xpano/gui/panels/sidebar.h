@@ -4,11 +4,11 @@
 
 #include <opencv2/core.hpp>
 
-#include "algorithm/algorithm.h"
-#include "algorithm/image.h"
-#include "algorithm/stitcher_pipeline.h"
-#include "gui/action.h"
-#include "gui/panels/thumbnail_pane.h"
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/image.h"
+#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/gui/action.h"
+#include "xpano/gui/panels/thumbnail_pane.h"
 
 namespace xpano::gui {
 
@@ -24,6 +24,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id);
 
 Action DrawMenu(algorithm::CompressionOptions* compression_options,
+                algorithm::LoadingOptions* loading_options,
                 algorithm::MatchingOptions* matching_options);
 
 void DrawWelcomeText();
