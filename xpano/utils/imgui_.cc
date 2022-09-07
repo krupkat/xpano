@@ -67,7 +67,7 @@ void FontLoader::Reload(float scale) {
 }
 
 void InfoMarker(const std::string& label, const std::string& desc) {
-  ImGui::TextDisabled(label.c_str());
+  ImGui::TextDisabled("%s", label.c_str());
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
     ImGui::TextUnformatted(desc.c_str());
