@@ -1,3 +1,11 @@
+# Xpano 0.4.0
+
+- Linux support release
+  - support system install, added deb packaing
+- Control image preview size
+  - decrease to get faster loading times
+  - increase to get more precision for panorama detection
+
 # Xpano 0.3.0
 
 - MacOS build support
