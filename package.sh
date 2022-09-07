@@ -22,7 +22,7 @@ tar xf "${PACKAGE}.tar.gz"
 cd "${PACKAGE}"
 
 # prepare debian directory
-cp -r misc/build/deb-package/debian .
+cp -r ../../../debian .
 jinja -D "dist" $DISTRIBUTION debian/changelog.in -o debian/changelog
 rm debian/changelog.in
 
