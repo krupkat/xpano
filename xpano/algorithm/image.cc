@@ -1,5 +1,6 @@
 #include "xpano/algorithm/image.h"
 
+#include <algorithm>
 #include <string>
 #include <utility>
 #include <vector>
@@ -19,16 +20,31 @@ thread_local cv::Ptr<cv::Feature2D> sift = cv::SIFT::create(kNumFeatures);
 
 Image::Image(std::string path) : path_(std::move(path)) {}
 
-void Image::Load() {
+void Image::Load(int preview_longer_side) {
   cv::Mat tmp = cv::imread(path_);
   if (tmp.empty()) {
     spdlog::error("Failed to load image {}", path_);
     return;
   }
-  cv::resize(tmp, preview_, cv::Size(), 0.5, 0.5, cv::INTER_AREA);
+
+  auto full_size = tmp.size();
+  if (std::max(full_size.width, full_size.height) > preview_longer_side) {
+    auto preview_size =
+        (full_size.width > full_size.height)
+            ? cv::Size(preview_longer_side,
+                       static_cast<int>(preview_longer_side /
+                                        full_size.aspectRatio()))
+            : cv::Size(static_cast<int>(preview_longer_side *
+                                        full_size.aspectRatio()),
+                       preview_longer_side);
+    cv::resize(tmp, preview_, preview_size, 0.0, 0.0, cv::INTER_AREA);
+  } else {
+    preview_ = tmp;
+  }
+
   sift->detectAndCompute(preview_, cv::Mat(), keypoints_, descriptors_);
-  cv::resize(preview_, thumbnail_, cv::Size(kPreviewSize, kPreviewSize), 0, 0,
-             cv::INTER_AREA);
+  cv::resize(preview_, thumbnail_, cv::Size(kThumbnailSize, kThumbnailSize), 0,
+             0, cv::INTER_AREA);
 
   spdlog::info("Loaded {}", path_);
   spdlog::info("Size: {} x {}, Keypoints: {}", preview_.size[1],

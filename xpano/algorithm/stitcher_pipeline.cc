@@ -67,10 +67,10 @@ void StitcherPipeline::Cancel() {
 
 std::future<StitcherData> StitcherPipeline::RunLoading(
     const std::vector<std::string> &inputs,
-    const LoadingOptions & /*loading_options*/,
+    const LoadingOptions &loading_options,
     const MatchingOptions &matching_options) {
-  return pool_.submit([this, matching_options, inputs]() {
-    auto images = RunLoadingPipeline(inputs);
+  return pool_.submit([this, loading_options, matching_options, inputs]() {
+    auto images = RunLoadingPipeline(inputs, loading_options);
     return RunMatchingPipeline(images, matching_options);
   });
 }
@@ -120,14 +120,14 @@ ProgressReport StitcherPipeline::LoadingProgress() const {
 }
 
 std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
-    const std::vector<std::string> &inputs) {
+    const std::vector<std::string> &inputs, const LoadingOptions &options) {
   int num_tasks = static_cast<int>(inputs.size());
   loading_progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
   BS::multi_future<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
-    loading_future.push_back(pool_.submit([this, input]() {
+    loading_future.push_back(pool_.submit([this, options, input]() {
       Image image(input);
-      image.Load();
+      image.Load(options.preview_longer_side);
       loading_progress_.NotifyTaskDone();
       return image;
     }));

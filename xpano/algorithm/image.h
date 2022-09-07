@@ -12,7 +12,7 @@ class Image {
   Image() = default;
   explicit Image(std::string path);
 
-  void Load();
+  void Load(int preview_longer_side);
 
   [[nodiscard]] cv::Mat GetFullRes() const;
   [[nodiscard]] cv::Mat GetThumbnail() const;

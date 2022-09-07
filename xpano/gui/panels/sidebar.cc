@@ -1,5 +1,6 @@
 #include "xpano/gui/panels/sidebar.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -57,6 +58,7 @@ Action DrawFileMenu() {
 }
 
 Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
+                       algorithm::LoadingOptions* loading_options,
                        algorithm::MatchingOptions* matching_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
@@ -68,6 +70,26 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
       ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
       ImGui::SliderInt("PNG compression", &compression_options->png_compression,
                        0, kMaxPngCompression);
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Image loading")) {
+      ImGui::Text(
+          "Modify this for faster image loading / more precision in panorama "
+          "detection.");
+      ImGui::Spacing();
+      if (ImGui::InputInt("Preview size", &loading_options->preview_longer_side,
+                          kStepPreviewLongerSide, kStepPreviewLongerSide)) {
+        loading_options->preview_longer_side = std::max(
+            loading_options->preview_longer_side, kMinPreviewLongerSide);
+        loading_options->preview_longer_side = std::min(
+            loading_options->preview_longer_side, kMaxPreviewLongerSide);
+      }
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)",
+          "Size of the preview image's longer side in pixels.\n - decrease to "
+          "get faster loading times.\n - increase to get more precision for "
+          "panorama detection.");
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Panorama detection")) {
@@ -220,11 +242,13 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 }
 
 Action DrawMenu(algorithm::CompressionOptions* compression_options,
+                algorithm::LoadingOptions* loading_options,
                 algorithm::MatchingOptions* matching_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |= DrawOptionsMenu(compression_options, matching_options);
+    action |=
+        DrawOptionsMenu(compression_options, loading_options, matching_options);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

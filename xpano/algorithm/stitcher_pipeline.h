@@ -29,7 +29,7 @@ struct MatchingOptions {
 };
 
 struct LoadingOptions {
-  // int image_downsample_factor = 1;
+  int preview_longer_side = kDefaultPreviewLongerSide;
 };
 
 struct StitchingOptions {
@@ -94,7 +94,7 @@ class StitcherPipeline {
 
  private:
   std::vector<algorithm::Image> RunLoadingPipeline(
-      const std::vector<std::string> &inputs);
+      const std::vector<std::string> &inputs, const LoadingOptions &options);
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
                                    const MatchingOptions &options);
 
