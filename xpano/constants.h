@@ -60,4 +60,7 @@ constexpr int kMinPreviewLongerSide = 512;
 constexpr int kMaxPreviewLongerSide = 2048;
 constexpr int kStepPreviewLongerSide = 256;
 
+constexpr float kDefaultPaniniA = 2.0f;
+constexpr float kDefaultPaniniB = 1.0f;
+
 }  // namespace xpano

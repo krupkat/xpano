@@ -23,6 +23,50 @@ void InsertInOrder(int value, std::vector<int>* vec) {
   auto iter = std::lower_bound(vec->begin(), vec->end(), value);
   vec->insert(iter, value);
 }
+cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
+  cv::Ptr<cv::WarperCreator> warper_creator;
+  switch (options.projection_type) {
+    case ProjectionType::kPerspective:
+      warper_creator = cv::makePtr<cv::PlaneWarper>();
+      break;
+    case ProjectionType::kCylindrical:
+      warper_creator = cv::makePtr<cv::CylindricalWarper>();
+      break;
+    case ProjectionType::kSpherical:
+      warper_creator = cv::makePtr<cv::SphericalWarper>();
+      break;
+    case ProjectionType::kFisheye:
+      warper_creator = cv::makePtr<cv::FisheyeWarper>();
+      break;
+    case ProjectionType::kStereographic:
+      warper_creator = cv::makePtr<cv::StereographicWarper>();
+      break;
+    case ProjectionType::kCompressedRectilinear:
+      warper_creator = cv::makePtr<cv::CompressedRectilinearWarper>(
+          options.a_param, options.b_param);
+      break;
+    case ProjectionType::kCompressedRectilinearPortrait:
+      warper_creator = cv::makePtr<cv::CompressedRectilinearPortraitWarper>(
+          options.a_param, options.b_param);
+      break;
+    case ProjectionType::kPanini:
+      warper_creator =
+          cv::makePtr<cv::PaniniWarper>(options.a_param, options.b_param);
+      break;
+    case ProjectionType::kPaniniPortrait:
+      warper_creator = cv::makePtr<cv::PaniniPortraitWarper>(options.a_param,
+                                                             options.b_param);
+      break;
+    case ProjectionType::kMercator:
+      warper_creator = cv::makePtr<cv::MercatorWarper>();
+      break;
+    case ProjectionType::kTransverseMercator:
+      warper_creator = cv::makePtr<cv::TransverseMercatorWarper>();
+      break;
+  }
+  return warper_creator;
+}
+
 }  // namespace
 
 std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
@@ -114,68 +158,14 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-/*
-  kPerspective,
-  kCylindrical,
-  kSpherical,
-  kFisheye,
-  kStereographic,
-  kCompressedRectilinear,
-  kCompressedRectilinearPortrait,
-  kPanini,
-  kPaniniPortrait,
-  kMercator,
-  kTransverseMercator
-*/
-
 std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
     const std::vector<cv::Mat>& images, ProjectionOptions options) {
-  cv::Mat out;
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
-  cv::Ptr<cv::WarperCreator> warper_creator;
-
-  switch (options.projection_type) {
-    case ProjectionType::kPerspective:
-      warper_creator = cv::makePtr<cv::PlaneWarper>();
-      break;
-    case ProjectionType::kCylindrical:
-      warper_creator = cv::makePtr<cv::CylindricalWarper>();
-      break;
-    case ProjectionType::kSpherical:
-      warper_creator = cv::makePtr<cv::SphericalWarper>();
-      break;
-    case ProjectionType::kFisheye:
-      warper_creator = cv::makePtr<cv::FisheyeWarper>();
-      break;
-    case ProjectionType::kStereographic:
-      warper_creator = cv::makePtr<cv::StereographicWarper>();
-      break;
-    case ProjectionType::kCompressedRectilinear:
-      warper_creator = cv::makePtr<cv::CompressedRectilinearWarper>(
-          options.a_param, options.b_param);
-      break;
-    case ProjectionType::kCompressedRectilinearPortrait:
-      warper_creator = cv::makePtr<cv::CompressedRectilinearPortraitWarper>(
-          options.a_param, options.b_param);
-      break;
-    case ProjectionType::kPanini:
-      warper_creator =
-          cv::makePtr<cv::PaniniWarper>(options.a_param, options.b_param);
-      break;
-    case ProjectionType::kPaniniPortrait:
-      warper_creator = cv::makePtr<cv::PaniniPortraitWarper>(options.a_param,
-                                                             options.b_param);
-      break;
-    case ProjectionType::kMercator:
-      warper_creator = cv::makePtr<cv::MercatorWarper>();
-      break;
-    case ProjectionType::kTransverseMercator:
-      warper_creator = cv::makePtr<cv::TransverseMercatorWarper>();
-      break;
-  }
-
+  auto warper_creator = PickWarper(options);
   stitcher->setWarper(warper_creator);
-  cv::Stitcher::Status status = stitcher->stitch(images, out);
+
+  cv::Mat out;
+  auto status = stitcher->stitch(images, out);
 
   if (options.projection_type == ProjectionType::kStereographic) {
     cv::rotate(out, out, cv::ROTATE_90_COUNTERCLOCKWISE);
@@ -203,6 +193,8 @@ std::string ToString(cv::Stitcher::Status& status) {
   }
 }
 
+// NOLINTBEGIN(bugprone-branch-clone): doesn't work with [[fallthrough]]
+
 bool HasAdvancedParameters(ProjectionType projection_type) {
   switch (projection_type) {
     case ProjectionType::kCompressedRectilinear:
@@ -217,6 +209,8 @@ bool HasAdvancedParameters(ProjectionType projection_type) {
       return false;
   }
 }
+
+// NOLINTEND(bugprone-branch-clone)
 
 const char* Label(ProjectionType projection_type) {
   switch (projection_type) {

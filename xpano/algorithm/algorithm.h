@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <utility>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
 
 namespace xpano::algorithm {
 
@@ -61,8 +63,8 @@ bool HasAdvancedParameters(ProjectionType projection_type);
 struct ProjectionOptions {
   algorithm::ProjectionType projection_type =
       algorithm::ProjectionType::kSpherical;
-  float a_param = 2.0f;
-  float b_param = 1.0f;
+  float a_param = kDefaultPaniniA;
+  float b_param = kDefaultPaniniB;
 };
 
 std::pair<cv::Stitcher::Status, cv::Mat> Stitch(

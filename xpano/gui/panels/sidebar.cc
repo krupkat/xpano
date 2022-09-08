@@ -57,90 +57,108 @@ Action DrawFileMenu() {
   return action;
 }
 
+void DrawCompressionOptionsMenu(
+    algorithm::CompressionOptions* compression_options) {
+  if (ImGui::BeginMenu("Export compression")) {
+    ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
+                     kMaxJpegQuality);
+    ImGui::Checkbox("JPEG progressive", &compression_options->jpeg_progressive);
+    ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
+    ImGui::SliderInt("PNG compression", &compression_options->png_compression,
+                     0, kMaxPngCompression);
+    ImGui::EndMenu();
+  }
+}
+
+void DrawLoadingOptionsMenu(algorithm::LoadingOptions* loading_options) {
+  if (ImGui::BeginMenu("Image loading")) {
+    ImGui::Text(
+        "Modify this for faster image loading / more precision in panorama "
+        "detection.");
+    ImGui::Spacing();
+    if (ImGui::InputInt("Preview size", &loading_options->preview_longer_side,
+                        kStepPreviewLongerSide, kStepPreviewLongerSide)) {
+      loading_options->preview_longer_side =
+          std::max(loading_options->preview_longer_side, kMinPreviewLongerSide);
+      loading_options->preview_longer_side =
+          std::min(loading_options->preview_longer_side, kMaxPreviewLongerSide);
+    }
+    ImGui::SameLine();
+    utils::imgui::InfoMarker(
+        "(?)",
+        "Size of the preview image's longer side in pixels.\n - decrease to "
+        "get faster loading times.\n - increase to get more precision for "
+        "panorama detection.");
+    ImGui::EndMenu();
+  }
+}
+
+void DrawMatchingOptionsMenu(algorithm::MatchingOptions* matching_options) {
+  if (ImGui::BeginMenu("Panorama detection")) {
+    ImGui::Text(
+        "Experiment with this if the app cannot find the panoramas you "
+        "want.");
+    ImGui::Spacing();
+    ImGui::SliderInt("Matching distance",
+                     &matching_options->neighborhood_search_size, 0,
+                     kMaxNeighborhoodSearchSize);
+    ImGui::SameLine();
+    utils::imgui::InfoMarker(
+        "(?)",
+        "Select how many neighboring images will be considered for panorama "
+        "auto detection.");
+    ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
+                     kMinMatchThreshold, kMaxMatchThreshold);
+    ImGui::SameLine();
+    utils::imgui::InfoMarker(
+        "(?)",
+        "Number of keypoints that need to match in order to include the two "
+        "images in a panorama.");
+    ImGui::EndMenu();
+  }
+}
+
+Action DrawProjectionOptionsMenu(
+    algorithm::ProjectionOptions* projection_options) {
+  Action action{};
+  if (ImGui::BeginMenu("Panorama stitching")) {
+    ImGui::Text("Advanced projection options.");
+    ImGui::Spacing();
+    if (ImGui::BeginCombo("Projection type",
+                          Label(projection_options->projection_type))) {
+      for (const auto projection_type : algorithm::kProjectionTypes) {
+        if (ImGui::Selectable(
+                Label(projection_type),
+                projection_type == projection_options->projection_type)) {
+          projection_options->projection_type = projection_type;
+          action |= {ActionType::kRecomputePano};
+        }
+      }
+      ImGui::EndCombo();
+    }
+    if (algorithm::HasAdvancedParameters(projection_options->projection_type)) {
+      if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {
+        action |= {ActionType::kRecomputePano};
+      }
+      if (ImGui::InputFloat("b", &projection_options->b_param, 0.5f, 0.5f)) {
+        action |= {ActionType::kRecomputePano};
+      }
+    }
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
 Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
                        algorithm::LoadingOptions* loading_options,
                        algorithm::MatchingOptions* matching_options,
                        algorithm::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
-    if (ImGui::BeginMenu("Export compression")) {
-      ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
-                       kMaxJpegQuality);
-      ImGui::Checkbox("JPEG progressive",
-                      &compression_options->jpeg_progressive);
-      ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
-      ImGui::SliderInt("PNG compression", &compression_options->png_compression,
-                       0, kMaxPngCompression);
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Image loading")) {
-      ImGui::Text(
-          "Modify this for faster image loading / more precision in panorama "
-          "detection.");
-      ImGui::Spacing();
-      if (ImGui::InputInt("Preview size", &loading_options->preview_longer_side,
-                          kStepPreviewLongerSide, kStepPreviewLongerSide)) {
-        loading_options->preview_longer_side = std::max(
-            loading_options->preview_longer_side, kMinPreviewLongerSide);
-        loading_options->preview_longer_side = std::min(
-            loading_options->preview_longer_side, kMaxPreviewLongerSide);
-      }
-      ImGui::SameLine();
-      utils::imgui::InfoMarker(
-          "(?)",
-          "Size of the preview image's longer side in pixels.\n - decrease to "
-          "get faster loading times.\n - increase to get more precision for "
-          "panorama detection.");
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Panorama detection")) {
-      ImGui::Text(
-          "Experiment with this if the app cannot find the panoramas you "
-          "want.");
-      ImGui::Spacing();
-      ImGui::SliderInt("Matching distance",
-                       &matching_options->neighborhood_search_size, 0,
-                       kMaxNeighborhoodSearchSize);
-      ImGui::SameLine();
-      utils::imgui::InfoMarker(
-          "(?)",
-          "Select how many neighboring images will be considered for panorama "
-          "auto detection.");
-      ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
-                       kMinMatchThreshold, kMaxMatchThreshold);
-      ImGui::SameLine();
-      utils::imgui::InfoMarker(
-          "(?)",
-          "Number of keypoints that need to match in order to include the two "
-          "images in a panorama.");
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Panorama stitching")) {
-      ImGui::Text("Advanced projection options.");
-      ImGui::Spacing();
-      if (ImGui::BeginCombo("Projection type",
-                            Label(projection_options->projection_type))) {
-        for (const auto projection_type : algorithm::kProjectionTypes) {
-          if (ImGui::Selectable(
-                  Label(projection_type),
-                  projection_type == projection_options->projection_type)) {
-            projection_options->projection_type = projection_type;
-            action |= {ActionType::kRecomputePano};
-          }
-        }
-        ImGui::EndCombo();
-      }
-      if (algorithm::HasAdvancedParameters(
-              projection_options->projection_type)) {
-        if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {
-          action |= {ActionType::kRecomputePano};
-        }
-        if (ImGui::InputFloat("b", &projection_options->b_param, 0.5f, 0.5f)) {
-          action |= {ActionType::kRecomputePano};
-        }
-      }
-      ImGui::EndMenu();
-    }
+    DrawCompressionOptionsMenu(compression_options);
+    DrawLoadingOptionsMenu(loading_options);
+    DrawMatchingOptionsMenu(matching_options);
+    action |= DrawProjectionOptionsMenu(projection_options);
     ImGui::EndMenu();
   }
   return action;
