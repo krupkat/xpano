@@ -122,9 +122,9 @@ Action DrawProjectionOptionsMenu(
     algorithm::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Panorama stitching")) {
-    ImGui::Text("Advanced projection options.");
+    ImGui::Text("Projection type:");
     ImGui::Spacing();
-    if (ImGui::BeginCombo("Projection type",
+    if (ImGui::BeginCombo("##projection_type",
                           Label(projection_options->projection_type))) {
       for (const auto projection_type : algorithm::kProjectionTypes) {
         if (ImGui::Selectable(
@@ -137,6 +137,8 @@ Action DrawProjectionOptionsMenu(
       ImGui::EndCombo();
     }
     if (algorithm::HasAdvancedParameters(projection_options->projection_type)) {
+      ImGui::Text("Advanced projection parameters:");
+      ImGui::Spacing();
       if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {
         action |= {ActionType::kRecomputePano};
       }
