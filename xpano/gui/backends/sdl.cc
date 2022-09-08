@@ -30,7 +30,7 @@ Texture Sdl::CreateTexture(utils::Vec2i size) {
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
   auto *sdl_tex = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
                                     SDL_TEXTUREACCESS_STATIC, size[0], size[1]);
-  if (old_texture_sampling) {
+  if (old_texture_sampling != nullptr) {
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, old_texture_sampling);
   }
   if (sdl_tex == nullptr) {
