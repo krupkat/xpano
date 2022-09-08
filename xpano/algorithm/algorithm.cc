@@ -23,6 +23,50 @@ void InsertInOrder(int value, std::vector<int>* vec) {
   auto iter = std::lower_bound(vec->begin(), vec->end(), value);
   vec->insert(iter, value);
 }
+cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
+  cv::Ptr<cv::WarperCreator> warper_creator;
+  switch (options.projection_type) {
+    case ProjectionType::kPerspective:
+      warper_creator = cv::makePtr<cv::PlaneWarper>();
+      break;
+    case ProjectionType::kCylindrical:
+      warper_creator = cv::makePtr<cv::CylindricalWarper>();
+      break;
+    case ProjectionType::kSpherical:
+      warper_creator = cv::makePtr<cv::SphericalWarper>();
+      break;
+    case ProjectionType::kFisheye:
+      warper_creator = cv::makePtr<cv::FisheyeWarper>();
+      break;
+    case ProjectionType::kStereographic:
+      warper_creator = cv::makePtr<cv::StereographicWarper>();
+      break;
+    case ProjectionType::kCompressedRectilinear:
+      warper_creator = cv::makePtr<cv::CompressedRectilinearWarper>(
+          options.a_param, options.b_param);
+      break;
+    case ProjectionType::kCompressedRectilinearPortrait:
+      warper_creator = cv::makePtr<cv::CompressedRectilinearPortraitWarper>(
+          options.a_param, options.b_param);
+      break;
+    case ProjectionType::kPanini:
+      warper_creator =
+          cv::makePtr<cv::PaniniWarper>(options.a_param, options.b_param);
+      break;
+    case ProjectionType::kPaniniPortrait:
+      warper_creator = cv::makePtr<cv::PaniniPortraitWarper>(options.a_param,
+                                                             options.b_param);
+      break;
+    case ProjectionType::kMercator:
+      warper_creator = cv::makePtr<cv::MercatorWarper>();
+      break;
+    case ProjectionType::kTransverseMercator:
+      warper_creator = cv::makePtr<cv::TransverseMercatorWarper>();
+      break;
+  }
+  return warper_creator;
+}
+
 }  // namespace
 
 std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
@@ -115,10 +159,22 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 }
 
 std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
-    const std::vector<cv::Mat>& images) {
+    const std::vector<cv::Mat>& images, ProjectionOptions options) {
+  auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
+  auto warper_creator = PickWarper(options);
+  stitcher->setWarper(warper_creator);
+
   cv::Mat out;
-  cv::Ptr<cv::Stitcher> stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
-  cv::Stitcher::Status status = stitcher->stitch(images, out);
+  auto status = stitcher->stitch(images, out);
+
+  if (options.projection_type == ProjectionType::kStereographic) {
+    cv::rotate(out, out, cv::ROTATE_90_COUNTERCLOCKWISE);
+  }
+
+  if (options.projection_type == ProjectionType::kFisheye) {
+    cv::rotate(out, out, cv::ROTATE_90_CLOCKWISE);
+  }
+
   return {status, out};
 }
 
@@ -134,6 +190,54 @@ std::string ToString(cv::Stitcher::Status& status) {
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
     default:
       return "ERR_UNKNOWN";
+  }
+}
+
+// NOLINTBEGIN(bugprone-branch-clone): doesn't work with [[fallthrough]]
+
+bool HasAdvancedParameters(ProjectionType projection_type) {
+  switch (projection_type) {
+    case ProjectionType::kCompressedRectilinear:
+      [[fallthrough]];
+    case ProjectionType::kCompressedRectilinearPortrait:
+      [[fallthrough]];
+    case ProjectionType::kPanini:
+      [[fallthrough]];
+    case ProjectionType::kPaniniPortrait:
+      return true;
+    default:
+      return false;
+  }
+}
+
+// NOLINTEND(bugprone-branch-clone)
+
+const char* Label(ProjectionType projection_type) {
+  switch (projection_type) {
+    case ProjectionType::kPerspective:
+      return "Perspective";
+    case ProjectionType::kCylindrical:
+      return "Cylindrical";
+    case ProjectionType::kSpherical:
+      return "Spherical";
+    case ProjectionType::kFisheye:
+      return "Fisheye";
+    case ProjectionType::kStereographic:
+      return "Stereographic";
+    case ProjectionType::kCompressedRectilinear:
+      return "CompressedRectilinear";
+    case ProjectionType::kCompressedRectilinearPortrait:
+      return "CompressedRectilinearPortrait";
+    case ProjectionType::kPanini:
+      return "Panini";
+    case ProjectionType::kPaniniPortrait:
+      return "PaniniPortrait";
+    case ProjectionType::kMercator:
+      return "Mercator";
+    case ProjectionType::kTransverseMercator:
+      return "TransverseMercator";
+    default:
+      return "Unknown";
   }
 }
 

@@ -2,6 +2,7 @@
   { include: [ "<xstring>", private, "<string>", public ] },
   { include: [ "<xutility>", private, "<algorithm>", public ] },
   { include: ["@<opencv2/core/.*>", "private", "<opencv2/core.hpp>", "public"] },
+  { include: ["@<opencv2/stitching/.*>", "private", "<opencv2/stitching.hpp>", "public"] },
   { include: ["@<SDL_.*>", "private", "<SDL.h>", "public"] },
   { include: ["<corecrt_math.h>", "private", "<cmath>", "public"] },
   { include: ["<imgui_internal.h>", "public", "<imgui.h>", "public"] },

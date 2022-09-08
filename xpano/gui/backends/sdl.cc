@@ -26,8 +26,13 @@ Texture Sdl::CreateTexture(utils::Vec2i size) {
     spdlog::error("Texture size {} x {} is too big.", size[0], size[1]);
     return nullptr;
   }
+  const char *old_texture_sampling = SDL_GetHint(SDL_HINT_RENDER_SCALE_QUALITY);
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
   auto *sdl_tex = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
                                     SDL_TEXTUREACCESS_STATIC, size[0], size[1]);
+  if (old_texture_sampling != nullptr) {
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, old_texture_sampling);
+  }
   if (sdl_tex == nullptr) {
     spdlog::error("Failed to create SDL_Texture: {}", SDL_GetError());
     return nullptr;
