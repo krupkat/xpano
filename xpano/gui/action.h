@@ -14,6 +14,7 @@ enum class ActionType {
   kShowMatch,
   kShowPano,
   kModifyPano,
+  kRecomputePano,
   kQuit,
   kToggleDebugLog
 };

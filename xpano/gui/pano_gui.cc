@@ -146,8 +146,8 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |=
-      DrawMenu(&compression_options_, &loading_options_, &matching_options_);
+  action |= DrawMenu(&compression_options_, &loading_options_,
+                     &matching_options_, &projection_options_);
 
   DrawWelcomeText();
   ImGui::Separator();
@@ -218,7 +218,8 @@ Action PanoGui::PerformAction(Action action) {
           pano_future_ = stitcher_pipeline_.RunStitching(
               *stitcher_data_, {.pano_id = selection_.target_id,
                                 .export_path = *export_path,
-                                .compression = compression_options_});
+                                .compression = compression_options_,
+                                .projection = projection_options_});
         }
       }
       break;
@@ -249,7 +250,8 @@ Action PanoGui::PerformAction(Action action) {
       status_message_ = {};
       plot_pane_.Reset();
       pano_future_ = stitcher_pipeline_.RunStitching(
-          *stitcher_data_, {.pano_id = selection_.target_id});
+          *stitcher_data_,
+          {.pano_id = selection_.target_id, .projection = projection_options_});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
@@ -257,6 +259,16 @@ Action PanoGui::PerformAction(Action action) {
     }
     case ActionType::kModifyPano: {
       return ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
+    }
+    case ActionType::kRecomputePano: {
+      if (selection_.type == SelectionType::kPano) {
+        spdlog::info("Recomputing pano {}: {}", selection_.target_id,
+                     Label(projection_options_.projection_type));
+        return {.type = ActionType::kShowPano,
+                .target_id = selection_.target_id,
+                .delayed = true};
+      }
+      break;
     }
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};

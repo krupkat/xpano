@@ -95,7 +95,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     loading_progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto [status, pano] = Stitch(imgs);
+    auto [status, pano] = Stitch(imgs, options.projection);
     loading_progress_.NotifyTaskDone();
 
     if (status != cv::Stitcher::OK) {

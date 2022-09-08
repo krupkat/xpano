@@ -36,6 +36,7 @@ struct StitchingOptions {
   int pano_id = 0;
   std::optional<std::string> export_path;
   CompressionOptions compression;
+  ProjectionOptions projection;
 };
 
 struct StitcherData {

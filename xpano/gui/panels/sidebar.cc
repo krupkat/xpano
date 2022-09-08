@@ -59,7 +59,8 @@ Action DrawFileMenu() {
 
 Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
                        algorithm::LoadingOptions* loading_options,
-                       algorithm::MatchingOptions* matching_options) {
+                       algorithm::MatchingOptions* matching_options,
+                       algorithm::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     if (ImGui::BeginMenu("Export compression")) {
@@ -112,6 +113,32 @@ Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
           "(?)",
           "Number of keypoints that need to match in order to include the two "
           "images in a panorama.");
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Panorama stitching")) {
+      ImGui::Text("Advanced projection options.");
+      ImGui::Spacing();
+      if (ImGui::BeginCombo("Projection type",
+                            Label(projection_options->projection_type))) {
+        for (const auto projection_type : algorithm::kProjectionTypes) {
+          if (ImGui::Selectable(
+                  Label(projection_type),
+                  projection_type == projection_options->projection_type)) {
+            projection_options->projection_type = projection_type;
+            action |= {ActionType::kRecomputePano};
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (algorithm::HasAdvancedParameters(
+              projection_options->projection_type)) {
+        if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {
+          action |= {ActionType::kRecomputePano};
+        }
+        if (ImGui::InputFloat("b", &projection_options->b_param, 0.5f, 0.5f)) {
+          action |= {ActionType::kRecomputePano};
+        }
+      }
       ImGui::EndMenu();
     }
     ImGui::EndMenu();
@@ -243,12 +270,13 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 
 Action DrawMenu(algorithm::CompressionOptions* compression_options,
                 algorithm::LoadingOptions* loading_options,
-                algorithm::MatchingOptions* matching_options) {
+                algorithm::MatchingOptions* matching_options,
+                algorithm::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |=
-        DrawOptionsMenu(compression_options, loading_options, matching_options);
+    action |= DrawOptionsMenu(compression_options, loading_options,
+                              matching_options, projection_options);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }
