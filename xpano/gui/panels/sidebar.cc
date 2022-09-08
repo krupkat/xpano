@@ -87,8 +87,8 @@ void DrawLoadingOptionsMenu(algorithm::LoadingOptions* loading_options) {
     utils::imgui::InfoMarker(
         "(?)",
         "Size of the preview image's longer side in pixels.\n - decrease to "
-        "get faster loading times.\n - increase to get more precision for "
-        "panorama detection.");
+        "get faster loading times.\n - increase to get nicer preview images\n "
+        "- increase to get more precision for panorama detection.");
     ImGui::EndMenu();
   }
 }
