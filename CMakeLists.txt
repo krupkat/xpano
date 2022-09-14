@@ -44,6 +44,7 @@ set(XPANO_SOURCES
   "xpano/gui/panels/thumbnail_pane.cc"
   "xpano/gui/pano_gui.cc"
   "xpano/gui/shortcut.cc"
+  "xpano/utils/config.cc"
   "xpano/utils/disjoint_set.cc"
   "xpano/utils/imgui_.cc"
   "xpano/utils/resource.cc"

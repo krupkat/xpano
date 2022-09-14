@@ -37,4 +37,11 @@ std::optional<std::filesystem::path> InitializePrefPath();
 
 std::optional<std::filesystem::path> InitializeBasePath();
 
+struct WindowSize {
+  int width;
+  int height;
+};
+
+WindowSize GetSize(SDL_Window* window);
+
 }  // namespace xpano::utils::sdl

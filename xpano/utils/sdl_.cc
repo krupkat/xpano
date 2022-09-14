@@ -130,4 +130,10 @@ std::optional<std::filesystem::path> InitializeBasePath() {
   return {sdl_base_path.get()};
 }
 
+WindowSize GetSize(SDL_Window* window) {
+  WindowSize size;
+  SDL_GetWindowSize(window, &size.width, &size.height);
+  return size;
+}
+
 }  // namespace xpano::utils::sdl
