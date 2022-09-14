@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <optional>
 
 #include <spdlog/spdlog.h>
 
@@ -52,10 +53,7 @@ void Save(std::optional<std::filesystem::path> app_data_path, Config config) {
 
   if (!(config_file << config.window_width << " " << config.window_height)) {
     spdlog::warn("Failed to write config file");
-    return;
   }
-
-  return;
 }
 
 }  // namespace xpano::utils::config
