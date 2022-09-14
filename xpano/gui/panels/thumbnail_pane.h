@@ -43,7 +43,7 @@ class AutoScroller {
   void Rescroll();
 
  private:
-  ScrollType scroll_type = ScrollType::kNone;
+  ScrollType scroll_type_ = ScrollType::kNone;
   float scroll_target_ = 0.0f;
 };
 

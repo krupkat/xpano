@@ -1,6 +1,7 @@
 #include "xpano/gui/panels/thumbnail_pane.h"
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <numeric>
 #include <vector>
@@ -56,28 +57,28 @@ void HoverChecker::RecordHover(int img_id) { hover_id_ = img_id; }
 void HoverChecker::ResetHover() { hover_id_ = -1; }
 
 void AutoScroller::SetScrollTargetCurrentRatio() {
-  scroll_type = ScrollType::kRatio;
+  scroll_type_ = ScrollType::kRatio;
   scroll_target_ = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
 }
 void AutoScroller::SetScrollTargetRelative(float scroll_value) {
-  if (scroll_type == ScrollType::kAbsolute) {
+  if (scroll_type_ == ScrollType::kAbsolute) {
     scroll_target_ += scroll_value;
   } else {
-    scroll_type = ScrollType::kAbsolute;
+    scroll_type_ = ScrollType::kAbsolute;
     scroll_target_ = ImGui::GetScrollX() + scroll_value;
   }
   scroll_target_ = std::clamp(scroll_target_, 0.0f, ImGui::GetScrollMaxX());
 }
 
 bool AutoScroller::NeedsRescroll() const {
-  return scroll_type != ScrollType::kNone;
+  return scroll_type_ != ScrollType::kNone;
 }
 
 void AutoScroller::Rescroll() {
-  switch (scroll_type) {
+  switch (scroll_type_) {
     case ScrollType::kRatio: {
       ImGui::SetScrollX(ImGui::GetScrollMaxX() * scroll_target_);
-      scroll_type = ScrollType::kNone;
+      scroll_type_ = ScrollType::kNone;
       break;
     }
     case ScrollType::kAbsolute: {
@@ -88,10 +89,10 @@ void AutoScroller::Rescroll() {
       if (scroll_diff > scroll_speed) {
         ImGui::SetScrollX(current_scroll +
                           scroll_speed *
-                              (scroll_target_ > current_scroll ? 1 : -1));
+                              (scroll_target_ > current_scroll ? 1.0f : -1.0f));
       } else {
         ImGui::SetScrollX(scroll_target_);
-        scroll_type = ScrollType::kNone;
+        scroll_type_ = ScrollType::kNone;
       }
       break;
     }
