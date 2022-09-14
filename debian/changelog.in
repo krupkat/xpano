@@ -1,5 +1,12 @@
 xpano (0.4.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
+  * Update to 0.5.0, selectable projection types, smooth zooming and scrolling
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Wed, 14 Sep 2022 17:27:54 +0200
+
+
+xpano (0.4.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
   * Initial upload, support for jammy, kinetic
 
  -- Tomas Krupka <tomas@krupkat.cz>  Wed, 07 Sep 2022 13:38:39 +0200
