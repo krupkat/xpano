@@ -1,3 +1,12 @@
+# Xpano 0.5.0
+
+- Selectable projection types (OpenCV implementations):
+  - perspective, cylindrical, spherical, fisheye, stereographic
+  - compressed rectilinear, panini, mercator, transverse mercator
+- Smooth preview zoom
+- Smooth thumbnail scrolling
+- Persistent window size between launches
+
 # Xpano 0.4.0
 
 - Linux support release
