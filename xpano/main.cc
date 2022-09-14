@@ -33,6 +33,7 @@
 #include "xpano/gui/backends/sdl.h"
 #include "xpano/gui/pano_gui.h"
 #include "xpano/log/logger.h"
+#include "xpano/utils/config.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/resource.h"
 #include "xpano/utils/sdl_.h"
@@ -86,6 +87,8 @@ int main(int /*unused*/, char** /*unused*/) {
     return -1;
   }
 
+  auto config = xpano::utils::config::Load(app_data_path);
+
   // Setup file dialog library
   if (NFD_Init() != NFD_OKAY) {
     spdlog::error("Couldn't initialize NFD");
@@ -95,7 +98,7 @@ int main(int /*unused*/, char** /*unused*/) {
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
   SDL_Window* window =
       SDL_CreateWindow("Xpano", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       xpano::kWindowWidth, xpano::kWindowHeight, window_flags);
+                       config.window_width, config.window_height, window_flags);
 
   SDL_Renderer* renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -180,6 +183,10 @@ int main(int /*unused*/, char** /*unused*/) {
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
     SDL_RenderPresent(renderer);
   }
+
+  auto size = xpano::utils::sdl::GetSize(window);
+  xpano::utils::config::Save(app_data_path, {.window_width = size.width,
+                                             .window_height = size.height});
 
   // Cleanup
   ImGui_ImplSDLRenderer_Shutdown();

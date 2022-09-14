@@ -16,6 +16,7 @@ constexpr int kMaxMatchThreshold = 250;
 
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
+constexpr int kMinWindowSize = 200;
 
 constexpr float kZoomFactor = 1.4f;
 constexpr int kZoomLevels = 10;
@@ -64,5 +65,7 @@ constexpr int kStepPreviewLongerSide = 256;
 
 constexpr float kDefaultPaniniA = 2.0f;
 constexpr float kDefaultPaniniB = 1.0f;
+
+const std::string kConfigFilename = "config.txt";
 
 }  // namespace xpano
