@@ -23,12 +23,14 @@ class PreviewPane {
   [[nodiscard]] bool IsZoomed() const;
   void ZoomIn();
   void ZoomOut();
+  void AdvanceZoom();
   void ResetZoom();
 
   utils::Ratio2f tex_coord_;
 
   int zoom_id_ = 0;
-  std::array<float, kZoomLevels> zoom_;
+  float zoom_ = 1.0f;
+  std::array<float, kZoomLevels> zoom_levels_;
 
   utils::Ratio2f image_offset_;
   utils::Ratio2f screen_offset_;

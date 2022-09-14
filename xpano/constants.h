@@ -17,11 +17,13 @@ constexpr int kMaxMatchThreshold = 250;
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
 
-constexpr float kZoomFactor = 2.0f;
+constexpr float kZoomFactor = 1.4f;
 constexpr int kZoomLevels = 10;
+constexpr float kZoomSpeed = 0.1f;
 
 constexpr int kResizingDelayFrames = 30;
-constexpr int kScrollingSpeed = 150;
+constexpr int kScrollingStep = 200;
+constexpr int kScrollingStepPerFrame = 25;
 
 const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg", "tiff",
                                                          "png", "bmp"};

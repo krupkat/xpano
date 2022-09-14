@@ -34,14 +34,14 @@ void DrawMessage(utils::Point2f pos, const std::string& message) {
 }  // namespace
 
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
-  std::iota(zoom_.begin(), zoom_.end(), 0.0f);
-  std::transform(zoom_.begin(), zoom_.end(), zoom_.begin(),
+  std::iota(zoom_levels_.begin(), zoom_levels_.end(), 0.0f);
+  std::transform(zoom_levels_.begin(), zoom_levels_.end(), zoom_levels_.begin(),
                  [](float exp) { return std::pow(kZoomFactor, exp); });
 };
 
-float PreviewPane::Zoom() const { return zoom_[zoom_id_]; }
+float PreviewPane::Zoom() const { return zoom_; }
 
-bool PreviewPane::IsZoomed() const { return zoom_id_ != 0; }
+bool PreviewPane::IsZoomed() const { return zoom_ != 1.0f; }
 
 void PreviewPane::ZoomIn() {
   if (zoom_id_ < kZoomLevels - 1) {
@@ -55,7 +55,20 @@ void PreviewPane::ZoomOut() {
   }
 }
 
-void PreviewPane::ResetZoom() { zoom_id_ = 0; }
+void PreviewPane::AdvanceZoom() {
+  const float zoom_epsilon = zoom_ * kZoomSpeed;
+  if (std::abs(zoom_ - zoom_levels_[zoom_id_]) > zoom_epsilon) {
+    zoom_ = zoom_ > zoom_levels_[zoom_id_] ? zoom_ - zoom_epsilon
+                                           : zoom_ + zoom_epsilon;
+  } else {
+    zoom_ = zoom_levels_[zoom_id_];
+  }
+}
+
+void PreviewPane::ResetZoom() {
+  zoom_id_ = 0;
+  zoom_ = 1.0f;
+}
 
 void PreviewPane::Load(cv::Mat image) {
   auto texture_size = utils::Vec2i{kLoupeSize};
@@ -107,7 +120,7 @@ void PreviewPane::Draw(const std::string& message) {
 
     auto p_min = mid - image_size / 2.0f;
     auto p_max = mid + image_size / 2.0f;
-    if (IsZoomed()) {
+    if (AdvanceZoom(); IsZoomed()) {
       p_min = window_start + available_size * screen_offset_ -
               image_size * image_offset_ * Zoom();
       p_max = p_min + image_size * Zoom();
