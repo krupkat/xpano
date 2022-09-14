@@ -24,10 +24,10 @@ jobs:
       with:
         submodules: true
 
-    - uses: awalsh128/cache-apt-pkgs-action@v1.2.0
+    - uses: awalsh128/cache-apt-pkgs-action@v1.1.1
       with:
           packages: libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
-          version: v1.2.0
+          version: v1.1.1
 
     - name: Cache Catch
       uses: actions/cache@v3
