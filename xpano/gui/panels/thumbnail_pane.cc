@@ -55,16 +55,49 @@ bool HoverChecker::WasHovered(int img_id) const { return hover_id_ == img_id; }
 void HoverChecker::RecordHover(int img_id) { hover_id_ = img_id; }
 void HoverChecker::ResetHover() { hover_id_ = -1; }
 
-void AutoScroller::SetNeedsRescroll() {
-  needs_rescroll_ = true;
-  scroll_ratio_ = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
+void AutoScroller::SetScrollTargetCurrentRatio() {
+  scroll_type = ScrollType::kRatio;
+  scroll_target_ = ImGui::GetScrollX() / ImGui::GetScrollMaxX();
+}
+void AutoScroller::SetScrollTargetRelative(float scroll_value) {
+  if (scroll_type == ScrollType::kAbsolute) {
+    scroll_target_ += scroll_value;
+  } else {
+    scroll_type = ScrollType::kAbsolute;
+    scroll_target_ = ImGui::GetScrollX() + scroll_value;
+  }
+  scroll_target_ = std::clamp(scroll_target_, 0.0f, ImGui::GetScrollMaxX());
 }
 
-bool AutoScroller::NeedsRescroll() const { return needs_rescroll_; }
+bool AutoScroller::NeedsRescroll() const {
+  return scroll_type != ScrollType::kNone;
+}
 
 void AutoScroller::Rescroll() {
-  ImGui::SetScrollX(ImGui::GetScrollMaxX() * scroll_ratio_);
-  needs_rescroll_ = false;
+  switch (scroll_type) {
+    case ScrollType::kRatio: {
+      ImGui::SetScrollX(ImGui::GetScrollMaxX() * scroll_target_);
+      scroll_type = ScrollType::kNone;
+      break;
+    }
+    case ScrollType::kAbsolute: {
+      float current_scroll = ImGui::GetScrollX();
+      float scroll_diff = std::abs(current_scroll - scroll_target_);
+      float scroll_speed =
+          (1.0f + scroll_diff / kScrollingStep) * kScrollingStepPerFrame;
+      if (scroll_diff > scroll_speed) {
+        ImGui::SetScrollX(current_scroll +
+                          scroll_speed *
+                              (scroll_target_ > current_scroll ? 1 : -1));
+      } else {
+        ImGui::SetScrollX(scroll_target_);
+        scroll_type = ScrollType::kNone;
+      }
+      break;
+    }
+    default:
+      break;
+  }
 }
 
 ResizeChecker::ResizeChecker(int delay) : delay_(delay) {}
@@ -128,7 +161,7 @@ Action ThumbnailPane::Draw() {
     thumbnail_height_ =
         ImGui::GetContentRegionAvail().y - 2 * ImGui::GetStyle().FramePadding.y;
     if (window_status == ResizeChecker::Status::kResized) {
-      auto_scroller_.SetNeedsRescroll();
+      auto_scroller_.SetScrollTargetCurrentRatio();
     }
   }
 
@@ -151,7 +184,7 @@ Action ThumbnailPane::Draw() {
 
   if (ImGui::IsWindowHovered()) {
     if (float mouse_wheel = io_.MouseWheel; mouse_wheel != 0) {
-      ImGui::SetScrollX(ImGui::GetScrollX() - mouse_wheel * kScrollingSpeed);
+      auto_scroller_.SetScrollTargetRelative(-1 * mouse_wheel * kScrollingStep);
     }
   }
   ImGui::End();

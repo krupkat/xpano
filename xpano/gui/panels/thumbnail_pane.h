@@ -30,14 +30,21 @@ class HoverChecker {
 };
 
 class AutoScroller {
+  enum class ScrollType {
+    kNone,
+    kRatio,
+    kAbsolute,
+  };
+
  public:
-  void SetNeedsRescroll();
+  void SetScrollTargetCurrentRatio();
+  void SetScrollTargetRelative(float scroll_value);
   [[nodiscard]] bool NeedsRescroll() const;
   void Rescroll();
 
  private:
-  bool needs_rescroll_ = false;
-  float scroll_ratio_ = 0.0f;
+  ScrollType scroll_type = ScrollType::kNone;
+  float scroll_target_ = 0.0f;
 };
 
 class ResizeChecker {
