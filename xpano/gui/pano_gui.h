@@ -68,6 +68,7 @@ class PanoGui {
   algorithm::StitcherPipeline stitcher_pipeline_;
   std::future<algorithm::StitcherData> stitcher_data_future_;
   std::future<algorithm::StitchingResult> pano_future_;
+  std::future<algorithm::ExportResult> export_future_;
 };
 
 }  // namespace xpano::gui

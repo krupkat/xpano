@@ -33,6 +33,8 @@ std::string ProgressLabel(algorithm::ProgressType type) {
       return "Detecting keypoints";
     case algorithm::ProgressType::kMatchingImages:
       return "Matching images";
+    case algorithm::ProgressType::kExport:
+      return "Exporting pano";
   }
 }
 

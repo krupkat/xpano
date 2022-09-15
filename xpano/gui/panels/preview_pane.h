@@ -47,9 +47,13 @@ class PreviewPane {
   void Load(cv::Mat image, ImageType image_type);
   void Draw(const std::string& message);
   void Reset();
+  void ToggleCrop();
+  void EndCrop();
 
   [[nodiscard]] ImageType Type() const;
-  void Crop();
+  [[nodiscard]] cv::Mat Image() const;
+  [[nodiscard]] utils::Ratio2f CropStart() const;
+  [[nodiscard]] utils::Ratio2f CropEnd() const;
 
  private:
   [[nodiscard]] float Zoom() const;

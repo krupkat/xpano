@@ -335,7 +335,7 @@ void PreviewPane::HandleInputs(const utils::Point2f& window_start,
 
 ImageType PreviewPane::Type() const { return image_type_; }
 
-void PreviewPane::Crop() {
+void PreviewPane::ToggleCrop() {
   if (image_type_ != ImageType::kPanoFullRes) {
     return;
   }
@@ -343,5 +343,13 @@ void PreviewPane::Crop() {
   crop_.editing = !crop_.editing;
   ResetZoom();
 }
+
+void PreviewPane::EndCrop() { crop_.editing = false; }
+
+cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
+
+utils::Ratio2f PreviewPane::CropStart() const { return crop_.start; }
+
+utils::Ratio2f PreviewPane::CropEnd() const { return crop_.end; }
 
 }  // namespace xpano::gui

@@ -168,8 +168,9 @@ Action PanoGui::DrawSidebar() {
                      .target_id = selection_.target_id};
   }
 
-  if (plot_pane_.Type() == ImageType::kPanoFullRes && ImGui::Button("Crop")) {
-    action |= Action{ActionType::kCrop};
+  if (plot_pane_.Type() == ImageType::kPanoFullRes &&
+      ImGui::Button("Toggle crop")) {
+    action |= Action{ActionType::kToggleCrop};
   }
 
   ImGui::Separator();
@@ -225,12 +226,21 @@ Action PanoGui::PerformAction(Action action) {
         status_message_ = {};
         auto default_name = fmt::format("pano_{}.jpg", selection_.target_id);
         if (auto export_path = file_dialog::Save(default_name); export_path) {
-          pano_future_ = stitcher_pipeline_.RunStitching(
-              *stitcher_data_, {.pano_id = selection_.target_id,
-                                .full_res = true,
-                                .export_path = *export_path,
-                                .compression = compression_options_,
-                                .projection = projection_options_});
+          if (plot_pane_.Type() == ImageType::kPanoFullRes) {
+            export_future_ = stitcher_pipeline_.RunExport(
+                plot_pane_.Image(), {.pano_id = selection_.target_id,
+                                     .export_path = *export_path,
+                                     .compression = compression_options_,
+                                     .crop_start = plot_pane_.CropStart(),
+                                     .crop_end = plot_pane_.CropEnd()});
+          } else {
+            pano_future_ = stitcher_pipeline_.RunStitching(
+                *stitcher_data_, {.pano_id = selection_.target_id,
+                                  .full_res = true,
+                                  .export_path = *export_path,
+                                  .compression = compression_options_,
+                                  .projection = projection_options_});
+          }
         }
       }
       break;
@@ -300,8 +310,8 @@ Action PanoGui::PerformAction(Action action) {
       log_pane_.ToggleShow();
       break;
     }
-    case ActionType::kCrop: {
-      plot_pane_.Crop();
+    case ActionType::kToggleCrop: {
+      plot_pane_.ToggleCrop();
       break;
     }
   }
@@ -364,6 +374,26 @@ Action PanoGui::ResolveFutures() {
           *result.export_path};
       spdlog::info(status_message_);
       stitcher_data_->panos[result.pano_id].exported = true;
+    }
+  }
+
+  if (utils::future::IsReady(export_future_)) {
+    algorithm::ExportResult result;
+    try {
+      result = export_future_.get();
+    } catch (const std::exception& e) {
+      status_message_ = {"Failed to export pano", e.what()};
+      spdlog::error(status_message_);
+      return {};
+    }
+
+    if (result.export_path) {
+      status_message_ = {
+          fmt::format("Exported pano {} successfully", result.pano_id),
+          *result.export_path};
+      spdlog::info(status_message_);
+      stitcher_data_->panos[result.pano_id].exported = true;
+      plot_pane_.EndCrop();
     }
   }
   return {};
