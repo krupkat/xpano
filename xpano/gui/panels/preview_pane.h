@@ -11,12 +11,22 @@
 
 namespace xpano::gui {
 
+enum class ImageType {
+  kNone,
+  kSingleImage,
+  kMatch,
+  kPanoPreview,
+  kPanoFullRes
+};
+
 class PreviewPane {
  public:
   explicit PreviewPane(backends::Base* backend);
-  void Load(cv::Mat image);
+  void Load(cv::Mat image, ImageType image_type);
   void Draw(const std::string& message);
   void Reset();
+
+  [[nodiscard]] ImageType Type() const;
 
  private:
   [[nodiscard]] float Zoom() const;
@@ -37,6 +47,9 @@ class PreviewPane {
 
   backends::Texture tex_;
   backends::Base* backend_;
+
+  ImageType image_type_ = ImageType::kNone;
+  cv::Mat full_resolution_pano_;
 };
 
 }  // namespace xpano::gui

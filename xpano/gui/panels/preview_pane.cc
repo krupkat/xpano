@@ -70,7 +70,7 @@ void PreviewPane::ResetZoom() {
   zoom_ = 1.0f;
 }
 
-void PreviewPane::Load(cv::Mat image) {
+void PreviewPane::Load(cv::Mat image, ImageType image_type) {
   auto texture_size = utils::Vec2i{kLoupeSize};
   if (!tex_) {
     tex_ = backend_->CreateTexture(texture_size);
@@ -95,11 +95,17 @@ void PreviewPane::Load(cv::Mat image) {
   backend_->UpdateTexture(tex_.get(), resized);
   tex_coord_ = coord_uv;
   ResetZoom();
+
+  image_type_ = image_type;
+  if (image_type == ImageType::kPanoFullRes) {
+    full_resolution_pano_ = image;
+  }
 }
 
 void PreviewPane::Reset() {
   tex_ = nullptr;
   ResetZoom();
+  image_type_ = ImageType::kNone;
 }
 
 void PreviewPane::Draw(const std::string& message) {
@@ -152,5 +158,7 @@ void PreviewPane::Draw(const std::string& message) {
   }
   ImGui::End();
 }
+
+ImageType PreviewPane::Type() const { return image_type_; }
 
 }  // namespace xpano::gui

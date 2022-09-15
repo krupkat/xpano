@@ -86,7 +86,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     loading_progress_.Reset(ProgressType::kLoadingImages, num_tasks);
     std::vector<cv::Mat> imgs;
     for (int img_id : pano.ids) {
-      if (options.export_path) {
+      if (options.full_res) {
         imgs.push_back(images[img_id].GetFullRes());
       } else {
         imgs.push_back(images[img_id].GetPreview());
@@ -99,7 +99,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     loading_progress_.NotifyTaskDone();
 
     if (status != cv::Stitcher::OK) {
-      return StitchingResult{options.pano_id, status};
+      return StitchingResult{.pano_id = options.pano_id, .status = status};
     }
 
     std::optional<std::string> export_path;
@@ -111,7 +111,8 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
       loading_progress_.NotifyTaskDone();
     }
 
-    return StitchingResult{options.pano_id, status, pano, export_path};
+    return StitchingResult{options.pano_id, options.full_res, status, pano,
+                           export_path};
   });
 }
 

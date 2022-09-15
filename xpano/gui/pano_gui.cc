@@ -162,6 +162,16 @@ Action PanoGui::DrawSidebar() {
   }
   DrawInfoMessage(status_message_);
 
+  if (plot_pane_.Type() == ImageType::kPanoPreview &&
+      ImGui::Button("Full-res")) {
+    action |= Action{.type = ActionType::kShowFullResPano,
+                     .target_id = selection_.target_id};
+  }
+
+  if (plot_pane_.Type() == ImageType::kPanoFullRes && ImGui::Button("Crop")) {
+    action |= Action{ActionType::kCrop};
+  }
+
   ImGui::Separator();
   ImGui::BeginChild("Panos");
   if (stitcher_data_) {
@@ -217,6 +227,7 @@ Action PanoGui::PerformAction(Action action) {
         if (auto export_path = file_dialog::Save(default_name); export_path) {
           pano_future_ = stitcher_pipeline_.RunStitching(
               *stitcher_data_, {.pano_id = selection_.target_id,
+                                .full_res = true,
                                 .export_path = *export_path,
                                 .compression = compression_options_,
                                 .projection = projection_options_});
@@ -239,19 +250,23 @@ Action PanoGui::PerformAction(Action action) {
       spdlog::info("Clicked match {}", action.target_id);
       const auto& match = stitcher_data_->matches[action.target_id];
       auto img = DrawMatches(match, stitcher_data_->images);
-      plot_pane_.Load(img);
+      plot_pane_.Load(img, ImageType::kMatch);
       thumbnail_pane_.SetScrollX(match.id1, match.id2);
       thumbnail_pane_.Highlight(match.id1, match.id2);
       break;
     }
+    case ActionType::kShowFullResPano:
+      [[fallthrough]];
     case ActionType::kShowPano: {
       selection_ = {SelectionType::kPano, action.target_id};
-      spdlog::info("Clicked pano {}", selection_.target_id);
+      spdlog::info("Calculating pano preview {}", selection_.target_id);
       status_message_ = {};
       plot_pane_.Reset();
       pano_future_ = stitcher_pipeline_.RunStitching(
           *stitcher_data_,
-          {.pano_id = selection_.target_id, .projection = projection_options_});
+          {.pano_id = selection_.target_id,
+           .full_res = action.type == ActionType::kShowFullResPano,
+           .projection = projection_options_});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
@@ -273,7 +288,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};
       const auto& img = stitcher_data_->images[action.target_id];
-      plot_pane_.Load(img.Draw(log_pane_.IsShown()));
+      plot_pane_.Load(img.Draw(log_pane_.IsShown()), ImageType::kSingleImage);
       thumbnail_pane_.Highlight(action.target_id);
       break;
     }
@@ -319,7 +334,9 @@ Action PanoGui::ResolveFutures() {
     try {
       result = pano_future_.get();
       if (result.pano) {
-        plot_pane_.Load(*result.pano);
+        plot_pane_.Load(*result.pano, result.full_res
+                                          ? ImageType::kPanoFullRes
+                                          : ImageType::kPanoPreview);
       }
     } catch (const std::exception& e) {
       status_message_ = {"Failed to stitch pano", e.what()};

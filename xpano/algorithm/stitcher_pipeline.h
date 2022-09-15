@@ -34,6 +34,7 @@ struct LoadingOptions {
 
 struct StitchingOptions {
   int pano_id = 0;
+  bool full_res = false;
   std::optional<std::string> export_path;
   CompressionOptions compression;
   ProjectionOptions projection;
@@ -47,6 +48,7 @@ struct StitcherData {
 
 struct StitchingResult {
   int pano_id = 0;
+  bool full_res = false;
   cv::Stitcher::Status status;
   std::optional<cv::Mat> pano;
   std::optional<std::string> export_path;
