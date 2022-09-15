@@ -76,6 +76,7 @@ CropState EditCropRectangle(const CropState& input_crop,
   auto top_left = image_start + image_size * crop.start;
   auto bottom_right = image_start + image_size * crop.end;
 
+  bool dragging = false;
   for (auto& edge : crop.edges) {
     edge.mouse_close =
         IsMouseCloseToEdge(edge.type, top_left, bottom_right, mouse_pos);
@@ -85,26 +86,37 @@ CropState EditCropRectangle(const CropState& input_crop,
     if (!mouse_down) {
       edge.dragging = false;
     }
+    dragging |= edge.dragging;
+  }
+
+  if (!dragging) {
+    return crop;
   }
 
   auto new_pos = (mouse_pos - image_start) / image_size;
+  auto tolerance =
+      utils::Vec2f{static_cast<float>(kCropEdgeTolerance)} / image_size * 10.0f;
   for (const auto& edge : crop.edges) {
     if (edge.dragging) {
       switch (edge.type) {
         case EdgeType::kTop: {
-          crop.start[1] = std::clamp(new_pos[1], 0.0f, crop.end[1]);
+          crop.start[1] =
+              std::clamp(new_pos[1], 0.0f, crop.end[1] - tolerance[1]);
           break;
         }
         case EdgeType::kBottom: {
-          crop.end[1] = std::clamp(new_pos[1], crop.start[1], 1.0f);
+          crop.end[1] =
+              std::clamp(new_pos[1], crop.start[1] + tolerance[1], 1.0f);
           break;
         }
         case EdgeType::kLeft: {
-          crop.start[0] = std::clamp(new_pos[0], 0.0f, crop.end[0]);
+          crop.start[0] =
+              std::clamp(new_pos[0], 0.0f, crop.end[0] - tolerance[0]);
           break;
         }
         case EdgeType::kRight: {
-          crop.end[0] = std::clamp(new_pos[0], crop.start[0], 1.0f);
+          crop.end[0] =
+              std::clamp(new_pos[0], crop.start[0] + tolerance[0], 1.0f);
           break;
         }
       }
@@ -120,10 +132,6 @@ constexpr int Select(TEdge... edges) {
 }
 
 void SelectMouseCursor(const CropState& crop) {
-  if (!crop.editing) {
-    return;
-  }
-
   int mouse_cursor_selector = std::accumulate(
       crop.edges.begin(), crop.edges.end(), 0, [](int sum, const Edge& edge) {
         return sum + (edge.mouse_close || edge.dragging
