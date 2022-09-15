@@ -68,4 +68,6 @@ constexpr float kDefaultPaniniB = 1.0f;
 
 const std::string kConfigFilename = "config.txt";
 
+constexpr int kCropEdgeTolerance = 10;
+
 }  // namespace xpano

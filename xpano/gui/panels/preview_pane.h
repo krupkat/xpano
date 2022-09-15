@@ -19,6 +19,28 @@ enum class ImageType {
   kPanoFullRes
 };
 
+enum class EdgeType { kTop = 1, kBottom = 2, kLeft = 4, kRight = 8 };
+
+struct Edge {
+  EdgeType type;
+  bool dragging = false;
+  bool mouse_close = false;
+};
+
+constexpr auto DefaultEdges() {
+  return std::array{Edge{EdgeType::kTop}, Edge{EdgeType::kBottom},
+                    Edge{EdgeType::kLeft}, Edge{EdgeType::kRight}};
+}
+
+struct CropState {
+  bool editing = false;
+
+  utils::Ratio2f start = utils::Ratio2f{0.0f};
+  utils::Ratio2f end = utils::Ratio2f{1.0f};
+
+  std::array<Edge, 4> edges = DefaultEdges();
+};
+
 class PreviewPane {
  public:
   explicit PreviewPane(backends::Base* backend);
@@ -27,6 +49,7 @@ class PreviewPane {
   void Reset();
 
   [[nodiscard]] ImageType Type() const;
+  void Crop();
 
  private:
   [[nodiscard]] float Zoom() const;
@@ -35,8 +58,13 @@ class PreviewPane {
   void ZoomOut();
   void AdvanceZoom();
   void ResetZoom();
+  void HandleInputs(const utils::Point2f& window_start,
+                    const utils::Vec2f& window_size,
+                    const utils::Point2f& image_start,
+                    const utils::Vec2f& image_size);
 
   utils::Ratio2f tex_coord_;
+  CropState crop_;
 
   int zoom_id_ = 0;
   float zoom_ = 1.0f;

@@ -300,6 +300,10 @@ Action PanoGui::PerformAction(Action action) {
       log_pane_.ToggleShow();
       break;
     }
+    case ActionType::kCrop: {
+      plot_pane_.Crop();
+      break;
+    }
   }
   return action;
 }
