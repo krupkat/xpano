@@ -47,14 +47,21 @@ void DrawInfoMessage(const StatusMessage& status_message) {
   }
 }
 
-std::string PreviewMessage(const Selection& selection) {
+std::string PreviewMessage(const Selection& selection, ImageType image_type) {
   switch (selection.type) {
     case SelectionType::kImage:
       return fmt::format("Image {}", selection.target_id);
     case SelectionType::kMatch:
       return fmt::format("Match {}", selection.target_id);
-    case SelectionType::kPano:
-      return fmt::format("Pano {}", selection.target_id);
+    case SelectionType::kPano: {
+      if (image_type == ImageType::kPanoFullRes) {
+        return fmt::format("Pano {} (Full)", selection.target_id);
+      } else if (image_type == ImageType::kPanoPreview) {
+        return fmt::format("Pano {} (Preview)", selection.target_id);
+      } else {
+        return fmt::format("Pano {}", selection.target_id);
+      }
+    }
     default:
       return "";
   }
@@ -136,9 +143,58 @@ Action PanoGui::DrawGui() {
   layout::InitDockSpace();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
-  plot_pane_.Draw(PreviewMessage(selection_));
+  plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
   log_pane_.Draw();
   about_pane_.Draw();
+  return action;
+}
+
+Action PanoGui::DrawActionButtons() {
+  Action action{};
+
+  if (plot_pane_.Type() != ImageType::kPanoPreview) {
+    ImGui::BeginDisabled();
+  }
+
+  if (ImGui::Button("Full-res")) {
+    action |= Action{.type = ActionType::kShowFullResPano,
+                     .target_id = selection_.target_id};
+  }
+
+  if (plot_pane_.Type() != ImageType::kPanoPreview) {
+    ImGui::EndDisabled();
+  }
+
+  ImGui::SameLine();
+
+  if (plot_pane_.Type() != ImageType::kPanoFullRes) {
+    ImGui::BeginDisabled();
+  }
+
+  if (ImGui::Button("Toggle crop")) {
+    action |= Action{ActionType::kToggleCrop};
+  }
+
+  if (plot_pane_.Type() != ImageType::kPanoFullRes) {
+    ImGui::EndDisabled();
+  }
+
+  ImGui::SameLine();
+
+  if (plot_pane_.Type() != ImageType::kPanoFullRes &&
+      plot_pane_.Type() != ImageType::kPanoPreview) {
+    ImGui::BeginDisabled();
+  }
+
+  if (ImGui::Button("Export")) {
+    action |= Action{ActionType::kExport};
+  }
+
+  if (plot_pane_.Type() != ImageType::kPanoFullRes &&
+      plot_pane_.Type() != ImageType::kPanoPreview) {
+    ImGui::EndDisabled();
+  }
+
   return action;
 }
 
@@ -150,28 +206,18 @@ Action PanoGui::DrawSidebar() {
                      &matching_options_, &projection_options_);
 
   DrawWelcomeText();
-  ImGui::Separator();
+  action |= DrawActionButtons();
+  ImGui::Spacing();
 
   auto progress = stitcher_pipeline_.LoadingProgress();
   DrawProgressBar(progress);
   if (progress.tasks_done < progress.num_tasks) {
-    if (ImGui::Button("Cancel")) {
+    if (ImGui::SmallButton("Cancel")) {
       action |= Action{ActionType::kCancelPipeline};
     }
     ImGui::SameLine();
   }
   DrawInfoMessage(status_message_);
-
-  if (plot_pane_.Type() == ImageType::kPanoPreview &&
-      ImGui::Button("Full-res")) {
-    action |= Action{.type = ActionType::kShowFullResPano,
-                     .target_id = selection_.target_id};
-  }
-
-  if (plot_pane_.Type() == ImageType::kPanoFullRes &&
-      ImGui::Button("Toggle crop")) {
-    action |= Action{ActionType::kToggleCrop};
-  }
 
   ImGui::Separator();
   ImGui::BeginChild("Panos");

@@ -318,11 +318,15 @@ void DrawWelcomeText() {
       "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
       "to add / edit / delete panoramas\nc) Zoom and pan the images with your "
       "mouse");
-  ImGui::Text(" 3) Export");
+  ImGui::Spacing();
+  ImGui::Text("Available actions:");
   ImGui::SameLine();
-  utils::imgui::InfoMarker("(?)",
-                           "a) Keyboard shortcut: CTRL+S\nb) Exported panos "
-                           "will be marked by a check mark");
+  utils::imgui::InfoMarker(
+      "(?)",
+      "a) Compute full resolution panorama preview\nb) Crop panorama (working "
+      "only with full resolution preview)\nc) Panorama export\n - Works either "
+      "with preview or full resolution panoramas\n - In both cases exports a "
+      "full resolution panorama");
 }
 
 }  // namespace xpano::gui
