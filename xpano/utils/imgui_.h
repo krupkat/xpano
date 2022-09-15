@@ -27,4 +27,15 @@ void InfoMarker(const std::string& label, const std::string& desc);
 
 std::string InitIniFilePath(std::optional<std::filesystem::path> app_data_path);
 
+template <typename TCallbackType>
+void EnableIf(bool condition, TCallbackType callback) {
+  if (!condition) {
+    ImGui::BeginDisabled();
+  }
+  callback();
+  if (!condition) {
+    ImGui::EndDisabled();
+  }
+}
+
 }  // namespace xpano::utils::imgui

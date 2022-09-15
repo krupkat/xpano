@@ -151,50 +151,26 @@ Action PanoGui::DrawGui() {
 
 Action PanoGui::DrawActionButtons() {
   Action action{};
-
-  if (plot_pane_.Type() != ImageType::kPanoPreview) {
-    ImGui::BeginDisabled();
-  }
-
-  if (ImGui::Button("Full-res")) {
-    action |= Action{.type = ActionType::kShowFullResPano,
-                     .target_id = selection_.target_id};
-  }
-
-  if (plot_pane_.Type() != ImageType::kPanoPreview) {
-    ImGui::EndDisabled();
-  }
-
+  utils::imgui::EnableIf(plot_pane_.Type() == ImageType::kPanoPreview, [&] {
+    if (ImGui::Button("Full-res")) {
+      action |= Action{.type = ActionType::kShowFullResPano,
+                       .target_id = selection_.target_id};
+    }
+  });
   ImGui::SameLine();
-
-  if (plot_pane_.Type() != ImageType::kPanoFullRes) {
-    ImGui::BeginDisabled();
-  }
-
-  if (ImGui::Button("Toggle crop")) {
-    action |= Action{ActionType::kToggleCrop};
-  }
-
-  if (plot_pane_.Type() != ImageType::kPanoFullRes) {
-    ImGui::EndDisabled();
-  }
-
+  utils::imgui::EnableIf(plot_pane_.Type() == ImageType::kPanoFullRes, [&] {
+    if (ImGui::Button("Toggle crop")) {
+      action |= Action{ActionType::kToggleCrop};
+    }
+  });
   ImGui::SameLine();
-
-  if (plot_pane_.Type() != ImageType::kPanoFullRes &&
-      plot_pane_.Type() != ImageType::kPanoPreview) {
-    ImGui::BeginDisabled();
-  }
-
-  if (ImGui::Button("Export")) {
-    action |= Action{ActionType::kExport};
-  }
-
-  if (plot_pane_.Type() != ImageType::kPanoFullRes &&
-      plot_pane_.Type() != ImageType::kPanoPreview) {
-    ImGui::EndDisabled();
-  }
-
+  utils::imgui::EnableIf(plot_pane_.Type() == ImageType::kPanoFullRes ||
+                             plot_pane_.Type() == ImageType::kPanoPreview,
+                         [&] {
+                           if (ImGui::Button("Export")) {
+                             action |= Action{ActionType::kExport};
+                           }
+                         });
   return action;
 }
 
