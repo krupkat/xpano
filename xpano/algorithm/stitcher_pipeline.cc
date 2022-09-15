@@ -121,7 +121,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
 
 std::future<ExportResult> StitcherPipeline::RunExport(
     cv::Mat pano, const ExportOptions &options) {
-  return pool_.submit([pano, options, this]() {
+  return pool_.submit([pano = std::move(pano), options, this]() {
     int num_tasks = 1;
     progress_.Reset(ProgressType::kExport, num_tasks);
 

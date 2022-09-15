@@ -243,7 +243,7 @@ void PreviewPane::Reset() {
   ResetZoom();
   image_type_ = ImageType::kNone;
   crop_ = {};
-  full_resolution_pano_ = {};
+  full_resolution_pano_ = cv::Mat{};
 }
 
 void PreviewPane::Draw(const std::string& message) {

@@ -56,11 +56,11 @@ std::string PreviewMessage(const Selection& selection, ImageType image_type) {
     case SelectionType::kPano: {
       if (image_type == ImageType::kPanoFullRes) {
         return fmt::format("Pano {} (Full)", selection.target_id);
-      } else if (image_type == ImageType::kPanoPreview) {
-        return fmt::format("Pano {} (Preview)", selection.target_id);
-      } else {
-        return fmt::format("Pano {}", selection.target_id);
       }
+      if (image_type == ImageType::kPanoPreview) {
+        return fmt::format("Pano {} (Preview)", selection.target_id);
+      }
+      return fmt::format("Pano {}", selection.target_id);
     }
     default:
       return "";
