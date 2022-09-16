@@ -268,7 +268,6 @@ Action PanoGui::PerformAction(Action action) {
       selection_ = {SelectionType::kPano, action.target_id};
       spdlog::info("Calculating pano preview {}", selection_.target_id);
       status_message_ = {};
-      plot_pane_.Reset();
       pano_future_ = stitcher_pipeline_.RunStitching(
           *stitcher_data_,
           {.pano_id = selection_.target_id,
@@ -352,6 +351,7 @@ Action PanoGui::ResolveFutures() {
     } catch (const std::exception& e) {
       status_message_ = {"Failed to stitch pano", e.what()};
       spdlog::error(status_message_);
+      plot_pane_.Reset();
       return {};
     }
     if (!result.pano) {
@@ -359,6 +359,7 @@ Action PanoGui::ResolveFutures() {
           fmt::format("Failed to stitch pano {}", result.pano_id),
           algorithm::ToString(result.status)};
       spdlog::info(status_message_);
+      plot_pane_.Reset();
       return {};
     }
 
