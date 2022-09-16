@@ -11,9 +11,12 @@ struct Vector;
 struct Point;
 struct Ratio;
 
-template <typename TType, size_t N, typename NameTag = void>
+template <typename TType, size_t N, typename TNameTag = void>
 struct Vec {
  public:
+  using ValueType = TType;
+  using NameTag = TNameTag;
+
   constexpr Vec() = default;
 
   template <typename TFillType>

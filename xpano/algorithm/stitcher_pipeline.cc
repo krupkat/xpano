@@ -104,6 +104,11 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
       return StitchingResult{.pano_id = options.pano_id, .status = status};
     }
 
+    std::optional<utils::RectRRf> auto_crop;
+    if (options.full_res) {
+      auto_crop = FindLargestCropRectangle(pano);
+    }
+
     std::optional<std::string> export_path;
     if (options.export_path) {
       progress_.SetTaskType(ProgressType::kExport);
@@ -115,7 +120,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     return StitchingResult{options.pano_id, options.full_res, status, pano,
-                           export_path};
+                           auto_crop,       export_path};
   });
 }
 

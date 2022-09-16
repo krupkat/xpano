@@ -348,6 +348,9 @@ Action PanoGui::ResolveFutures() {
                                           ? ImageType::kPanoFullRes
                                           : ImageType::kPanoPreview);
       }
+      if (result.auto_crop) {
+        // TODO
+      }
     } catch (const std::exception& e) {
       status_message_ = {"Failed to stitch pano", e.what()};
       spdlog::error(status_message_);

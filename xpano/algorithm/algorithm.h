@@ -10,6 +10,7 @@
 
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/rect.h"
 
 namespace xpano::algorithm {
 
@@ -71,5 +72,7 @@ std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
     const std::vector<cv::Mat>& images, ProjectionOptions options);
 
 std::string ToString(cv::Stitcher::Status& status);
+
+utils::RectRRf FindLargestCropRectangle(cv::Mat image);
 
 }  // namespace xpano::algorithm

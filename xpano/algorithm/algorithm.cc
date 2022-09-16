@@ -15,6 +15,8 @@
 
 #include "xpano/algorithm/image.h"
 #include "xpano/utils/disjoint_set.h"
+#include "xpano/utils/rect.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::algorithm {
 
@@ -239,6 +241,13 @@ const char* Label(ProjectionType projection_type) {
     default:
       return "Unknown";
   }
+}
+
+utils::RectRRf FindLargestCropRectangle(cv::Mat image) {
+  auto start = utils::Ratio2f{0.0f};
+  auto end = utils::Ratio2f{1.0f};
+
+  return Rect(start, end);
 }
 
 }  // namespace xpano::algorithm

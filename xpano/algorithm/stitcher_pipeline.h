@@ -13,6 +13,7 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
 namespace xpano::algorithm {
@@ -60,6 +61,7 @@ struct StitchingResult {
   bool full_res = false;
   cv::Stitcher::Status status;
   std::optional<cv::Mat> pano;
+  std::optional<utils::RectRRf> auto_crop;
   std::optional<std::string> export_path;
 };
 
