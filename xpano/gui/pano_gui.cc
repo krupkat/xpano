@@ -149,31 +149,6 @@ Action PanoGui::DrawGui() {
   return action;
 }
 
-Action PanoGui::DrawActionButtons() {
-  Action action{};
-  utils::imgui::EnableIf(plot_pane_.Type() == ImageType::kPanoPreview, [&] {
-    if (ImGui::Button("Full-res")) {
-      action |= Action{.type = ActionType::kShowFullResPano,
-                       .target_id = selection_.target_id};
-    }
-  });
-  ImGui::SameLine();
-  utils::imgui::EnableIf(plot_pane_.Type() == ImageType::kPanoFullRes, [&] {
-    if (ImGui::Button("Toggle crop")) {
-      action |= Action{ActionType::kToggleCrop};
-    }
-  });
-  ImGui::SameLine();
-  utils::imgui::EnableIf(plot_pane_.Type() == ImageType::kPanoFullRes ||
-                             plot_pane_.Type() == ImageType::kPanoPreview,
-                         [&] {
-                           if (ImGui::Button("Export")) {
-                             action |= Action{ActionType::kExport};
-                           }
-                         });
-  return action;
-}
-
 Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
@@ -182,7 +157,7 @@ Action PanoGui::DrawSidebar() {
                      &matching_options_, &projection_options_);
 
   DrawWelcomeText();
-  action |= DrawActionButtons();
+  action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id);
   ImGui::Spacing();
 
   auto progress = stitcher_pipeline_.LoadingProgress();

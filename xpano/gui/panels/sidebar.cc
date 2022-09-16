@@ -14,6 +14,7 @@
 #include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
+#include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/shortcut.h"
 #include "xpano/utils/imgui_.h"
@@ -318,15 +319,49 @@ void DrawWelcomeText() {
       "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
       "to add / edit / delete panoramas\nc) Zoom and pan the images with your "
       "mouse");
-  ImGui::Spacing();
-  ImGui::Text("Available actions:");
+  ImGui::Text(" 3) Available actions:");
   ImGui::SameLine();
   utils::imgui::InfoMarker(
       "(?)",
-      "a) Compute full resolution panorama preview\nb) Crop panorama (working "
+      "a) Compute full resolution panorama preview\nb) Crop mode (working "
       "only with full resolution preview)\nc) Panorama export\n - Works either "
       "with preview or full resolution panoramas\n - In both cases exports a "
       "full resolution panorama");
+  ImGui::Spacing();
+}
+
+Action DrawActionButtons(ImageType image_type, int target_id) {
+  Action action{};
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Full-res")) {
+          action |=
+              {.type = ActionType::kShowFullResPano, .target_id = target_id};
+        }
+      },
+      image_type == ImageType::kPanoFullRes ? "Already computed"
+                                            : "First select a panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes,
+      [&] {
+        if (ImGui::Button("Crop mode")) {
+          action |= {ActionType::kToggleCrop};
+        }
+      },
+      "First compute full resolution panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes ||
+          image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Export")) {
+          action |= {ActionType::kExport};
+        }
+      },
+      "First select a panorama");
+  return action;
 }
 
 }  // namespace xpano::gui

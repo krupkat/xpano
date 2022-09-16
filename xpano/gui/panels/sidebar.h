@@ -8,6 +8,7 @@
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/gui/action.h"
+#include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 
 namespace xpano::gui {
@@ -29,5 +30,7 @@ Action DrawMenu(algorithm::CompressionOptions* compression_options,
                 algorithm::ProjectionOptions* projection_options);
 
 void DrawWelcomeText();
+
+Action DrawActionButtons(ImageType image_type, int target_id);
 
 }  // namespace xpano::gui

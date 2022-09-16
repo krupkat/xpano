@@ -43,7 +43,6 @@ class PanoGui {
  private:
   Action DrawGui();
   Action DrawSidebar();
-  Action DrawActionButtons();
   Action ResolveFutures();
   Action PerformAction(Action action);
   void Reset();
