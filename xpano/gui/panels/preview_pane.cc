@@ -45,22 +45,34 @@ void DrawCropRectangle(utils::Ratio2f crop_start, utils::Ratio2f crop_end,
 
 bool IsMouseCloseToEdge(EdgeType edge_type, utils::Point2f top_left,
                         utils::Point2f bottom_right, utils::Point2f mouse_pos) {
+  auto within_x_bounds = [&top_left,
+                          &bottom_right](const utils::Point2f& mouse_pos) {
+    return mouse_pos[0] > top_left[0] - kCropEdgeTolerance &&
+           mouse_pos[0] < bottom_right[0] + kCropEdgeTolerance;
+  };
+
+  auto within_y_bounds = [&top_left,
+                          &bottom_right](const utils::Point2f& mouse_pos) {
+    return mouse_pos[1] > top_left[1] - kCropEdgeTolerance &&
+           mouse_pos[1] < bottom_right[1] + kCropEdgeTolerance;
+  };
+
   switch (edge_type) {
     case EdgeType::kTop: {
       return std::abs(mouse_pos[1] - top_left[1]) < kCropEdgeTolerance &&
-             mouse_pos[0] > top_left[0] && mouse_pos[0] < bottom_right[0];
+             within_x_bounds(mouse_pos);
     }
     case EdgeType::kBottom: {
       return std::abs(mouse_pos[1] - bottom_right[1]) < kCropEdgeTolerance &&
-             mouse_pos[0] > top_left[0] && mouse_pos[0] < bottom_right[0];
+             within_x_bounds(mouse_pos);
     }
     case EdgeType::kLeft: {
       return std::abs(mouse_pos[0] - top_left[0]) < kCropEdgeTolerance &&
-             mouse_pos[1] > top_left[1] && mouse_pos[1] < bottom_right[1];
+             within_y_bounds(mouse_pos);
     }
     case EdgeType::kRight: {
       return std::abs(mouse_pos[0] - bottom_right[0]) < kCropEdgeTolerance &&
-             mouse_pos[1] > top_left[1] && mouse_pos[1] < bottom_right[1];
+             within_y_bounds(mouse_pos);
     }
     default: {
       return false;
