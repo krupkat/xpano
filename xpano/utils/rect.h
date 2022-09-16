@@ -31,6 +31,7 @@ struct RectStartSize {
 
 using RectRRf = RectStartEnd<Ratio2f, Ratio2f>;
 using RectPVf = RectStartSize<Point2f, Vec2f>;
+using RectPPf = RectStartEnd<Point2f, Point2f>;
 
 template <typename TTypeLeft, typename TTypeRight>
 constexpr auto Rect(TTypeLeft left, TTypeRight right) {

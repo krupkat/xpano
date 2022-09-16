@@ -66,10 +66,7 @@ class PreviewPane {
   void ZoomOut();
   void AdvanceZoom();
   void ResetZoom();
-  void HandleInputs(const utils::Point2f& window_start,
-                    const utils::Vec2f& window_size,
-                    const utils::Point2f& image_start,
-                    const utils::Vec2f& image_size);
+  void HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
 
   utils::Ratio2f tex_coord_;
 

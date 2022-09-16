@@ -33,45 +33,46 @@ void DrawMessage(utils::Point2f pos, const std::string& message) {
   ImGui::End();
 }
 
-void Overlay(utils::RectRRf rect, utils::Point2f image_start,
-             utils::Vec2f image_size) {
-  auto top_left = image_start + image_size * rect.start;
-  auto bottom_right = image_start + image_size * rect.end;
-  const auto crop_color = ImColor(255, 255, 255, 255);
-  ImGui::GetWindowDrawList()->AddRect(utils::ImVec(top_left),
-                                      utils::ImVec(bottom_right), crop_color,
-                                      0.0f, 0, 2.0f);
+auto CropRectPP(const utils::RectPVf& image, const utils::RectRRf& crop_rect) {
+  return utils::Rect(image.start + image.size * crop_rect.start,
+                     image.start + image.size * crop_rect.end);
 }
 
-bool IsMouseCloseToEdge(EdgeType edge_type, utils::Point2f top_left,
-                        utils::Point2f bottom_right, utils::Point2f mouse_pos) {
-  auto within_x_bounds = [&top_left,
-                          &bottom_right](const utils::Point2f& mouse_pos) {
-    return mouse_pos[0] > top_left[0] - kCropEdgeTolerance &&
-           mouse_pos[0] < bottom_right[0] + kCropEdgeTolerance;
+void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
+  auto rect = CropRectPP(image, crop_rect);
+  const auto crop_color = ImColor(255, 255, 255, 255);
+  ImGui::GetWindowDrawList()->AddRect(utils::ImVec(rect.start),
+                                      utils::ImVec(rect.end), crop_color, 0.0f,
+                                      0, 2.0f);
+}
+
+bool IsMouseCloseToEdge(EdgeType edge_type, const utils::RectPPf& rect,
+                        utils::Point2f mouse_pos) {
+  auto within_x_bounds = [&rect](const utils::Point2f& mouse_pos) {
+    return mouse_pos[0] > rect.start[0] - kCropEdgeTolerance &&
+           mouse_pos[0] < rect.end[0] + kCropEdgeTolerance;
   };
 
-  auto within_y_bounds = [&top_left,
-                          &bottom_right](const utils::Point2f& mouse_pos) {
-    return mouse_pos[1] > top_left[1] - kCropEdgeTolerance &&
-           mouse_pos[1] < bottom_right[1] + kCropEdgeTolerance;
+  auto within_y_bounds = [&rect](const utils::Point2f& mouse_pos) {
+    return mouse_pos[1] > rect.start[1] - kCropEdgeTolerance &&
+           mouse_pos[1] < rect.end[1] + kCropEdgeTolerance;
   };
 
   switch (edge_type) {
     case EdgeType::kTop: {
-      return std::abs(mouse_pos[1] - top_left[1]) < kCropEdgeTolerance &&
+      return std::abs(mouse_pos[1] - rect.start[1]) < kCropEdgeTolerance &&
              within_x_bounds(mouse_pos);
     }
     case EdgeType::kBottom: {
-      return std::abs(mouse_pos[1] - bottom_right[1]) < kCropEdgeTolerance &&
+      return std::abs(mouse_pos[1] - rect.end[1]) < kCropEdgeTolerance &&
              within_x_bounds(mouse_pos);
     }
     case EdgeType::kLeft: {
-      return std::abs(mouse_pos[0] - top_left[0]) < kCropEdgeTolerance &&
+      return std::abs(mouse_pos[0] - rect.start[0]) < kCropEdgeTolerance &&
              within_y_bounds(mouse_pos);
     }
     case EdgeType::kRight: {
-      return std::abs(mouse_pos[0] - bottom_right[0]) < kCropEdgeTolerance &&
+      return std::abs(mouse_pos[0] - rect.end[0]) < kCropEdgeTolerance &&
              within_y_bounds(mouse_pos);
     }
     default: {
@@ -81,17 +82,15 @@ bool IsMouseCloseToEdge(EdgeType edge_type, utils::Point2f top_left,
 }
 
 DraggableWidget Drag(const DraggableWidget& input_widget,
-                     utils::Point2f image_start, utils::Vec2f image_size,
-                     utils::Point2f mouse_pos, bool mouse_clicked,
-                     bool mouse_down) {
+                     const utils::RectPVf& image, utils::Point2f mouse_pos,
+                     bool mouse_clicked, bool mouse_down) {
   auto widget = input_widget;
-  auto top_left = image_start + image_size * widget.rect.start;
-  auto bottom_right = image_start + image_size * widget.rect.end;
+  auto rect_window_coords = CropRectPP(image, widget.rect);
 
   bool dragging = false;
   for (auto& edge : widget.edges) {
     edge.mouse_close =
-        IsMouseCloseToEdge(edge.type, top_left, bottom_right, mouse_pos);
+        IsMouseCloseToEdge(edge.type, rect_window_coords, mouse_pos);
     if (edge.mouse_close && mouse_clicked) {
       edge.dragging = true;
     }
@@ -105,9 +104,9 @@ DraggableWidget Drag(const DraggableWidget& input_widget,
     return widget;
   }
 
-  auto new_pos = (mouse_pos - image_start) / image_size;
+  auto new_pos = (mouse_pos - image.start) / image.size;
   auto tolerance =
-      utils::Vec2f{static_cast<float>(kCropEdgeTolerance)} / image_size * 10.0f;
+      utils::Vec2f{static_cast<float>(kCropEdgeTolerance)} / image.size * 10.0f;
   for (const auto& edge : widget.edges) {
     if (edge.dragging) {
       switch (edge.type) {
@@ -262,13 +261,12 @@ void PreviewPane::Reset() {
 
 void PreviewPane::Draw(const std::string& message) {
   ImGui::Begin("Preview");
-
-  auto window_start = utils::ToPoint(ImGui::GetCursorScreenPos());
-  auto available_size = utils::ToVec(ImGui::GetContentRegionAvail());
-  DrawMessage(window_start + utils::Vec2f{0.0f, available_size[1]}, message);
+  auto window = utils::Rect(utils::ToPoint(ImGui::GetCursorScreenPos()),
+                            utils::ToVec(ImGui::GetContentRegionAvail()));
+  DrawMessage(window.start + utils::Vec2f{0.0f, window.size[1]}, message);
 
   if (tex_ && image_type_ != ImageType::kNone) {
-    auto mid = window_start + available_size / 2.0f;
+    auto mid = window.start + window.size / 2.0f;
 
     float image_aspect = tex_coord_.Aspect();
     if (crop_mode_ == CropMode::kDisabled) {
@@ -276,42 +274,41 @@ void PreviewPane::Draw(const std::string& message) {
     };
 
     auto image_size =
-        available_size.Aspect() < image_aspect
-            ? utils::Vec2f{available_size[0], available_size[0] / image_aspect}
-            : utils::Vec2f{available_size[1] * image_aspect, available_size[1]};
+        window.size.Aspect() < image_aspect
+            ? utils::Vec2f{window.size[0], window.size[0] / image_aspect}
+            : utils::Vec2f{window.size[1] * image_aspect, window.size[1]};
 
-    auto p_min = mid - image_size / 2.0f;
-    auto p_max = mid + image_size / 2.0f;
+    auto image = utils::Rect(mid - image_size / 2.0f, image_size);
     if (AdvanceZoom(); IsZoomed()) {
-      p_min = window_start + available_size * screen_offset_ -
-              image_size * image_offset_ * Zoom();
-      p_max = p_min + image_size * Zoom();
+      image = utils::Rect(window.start + window.size * screen_offset_ -
+                              image_size * image_offset_ * Zoom(),
+                          image_size * Zoom());
     }
 
-    HandleInputs(window_start, available_size, p_min, image_size);
+    HandleInputs(window, image);
 
     if (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial) {
       ImGui::GetWindowDrawList()->AddImage(
-          tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
-          ImVec2(0.0f, 0.0f), utils::ImVec(tex_coord_));
-
-      if (crop_mode_ == CropMode::kEnabled) {
-        Overlay(crop_widget_.rect, p_min, image_size);
-      }
+          tex_.get(), utils::ImVec(image.start),
+          utils::ImVec(image.start + image.size), ImVec2(0.0f, 0.0f),
+          utils::ImVec(tex_coord_));
     } else {
       ImGui::GetWindowDrawList()->AddImage(
-          tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
+          tex_.get(), utils::ImVec(image.start),
+          utils::ImVec(image.start + image.size),
           utils::ImVec(tex_coord_ * crop_widget_.rect.start),
           utils::ImVec(tex_coord_ * crop_widget_.rect.end));
+    }
+
+    if (crop_mode_ == CropMode::kEnabled) {
+      Overlay(crop_widget_.rect, image);
     }
   }
   ImGui::End();
 }
 
-void PreviewPane::HandleInputs(const utils::Point2f& window_start,
-                               const utils::Vec2f& window_size,
-                               const utils::Point2f& image_start,
-                               const utils::Vec2f& image_size) {
+void PreviewPane::HandleInputs(const utils::RectPVf& window,
+                               const utils::RectPVf& image) {
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
   if (crop_mode_ == CropMode::kEnabled) {
@@ -319,8 +316,8 @@ void PreviewPane::HandleInputs(const utils::Point2f& window_start,
     bool mouse_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
 
-    crop_widget_ = Drag(crop_widget_, image_start, image_size, mouse_pos,
-                        mouse_clicked, mouse_down);
+    crop_widget_ =
+        Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
     SelectMouseCursor(crop_widget_);
     return;
   }
@@ -336,9 +333,9 @@ void PreviewPane::HandleInputs(const utils::Point2f& window_start,
 
   if (mouse_clicked || mouse_dragging || mouse_wheel != 0) {
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
-    screen_offset_ = (mouse_pos - window_start) / window_size;
+    screen_offset_ = (mouse_pos - window.start) / window.size;
     if (!mouse_dragging) {
-      image_offset_ = (mouse_pos - image_start) / Zoom() / image_size;
+      image_offset_ = (mouse_pos - image.start) / image.size;
     }
   }
   if (mouse_wheel > 0) {
