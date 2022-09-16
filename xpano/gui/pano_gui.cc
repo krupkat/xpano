@@ -349,7 +349,7 @@ Action PanoGui::ResolveFutures() {
                                           : ImageType::kPanoPreview);
       }
       if (result.auto_crop) {
-        // TODO
+        plot_pane_.SetSuggestedCrop(*result.auto_crop);
       }
     } catch (const std::exception& e) {
       status_message_ = {"Failed to stitch pano", e.what()};

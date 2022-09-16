@@ -7,6 +7,7 @@
 
 #include "xpano/constants.h"
 #include "xpano/gui/backends/base.h"
+#include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
 namespace xpano::gui {
@@ -32,12 +33,14 @@ constexpr auto DefaultEdges() {
                     Edge{EdgeType::kLeft}, Edge{EdgeType::kRight}};
 }
 
-struct CropState {
-  bool editing = false;
+constexpr auto DefaultCropRect() {
+  return utils::Rect(utils::Ratio2f{0.0f}, utils::Ratio2f{1.0f});
+}
 
-  utils::Ratio2f start = utils::Ratio2f{0.0f};
-  utils::Ratio2f end = utils::Ratio2f{1.0f};
+enum class CropMode { kInitial, kEnabled, kDisabled };
 
+struct DraggableWidget {
+  utils::RectRRf rect = DefaultCropRect();
   std::array<Edge, 4> edges = DefaultEdges();
 };
 
@@ -49,6 +52,7 @@ class PreviewPane {
   void Reset();
   void ToggleCrop();
   void EndCrop();
+  void SetSuggestedCrop(const utils::RectRRf& rect);
 
   [[nodiscard]] ImageType Type() const;
   [[nodiscard]] cv::Mat Image() const;
@@ -68,7 +72,10 @@ class PreviewPane {
                     const utils::Vec2f& image_size);
 
   utils::Ratio2f tex_coord_;
-  CropState crop_;
+
+  CropMode crop_mode_ = CropMode::kInitial;
+  DraggableWidget crop_widget_;
+  utils::RectRRf suggested_crop_ = DefaultCropRect();
 
   int zoom_id_ = 0;
   float zoom_ = 1.0f;

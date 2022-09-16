@@ -244,8 +244,8 @@ const char* Label(ProjectionType projection_type) {
 }
 
 utils::RectRRf FindLargestCropRectangle(cv::Mat image) {
-  auto start = utils::Ratio2f{0.0f};
-  auto end = utils::Ratio2f{1.0f};
+  auto start = utils::Ratio2f{0.1f};
+  auto end = utils::Ratio2f{0.9f};
 
   return Rect(start, end);
 }

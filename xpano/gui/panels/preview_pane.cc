@@ -33,10 +33,10 @@ void DrawMessage(utils::Point2f pos, const std::string& message) {
   ImGui::End();
 }
 
-void DrawCropRectangle(utils::Ratio2f crop_start, utils::Ratio2f crop_end,
-                       utils::Point2f image_start, utils::Vec2f image_size) {
-  auto top_left = image_start + image_size * crop_start;
-  auto bottom_right = image_start + image_size * crop_end;
+void Overlay(utils::RectRRf rect, utils::Point2f image_start,
+             utils::Vec2f image_size) {
+  auto top_left = image_start + image_size * rect.start;
+  auto bottom_right = image_start + image_size * rect.end;
   const auto crop_color = ImColor(255, 255, 255, 255);
   ImGui::GetWindowDrawList()->AddRect(utils::ImVec(top_left),
                                       utils::ImVec(bottom_right), crop_color,
@@ -80,16 +80,16 @@ bool IsMouseCloseToEdge(EdgeType edge_type, utils::Point2f top_left,
   }
 }
 
-CropState EditCropRectangle(const CropState& input_crop,
-                            utils::Point2f image_start, utils::Vec2f image_size,
-                            utils::Point2f mouse_pos, bool mouse_clicked,
-                            bool mouse_down) {
-  auto crop = input_crop;
-  auto top_left = image_start + image_size * crop.start;
-  auto bottom_right = image_start + image_size * crop.end;
+DraggableWidget Drag(const DraggableWidget& input_widget,
+                     utils::Point2f image_start, utils::Vec2f image_size,
+                     utils::Point2f mouse_pos, bool mouse_clicked,
+                     bool mouse_down) {
+  auto widget = input_widget;
+  auto top_left = image_start + image_size * widget.rect.start;
+  auto bottom_right = image_start + image_size * widget.rect.end;
 
   bool dragging = false;
-  for (auto& edge : crop.edges) {
+  for (auto& edge : widget.edges) {
     edge.mouse_close =
         IsMouseCloseToEdge(edge.type, top_left, bottom_right, mouse_pos);
     if (edge.mouse_close && mouse_clicked) {
@@ -102,40 +102,40 @@ CropState EditCropRectangle(const CropState& input_crop,
   }
 
   if (!dragging) {
-    return crop;
+    return widget;
   }
 
   auto new_pos = (mouse_pos - image_start) / image_size;
   auto tolerance =
       utils::Vec2f{static_cast<float>(kCropEdgeTolerance)} / image_size * 10.0f;
-  for (const auto& edge : crop.edges) {
+  for (const auto& edge : widget.edges) {
     if (edge.dragging) {
       switch (edge.type) {
         case EdgeType::kTop: {
-          crop.start[1] =
-              std::clamp(new_pos[1], 0.0f, crop.end[1] - tolerance[1]);
+          widget.rect.start[1] =
+              std::clamp(new_pos[1], 0.0f, widget.rect.end[1] - tolerance[1]);
           break;
         }
         case EdgeType::kBottom: {
-          crop.end[1] =
-              std::clamp(new_pos[1], crop.start[1] + tolerance[1], 1.0f);
+          widget.rect.end[1] =
+              std::clamp(new_pos[1], widget.rect.start[1] + tolerance[1], 1.0f);
           break;
         }
         case EdgeType::kLeft: {
-          crop.start[0] =
-              std::clamp(new_pos[0], 0.0f, crop.end[0] - tolerance[0]);
+          widget.rect.start[0] =
+              std::clamp(new_pos[0], 0.0f, widget.rect.end[0] - tolerance[0]);
           break;
         }
         case EdgeType::kRight: {
-          crop.end[0] =
-              std::clamp(new_pos[0], crop.start[0] + tolerance[0], 1.0f);
+          widget.rect.end[0] =
+              std::clamp(new_pos[0], widget.rect.start[0] + tolerance[0], 1.0f);
           break;
         }
       }
     }
   }
 
-  return crop;
+  return widget;
 }
 
 template <typename... TEdge>
@@ -143,7 +143,7 @@ constexpr int Select(TEdge... edges) {
   return (static_cast<int>(edges) + ...);
 }
 
-void SelectMouseCursor(const CropState& crop) {
+void SelectMouseCursor(const DraggableWidget& crop) {
   int mouse_cursor_selector = std::accumulate(
       crop.edges.begin(), crop.edges.end(), 0, [](int sum, const Edge& edge) {
         return sum + (edge.mouse_close || edge.dragging
@@ -193,7 +193,7 @@ float PreviewPane::Zoom() const { return zoom_; }
 bool PreviewPane::IsZoomed() const { return zoom_ != 1.0f; }
 
 void PreviewPane::ZoomIn() {
-  if (!crop_.editing && zoom_id_ < kZoomLevels - 1) {
+  if (crop_mode_ != CropMode::kEnabled && zoom_id_ < kZoomLevels - 1) {
     zoom_id_++;
   }
 }
@@ -254,7 +254,9 @@ void PreviewPane::Load(cv::Mat image, ImageType image_type) {
 void PreviewPane::Reset() {
   ResetZoom();
   image_type_ = ImageType::kNone;
-  crop_ = {};
+  crop_mode_ = CropMode::kInitial;
+  crop_widget_ = {};
+  suggested_crop_ = DefaultCropRect();
   full_resolution_pano_ = cv::Mat{};
 }
 
@@ -269,8 +271,8 @@ void PreviewPane::Draw(const std::string& message) {
     auto mid = window_start + available_size / 2.0f;
 
     float image_aspect = tex_coord_.Aspect();
-    if (!crop_.editing) {
-      image_aspect *= (crop_.end - crop_.start).Aspect();
+    if (crop_mode_ == CropMode::kDisabled) {
+      image_aspect *= utils::Aspect(crop_widget_.rect);
     };
 
     auto image_size =
@@ -288,17 +290,19 @@ void PreviewPane::Draw(const std::string& message) {
 
     HandleInputs(window_start, available_size, p_min, image_size);
 
-    if (crop_.editing) {
+    if (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial) {
       ImGui::GetWindowDrawList()->AddImage(
           tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
           ImVec2(0.0f, 0.0f), utils::ImVec(tex_coord_));
 
-      DrawCropRectangle(crop_.start, crop_.end, p_min, image_size);
+      if (crop_mode_ == CropMode::kEnabled) {
+        Overlay(crop_widget_.rect, p_min, image_size);
+      }
     } else {
       ImGui::GetWindowDrawList()->AddImage(
           tex_.get(), utils::ImVec(p_min), utils::ImVec(p_max),
-          utils::ImVec(tex_coord_ * crop_.start),
-          utils::ImVec(tex_coord_ * crop_.end));
+          utils::ImVec(tex_coord_ * crop_widget_.rect.start),
+          utils::ImVec(tex_coord_ * crop_widget_.rect.end));
     }
   }
   ImGui::End();
@@ -310,14 +314,14 @@ void PreviewPane::HandleInputs(const utils::Point2f& window_start,
                                const utils::Vec2f& image_size) {
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
-  if (crop_.editing) {
+  if (crop_mode_ == CropMode::kEnabled) {
     bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     bool mouse_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
 
-    crop_ = EditCropRectangle(crop_, image_start, image_size, mouse_pos,
-                              mouse_clicked, mouse_down);
-    SelectMouseCursor(crop_);
+    crop_widget_ = Drag(crop_widget_, image_start, image_size, mouse_pos,
+                        mouse_clicked, mouse_down);
+    SelectMouseCursor(crop_widget_);
     return;
   }
 
@@ -352,16 +356,40 @@ void PreviewPane::ToggleCrop() {
     return;
   }
 
-  crop_.editing = !crop_.editing;
-  ResetZoom();
+  switch (crop_mode_) {
+    case CropMode::kInitial:
+      ResetZoom();
+      crop_widget_.rect = suggested_crop_;
+      crop_mode_ = CropMode::kEnabled;
+      break;
+    case CropMode::kEnabled:
+      crop_mode_ = CropMode::kDisabled;
+      break;
+    case CropMode::kDisabled:
+      ResetZoom();
+      crop_mode_ = CropMode::kEnabled;
+      break;
+    default:
+      break;
+  }
 }
 
-void PreviewPane::EndCrop() { crop_.editing = false; }
+void PreviewPane::EndCrop() {
+  if (crop_mode_ == CropMode::kEnabled) {
+    crop_mode_ = CropMode::kDisabled;
+  }
+}
 
 cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
 
-utils::Ratio2f PreviewPane::CropStart() const { return crop_.start; }
+utils::Ratio2f PreviewPane::CropStart() const {
+  return crop_widget_.rect.start;
+}
 
-utils::Ratio2f PreviewPane::CropEnd() const { return crop_.end; }
+utils::Ratio2f PreviewPane::CropEnd() const { return crop_widget_.rect.end; }
+
+void PreviewPane::SetSuggestedCrop(const utils::RectRRf& suggested_crop) {
+  suggested_crop_ = suggested_crop;
+}
 
 }  // namespace xpano::gui
