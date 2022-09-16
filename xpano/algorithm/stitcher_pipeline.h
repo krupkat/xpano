@@ -46,8 +46,7 @@ struct ExportOptions {
   int pano_id = 0;
   std::string export_path;
   CompressionOptions compression;
-  utils::Ratio2f crop_start = {0.0f, 0.0f};
-  utils::Ratio2f crop_end = {1.0f, 1.0f};
+  utils::RectRRf crop;
 };
 
 struct StitcherData {

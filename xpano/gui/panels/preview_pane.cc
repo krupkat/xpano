@@ -287,18 +287,16 @@ void PreviewPane::Draw(const std::string& message) {
 
     HandleInputs(window, image);
 
-    if (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial) {
-      ImGui::GetWindowDrawList()->AddImage(
-          tex_.get(), utils::ImVec(image.start),
-          utils::ImVec(image.start + image.size), ImVec2(0.0f, 0.0f),
-          utils::ImVec(tex_coord_));
-    } else {
-      ImGui::GetWindowDrawList()->AddImage(
-          tex_.get(), utils::ImVec(image.start),
-          utils::ImVec(image.start + image.size),
-          utils::ImVec(tex_coord_ * crop_widget_.rect.start),
-          utils::ImVec(tex_coord_ * crop_widget_.rect.end));
-    }
+    auto tex_coords =
+        (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial)
+            ? utils::Rect(utils::Ratio2f{0.0f}, tex_coord_)
+            : utils::Rect(tex_coord_ * crop_widget_.rect.start,
+                          tex_coord_ * crop_widget_.rect.end);
+
+    ImGui::GetWindowDrawList()->AddImage(tex_.get(), utils::ImVec(image.start),
+                                         utils::ImVec(image.start + image.size),
+                                         utils::ImVec(tex_coords.start),
+                                         utils::ImVec(tex_coords.end));
 
     if (crop_mode_ == CropMode::kEnabled) {
       Overlay(crop_widget_.rect, image);
@@ -379,11 +377,7 @@ void PreviewPane::EndCrop() {
 
 cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
 
-utils::Ratio2f PreviewPane::CropStart() const {
-  return crop_widget_.rect.start;
-}
-
-utils::Ratio2f PreviewPane::CropEnd() const { return crop_widget_.rect.end; }
+utils::RectRRf PreviewPane::CropRect() const { return crop_widget_.rect; }
 
 void PreviewPane::SetSuggestedCrop(const utils::RectRRf& suggested_crop) {
   suggested_crop_ = suggested_crop;

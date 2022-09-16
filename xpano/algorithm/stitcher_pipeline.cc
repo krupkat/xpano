@@ -131,8 +131,8 @@ std::future<ExportResult> StitcherPipeline::RunExport(
     progress_.Reset(ProgressType::kExport, num_tasks);
 
     auto image_size = utils::ToIntVec(pano.size);
-    auto crop_start = utils::Point2f{0.0f} + image_size * options.crop_start;
-    auto crop_size = image_size * (options.crop_end - options.crop_start);
+    auto crop_start = utils::Point2f{0.0f} + image_size * options.crop.start;
+    auto crop_size = image_size * (options.crop.end - options.crop.start);
     auto crop_rect =
         utils::CvRect(utils::ToIntVec(crop_start), utils::ToIntVec(crop_size));
 

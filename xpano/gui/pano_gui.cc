@@ -228,8 +228,7 @@ Action PanoGui::PerformAction(Action action) {
                 plot_pane_.Image(), {.pano_id = selection_.target_id,
                                      .export_path = *export_path,
                                      .compression = compression_options_,
-                                     .crop_start = plot_pane_.CropStart(),
-                                     .crop_end = plot_pane_.CropEnd()});
+                                     .crop = plot_pane_.CropRect()});
           } else {
             pano_future_ = stitcher_pipeline_.RunStitching(
                 *stitcher_data_, {.pano_id = selection_.target_id,

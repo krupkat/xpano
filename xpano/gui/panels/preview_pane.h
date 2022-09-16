@@ -56,8 +56,7 @@ class PreviewPane {
 
   [[nodiscard]] ImageType Type() const;
   [[nodiscard]] cv::Mat Image() const;
-  [[nodiscard]] utils::Ratio2f CropStart() const;
-  [[nodiscard]] utils::Ratio2f CropEnd() const;
+  [[nodiscard]] utils::RectRRf CropRect() const;
 
  private:
   [[nodiscard]] float Zoom() const;
