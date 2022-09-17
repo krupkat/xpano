@@ -32,6 +32,7 @@ struct RectStartSize {
 using RectRRf = RectStartEnd<Ratio2f, Ratio2f>;
 using RectPVf = RectStartSize<Point2f, Vec2f>;
 using RectPPf = RectStartEnd<Point2f, Point2f>;
+using RectPPi = RectStartEnd<Point2i, Point2i>;
 
 template <typename TTypeLeft, typename TTypeRight>
 constexpr auto Rect(TTypeLeft left, TTypeRight right) {
@@ -50,6 +51,17 @@ auto Aspect(const TRectType& rect) {
   }
   if constexpr (std::same_as<typename TRectType::RectType, StartSize>) {
     return rect.size.Aspect();
+  }
+}
+
+template <typename TRectType>
+auto Area(const TRectType& rect) {
+  if constexpr (std::same_as<typename TRectType::RectType, StartEnd>) {
+    auto size = rect.end - rect.start;
+    return MultiplyElements(size);
+  }
+  if constexpr (std::same_as<typename TRectType::RectType, StartSize>) {
+    return MultiplyElements(rect.size);
   }
 }
 

@@ -134,6 +134,12 @@ constexpr auto ToIntVec(const Vec<TType, N, NameTag>& vec,
   return {static_cast<int>(vec[Index])...};
 }
 
+template <typename TType, size_t N, typename NameTag, std::size_t... Index>
+constexpr auto MultiplyElements(const Vec<TType, N, NameTag>& vec,
+                                std::index_sequence<Index...> /*unused*/) {
+  return (vec[Index] * ...);
+}
+
 }  // namespace internal
 
 template <typename TType, size_t N, typename NameTag>
@@ -190,6 +196,11 @@ template <typename TType, size_t N, typename Tag, typename TRatioType>
 constexpr auto operator*(const Vec<TType, N, Tag>& lhs,
                          const Vec<TRatioType, N, Ratio>& rhs) {
   return internal::MultiplyByRatio(lhs, rhs, std::make_index_sequence<N>{});
+}
+
+template <typename TType, size_t N, typename Tag>
+constexpr auto MultiplyElements(const Vec<TType, N, Tag>& vec) {
+  return internal::MultiplyElements(vec, std::make_index_sequence<N>{});
 }
 
 }  // namespace xpano::utils
