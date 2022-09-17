@@ -261,13 +261,15 @@ const char* Label(ProjectionType projection_type) {
   }
 }
 
-utils::RectRRf FindLargestCropRectangle(cv::Mat mask) {
+// NOLINTBEGIN(performance-unnecessary-value-param)
+
+utils::RectRRf FindLargestCropRectangle(cv::Mat /*mask*/) {
   auto start = utils::Ratio2f{0.0f};
   auto end = utils::Ratio2f{1.0f};
-
   // find largest area with 0xFF
-
   return Rect(start, end);
 }
+
+// NOLINTEND(performance-unnecessary-value-param)
 
 }  // namespace xpano::algorithm

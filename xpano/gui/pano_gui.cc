@@ -113,6 +113,94 @@ Action ModifyPano(int clicked_image, Selection* selection,
   }
   return {};
 }
+
+auto ResolveStitcherDataFuture(
+    std::future<pipeline::StitcherData> stitcher_data_future,
+    ThumbnailPane* thumbnail_pane, StatusMessage* status_message)
+    -> std::optional<pipeline::StitcherData> {
+  std::optional<pipeline::StitcherData> stitcher_data;
+  try {
+    stitcher_data = stitcher_data_future.get();
+  } catch (const std::exception& e) {
+    *status_message = {"Couldn't load images", e.what()};
+    spdlog::error(*status_message);
+    return {};
+  }
+  if (stitcher_data->images.empty()) {
+    *status_message = {"No images loaded"};
+    spdlog::info(*status_message);
+    return {};
+  }
+
+  thumbnail_pane->Load(stitcher_data->images);
+  *status_message = {
+      fmt::format("Loaded {} images", stitcher_data->images.size())};
+  spdlog::info(*status_message);
+  return stitcher_data;
+}
+
+auto ResolveStitchingResultFuture(
+    std::future<pipeline::StitchingResult> pano_future, PreviewPane* plot_pane,
+    StatusMessage* status_message) -> std::optional<int> {
+  pipeline::StitchingResult result;
+  try {
+    result = pano_future.get();
+    if (result.pano) {
+      plot_pane->Load(*result.pano, result.full_res ? ImageType::kPanoFullRes
+                                                    : ImageType::kPanoPreview);
+    }
+    if (result.auto_crop) {
+      plot_pane->SetSuggestedCrop(*result.auto_crop);
+    }
+  } catch (const std::exception& e) {
+    *status_message = {"Failed to stitch pano", e.what()};
+    spdlog::error(*status_message);
+    plot_pane->Reset();
+    return {};
+  }
+  if (!result.pano) {
+    *status_message = {fmt::format("Failed to stitch pano {}", result.pano_id),
+                       algorithm::ToString(result.status)};
+    spdlog::info(*status_message);
+    plot_pane->Reset();
+    return {};
+  }
+
+  *status_message = {
+      fmt::format("Stitched pano {} successfully", result.pano_id)};
+  spdlog::info(*status_message);
+  if (result.export_path) {
+    *status_message = {
+        fmt::format("Exported pano {} successfully", result.pano_id),
+        *result.export_path};
+    spdlog::info(*status_message);
+    return result.pano_id;
+  }
+  return {};
+}
+
+auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
+                         PreviewPane* plot_pane, StatusMessage* status_message)
+    -> std::optional<int> {
+  pipeline::ExportResult result;
+  try {
+    result = export_future.get();
+  } catch (const std::exception& e) {
+    *status_message = {"Failed to export pano", e.what()};
+    spdlog::error(*status_message);
+    return {};
+  }
+
+  if (result.export_path) {
+    *status_message = {
+        fmt::format("Exported pano {} successfully", result.pano_id),
+        *result.export_path};
+    spdlog::info(*status_message);
+    plot_pane->EndCrop();
+    return result.pano_id;
+  }
+  return {};
+}
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
@@ -315,85 +403,27 @@ Action PanoGui::PerformAction(Action action) {
 
 Action PanoGui::ResolveFutures() {
   if (utils::future::IsReady(stitcher_data_future_)) {
-    try {
-      stitcher_data_ = stitcher_data_future_.get();
-    } catch (const std::exception& e) {
-      status_message_ = {"Couldn't load images", e.what()};
-      spdlog::error(status_message_);
-      return {};
-    }
-    if (stitcher_data_->images.empty()) {
-      status_message_ = {"No images loaded"};
-      spdlog::info(status_message_);
-      stitcher_data_.reset();
-      return {};
-    }
+    stitcher_data_ = ResolveStitcherDataFuture(
+        std::move(stitcher_data_future_), &thumbnail_pane_, &status_message_);
 
-    thumbnail_pane_.Load(stitcher_data_->images);
-    status_message_ = {
-        fmt::format("Loaded {} images", stitcher_data_->images.size())};
-    spdlog::info(status_message_);
-    if (!stitcher_data_->panos.empty()) {
+    if (stitcher_data_ && !stitcher_data_->panos.empty()) {
       return {.type = ActionType::kShowPano, .target_id = 0, .delayed = true};
     }
   }
 
   if (utils::future::IsReady(pano_future_)) {
-    pipeline::StitchingResult result;
-    try {
-      result = pano_future_.get();
-      if (result.pano) {
-        plot_pane_.Load(*result.pano, result.full_res
-                                          ? ImageType::kPanoFullRes
-                                          : ImageType::kPanoPreview);
-      }
-      if (result.auto_crop) {
-        plot_pane_.SetSuggestedCrop(*result.auto_crop);
-      }
-    } catch (const std::exception& e) {
-      status_message_ = {"Failed to stitch pano", e.what()};
-      spdlog::error(status_message_);
-      plot_pane_.Reset();
-      return {};
-    }
-    if (!result.pano) {
-      status_message_ = {
-          fmt::format("Failed to stitch pano {}", result.pano_id),
-          algorithm::ToString(result.status)};
-      spdlog::info(status_message_);
-      plot_pane_.Reset();
-      return {};
-    }
-
-    status_message_ = {
-        fmt::format("Stitched pano {} successfully", result.pano_id)};
-    spdlog::info(status_message_);
-    if (result.export_path) {
-      status_message_ = {
-          fmt::format("Exported pano {} successfully", result.pano_id),
-          *result.export_path};
-      spdlog::info(status_message_);
-      stitcher_data_->panos[result.pano_id].exported = true;
+    auto exported_pano_id = ResolveStitchingResultFuture(
+        std::move(pano_future_), &plot_pane_, &status_message_);
+    if (exported_pano_id) {
+      stitcher_data_->panos[*exported_pano_id].exported = true;
     }
   }
 
   if (utils::future::IsReady(export_future_)) {
-    pipeline::ExportResult result;
-    try {
-      result = export_future_.get();
-    } catch (const std::exception& e) {
-      status_message_ = {"Failed to export pano", e.what()};
-      spdlog::error(status_message_);
-      return {};
-    }
-
-    if (result.export_path) {
-      status_message_ = {
-          fmt::format("Exported pano {} successfully", result.pano_id),
-          *result.export_path};
-      spdlog::info(status_message_);
-      stitcher_data_->panos[result.pano_id].exported = true;
-      plot_pane_.EndCrop();
+    auto exported_pano_id = ResolveExportFuture(std::move(export_future_),
+                                                &plot_pane_, &status_message_);
+    if (exported_pano_id) {
+      stitcher_data_->panos[*exported_pano_id].exported = true;
     }
   }
   return {};

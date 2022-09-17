@@ -379,8 +379,8 @@ cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
 
 utils::RectRRf PreviewPane::CropRect() const { return crop_widget_.rect; }
 
-void PreviewPane::SetSuggestedCrop(const utils::RectRRf& suggested_crop) {
-  suggested_crop_ = suggested_crop;
+void PreviewPane::SetSuggestedCrop(const utils::RectRRf& rect) {
+  suggested_crop_ = rect;
 }
 
 }  // namespace xpano::gui
