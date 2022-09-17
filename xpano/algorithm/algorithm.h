@@ -62,17 +62,16 @@ const char* Label(ProjectionType projection_type);
 bool HasAdvancedParameters(ProjectionType projection_type);
 
 struct ProjectionOptions {
-  algorithm::ProjectionType projection_type =
-      algorithm::ProjectionType::kSpherical;
+  ProjectionType projection_type = ProjectionType::kSpherical;
   float a_param = kDefaultPaniniA;
   float b_param = kDefaultPaniniB;
 };
 
-std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
+std::tuple<cv::Stitcher::Status, cv::Mat, cv::Mat> Stitch(
     const std::vector<cv::Mat>& images, ProjectionOptions options);
 
 std::string ToString(cv::Stitcher::Status& status);
 
-utils::RectRRf FindLargestCropRectangle(cv::Mat image);
+utils::RectRRf FindLargestCropRectangle(cv::Mat mask);
 
 }  // namespace xpano::algorithm

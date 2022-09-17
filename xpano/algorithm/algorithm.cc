@@ -160,7 +160,7 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
+std::tuple<cv::Stitcher::Status, cv::Mat, cv::Mat> Stitch(
     const std::vector<cv::Mat>& images, ProjectionOptions options) {
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
   auto warper_creator = PickWarper(options);
@@ -169,15 +169,24 @@ std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
   cv::Mat out;
   auto status = stitcher->stitch(images, out);
 
+  if (status != cv::Stitcher::OK) {
+    return {status, {}, {}};
+  }
+
+  cv::Mat mask;
+  stitcher->resultMask().copyTo(mask);
+
   if (options.projection_type == ProjectionType::kStereographic) {
     cv::rotate(out, out, cv::ROTATE_90_COUNTERCLOCKWISE);
+    cv::rotate(mask, mask, cv::ROTATE_90_COUNTERCLOCKWISE);
   }
 
   if (options.projection_type == ProjectionType::kFisheye) {
     cv::rotate(out, out, cv::ROTATE_90_CLOCKWISE);
+    cv::rotate(mask, mask, cv::ROTATE_90_CLOCKWISE);
   }
 
-  return {status, out};
+  return {status, out, mask};
 }
 
 std::string ToString(cv::Stitcher::Status& status) {
@@ -243,9 +252,11 @@ const char* Label(ProjectionType projection_type) {
   }
 }
 
-utils::RectRRf FindLargestCropRectangle(cv::Mat image) {
-  auto start = utils::Ratio2f{0.1f};
-  auto end = utils::Ratio2f{0.9f};
+utils::RectRRf FindLargestCropRectangle(cv::Mat mask) {
+  auto start = utils::Ratio2f{0.0f};
+  auto end = utils::Ratio2f{1.0f};
+
+  // find largest area with 0xFF
 
   return Rect(start, end);
 }

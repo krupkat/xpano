@@ -30,6 +30,8 @@ std::string ProgressLabel(algorithm::ProgressType type) {
       return "Loading images";
     case algorithm::ProgressType::kStitchingPano:
       return "Stitching pano";
+    case algorithm::ProgressType::kAutoCrop:
+      return "Auto crop";
     case algorithm::ProgressType::kDetectingKeypoints:
       return "Detecting keypoints";
     case algorithm::ProgressType::kMatchingImages:

@@ -84,7 +84,8 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
 
   return pool_.submit([pano, &images = data.images, options, this]() {
     int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
-                    static_cast<int>(options.export_path.has_value());
+                    static_cast<int>(options.export_path.has_value()) +
+                    static_cast<int>(options.full_res);
     progress_.Reset(ProgressType::kLoadingImages, num_tasks);
     std::vector<cv::Mat> imgs;
     for (int img_id : pano.ids) {
@@ -97,7 +98,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto [status, pano] = Stitch(imgs, options.projection);
+    auto [status, pano, mask] = Stitch(imgs, options.projection);
     progress_.NotifyTaskDone();
 
     if (status != cv::Stitcher::OK) {
@@ -106,7 +107,9 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
 
     std::optional<utils::RectRRf> auto_crop;
     if (options.full_res) {
-      auto_crop = FindLargestCropRectangle(pano);
+      progress_.SetTaskType(ProgressType::kAutoCrop);
+      auto_crop = FindLargestCropRectangle(mask);
+      progress_.NotifyTaskDone();
     }
 
     std::optional<std::string> export_path;

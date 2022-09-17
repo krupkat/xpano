@@ -73,6 +73,7 @@ enum class ProgressType {
   kNone,
   kLoadingImages,
   kStitchingPano,
+  kAutoCrop,
   kDetectingKeypoints,
   kMatchingImages,
   kExport,
