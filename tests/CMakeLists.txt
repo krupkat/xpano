@@ -8,7 +8,7 @@ add_executable(StitcherTest
   stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc
   ../xpano/algorithm/image.cc
-  ../xpano/algorithm/stitcher_pipeline.cc
+  ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc)
 
 target_link_libraries(StitcherTest 

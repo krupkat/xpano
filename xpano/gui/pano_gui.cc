@@ -13,7 +13,6 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/file_dialog.h"
@@ -23,6 +22,7 @@
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/shortcut.h"
 #include "xpano/log/logger.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
 
@@ -339,7 +339,7 @@ Action PanoGui::ResolveFutures() {
   }
 
   if (utils::future::IsReady(pano_future_)) {
-    algorithm::StitchingResult result;
+    pipeline::StitchingResult result;
     try {
       result = pano_future_.get();
       if (result.pano) {
@@ -378,7 +378,7 @@ Action PanoGui::ResolveFutures() {
   }
 
   if (utils::future::IsReady(export_future_)) {
-    algorithm::ExportResult result;
+    pipeline::ExportResult result;
     try {
       result = export_future_.get();
     } catch (const std::exception& e) {

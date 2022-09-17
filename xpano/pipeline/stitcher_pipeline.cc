@@ -1,4 +1,4 @@
-#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 
 #include <algorithm>
 #include <atomic>
@@ -19,7 +19,7 @@
 #include "xpano/utils/vec.h"
 #include "xpano/utils/vec_opencv.h"
 
-namespace xpano::algorithm {
+namespace xpano::pipeline {
 namespace {
 
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
@@ -98,7 +98,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto [status, pano, mask] = Stitch(imgs, options.projection);
+    auto [status, pano, mask] = algorithm::Stitch(imgs, options.projection);
     progress_.NotifyTaskDone();
 
     if (status != cv::Stitcher::OK) {
@@ -108,7 +108,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     std::optional<utils::RectRRf> auto_crop;
     if (options.full_res) {
       progress_.SetTaskType(ProgressType::kAutoCrop);
-      auto_crop = FindLargestCropRectangle(mask);
+      auto_crop = algorithm::FindLargestCropRectangle(mask);
       progress_.NotifyTaskDone();
     }
 
@@ -160,7 +160,7 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
   BS::multi_future<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
     loading_future.push_back(pool_.submit([this, options, input]() {
-      Image image(input);
+      algorithm::Image image(input);
       image.Load(options.preview_longer_side);
       progress_.NotifyTaskDone();
       return image;
@@ -177,7 +177,7 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
   auto images = loading_future.get();
 
   auto num_erased =
-      std::erase_if(images, [](const Image &img) { return !img.IsLoaded(); });
+      std::erase_if(images, [](const auto &img) { return !img.IsLoaded(); });
   if (num_erased > 0) {
     spdlog::warn("Failed to load {} images", num_erased);
   }
@@ -199,12 +199,12 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
       ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
 
   progress_.Reset(ProgressType::kMatchingImages, num_tasks);
-  BS::multi_future<Match> matches_future;
+  BS::multi_future<algorithm::Match> matches_future;
   for (int j = 0; j < images.size(); j++) {
     for (int i = std::max(0, j - num_neighbors); i < j; i++) {
       matches_future.push_back(
           pool_.submit([this, i, j, left = images[i], right = images[j]]() {
-            auto match = Match{i, j, MatchImages(left, right)};
+            auto match = algorithm::Match{i, j, MatchImages(left, right)};
             progress_.NotifyTaskDone();
             return match;
           }));
@@ -225,4 +225,4 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   return StitcherData{images, matches, panos};
 }
 
-}  // namespace xpano::algorithm
+}  // namespace xpano::pipeline

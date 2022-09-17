@@ -11,32 +11,32 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/shortcut.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/imgui_.h"
 
 namespace xpano::gui {
 
 namespace {
-std::string ProgressLabel(algorithm::ProgressType type) {
+std::string ProgressLabel(pipeline::ProgressType type) {
   switch (type) {
     default:
       return "";
-    case algorithm::ProgressType::kLoadingImages:
+    case pipeline::ProgressType::kLoadingImages:
       return "Loading images";
-    case algorithm::ProgressType::kStitchingPano:
+    case pipeline::ProgressType::kStitchingPano:
       return "Stitching pano";
-    case algorithm::ProgressType::kAutoCrop:
+    case pipeline::ProgressType::kAutoCrop:
       return "Auto crop";
-    case algorithm::ProgressType::kDetectingKeypoints:
+    case pipeline::ProgressType::kDetectingKeypoints:
       return "Detecting keypoints";
-    case algorithm::ProgressType::kMatchingImages:
+    case pipeline::ProgressType::kMatchingImages:
       return "Matching images";
-    case algorithm::ProgressType::kExport:
+    case pipeline::ProgressType::kExport:
       return "Exporting pano";
   }
 }
@@ -63,7 +63,7 @@ Action DrawFileMenu() {
 }
 
 void DrawCompressionOptionsMenu(
-    algorithm::CompressionOptions* compression_options) {
+    pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Export compression")) {
     ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
                      kMaxJpegQuality);
@@ -75,7 +75,7 @@ void DrawCompressionOptionsMenu(
   }
 }
 
-void DrawLoadingOptionsMenu(algorithm::LoadingOptions* loading_options) {
+void DrawLoadingOptionsMenu(pipeline::LoadingOptions* loading_options) {
   if (ImGui::BeginMenu("Image loading")) {
     ImGui::Text(
         "Modify this for faster image loading / more precision in panorama "
@@ -98,7 +98,7 @@ void DrawLoadingOptionsMenu(algorithm::LoadingOptions* loading_options) {
   }
 }
 
-void DrawMatchingOptionsMenu(algorithm::MatchingOptions* matching_options) {
+void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options) {
   if (ImGui::BeginMenu("Panorama detection")) {
     ImGui::Text(
         "Experiment with this if the app cannot find the panoramas you "
@@ -156,9 +156,9 @@ Action DrawProjectionOptionsMenu(
   return action;
 }
 
-Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
-                       algorithm::LoadingOptions* loading_options,
-                       algorithm::MatchingOptions* matching_options,
+Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
+                       pipeline::LoadingOptions* loading_options,
+                       pipeline::MatchingOptions* matching_options,
                        algorithm::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
@@ -187,7 +187,7 @@ Action DrawHelpMenu() {
 }
 }  // namespace
 
-void DrawProgressBar(algorithm::ProgressReport progress) {
+void DrawProgressBar(pipeline::ProgressReport progress) {
   if (progress.num_tasks == 0) {
     return;
   }
@@ -293,9 +293,9 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(algorithm::CompressionOptions* compression_options,
-                algorithm::LoadingOptions* loading_options,
-                algorithm::MatchingOptions* matching_options,
+Action DrawMenu(pipeline::CompressionOptions* compression_options,
+                pipeline::LoadingOptions* loading_options,
+                pipeline::MatchingOptions* matching_options,
                 algorithm::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {

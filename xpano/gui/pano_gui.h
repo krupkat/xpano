@@ -4,7 +4,6 @@
 #include <optional>
 #include <string>
 
-#include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/panels/about.h"
@@ -12,6 +11,7 @@
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/log/logger.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/text.h"
 
 namespace xpano::gui {
@@ -52,11 +52,11 @@ class PanoGui {
   Action delayed_action_ = {ActionType::kNone};
   StatusMessage status_message_;
 
-  algorithm::CompressionOptions compression_options_;
-  algorithm::LoadingOptions loading_options_;
-  algorithm::MatchingOptions matching_options_;
+  pipeline::CompressionOptions compression_options_;
+  pipeline::LoadingOptions loading_options_;
+  pipeline::MatchingOptions matching_options_;
   algorithm::ProjectionOptions projection_options_;
-  std::optional<algorithm::StitcherData> stitcher_data_;
+  std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels
   LogPane log_pane_;
@@ -65,10 +65,10 @@ class PanoGui {
   ThumbnailPane thumbnail_pane_;
 
   // Algorithm
-  algorithm::StitcherPipeline stitcher_pipeline_;
-  std::future<algorithm::StitcherData> stitcher_data_future_;
-  std::future<algorithm::StitchingResult> pano_future_;
-  std::future<algorithm::ExportResult> export_future_;
+  pipeline::StitcherPipeline stitcher_pipeline_;
+  std::future<pipeline::StitcherData> stitcher_data_future_;
+  std::future<pipeline::StitchingResult> pano_future_;
+  std::future<pipeline::ExportResult> export_future_;
 };
 
 }  // namespace xpano::gui

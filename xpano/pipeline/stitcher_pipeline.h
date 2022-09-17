@@ -16,7 +16,7 @@
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
-namespace xpano::algorithm {
+namespace xpano::pipeline {
 
 struct CompressionOptions {
   int jpeg_quality = kDefaultJpegQuality;
@@ -39,7 +39,7 @@ struct StitchingOptions {
   bool full_res = false;
   std::optional<std::string> export_path;
   CompressionOptions compression;
-  ProjectionOptions projection;
+  algorithm::ProjectionOptions projection;
 };
 
 struct ExportOptions {
@@ -50,7 +50,7 @@ struct ExportOptions {
 };
 
 struct StitcherData {
-  std::vector<Image> images;
+  std::vector<algorithm::Image> images;
   std::vector<algorithm::Match> matches;
   std::vector<algorithm::Pano> panos;
 };
@@ -127,4 +127,4 @@ class StitcherPipeline {
   BS::thread_pool pool_;
 };
 
-}  // namespace xpano::algorithm
+}  // namespace xpano::pipeline

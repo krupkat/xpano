@@ -1,4 +1,4 @@
-#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 
 #include <string>
 #include <vector>
@@ -19,7 +19,7 @@ const std::vector<std::string> kInputs = {
 };
 
 TEST_CASE("Stitcher pipeline defaults") {
-  xpano::algorithm::StitcherPipeline stitcher;
+  xpano::pipeline::StitcherPipeline stitcher;
 
   auto result = stitcher.RunLoading(kInputs, {}, {}).get();
   auto progress = stitcher.LoadingProgress();
@@ -58,7 +58,7 @@ const std::vector<std::string> kShuffledInputs = {
 };
 
 TEST_CASE("Stitcher pipeline custom matching neighborhood") {
-  xpano::algorithm::StitcherPipeline stitcher;
+  xpano::pipeline::StitcherPipeline stitcher;
 
   auto result =
       stitcher.RunLoading(kShuffledInputs, {}, {.neighborhood_search_size = 3})
@@ -76,7 +76,7 @@ TEST_CASE("Stitcher pipeline custom matching neighborhood") {
 // NOLINTBEGIN(readability-magic-numbers)
 
 TEST_CASE("Stitcher pipeline larger neighborhood size") {
-  xpano::algorithm::StitcherPipeline stitcher;
+  xpano::pipeline::StitcherPipeline stitcher;
 
   auto result = stitcher
                     .RunLoading({"data/image01.jpg", "data/image02.jpg",
@@ -94,7 +94,7 @@ TEST_CASE("Stitcher pipeline larger neighborhood size") {
 // NOLINTEND(readability-magic-numbers)
 
 TEST_CASE("Stitcher pipeline single image") {
-  xpano::algorithm::StitcherPipeline stitcher;
+  xpano::pipeline::StitcherPipeline stitcher;
 
   auto result = stitcher.RunLoading({"data/image01.jpg"}, {}, {}).get();
   auto progress = stitcher.LoadingProgress();
@@ -105,7 +105,7 @@ TEST_CASE("Stitcher pipeline single image") {
 }
 
 TEST_CASE("Stitcher pipeline no images") {
-  xpano::algorithm::StitcherPipeline stitcher;
+  xpano::pipeline::StitcherPipeline stitcher;
 
   auto result = stitcher.RunLoading({}, {}, {}).get();
   auto progress = stitcher.LoadingProgress();
@@ -116,7 +116,7 @@ TEST_CASE("Stitcher pipeline no images") {
 }
 
 TEST_CASE("Stitcher pipeline loading options") {
-  xpano::algorithm::StitcherPipeline stitcher;
+  xpano::pipeline::StitcherPipeline stitcher;
 
   const int preview_size = 512;
   const int allowed_margin = 1.0;
