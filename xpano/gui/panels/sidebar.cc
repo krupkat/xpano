@@ -130,18 +130,17 @@ Action DrawProjectionOptionsMenu(
     ImGui::Text("Projection type:");
     ImGui::Spacing();
     if (ImGui::BeginCombo("##projection_type",
-                          Label(projection_options->projection_type))) {
+                          Label(projection_options->type))) {
       for (const auto projection_type : algorithm::kProjectionTypes) {
-        if (ImGui::Selectable(
-                Label(projection_type),
-                projection_type == projection_options->projection_type)) {
-          projection_options->projection_type = projection_type;
+        if (ImGui::Selectable(Label(projection_type),
+                              projection_type == projection_options->type)) {
+          projection_options->type = projection_type;
           action |= {ActionType::kRecomputePano};
         }
       }
       ImGui::EndCombo();
     }
-    if (algorithm::HasAdvancedParameters(projection_options->projection_type)) {
+    if (algorithm::HasAdvancedParameters(projection_options->type)) {
       ImGui::Text("Advanced projection parameters:");
       ImGui::Spacing();
       if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {

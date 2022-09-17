@@ -98,7 +98,9 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     }
 
     progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto [status, pano, mask] = algorithm::Stitch(imgs, options.projection);
+    auto [status, pano, mask] =
+        algorithm::Stitch(imgs, {.projection = options.projection,
+                                 .return_pano_mask = options.full_res});
     progress_.NotifyTaskDone();
 
     if (status != cv::Stitcher::OK) {

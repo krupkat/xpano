@@ -283,7 +283,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
-                     Label(projection_options_.projection_type));
+                     Label(projection_options_.type));
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
                 .delayed = true};

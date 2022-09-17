@@ -62,13 +62,23 @@ const char* Label(ProjectionType projection_type);
 bool HasAdvancedParameters(ProjectionType projection_type);
 
 struct ProjectionOptions {
-  ProjectionType projection_type = ProjectionType::kSpherical;
+  ProjectionType type = ProjectionType::kSpherical;
   float a_param = kDefaultPaniniA;
   float b_param = kDefaultPaniniB;
 };
 
-std::tuple<cv::Stitcher::Status, cv::Mat, cv::Mat> Stitch(
-    const std::vector<cv::Mat>& images, ProjectionOptions options);
+struct StitchOptions {
+  ProjectionOptions projection;
+  bool return_pano_mask = false;
+};
+
+struct StitchResult {
+  cv::Stitcher::Status status;
+  cv::Mat pano;
+  cv::Mat mask;
+};
+
+StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options);
 
 std::string ToString(cv::Stitcher::Status& status);
 

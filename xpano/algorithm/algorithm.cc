@@ -27,7 +27,7 @@ void InsertInOrder(int value, std::vector<int>* vec) {
 }
 cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
   cv::Ptr<cv::WarperCreator> warper_creator;
-  switch (options.projection_type) {
+  switch (options.type) {
     case ProjectionType::kPerspective:
       warper_creator = cv::makePtr<cv::PlaneWarper>();
       break;
@@ -67,6 +67,17 @@ cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
       break;
   }
   return warper_creator;
+}
+
+std::optional<cv::RotateFlags> GetRotationFlags(ProjectionOptions options) {
+  switch (options.type) {
+    case ProjectionType::kStereographic:
+      return cv::ROTATE_90_COUNTERCLOCKWISE;
+    case ProjectionType::kFisheye:
+      return cv::ROTATE_90_CLOCKWISE;
+    default:
+      return {};
+  }
 }
 
 }  // namespace
@@ -160,33 +171,31 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-std::tuple<cv::Stitcher::Status, cv::Mat, cv::Mat> Stitch(
-    const std::vector<cv::Mat>& images, ProjectionOptions options) {
+StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
-  auto warper_creator = PickWarper(options);
+  auto warper_creator = PickWarper(options.projection);
   stitcher->setWarper(warper_creator);
 
-  cv::Mat out;
-  auto status = stitcher->stitch(images, out);
+  cv::Mat pano;
+  auto status = stitcher->stitch(images, pano);
 
   if (status != cv::Stitcher::OK) {
     return {status, {}, {}};
   }
 
   cv::Mat mask;
-  stitcher->resultMask().copyTo(mask);
-
-  if (options.projection_type == ProjectionType::kStereographic) {
-    cv::rotate(out, out, cv::ROTATE_90_COUNTERCLOCKWISE);
-    cv::rotate(mask, mask, cv::ROTATE_90_COUNTERCLOCKWISE);
+  if (options.return_pano_mask) {
+    stitcher->resultMask().copyTo(mask);
   }
 
-  if (options.projection_type == ProjectionType::kFisheye) {
-    cv::rotate(out, out, cv::ROTATE_90_CLOCKWISE);
-    cv::rotate(mask, mask, cv::ROTATE_90_CLOCKWISE);
+  if (auto rotate = GetRotationFlags(options.projection); rotate) {
+    cv::rotate(pano, pano, *rotate);
+    if (options.return_pano_mask) {
+      cv::rotate(mask, mask, *rotate);
+    }
   }
 
-  return {status, out, mask};
+  return {status, pano, mask};
 }
 
 std::string ToString(cv::Stitcher::Status& status) {
