@@ -2,7 +2,6 @@
 
 #include <array>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -10,6 +9,7 @@
 
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/rect.h"
 
 namespace xpano::algorithm {
 
@@ -61,15 +61,26 @@ const char* Label(ProjectionType projection_type);
 bool HasAdvancedParameters(ProjectionType projection_type);
 
 struct ProjectionOptions {
-  algorithm::ProjectionType projection_type =
-      algorithm::ProjectionType::kSpherical;
+  ProjectionType type = ProjectionType::kSpherical;
   float a_param = kDefaultPaniniA;
   float b_param = kDefaultPaniniB;
 };
 
-std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
-    const std::vector<cv::Mat>& images, ProjectionOptions options);
+struct StitchOptions {
+  ProjectionOptions projection;
+  bool return_pano_mask = false;
+};
+
+struct StitchResult {
+  cv::Stitcher::Status status;
+  cv::Mat pano;
+  cv::Mat mask;
+};
+
+StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options);
 
 std::string ToString(cv::Stitcher::Status& status);
+
+utils::RectRRf FindLargestCropRectangle(cv::Mat mask);
 
 }  // namespace xpano::algorithm

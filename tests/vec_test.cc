@@ -129,6 +129,12 @@ TEST_CASE("Subtract type checks") {
   REQUIRE(!Subtractable<Vec2f, Point2f>);
   REQUIRE(Subtractable<Point2f, Vec2f, Point2f>);
   REQUIRE(Subtractable<Point2f, Point2f, Vec2f>);
+
+  REQUIRE(Subtractable<Ratio2f, Ratio2f, Ratio2f>);
+  REQUIRE(!Subtractable<Vec2f, Ratio2f>);
+  REQUIRE(!Subtractable<Point2f, Ratio2f>);
+  REQUIRE(!Subtractable<Ratio2f, Vec2f>);
+  REQUIRE(!Subtractable<Ratio2f, Point2f>);
 }
 
 TEST_CASE("Divide by constant") {

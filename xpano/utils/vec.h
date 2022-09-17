@@ -11,9 +11,12 @@ struct Vector;
 struct Point;
 struct Ratio;
 
-template <typename TType, size_t N, typename NameTag = void>
+template <typename TType, size_t N, typename TNameTag = void>
 struct Vec {
  public:
+  using ValueType = TType;
+  using NameTag = TNameTag;
+
   constexpr Vec() = default;
 
   template <typename TFillType>
@@ -105,13 +108,15 @@ constexpr auto Add(const Vec<TType, N, TagLeft>& lhs,
 
 template <typename TagLeft, typename TagRight>
 concept Subtractable =
-    !(std::same_as<TagLeft, Vector> &&
-      std::same_as<TagRight, Point>)&&!std::same_as<TagLeft, Ratio> &&
-    !std::same_as<TagRight, Ratio>;
+    (std::same_as<TagLeft, Vector> && std::same_as<TagRight, Vector>) ||
+    (std::same_as<TagLeft, Point> && std::same_as<TagRight, Vector>) ||
+    (std::same_as<TagLeft, Point> && std::same_as<TagRight, Point>) ||
+    (std::same_as<TagLeft, Ratio> && std::same_as<TagRight, Ratio>);
 
 template <typename TagLeft, typename TagRight>
-using SubtractResultTag =
-    std::conditional_t<std::is_same_v<TagLeft, TagRight>, Vector, Point>;
+using SubtractResultTag = std::conditional_t<
+    std::is_same_v<TagLeft, Ratio> && std::is_same_v<TagRight, Ratio>, Ratio,
+    std::conditional_t<std::is_same_v<TagLeft, TagRight>, Vector, Point>>;
 
 template <typename TType, size_t N, typename TagLeft, typename TagRight,
           std::size_t... Index>
@@ -149,6 +154,7 @@ constexpr auto operator+(const Vec<TType, N, TagLeft>& lhs,
 // Vec - Vec = Vec
 // Point - Vec = Point
 // Point - Point = Vec
+// Ratio - Ratio = Ratio
 template <typename TType, size_t N, typename TagLeft, typename TagRight>
 requires internal::Subtractable<TagLeft, TagRight>
 constexpr auto operator-(const Vec<TType, N, TagLeft>& lhs,

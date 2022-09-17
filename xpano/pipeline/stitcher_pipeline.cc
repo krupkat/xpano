@@ -1,10 +1,11 @@
-#include "xpano/algorithm/stitcher_pipeline.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 
 #include <algorithm>
 #include <atomic>
 #include <future>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <BS_thread_pool.hpp>
@@ -16,8 +17,10 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/vec.h"
+#include "xpano/utils/vec_opencv.h"
 
-namespace xpano::algorithm {
+namespace xpano::pipeline {
 namespace {
 
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
@@ -61,7 +64,7 @@ void StitcherPipeline::Cancel() {
     pool_.cancel_tasks();
     pool_.unpause();
 
-    loading_progress_.Reset(ProgressType::kNone, 0);
+    progress_.Reset(ProgressType::kNone, 0);
   }
 }
 
@@ -82,53 +85,87 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
 
   return pool_.submit([pano, &images = data.images, options, this]() {
     int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
-                    static_cast<int>(options.export_path.has_value());
-    loading_progress_.Reset(ProgressType::kLoadingImages, num_tasks);
+                    static_cast<int>(options.export_path.has_value()) +
+                    static_cast<int>(options.full_res);
+    progress_.Reset(ProgressType::kLoadingImages, num_tasks);
     std::vector<cv::Mat> imgs;
     for (int img_id : pano.ids) {
-      if (options.export_path) {
+      if (options.full_res) {
         imgs.push_back(images[img_id].GetFullRes());
       } else {
         imgs.push_back(images[img_id].GetPreview());
       }
-      loading_progress_.NotifyTaskDone();
+      progress_.NotifyTaskDone();
     }
 
-    loading_progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto [status, pano] = Stitch(imgs, options.projection);
-    loading_progress_.NotifyTaskDone();
+    progress_.SetTaskType(ProgressType::kStitchingPano);
+    auto [status, pano, mask] =
+        algorithm::Stitch(imgs, {.projection = options.projection,
+                                 .return_pano_mask = options.full_res});
+    progress_.NotifyTaskDone();
 
     if (status != cv::Stitcher::OK) {
-      return StitchingResult{options.pano_id, status};
+      return StitchingResult{.pano_id = options.pano_id, .status = status};
+    }
+
+    std::optional<utils::RectRRf> auto_crop;
+    if (options.full_res) {
+      progress_.SetTaskType(ProgressType::kAutoCrop);
+      auto_crop = algorithm::FindLargestCropRectangle(mask);
+      progress_.NotifyTaskDone();
     }
 
     std::optional<std::string> export_path;
     if (options.export_path) {
+      progress_.SetTaskType(ProgressType::kExport);
       if (cv::imwrite(*options.export_path, pano,
                       CompressionParameters(options.compression))) {
         export_path = options.export_path;
       }
-      loading_progress_.NotifyTaskDone();
+      progress_.NotifyTaskDone();
     }
 
-    return StitchingResult{options.pano_id, status, pano, export_path};
+    return StitchingResult{options.pano_id, options.full_res, status, pano,
+                           auto_crop,       export_path};
+  });
+}
+
+std::future<ExportResult> StitcherPipeline::RunExport(
+    cv::Mat pano, const ExportOptions &options) {
+  return pool_.submit([pano = std::move(pano), options, this]() {
+    int num_tasks = 1;
+    progress_.Reset(ProgressType::kExport, num_tasks);
+
+    auto image_size = utils::ToIntVec(pano.size);
+    auto crop_start = utils::Point2f{0.0f} + image_size * options.crop.start;
+    auto crop_size = image_size * (options.crop.end - options.crop.start);
+    auto crop_rect =
+        utils::CvRect(utils::ToIntVec(crop_start), utils::ToIntVec(crop_size));
+
+    std::optional<std::string> export_path;
+    if (cv::imwrite(options.export_path, pano(crop_rect),
+                    CompressionParameters(options.compression))) {
+      export_path = options.export_path;
+    }
+    progress_.NotifyTaskDone();
+    return ExportResult{options.pano_id, export_path};
   });
 }
 
 ProgressReport StitcherPipeline::LoadingProgress() const {
-  return loading_progress_.Progress();
+  return progress_.Progress();
 }
 
 std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
     const std::vector<std::string> &inputs, const LoadingOptions &options) {
   int num_tasks = static_cast<int>(inputs.size());
-  loading_progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
+  progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
   BS::multi_future<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
     loading_future.push_back(pool_.submit([this, options, input]() {
-      Image image(input);
+      algorithm::Image image(input);
       image.Load(options.preview_longer_side);
-      loading_progress_.NotifyTaskDone();
+      progress_.NotifyTaskDone();
       return image;
     }));
   }
@@ -143,7 +180,7 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
   auto images = loading_future.get();
 
   auto num_erased =
-      std::erase_if(images, [](const Image &img) { return !img.IsLoaded(); });
+      std::erase_if(images, [](const auto &img) { return !img.IsLoaded(); });
   if (num_erased > 0) {
     spdlog::warn("Failed to load {} images", num_erased);
   }
@@ -164,14 +201,14 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
       (num_images - num_neighbors) * num_neighbors +  // full n-tuples
       ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
 
-  loading_progress_.Reset(ProgressType::kMatchingImages, num_tasks);
-  BS::multi_future<Match> matches_future;
+  progress_.Reset(ProgressType::kMatchingImages, num_tasks);
+  BS::multi_future<algorithm::Match> matches_future;
   for (int j = 0; j < images.size(); j++) {
     for (int i = std::max(0, j - num_neighbors); i < j; i++) {
       matches_future.push_back(
           pool_.submit([this, i, j, left = images[i], right = images[j]]() {
-            auto match = Match{i, j, MatchImages(left, right)};
-            loading_progress_.NotifyTaskDone();
+            auto match = algorithm::Match{i, j, MatchImages(left, right)};
+            progress_.NotifyTaskDone();
             return match;
           }));
     }
@@ -187,8 +224,8 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   auto matches = matches_future.get();
 
   auto panos = FindPanos(matches, options.match_threshold);
-  loading_progress_.NotifyTaskDone();
+  progress_.NotifyTaskDone();
   return StitcherData{images, matches, panos};
 }
 
-}  // namespace xpano::algorithm
+}  // namespace xpano::pipeline

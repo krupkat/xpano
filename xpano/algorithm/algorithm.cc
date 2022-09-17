@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -15,6 +16,8 @@
 
 #include "xpano/algorithm/image.h"
 #include "xpano/utils/disjoint_set.h"
+#include "xpano/utils/rect.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::algorithm {
 
@@ -25,7 +28,7 @@ void InsertInOrder(int value, std::vector<int>* vec) {
 }
 cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
   cv::Ptr<cv::WarperCreator> warper_creator;
-  switch (options.projection_type) {
+  switch (options.type) {
     case ProjectionType::kPerspective:
       warper_creator = cv::makePtr<cv::PlaneWarper>();
       break;
@@ -65,6 +68,17 @@ cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
       break;
   }
   return warper_creator;
+}
+
+std::optional<cv::RotateFlags> GetRotationFlags(ProjectionOptions options) {
+  switch (options.type) {
+    case ProjectionType::kStereographic:
+      return cv::ROTATE_90_COUNTERCLOCKWISE;
+    case ProjectionType::kFisheye:
+      return cv::ROTATE_90_CLOCKWISE;
+    default:
+      return {};
+  }
 }
 
 }  // namespace
@@ -158,24 +172,31 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-std::pair<cv::Stitcher::Status, cv::Mat> Stitch(
-    const std::vector<cv::Mat>& images, ProjectionOptions options) {
+StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
-  auto warper_creator = PickWarper(options);
+  auto warper_creator = PickWarper(options.projection);
   stitcher->setWarper(warper_creator);
 
-  cv::Mat out;
-  auto status = stitcher->stitch(images, out);
+  cv::Mat pano;
+  auto status = stitcher->stitch(images, pano);
 
-  if (options.projection_type == ProjectionType::kStereographic) {
-    cv::rotate(out, out, cv::ROTATE_90_COUNTERCLOCKWISE);
+  if (status != cv::Stitcher::OK) {
+    return {status, {}, {}};
   }
 
-  if (options.projection_type == ProjectionType::kFisheye) {
-    cv::rotate(out, out, cv::ROTATE_90_CLOCKWISE);
+  cv::Mat mask;
+  if (options.return_pano_mask) {
+    stitcher->resultMask().copyTo(mask);
   }
 
-  return {status, out};
+  if (auto rotate = GetRotationFlags(options.projection); rotate) {
+    cv::rotate(pano, pano, *rotate);
+    if (options.return_pano_mask) {
+      cv::rotate(mask, mask, *rotate);
+    }
+  }
+
+  return {status, pano, mask};
 }
 
 std::string ToString(cv::Stitcher::Status& status) {
@@ -240,5 +261,16 @@ const char* Label(ProjectionType projection_type) {
       return "Unknown";
   }
 }
+
+// NOLINTBEGIN(performance-unnecessary-value-param)
+
+utils::RectRRf FindLargestCropRectangle(cv::Mat /*mask*/) {
+  auto start = utils::Ratio2f{0.0f};
+  auto end = utils::Ratio2f{1.0f};
+  // find largest area with 0xFF
+  return Rect(start, end);
+}
+
+// NOLINTEND(performance-unnecessary-value-param)
 
 }  // namespace xpano::algorithm

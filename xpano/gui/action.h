@@ -5,6 +5,7 @@ namespace xpano::gui {
 enum class ActionType {
   kNone,
   kCancelPipeline,
+  kToggleCrop,
   kDisableHighlight,
   kExport,
   kOpenDirectory,
@@ -13,6 +14,7 @@ enum class ActionType {
   kShowImage,
   kShowMatch,
   kShowPano,
+  kShowFullResPano,
   kModifyPano,
   kRecomputePano,
   kQuit,

@@ -11,28 +11,33 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/stitcher_pipeline.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
+#include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/shortcut.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/imgui_.h"
 
 namespace xpano::gui {
 
 namespace {
-std::string ProgressLabel(algorithm::ProgressType type) {
+std::string ProgressLabel(pipeline::ProgressType type) {
   switch (type) {
     default:
       return "";
-    case algorithm::ProgressType::kLoadingImages:
+    case pipeline::ProgressType::kLoadingImages:
       return "Loading images";
-    case algorithm::ProgressType::kStitchingPano:
+    case pipeline::ProgressType::kStitchingPano:
       return "Stitching pano";
-    case algorithm::ProgressType::kDetectingKeypoints:
+    case pipeline::ProgressType::kAutoCrop:
+      return "Auto crop";
+    case pipeline::ProgressType::kDetectingKeypoints:
       return "Detecting keypoints";
-    case algorithm::ProgressType::kMatchingImages:
+    case pipeline::ProgressType::kMatchingImages:
       return "Matching images";
+    case pipeline::ProgressType::kExport:
+      return "Exporting pano";
   }
 }
 
@@ -58,7 +63,7 @@ Action DrawFileMenu() {
 }
 
 void DrawCompressionOptionsMenu(
-    algorithm::CompressionOptions* compression_options) {
+    pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Export compression")) {
     ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
                      kMaxJpegQuality);
@@ -70,7 +75,7 @@ void DrawCompressionOptionsMenu(
   }
 }
 
-void DrawLoadingOptionsMenu(algorithm::LoadingOptions* loading_options) {
+void DrawLoadingOptionsMenu(pipeline::LoadingOptions* loading_options) {
   if (ImGui::BeginMenu("Image loading")) {
     ImGui::Text(
         "Modify this for faster image loading / more precision in panorama "
@@ -93,7 +98,7 @@ void DrawLoadingOptionsMenu(algorithm::LoadingOptions* loading_options) {
   }
 }
 
-void DrawMatchingOptionsMenu(algorithm::MatchingOptions* matching_options) {
+void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options) {
   if (ImGui::BeginMenu("Panorama detection")) {
     ImGui::Text(
         "Experiment with this if the app cannot find the panoramas you "
@@ -119,24 +124,23 @@ void DrawMatchingOptionsMenu(algorithm::MatchingOptions* matching_options) {
 }
 
 Action DrawProjectionOptionsMenu(
-    algorithm::ProjectionOptions* projection_options) {
+    pipeline::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Panorama stitching")) {
     ImGui::Text("Projection type:");
     ImGui::Spacing();
     if (ImGui::BeginCombo("##projection_type",
-                          Label(projection_options->projection_type))) {
+                          Label(projection_options->type))) {
       for (const auto projection_type : algorithm::kProjectionTypes) {
-        if (ImGui::Selectable(
-                Label(projection_type),
-                projection_type == projection_options->projection_type)) {
-          projection_options->projection_type = projection_type;
+        if (ImGui::Selectable(Label(projection_type),
+                              projection_type == projection_options->type)) {
+          projection_options->type = projection_type;
           action |= {ActionType::kRecomputePano};
         }
       }
       ImGui::EndCombo();
     }
-    if (algorithm::HasAdvancedParameters(projection_options->projection_type)) {
+    if (algorithm::HasAdvancedParameters(projection_options->type)) {
       ImGui::Text("Advanced projection parameters:");
       ImGui::Spacing();
       if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {
@@ -151,10 +155,10 @@ Action DrawProjectionOptionsMenu(
   return action;
 }
 
-Action DrawOptionsMenu(algorithm::CompressionOptions* compression_options,
-                       algorithm::LoadingOptions* loading_options,
-                       algorithm::MatchingOptions* matching_options,
-                       algorithm::ProjectionOptions* projection_options) {
+Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
+                       pipeline::LoadingOptions* loading_options,
+                       pipeline::MatchingOptions* matching_options,
+                       pipeline::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     DrawCompressionOptionsMenu(compression_options);
@@ -182,7 +186,7 @@ Action DrawHelpMenu() {
 }
 }  // namespace
 
-void DrawProgressBar(algorithm::ProgressReport progress) {
+void DrawProgressBar(pipeline::ProgressReport progress) {
   if (progress.num_tasks == 0) {
     return;
   }
@@ -288,10 +292,10 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(algorithm::CompressionOptions* compression_options,
-                algorithm::LoadingOptions* loading_options,
-                algorithm::MatchingOptions* matching_options,
-                algorithm::ProjectionOptions* projection_options) {
+Action DrawMenu(pipeline::CompressionOptions* compression_options,
+                pipeline::LoadingOptions* loading_options,
+                pipeline::MatchingOptions* matching_options,
+                pipeline::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
@@ -316,11 +320,49 @@ void DrawWelcomeText() {
       "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
       "to add / edit / delete panoramas\nc) Zoom and pan the images with your "
       "mouse");
-  ImGui::Text(" 3) Export");
+  ImGui::Text(" 3) Available actions:");
   ImGui::SameLine();
-  utils::imgui::InfoMarker("(?)",
-                           "a) Keyboard shortcut: CTRL+S\nb) Exported panos "
-                           "will be marked by a check mark");
+  utils::imgui::InfoMarker(
+      "(?)",
+      "a) Compute full resolution panorama preview\nb) Crop mode (working "
+      "only with full resolution preview)\nc) Panorama export\n - Works either "
+      "with preview or full resolution panoramas\n - In both cases exports a "
+      "full resolution panorama");
+  ImGui::Spacing();
+}
+
+Action DrawActionButtons(ImageType image_type, int target_id) {
+  Action action{};
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Full-res")) {
+          action |=
+              {.type = ActionType::kShowFullResPano, .target_id = target_id};
+        }
+      },
+      image_type == ImageType::kPanoFullRes ? "Already computed"
+                                            : "First select a panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes,
+      [&] {
+        if (ImGui::Button("Crop mode")) {
+          action |= {ActionType::kToggleCrop};
+        }
+      },
+      "First compute full resolution panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes ||
+          image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Export")) {
+          action |= {ActionType::kExport};
+        }
+      },
+      "First select a panorama");
+  return action;
 }
 
 }  // namespace xpano::gui

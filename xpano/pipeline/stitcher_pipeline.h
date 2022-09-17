@@ -13,8 +13,9 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/rect.h"
 
-namespace xpano::algorithm {
+namespace xpano::pipeline {
 
 struct CompressionOptions {
   int jpeg_quality = kDefaultJpegQuality;
@@ -32,23 +33,40 @@ struct LoadingOptions {
   int preview_longer_side = kDefaultPreviewLongerSide;
 };
 
+using ProjectionOptions = algorithm::ProjectionOptions;
+
 struct StitchingOptions {
   int pano_id = 0;
+  bool full_res = false;
   std::optional<std::string> export_path;
   CompressionOptions compression;
   ProjectionOptions projection;
 };
 
+struct ExportOptions {
+  int pano_id = 0;
+  std::string export_path;
+  CompressionOptions compression;
+  utils::RectRRf crop;
+};
+
 struct StitcherData {
-  std::vector<Image> images;
+  std::vector<algorithm::Image> images;
   std::vector<algorithm::Match> matches;
   std::vector<algorithm::Pano> panos;
 };
 
 struct StitchingResult {
   int pano_id = 0;
+  bool full_res = false;
   cv::Stitcher::Status status;
   std::optional<cv::Mat> pano;
+  std::optional<utils::RectRRf> auto_crop;
+  std::optional<std::string> export_path;
+};
+
+struct ExportResult {
+  int pano_id = 0;
   std::optional<std::string> export_path;
 };
 
@@ -56,8 +74,10 @@ enum class ProgressType {
   kNone,
   kLoadingImages,
   kStitchingPano,
+  kAutoCrop,
   kDetectingKeypoints,
-  kMatchingImages
+  kMatchingImages,
+  kExport,
 };
 
 struct ProgressReport {
@@ -89,6 +109,9 @@ class StitcherPipeline {
                                        const MatchingOptions &matching_options);
   std::future<StitchingResult> RunStitching(const StitcherData &data,
                                             const StitchingOptions &options);
+
+  std::future<ExportResult> RunExport(cv::Mat pano,
+                                      const ExportOptions &options);
   ProgressReport LoadingProgress() const;
 
   void Cancel();
@@ -99,10 +122,10 @@ class StitcherPipeline {
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
                                    const MatchingOptions &options);
 
-  ProgressMonitor loading_progress_;
+  ProgressMonitor progress_;
 
   std::atomic<bool> cancel_tasks_ = false;
   BS::thread_pool pool_;
 };
 
-}  // namespace xpano::algorithm
+}  // namespace xpano::pipeline
