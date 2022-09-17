@@ -36,6 +36,18 @@ target_include_directories(VecTest PRIVATE
   ".."
 )
 
+add_executable(RectTest 
+  rect_test.cc
+)
+
+target_link_libraries(RectTest 
+  Catch2::Catch2WithMain
+)
+
+target_include_directories(RectTest PRIVATE 
+  ".."
+)
+
 add_executable(DisjointSetTest 
   disjoint_set_test.cc
   ../xpano/utils/disjoint_set.cc
@@ -51,8 +63,9 @@ target_include_directories(DisjointSetTest PRIVATE
 
 set(ALL_TEST_TARGETS
   DisjointSetTest
+  RectTest
   StitcherTest
-  VecTest
+  VecTest  
 )
 
 foreach(name ${ALL_TEST_TARGETS})
