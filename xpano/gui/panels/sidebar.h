@@ -27,7 +27,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 Action DrawMenu(pipeline::CompressionOptions* compression_options,
                 pipeline::LoadingOptions* loading_options,
                 pipeline::MatchingOptions* matching_options,
-                algorithm::ProjectionOptions* projection_options);
+                pipeline::ProjectionOptions* projection_options);
 
 void DrawWelcomeText();
 

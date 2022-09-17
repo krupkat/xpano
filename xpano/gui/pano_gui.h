@@ -55,7 +55,7 @@ class PanoGui {
   pipeline::CompressionOptions compression_options_;
   pipeline::LoadingOptions loading_options_;
   pipeline::MatchingOptions matching_options_;
-  algorithm::ProjectionOptions projection_options_;
+  pipeline::ProjectionOptions projection_options_;
   std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels

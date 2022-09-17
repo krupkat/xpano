@@ -34,12 +34,14 @@ struct LoadingOptions {
   int preview_longer_side = kDefaultPreviewLongerSide;
 };
 
+using ProjectionOptions = algorithm::ProjectionOptions;
+
 struct StitchingOptions {
   int pano_id = 0;
   bool full_res = false;
   std::optional<std::string> export_path;
   CompressionOptions compression;
-  algorithm::ProjectionOptions projection;
+  ProjectionOptions projection;
 };
 
 struct ExportOptions {

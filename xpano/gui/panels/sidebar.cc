@@ -124,7 +124,7 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options) {
 }
 
 Action DrawProjectionOptionsMenu(
-    algorithm::ProjectionOptions* projection_options) {
+    pipeline::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Panorama stitching")) {
     ImGui::Text("Projection type:");
@@ -158,7 +158,7 @@ Action DrawProjectionOptionsMenu(
 Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
                        pipeline::LoadingOptions* loading_options,
                        pipeline::MatchingOptions* matching_options,
-                       algorithm::ProjectionOptions* projection_options) {
+                       pipeline::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     DrawCompressionOptionsMenu(compression_options);
@@ -295,7 +295,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 Action DrawMenu(pipeline::CompressionOptions* compression_options,
                 pipeline::LoadingOptions* loading_options,
                 pipeline::MatchingOptions* matching_options,
-                algorithm::ProjectionOptions* projection_options) {
+                pipeline::ProjectionOptions* projection_options) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
