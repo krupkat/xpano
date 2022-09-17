@@ -2,7 +2,6 @@
 
 #include <array>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <opencv2/core.hpp>

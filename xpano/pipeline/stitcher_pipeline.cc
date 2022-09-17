@@ -5,6 +5,7 @@
 #include <future>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <BS_thread_pool.hpp>

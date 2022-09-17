@@ -14,7 +14,6 @@
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
 #include "xpano/utils/rect.h"
-#include "xpano/utils/vec.h"
 
 namespace xpano::pipeline {
 
