@@ -301,4 +301,12 @@ TEST_CASE("Multiply type checks") {
   }
 }
 
+TEST_CASE("Multiply elements") {
+  Vec2f vec1 = {2.0f, 2.5f};
+  Vec2i vec2 = {4, 8};
+
+  REQUIRE(xpano::utils::MultiplyElements(vec1) == Approx(5.0f));
+  REQUIRE(xpano::utils::MultiplyElements(vec2) == 32);
+}
+
 // NOLINTEND(readability-magic-numbers)

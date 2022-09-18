@@ -111,7 +111,7 @@ std::future<StitchingResult> StitcherPipeline::RunStitching(
     std::optional<utils::RectRRf> auto_crop;
     if (options.full_res) {
       progress_.SetTaskType(ProgressType::kAutoCrop);
-      auto_crop = algorithm::FindLargestCropRectangle(mask);
+      auto_crop = algorithm::FindLargestCrop(mask);
       progress_.NotifyTaskDone();
     }
 

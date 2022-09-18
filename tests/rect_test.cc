@@ -49,3 +49,11 @@ TEST_CASE("Rect Aspect") {
   CHECK(Aspect(rect_pv) == Approx(0.5f));
   CHECK(Aspect(rect_pp) == Approx(0.5f));
 }
+
+TEST_CASE("Rect Area") {
+  auto rect_pv = Rect(Point2f{1.0f, 2.0f}, Vec2f{1.0f, 2.0f});
+  auto rect_pp = Rect(Point2f{1.0f, 2.0f}, Point2f{2.0f, 4.0f});
+
+  CHECK(Area(rect_pv) == Approx(2.0f));
+  CHECK(Area(rect_pp) == Approx(2.0f));
+}

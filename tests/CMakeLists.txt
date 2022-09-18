@@ -7,6 +7,7 @@ include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 add_executable(StitcherTest 
   stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc
+  ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/image.cc
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc)
