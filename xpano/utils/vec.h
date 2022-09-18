@@ -3,6 +3,7 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <ostream>
 #include <type_traits>
 
 namespace xpano::utils {
@@ -140,6 +141,20 @@ constexpr auto MultiplyElements(const Vec<TType, N, NameTag>& vec,
   return (vec[Index] * ...);
 }
 
+template <typename TType, size_t N, typename Tag, std::size_t... Index>
+constexpr auto Equals(const Vec<TType, N, Tag>& lhs,
+                      const Vec<TType, N, Tag>& rhs,
+                      std::index_sequence<Index...> /*unused*/) -> bool {
+  return ((lhs[Index] == rhs[Index]) && ...);
+}
+
+template <typename TType, size_t N, typename Tag, std::size_t... Index>
+std::ostream& Print(std::ostream& ostream, const Vec<TType, N, Tag>& vec,
+                    std::index_sequence<Index...> /*unused*/) {
+  ((ostream << vec[Index] << ' '), ...);
+  return ostream;
+}
+
 }  // namespace internal
 
 template <typename TType, size_t N, typename NameTag>
@@ -201,6 +216,17 @@ constexpr auto operator*(const Vec<TType, N, Tag>& lhs,
 template <typename TType, size_t N, typename Tag>
 constexpr auto MultiplyElements(const Vec<TType, N, Tag>& vec) {
   return internal::MultiplyElements(vec, std::make_index_sequence<N>{});
+}
+
+template <typename TType, size_t N, typename Tag>
+constexpr auto operator==(const Vec<TType, N, Tag>& lhs,
+                          const Vec<TType, N, Tag>& rhs) {
+  return internal::Equals(lhs, rhs, std::make_index_sequence<N>{});
+}
+
+template <typename TType, size_t N, typename Tag>
+std::ostream& operator<<(std::ostream& ostream, const Vec<TType, N, Tag>& vec) {
+  return internal::Print(ostream, vec, std::make_index_sequence<N>{});
 }
 
 }  // namespace xpano::utils

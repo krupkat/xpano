@@ -309,4 +309,13 @@ TEST_CASE("Multiply elements") {
   REQUIRE(xpano::utils::MultiplyElements(vec2) == 32);
 }
 
+TEST_CASE("Equality") {
+  Vec2f vec1 = {1.0f, 2.0f};
+  Vec2f vec2 = {1.0f, 2.0f};
+  Vec2f vec3 = {1.0f, 3.0f};
+
+  REQUIRE(vec1 == vec2);
+  REQUIRE(vec1 != vec3);
+}
+
 // NOLINTEND(readability-magic-numbers)

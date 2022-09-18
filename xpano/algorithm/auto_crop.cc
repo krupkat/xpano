@@ -59,6 +59,11 @@ std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
 
 }  // namespace
 
+// Approximage solution only.
+// Full solution would be https://stackoverflow.com/questions/2478447
+// This algorithm starts in the middle and expands the rectangle simultaneously
+// to the left and right. For the sake of simplicity if an empty column is
+// encountered, returns the current largest rectangle.
 std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask) {
   Line invalid_line = {mask.rows, 0};
   std::vector<Line> lines(mask.cols);
@@ -68,13 +73,16 @@ std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask) {
   }
 
   int half_size = mask.cols / 2;
-  int left_start = half_size - (half_size % 2 == 0 ? 1 : 0);
-  int right_start = half_size;
-
   auto is_line_valid = [](const Line& line) { return line.start <= line.end; };
-  auto current_rect = utils::RectPPi{{0, 0}, {0, mask.rows - 1}};
-  std::optional<utils::RectPPi> largest_rect;
+  if (mask.cols == 0 || !is_line_valid(lines[half_size])) {
+    return {};
+  }
+  auto current_rect = utils::RectPPi{{half_size, lines[half_size].start},
+                                     {half_size, lines[half_size].end}};
+  auto largest_rect = current_rect;
 
+  int left_start = half_size - 1;
+  int right_start = half_size + mask.cols % 2;
   for (int i = 0; i < half_size; i++) {
     auto left = left_start - i;
     auto right = right_start + i;
@@ -82,12 +90,14 @@ std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask) {
     auto right_line = lines[right];
 
     if (!is_line_valid(left_line)) {
-      spdlog::warn("Auto crop: empty panorama at x = {}", left);
+      spdlog::warn("Auto crop: empty panorama at x = {} y1 {} y2 {}", left,
+                   left_line.start, left_line.end);
       return largest_rect;
     }
 
     if (!is_line_valid(right_line)) {
-      spdlog::warn("Auto crop: empty panorama at x = {}", right);
+      spdlog::warn("Auto crop: empty panorama at x = {} y1 {} y2 {}", right,
+                   right_line.start, right_line.end);
       return largest_rect;
     }
 
@@ -104,8 +114,7 @@ std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask) {
       current_rect.end[1] = bottom;
     }
 
-    if (!largest_rect ||
-        utils::Area(current_rect) > utils::Area(*largest_rect)) {
+    if (utils::Area(current_rect) >= utils::Area(largest_rect)) {
       largest_rect = current_rect;
     }
   }
