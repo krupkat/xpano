@@ -1,6 +1,8 @@
 #include "xpano/algorithm/auto_crop.h"
 
+#include <algorithm>
 #include <optional>
+#include <vector>
 
 #include <opencv2/core.hpp>
 #include <spdlog/spdlog.h>
@@ -18,7 +20,7 @@ struct Line {
 
 int Length(const Line& line) { return line.end - line.start; }
 
-bool IsSet(unsigned char value) { return value == 0xFF; }
+bool IsSet(unsigned char value) { return value == kMaskValueOn; }
 
 std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
   std::optional<Line> current_line;
@@ -64,7 +66,7 @@ std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
 // This algorithm starts in the middle and expands the rectangle simultaneously
 // to the left and right. For the sake of simplicity if an empty column is
 // encountered, returns the current largest rectangle.
-std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask) {
+std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
   Line invalid_line = {mask.rows, 0};
   std::vector<Line> lines(mask.cols);
   for (int i = 0; i < mask.cols; i++) {
@@ -90,14 +92,12 @@ std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask) {
     auto right_line = lines[right];
 
     if (!is_line_valid(left_line)) {
-      spdlog::warn("Auto crop: empty panorama at x = {} y1 {} y2 {}", left,
-                   left_line.start, left_line.end);
+      spdlog::warn("Auto crop: empty panorama at x = {}", left);
       return largest_rect;
     }
 
     if (!is_line_valid(right_line)) {
-      spdlog::warn("Auto crop: empty panorama at x = {} y1 {} y2 {}", right,
-                   right_line.start, right_line.end);
+      spdlog::warn("Auto crop: empty panorama at x = {}", right);
       return largest_rect;
     }
 

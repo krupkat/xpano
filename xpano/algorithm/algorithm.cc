@@ -263,7 +263,7 @@ const char* Label(ProjectionType projection_type) {
   }
 }
 
-std::optional<utils::RectRRf> FindLargestCrop(cv::Mat mask) {
+std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask) {
   std::optional<utils::RectPPi> largest_rect = crop::FindLargestCrop(mask);
   if (!largest_rect) {
     return {};

@@ -82,6 +82,6 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options);
 
 std::string ToString(cv::Stitcher::Status& status);
 
-std::optional<utils::RectRRf> FindLargestCrop(cv::Mat mask);
+std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 
 }  // namespace xpano::algorithm

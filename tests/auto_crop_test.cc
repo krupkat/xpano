@@ -6,6 +6,7 @@
 #include "xpano/utils/vec.h"
 
 using xpano::algorithm::crop::FindLargestCrop;
+using xpano::algorithm::crop::kMaskValueOn;
 using xpano::utils::Point2i;
 
 // NOLINTBEGIN(readability-magic-numbers)
@@ -17,7 +18,7 @@ TEST_CASE("Auto crop empty mask") {
 }
 
 TEST_CASE("Auto crop full mask / even size") {
-  cv::Mat mask(10, 20, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(10, 20, CV_8U, cv::Scalar(kMaskValueOn));
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
@@ -25,7 +26,7 @@ TEST_CASE("Auto crop full mask / even size") {
 }
 
 TEST_CASE("Auto crop full mask / odd size") {
-  cv::Mat mask(10, 21, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(10, 21, CV_8U, cv::Scalar(kMaskValueOn));
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
@@ -33,7 +34,7 @@ TEST_CASE("Auto crop full mask / odd size") {
 }
 
 TEST_CASE("Auto crop single column mask") {
-  cv::Mat mask(10, 1, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(10, 1, CV_8U, cv::Scalar(kMaskValueOn));
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
@@ -41,7 +42,7 @@ TEST_CASE("Auto crop single column mask") {
 }
 
 TEST_CASE("Auto crop two columns mask") {
-  cv::Mat mask(10, 2, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(10, 2, CV_8U, cv::Scalar(kMaskValueOn));
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
@@ -49,7 +50,7 @@ TEST_CASE("Auto crop two columns mask") {
 }
 
 TEST_CASE("Auto crop single row mask") {
-  cv::Mat mask(1, 20, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(1, 20, CV_8U, cv::Scalar(kMaskValueOn));
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
@@ -57,7 +58,7 @@ TEST_CASE("Auto crop single row mask") {
 }
 
 TEST_CASE("Auto crop two rows mask") {
-  cv::Mat mask(2, 20, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(2, 20, CV_8U, cv::Scalar(kMaskValueOn));
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
@@ -68,7 +69,7 @@ TEST_CASE("Auto crop mask with rows set") {
   cv::Mat mask(10, 20, CV_8U, cv::Scalar(0));
 
   SECTION("single row") {
-    mask.row(5) = 0xFF;
+    mask.row(5) = kMaskValueOn;
     auto result = FindLargestCrop(mask);
     REQUIRE(result.has_value());
     CHECK(result->start == Point2i{0, 5});
@@ -76,8 +77,8 @@ TEST_CASE("Auto crop mask with rows set") {
   }
 
   SECTION("two rows") {
-    mask.row(5) = 0xFF;
-    mask.row(6) = 0xFF;
+    mask.row(5) = kMaskValueOn;
+    mask.row(6) = kMaskValueOn;
     auto result = FindLargestCrop(mask);
     REQUIRE(result.has_value());
     CHECK(result->start == Point2i{0, 5});
@@ -86,7 +87,7 @@ TEST_CASE("Auto crop mask with rows set") {
 }
 
 TEST_CASE("Auto crop mask with empty column") {
-  cv::Mat mask(10, 20, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(10, 20, CV_8U, cv::Scalar(kMaskValueOn));
   mask.col(5) = 0;
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
@@ -114,7 +115,7 @@ II->1 1 1 1 1 1
             IV
 */
 TEST_CASE("Auto crop complex case") {
-  cv::Mat mask(6, 6, CV_8U, cv::Scalar(0xFF));
+  cv::Mat mask(6, 6, CV_8U, cv::Scalar(kMaskValueOn));
   mask.at<unsigned char>(0, 4) = 0;
   mask.at<unsigned char>(1, 2) = 0;
   mask.at<unsigned char>(1, 5) = 0;
