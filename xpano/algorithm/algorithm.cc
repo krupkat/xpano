@@ -264,7 +264,12 @@ const char* Label(ProjectionType projection_type) {
 }
 
 std::optional<utils::RectRRf> FindLargestCrop(cv::Mat mask) {
-  return crop::FindLargestCrop(mask);
+  std::optional<utils::RectPPi> largest_rect = crop::FindLargestCrop(mask);
+  if (!largest_rect) {
+    return {};
+  }
+  auto image_end = utils::Point2i{mask.cols, mask.rows};
+  return Rect(largest_rect->start / image_end, largest_rect->end / image_end);
 }
 
 }  // namespace xpano::algorithm

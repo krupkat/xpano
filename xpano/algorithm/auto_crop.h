@@ -8,6 +8,6 @@
 
 namespace xpano::algorithm::crop {
 
-std::optional<utils::RectRRf> FindLargestCrop(cv::Mat mask);
+std::optional<utils::RectPPi> FindLargestCrop(cv::Mat mask);
 
 }
