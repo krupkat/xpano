@@ -7,7 +7,6 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
 #include "xpano/gui/backends/base.h"

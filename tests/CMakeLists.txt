@@ -4,9 +4,24 @@ find_package(Catch2 REQUIRED)
 include(Catch)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
+add_executable(AutoCropTest 
+  auto_crop_test.cc
+  ../xpano/algorithm/auto_crop.cc)
+
+target_link_libraries(AutoCropTest 
+  Catch2::Catch2WithMain
+  ${OPENCV_TARGETS}
+  spdlog::spdlog
+)
+
+target_include_directories(AutoCropTest PRIVATE 
+  ".."
+)
+
 add_executable(StitcherTest 
   stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc
+  ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/image.cc
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc)
@@ -62,6 +77,7 @@ target_include_directories(DisjointSetTest PRIVATE
 )
 
 set(ALL_TEST_TARGETS
+  AutoCropTest
   DisjointSetTest
   RectTest
   StitcherTest

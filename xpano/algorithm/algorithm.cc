@@ -14,6 +14,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/stitching.hpp>
 
+#include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
@@ -262,15 +263,13 @@ const char* Label(ProjectionType projection_type) {
   }
 }
 
-// NOLINTBEGIN(performance-unnecessary-value-param)
-
-utils::RectRRf FindLargestCropRectangle(cv::Mat /*mask*/) {
-  auto start = utils::Ratio2f{0.0f};
-  auto end = utils::Ratio2f{1.0f};
-  // find largest area with 0xFF
-  return Rect(start, end);
+std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask) {
+  std::optional<utils::RectPPi> largest_rect = crop::FindLargestCrop(mask);
+  if (!largest_rect) {
+    return {};
+  }
+  auto image_end = utils::Point2i{mask.cols, mask.rows};
+  return Rect(largest_rect->start / image_end, largest_rect->end / image_end);
 }
-
-// NOLINTEND(performance-unnecessary-value-param)
 
 }  // namespace xpano::algorithm
