@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <opencv2/core.hpp>
-#include <spdlog/spdlog.h>
 
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
@@ -63,10 +62,12 @@ std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
 
 // Approximage solution only.
 // Full solution would be https://stackoverflow.com/questions/2478447
-// This algorithm starts in the middle and expands the rectangle simultaneously
-// to the left and right. For the sake of simplicity if an empty column is
-// encountered, returns the current largest rectangle.
+// This algorithm starts in the middle and expands the rectangle in the
+// direction with the larger area.
 std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
+  if (mask.empty()) {
+    return {};
+  }
   Line invalid_line = {mask.rows, 0};
   std::vector<Line> lines(mask.cols);
   for (int i = 0; i < mask.cols; i++) {
@@ -75,43 +76,38 @@ std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
   }
 
   int half_size = mask.cols / 2;
-  auto is_line_valid = [](const Line& line) { return line.start <= line.end; };
-  if (mask.cols == 0 || !is_line_valid(lines[half_size])) {
+  auto is_line_valid = [](const Line& line) { return line.start < line.end; };
+  if (!is_line_valid(lines[half_size])) {
     return {};
   }
   auto current_rect = utils::RectPPi{{half_size, lines[half_size].start},
                                      {half_size + 1, lines[half_size].end}};
   auto largest_rect = current_rect;
+  if (mask.cols == 1) {
+    return largest_rect;
+  }
 
-  int left_start = half_size - 1;
-  int right_start = half_size + mask.cols % 2;
-  for (int i = 0; i < half_size; i++) {
-    auto left = left_start - i;
-    auto right = right_start + i;
-    auto left_line = lines[left];
-    auto right_line = lines[right];
+  int left = half_size - 1;
+  int right = half_size + mask.cols % 2;
+  auto left_line = lines[left];
+  auto right_line = lines[right];
 
-    if (!is_line_valid(left_line)) {
-      spdlog::warn("Auto crop: empty panorama at x = {}", left);
-      return largest_rect;
-    }
+  while (is_line_valid(left_line) || is_line_valid(right_line)) {
+    auto left_rect = utils::RectPPi{
+        {left, std::max(left_line.start, current_rect.start[1])},
+        {current_rect.end[0], std::min(left_line.end, current_rect.end[1])}};
 
-    if (!is_line_valid(right_line)) {
-      spdlog::warn("Auto crop: empty panorama at x = {}", right);
-      return largest_rect;
-    }
+    auto right_rect = utils::RectPPi{
+        {current_rect.start[0],
+         std::max(right_line.start, current_rect.start[1])},
+        {right + 1, std::min(right_line.end, current_rect.end[1])}};
 
-    current_rect.start[0] = left;
-    current_rect.end[0] = right + 1;
-
-    if (int top = std::max(left_line.start, right_line.start);
-        top > current_rect.start[1]) {
-      current_rect.start[1] = top;
-    }
-
-    if (int bottom = std::min(left_line.end, right_line.end);
-        bottom < current_rect.end[1]) {
-      current_rect.end[1] = bottom;
+    if (utils::Area(left_rect) > utils::Area(right_rect)) {
+      current_rect = left_rect;
+      left_line = (left == 0) ? invalid_line : lines[--left];
+    } else {
+      current_rect = right_rect;
+      right_line = (right == mask.cols - 1) ? invalid_line : lines[++right];
     }
 
     if (utils::Area(current_rect) >= utils::Area(largest_rect)) {

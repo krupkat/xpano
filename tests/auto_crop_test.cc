@@ -91,10 +91,8 @@ TEST_CASE("Auto crop mask with empty column") {
   mask.col(5) = 0;
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
-  // Algorithm will stop when encountering empty column 5
-  // this is to simplify the implementation
   CHECK(result->start == Point2i{6, 0});
-  CHECK(result->end == Point2i{14, 10});
+  CHECK(result->end == Point2i{20, 10});
 }
 
 TEST_CASE("Auto crop empty matrix") {
@@ -141,6 +139,7 @@ TEST_CASE("Auto crop complex case I") {
 TEST_CASE("Auto crop complex case II") {
   cv::Mat mask(6, 6, CV_8U, cv::Scalar(kMaskValueOn));
   mask.at<unsigned char>(2, 2) = 0;
+  mask.at<unsigned char>(3, 0) = 0;
 
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
