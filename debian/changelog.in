@@ -1,3 +1,9 @@
+xpano (0.6.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.6.0, crop mode, faster stitching
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Mon, 19 Sep 2022 17:19:57 +0200
+
 xpano (0.5.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.5.0, selectable projection types, smooth zooming and scrolling
