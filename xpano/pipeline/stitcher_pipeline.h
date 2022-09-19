@@ -112,7 +112,7 @@ class StitcherPipeline {
 
   std::future<ExportResult> RunExport(cv::Mat pano,
                                       const ExportOptions &options);
-  ProgressReport LoadingProgress() const;
+  ProgressReport Progress() const;
 
   void Cancel();
 
@@ -121,6 +121,9 @@ class StitcherPipeline {
       const std::vector<std::string> &inputs, const LoadingOptions &options);
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
                                    const MatchingOptions &options);
+  StitchingResult RunStitchingPipeline(
+      const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
+      const StitchingOptions &options);
 
   ProgressMonitor progress_;
 
