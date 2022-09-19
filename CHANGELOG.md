@@ -1,3 +1,11 @@
+# Xpano 0.6.0
+
+- Crop mode
+  - Automatic detection of the largest rectangle in the panorama
+  - Manual adjustment
+- New action buttons in the gui: Full resolution preview, Crop mode, Export
+- Stitching speedup
+
 # Xpano 0.5.0
 
 - Selectable projection types (OpenCV implementations):
