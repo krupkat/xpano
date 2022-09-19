@@ -248,7 +248,7 @@ Action PanoGui::DrawSidebar() {
   action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id);
   ImGui::Spacing();
 
-  auto progress = stitcher_pipeline_.LoadingProgress();
+  auto progress = stitcher_pipeline_.Progress();
   DrawProgressBar(progress);
   if (progress.tasks_done < progress.num_tasks) {
     if (ImGui::SmallButton("Cancel")) {
