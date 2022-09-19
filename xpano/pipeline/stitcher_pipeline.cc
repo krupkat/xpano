@@ -118,7 +118,11 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   progress_.NotifyTaskDone();
 
   if (status != cv::Stitcher::OK) {
-    return StitchingResult{.pano_id = options.pano_id, .status = status};
+    return StitchingResult{
+        .pano_id = options.pano_id,
+        .full_res = options.full_res,
+        .status = status,
+    };
   }
 
   std::optional<utils::RectRRf> auto_crop;

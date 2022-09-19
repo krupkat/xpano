@@ -39,6 +39,21 @@ auto CropRectPP(const utils::RectPVf& image, const utils::RectRRf& crop_rect) {
 
 void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
   auto rect = CropRectPP(image, crop_rect);
+
+  const auto transparent_color = ImColor(0, 0, 0, 128);
+  auto start = ImVec2(image.start[0], image.start[1]);
+  auto end = ImVec2(rect.start[0], image.start[1] + image.size[1]);
+  ImGui::GetWindowDrawList()->AddRectFilled(start, end, transparent_color);
+  start = ImVec2(rect.end[0], image.start[1]);
+  end = ImVec2(image.start[0] + image.size[0], image.start[1] + image.size[1]);
+  ImGui::GetWindowDrawList()->AddRectFilled(start, end, transparent_color);
+  start = ImVec2(rect.start[0], image.start[1]);
+  end = ImVec2(rect.end[0], rect.start[1]);
+  ImGui::GetWindowDrawList()->AddRectFilled(start, end, transparent_color);
+  start = ImVec2(rect.start[0], rect.end[1]);
+  end = ImVec2(rect.end[0], image.start[1] + image.size[1]);
+  ImGui::GetWindowDrawList()->AddRectFilled(start, end, transparent_color);
+
   const auto crop_color = ImColor(255, 255, 255, 255);
   ImGui::GetWindowDrawList()->AddRect(utils::ImVec(rect.start),
                                       utils::ImVec(rect.end), crop_color, 0.0f,

@@ -2,6 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "xpano/utils/vec.h"
 
@@ -22,7 +23,7 @@ TEST_CASE("Auto crop full mask / even size") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
-  CHECK(result->end == Point2i{19, 9});
+  CHECK(result->end == Point2i{20, 10});
 }
 
 TEST_CASE("Auto crop full mask / odd size") {
@@ -30,7 +31,7 @@ TEST_CASE("Auto crop full mask / odd size") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
-  CHECK(result->end == Point2i{20, 9});
+  CHECK(result->end == Point2i{21, 10});
 }
 
 TEST_CASE("Auto crop single column mask") {
@@ -38,7 +39,7 @@ TEST_CASE("Auto crop single column mask") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
-  CHECK(result->end == Point2i{0, 9});
+  CHECK(result->end == Point2i{1, 10});
 }
 
 TEST_CASE("Auto crop two columns mask") {
@@ -46,7 +47,7 @@ TEST_CASE("Auto crop two columns mask") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
-  CHECK(result->end == Point2i{1, 9});
+  CHECK(result->end == Point2i{2, 10});
 }
 
 TEST_CASE("Auto crop single row mask") {
@@ -54,7 +55,7 @@ TEST_CASE("Auto crop single row mask") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
-  CHECK(result->end == Point2i{19, 0});
+  CHECK(result->end == Point2i{20, 1});
 }
 
 TEST_CASE("Auto crop two rows mask") {
@@ -62,7 +63,7 @@ TEST_CASE("Auto crop two rows mask") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{0, 0});
-  CHECK(result->end == Point2i{19, 1});
+  CHECK(result->end == Point2i{20, 2});
 }
 
 TEST_CASE("Auto crop mask with rows set") {
@@ -73,7 +74,7 @@ TEST_CASE("Auto crop mask with rows set") {
     auto result = FindLargestCrop(mask);
     REQUIRE(result.has_value());
     CHECK(result->start == Point2i{0, 5});
-    CHECK(result->end == Point2i{19, 5});
+    CHECK(result->end == Point2i{20, 6});
   }
 
   SECTION("two rows") {
@@ -82,7 +83,7 @@ TEST_CASE("Auto crop mask with rows set") {
     auto result = FindLargestCrop(mask);
     REQUIRE(result.has_value());
     CHECK(result->start == Point2i{0, 5});
-    CHECK(result->end == Point2i{19, 6});
+    CHECK(result->end == Point2i{20, 7});
   }
 }
 
@@ -91,10 +92,8 @@ TEST_CASE("Auto crop mask with empty column") {
   mask.col(5) = 0;
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
-  // Algorithm will stop when encountering empty column 5
-  // this is to simplify the implementation
   CHECK(result->start == Point2i{6, 0});
-  CHECK(result->end == Point2i{13, 9});
+  CHECK(result->end == Point2i{20, 10});
 }
 
 TEST_CASE("Auto crop empty matrix") {
@@ -114,7 +113,7 @@ II->1 1 1 1 1 1
     1 1 0 1 1 1
             IV
 */
-TEST_CASE("Auto crop complex case") {
+TEST_CASE("Auto crop complex case I") {
   cv::Mat mask(6, 6, CV_8U, cv::Scalar(kMaskValueOn));
   mask.at<unsigned char>(0, 4) = 0;
   mask.at<unsigned char>(1, 2) = 0;
@@ -126,7 +125,35 @@ TEST_CASE("Auto crop complex case") {
   auto result = FindLargestCrop(mask);
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{1, 2});
-  CHECK(result->end == Point2i{4, 4});
+  CHECK(result->end == Point2i{5, 5});
+}
+
+/*        X
+    1 1 1 1 1 1 X
+    1 1 1 1 1 1
+    1 1 0 1 1 1
+    0 1 1 1 1 1
+    1 1 1 1 1 1
+    1 1 1 1 1 1 X
+              X
+*/
+TEST_CASE("Auto crop complex case II") {
+  cv::Mat mask(6, 6, CV_8U, cv::Scalar(kMaskValueOn));
+  mask.at<unsigned char>(2, 2) = 0;
+  mask.at<unsigned char>(3, 0) = 0;
+
+  auto result = FindLargestCrop(mask);
+  REQUIRE(result.has_value());
+  CHECK(result->start == Point2i{3, 0});
+  CHECK(result->end == Point2i{6, 6});
+}
+
+TEST_CASE("Real life example") {
+  auto mask = cv::imread("mask.png", cv::IMREAD_UNCHANGED);
+  auto result = FindLargestCrop(mask);
+  REQUIRE(result.has_value());
+  CHECK(result->start == Point2i{67, 659});
+  CHECK(result->end == Point2i{5985, 2950});
 }
 
 // NOLINTEND(readability-magic-numbers)
