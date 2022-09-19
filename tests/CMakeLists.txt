@@ -18,6 +18,8 @@ target_include_directories(AutoCropTest PRIVATE
   ".."
 )
 
+copy_file(AutoCropTest ${CMAKE_CURRENT_SOURCE_DIR}/data/mask.png)
+
 add_executable(StitcherTest 
   stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc

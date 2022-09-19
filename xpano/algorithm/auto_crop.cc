@@ -6,6 +6,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "xpano/constants.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
@@ -16,6 +17,8 @@ struct Line {
   int start;
   int end;
 };
+
+bool IsLineValid(const Line& line) { return line.start < line.end; }
 
 int Length(const Line& line) { return line.end - line.start; }
 
@@ -58,41 +61,26 @@ std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
   return longest_line;
 }
 
-}  // namespace
-
-// Approximage solution only.
-// Full solution would be https://stackoverflow.com/questions/2478447
-// This algorithm starts in the middle and expands the rectangle in the
-// direction with the larger area.
-std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
-  if (mask.empty()) {
+std::optional<utils::RectPPi> FindLargestCrop(const std::vector<Line>& lines,
+                                              const Line& invalid_line,
+                                              int seed) {
+  if (!IsLineValid(lines[seed])) {
     return {};
   }
-  Line invalid_line = {mask.rows, 0};
-  std::vector<Line> lines(mask.cols);
-  for (int i = 0; i < mask.cols; i++) {
-    auto longest_line = FindLongestLineInColumn(mask.col(i));
-    lines[i] = longest_line.value_or(invalid_line);
-  }
-
-  int half_size = mask.cols / 2;
-  auto is_line_valid = [](const Line& line) { return line.start < line.end; };
-  if (!is_line_valid(lines[half_size])) {
-    return {};
-  }
-  auto current_rect = utils::RectPPi{{half_size, lines[half_size].start},
-                                     {half_size + 1, lines[half_size].end}};
+  auto current_rect =
+      utils::RectPPi{{seed, lines[seed].start}, {seed + 1, lines[seed].end}};
   auto largest_rect = current_rect;
-  if (mask.cols == 1) {
+
+  if (lines.size() == 1) {
     return largest_rect;
   }
 
-  int left = half_size - 1;
-  int right = half_size + mask.cols % 2;
+  int left = seed - 1;
+  int right = seed + static_cast<int>(lines.size() % 2);
   auto left_line = lines[left];
   auto right_line = lines[right];
 
-  while (is_line_valid(left_line) || is_line_valid(right_line)) {
+  while (IsLineValid(left_line) || IsLineValid(right_line)) {
     auto left_rect = utils::RectPPi{
         {left, std::max(left_line.start, current_rect.start[1])},
         {current_rect.end[0], std::min(left_line.end, current_rect.end[1])}};
@@ -107,10 +95,43 @@ std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
       left_line = (left == 0) ? invalid_line : lines[--left];
     } else {
       current_rect = right_rect;
-      right_line = (right == mask.cols - 1) ? invalid_line : lines[++right];
+      right_line = (right == lines.size() - 1) ? invalid_line : lines[++right];
     }
 
     if (utils::Area(current_rect) >= utils::Area(largest_rect)) {
+      largest_rect = current_rect;
+    }
+  }
+
+  return largest_rect;
+}
+
+}  // namespace
+
+// Approximage solution only.
+// Full solution would be https://stackoverflow.com/questions/2478447
+// This algorithm starts in multiple sampled locations and expands
+// the rectangles in the direction with the larger area.
+std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
+  if (mask.empty()) {
+    return {};
+  }
+  Line invalid_line = {mask.rows, 0};
+  std::vector<Line> lines(mask.cols);
+  for (int i = 0; i < mask.cols; i++) {
+    auto longest_line = FindLongestLineInColumn(mask.col(i));
+    lines[i] = longest_line.value_or(invalid_line);
+  }
+
+  std::optional<utils::RectPPi> largest_rect;
+
+  int num_samples = 1 + mask.cols / kAutoCropSamplingDistance;
+  for (int i = 0; i < num_samples; i++) {
+    int start = (i + 1) * mask.cols / (num_samples + 1);
+    auto current_rect = FindLargestCrop(lines, invalid_line, start);
+
+    if (current_rect && (!largest_rect || utils::Area(*current_rect) >=
+                                              utils::Area(*largest_rect))) {
       largest_rect = current_rect;
     }
   }

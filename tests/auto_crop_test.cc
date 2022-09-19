@@ -2,6 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "xpano/utils/vec.h"
 
@@ -145,6 +146,14 @@ TEST_CASE("Auto crop complex case II") {
   REQUIRE(result.has_value());
   CHECK(result->start == Point2i{3, 0});
   CHECK(result->end == Point2i{6, 6});
+}
+
+TEST_CASE("Real life example") {
+  auto mask = cv::imread("mask.png", cv::IMREAD_UNCHANGED);
+  auto result = FindLargestCrop(mask);
+  REQUIRE(result.has_value());
+  CHECK(result->start == Point2i{67, 659});
+  CHECK(result->end == Point2i{5985, 2950});
 }
 
 // NOLINTEND(readability-magic-numbers)
