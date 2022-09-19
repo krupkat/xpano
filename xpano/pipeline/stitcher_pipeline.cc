@@ -80,54 +80,66 @@ std::future<StitcherData> StitcherPipeline::RunLoading(
 
 std::future<StitchingResult> StitcherPipeline::RunStitching(
     const StitcherData &data, const StitchingOptions &options) {
-  std::vector<cv::Mat> imgs;
   auto pano = data.panos[options.pano_id];
-
   return pool_.submit([pano, &images = data.images, options, this]() {
-    int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
-                    static_cast<int>(options.export_path.has_value()) +
-                    static_cast<int>(options.full_res);
-    progress_.Reset(ProgressType::kLoadingImages, num_tasks);
-    std::vector<cv::Mat> imgs;
-    for (int img_id : pano.ids) {
-      if (options.full_res) {
-        imgs.push_back(images[img_id].GetFullRes());
-      } else {
-        imgs.push_back(images[img_id].GetPreview());
-      }
-      progress_.NotifyTaskDone();
-    }
-
-    progress_.SetTaskType(ProgressType::kStitchingPano);
-    auto [status, pano, mask] =
-        algorithm::Stitch(imgs, {.projection = options.projection,
-                                 .return_pano_mask = options.full_res});
-    progress_.NotifyTaskDone();
-
-    if (status != cv::Stitcher::OK) {
-      return StitchingResult{.pano_id = options.pano_id, .status = status};
-    }
-
-    std::optional<utils::RectRRf> auto_crop;
-    if (options.full_res) {
-      progress_.SetTaskType(ProgressType::kAutoCrop);
-      auto_crop = algorithm::FindLargestCrop(mask);
-      progress_.NotifyTaskDone();
-    }
-
-    std::optional<std::string> export_path;
-    if (options.export_path) {
-      progress_.SetTaskType(ProgressType::kExport);
-      if (cv::imwrite(*options.export_path, pano,
-                      CompressionParameters(options.compression))) {
-        export_path = options.export_path;
-      }
-      progress_.NotifyTaskDone();
-    }
-
-    return StitchingResult{options.pano_id, options.full_res, status, pano,
-                           auto_crop,       export_path};
+    return RunStitchingPipeline(pano, images, options);
   });
+}
+
+StitchingResult StitcherPipeline::RunStitchingPipeline(
+    const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
+    const StitchingOptions &options) {
+  int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
+                  static_cast<int>(options.export_path.has_value()) +
+                  static_cast<int>(options.full_res);
+  progress_.Reset(ProgressType::kLoadingImages, num_tasks);
+  std::vector<cv::Mat> imgs;
+  if (options.full_res) {
+    BS::multi_future<cv::Mat> imgs_future;
+    for (const auto &img_id : pano.ids) {
+      imgs_future.push_back(pool_.submit([this, &image = images[img_id]]() {
+        auto full_res_image = image.GetFullRes();
+        progress_.NotifyTaskDone();
+        return full_res_image;
+      }));
+    }
+    imgs = imgs_future.get();
+  } else {
+    for (int img_id : pano.ids) {
+      imgs.push_back(images[img_id].GetPreview());
+      progress_.NotifyTaskDone();
+    }
+  }
+
+  progress_.SetTaskType(ProgressType::kStitchingPano);
+  auto [status, result, mask] = algorithm::Stitch(
+      imgs,
+      {.projection = options.projection, .return_pano_mask = options.full_res});
+  progress_.NotifyTaskDone();
+
+  if (status != cv::Stitcher::OK) {
+    return StitchingResult{.pano_id = options.pano_id, .status = status};
+  }
+
+  std::optional<utils::RectRRf> auto_crop;
+  if (options.full_res) {
+    progress_.SetTaskType(ProgressType::kAutoCrop);
+    auto_crop = algorithm::FindLargestCrop(mask);
+    progress_.NotifyTaskDone();
+  }
+
+  std::optional<std::string> export_path;
+  if (options.export_path) {
+    progress_.SetTaskType(ProgressType::kExport);
+    if (cv::imwrite(*options.export_path, result,
+                    CompressionParameters(options.compression))) {
+      export_path = options.export_path;
+    }
+    progress_.NotifyTaskDone();
+  }
+
+  return StitchingResult{options.pano_id, options.full_res, status,
+                         result,          auto_crop,        export_path};
 }
 
 std::future<ExportResult> StitcherPipeline::RunExport(
@@ -152,7 +164,7 @@ std::future<ExportResult> StitcherPipeline::RunExport(
   });
 }
 
-ProgressReport StitcherPipeline::LoadingProgress() const {
+ProgressReport StitcherPipeline::Progress() const {
   return progress_.Progress();
 }
 
