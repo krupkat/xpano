@@ -27,7 +27,7 @@ std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
   std::optional<Line> longest_line;
 
   if (IsSet(column.at<unsigned char>(0, 0))) {
-    current_line = Line{0, 0};
+    current_line = Line{0, 1};
   }
 
   for (int i = 1; i < column.rows; i++) {
@@ -35,11 +35,11 @@ std::optional<Line> FindLongestLineInColumn(cv::Mat column) {
     auto current = IsSet(column.at<unsigned char>(i, 0));
 
     if (!prev && current) {
-      current_line = Line{i, i};
+      current_line = Line{i, i + 1};
     }
 
     if (prev && current) {
-      current_line->end = i;
+      current_line->end = i + 1;
     }
 
     if (prev && !current) {
@@ -80,7 +80,7 @@ std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
     return {};
   }
   auto current_rect = utils::RectPPi{{half_size, lines[half_size].start},
-                                     {half_size, lines[half_size].end}};
+                                     {half_size + 1, lines[half_size].end}};
   auto largest_rect = current_rect;
 
   int left_start = half_size - 1;
@@ -102,7 +102,7 @@ std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
     }
 
     current_rect.start[0] = left;
-    current_rect.end[0] = right;
+    current_rect.end[0] = right + 1;
 
     if (int top = std::max(left_line.start, right_line.start);
         top > current_rect.start[1]) {
