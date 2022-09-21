@@ -6,6 +6,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
@@ -17,6 +19,12 @@ const std::vector<std::string> kInputs = {
     "data/image06.jpg", "data/image07.jpg", "data/image08.jpg",
     "data/image09.jpg",
 };
+
+int CountNonZero(const cv::Mat& image) {
+  cv::Mat image_gray;
+  cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
+  return cv::countNonZero(image_gray);
+}
 
 TEST_CASE("Stitcher pipeline defaults") {
   xpano::pipeline::StitcherPipeline stitcher;
@@ -42,14 +50,29 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK_THAT(pano0->cols, WithinRel(2145, eps));
 
   // full resolution
-  auto pano1 = stitcher.RunStitching(result, {.pano_id = 1, .full_res = true})
-                   .get()
-                   .pano;
+  auto stitch_result =
+      stitcher.RunStitching(result, {.pano_id = 1, .full_res = true}).get();
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
-  REQUIRE(pano1.has_value());
-  CHECK_THAT(pano1->rows, WithinRel(1952, eps));
-  CHECK_THAT(pano1->cols, WithinRel(2651, eps));
+  REQUIRE(stitch_result.pano.has_value());
+  CHECK_THAT(stitch_result.pano->rows, WithinRel(1952, eps));
+  CHECK_THAT(stitch_result.pano->cols, WithinRel(2651, eps));
+
+  auto total_pixels = stitch_result.pano->rows * stitch_result.pano->cols;
+
+  // auto fill
+  REQUIRE(stitch_result.mask.has_value());
+  auto inpaint_result =
+      stitcher.RunInpainting(*stitch_result.pano, *stitch_result.mask, {})
+          .get();
+  progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  auto pano_pixels = CountNonZero(*stitch_result.pano);
+  CHECK(total_pixels == inpaint_result.pixels_inpainted + pano_pixels);
+
+  auto non_zero_pixels = CountNonZero(inpaint_result.pano);
+  CHECK(total_pixels == non_zero_pixels);
 }
 
 const std::vector<std::string> kShuffledInputs = {
