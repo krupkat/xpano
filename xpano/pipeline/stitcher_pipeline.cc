@@ -17,7 +17,6 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
-#include "xpano/utils/vec.h"
 #include "xpano/utils/vec_opencv.h"
 
 namespace xpano::pipeline {

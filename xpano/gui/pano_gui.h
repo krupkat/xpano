@@ -4,6 +4,8 @@
 #include <optional>
 #include <string>
 
+#include <opencv2/core.hpp>
+
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/panels/about.h"
