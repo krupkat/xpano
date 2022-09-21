@@ -84,4 +84,17 @@ std::string ToString(cv::Stitcher::Status& status);
 
 std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 
+enum class InpaintingMethod {
+  kNavierStokes,
+  kTelea,
+};
+
+struct InpaintingOptions {
+  double radius = kDefaultInpaintingInputRadius;
+  InpaintingMethod method = InpaintingMethod::kTelea;
+};
+
+cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
+                InpaintingOptions options);
+
 }  // namespace xpano::algorithm

@@ -71,4 +71,7 @@ const std::string kConfigFilename = "config.txt";
 constexpr int kCropEdgeTolerance = 10;
 constexpr int kAutoCropSamplingDistance = 512;
 
+constexpr double kDefaultInpaintingInputRadius = 3.0;
+constexpr float kMegapixel = 1'000'000;
+
 }  // namespace xpano

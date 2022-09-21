@@ -126,7 +126,9 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   }
 
   std::optional<utils::RectRRf> auto_crop;
+  std::optional<cv::Mat> pano_mask;
   if (options.full_res) {
+    pano_mask = mask;
     progress_.SetTaskType(ProgressType::kAutoCrop);
     auto_crop = algorithm::FindLargestCrop(mask);
     progress_.NotifyTaskDone();
@@ -142,8 +144,27 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
     progress_.NotifyTaskDone();
   }
 
-  return StitchingResult{options.pano_id, options.full_res, status,
-                         result,          auto_crop,        export_path};
+  return StitchingResult{options.pano_id, options.full_res, status,   result,
+                         auto_crop,       export_path,      pano_mask};
+}
+
+std::future<InpaintingResult> StitcherPipeline::RunInpainting(
+    cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options) {
+  return pool_.submit([pano = std::move(pano), pano_mask = std::move(pano_mask),
+                       options, this]() {
+    int num_tasks = 3;
+    progress_.Reset(ProgressType::kInpainting, num_tasks);
+
+    cv::Mat inpaint_mask;
+    cv::bitwise_not(pano_mask, inpaint_mask);
+    progress_.NotifyTaskDone();
+    int pixels_filled = cv::countNonZero(inpaint_mask);
+    progress_.NotifyTaskDone();
+    auto result = algorithm::Inpaint(pano, inpaint_mask, options);
+    progress_.NotifyTaskDone();
+
+    return InpaintingResult{result, pixels_filled};
+  });
 }
 
 std::future<ExportResult> StitcherPipeline::RunExport(
@@ -152,11 +173,7 @@ std::future<ExportResult> StitcherPipeline::RunExport(
     int num_tasks = 1;
     progress_.Reset(ProgressType::kExport, num_tasks);
 
-    auto image_size = utils::ToIntVec(pano.size);
-    auto crop_start = utils::Point2f{0.0f} + image_size * options.crop.start;
-    auto crop_size = image_size * (options.crop.end - options.crop.start);
-    auto crop_rect =
-        utils::CvRect(utils::ToIntVec(crop_start), utils::ToIntVec(crop_size));
+    auto crop_rect = utils::GetCvRect(pano, options.crop);
 
     std::optional<std::string> export_path;
     if (cv::imwrite(options.export_path, pano(crop_rect),

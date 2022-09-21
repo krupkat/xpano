@@ -12,6 +12,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/photo.hpp>
 #include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
@@ -270,6 +271,17 @@ std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask) {
   }
   auto image_end = utils::Point2i{mask.cols, mask.rows};
   return Rect(largest_rect->start / image_end, largest_rect->end / image_end);
+}
+
+cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
+                InpaintingOptions options) {
+  cv::Mat result;
+  int method = cv::INPAINT_TELEA;
+  if (options.method == InpaintingMethod::kNavierStokes) {
+    method = cv::INPAINT_NS;
+  }
+  cv::inpaint(pano, mask, result, options.radius, method);
+  return result;
 }
 
 }  // namespace xpano::algorithm

@@ -38,6 +38,8 @@ std::string ProgressLabel(pipeline::ProgressType type) {
       return "Matching images";
     case pipeline::ProgressType::kExport:
       return "Exporting pano";
+    case pipeline::ProgressType::kInpainting:
+      return "Auto fill";
   }
 }
 
@@ -324,10 +326,10 @@ void DrawWelcomeText() {
   ImGui::SameLine();
   utils::imgui::InfoMarker(
       "(?)",
-      "a) Compute full resolution panorama preview\nb) Crop mode (working "
-      "only with full resolution preview)\nc) Panorama export\n - Works either "
-      "with preview or full resolution panoramas\n - In both cases exports a "
-      "full resolution panorama");
+      "a) Compute full resolution panorama preview\nb) Toggle crop mode\nc) "
+      "Auto fill empty space in the panorama\nd) Panorama export\n - Works "
+      "either with preview or full resolution panoramas\n - In both cases "
+      "exports a full resolution panorama");
   ImGui::Spacing();
 }
 
@@ -349,6 +351,15 @@ Action DrawActionButtons(ImageType image_type, int target_id) {
       [&] {
         if (ImGui::Button("Crop mode")) {
           action |= {ActionType::kToggleCrop};
+        }
+      },
+      "First compute full resolution panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes,
+      [&] {
+        if (ImGui::Button("Fill")) {
+          action |= {ActionType::kInpaint};
         }
       },
       "First compute full resolution panorama");

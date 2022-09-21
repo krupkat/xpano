@@ -54,7 +54,7 @@ set(XPANO_SOURCES
 )
 
 find_package(SDL2 REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc stitching)
+find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching)
 find_package(spdlog REQUIRED)
 
 add_executable(Xpano WIN32
@@ -76,6 +76,7 @@ set(OPENCV_TARGETS
   opencv_flann
   opencv_imgcodecs
   opencv_imgproc
+  opencv_photo
   opencv_stitching
 )
 
