@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <utility>
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
@@ -234,6 +235,10 @@ void PreviewPane::ResetZoom() {
 
 void PreviewPane::Load(cv::Mat image, ImageType image_type) {
   Reset();
+  Reload(std::move(image), image_type);
+}
+
+void PreviewPane::Reload(cv::Mat image, ImageType image_type) {
   auto texture_size = utils::Vec2i{kLoupeSize};
   if (!tex_) {
     tex_ = backend_->CreateTexture(texture_size);

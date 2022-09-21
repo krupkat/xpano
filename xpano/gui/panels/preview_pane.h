@@ -48,6 +48,7 @@ class PreviewPane {
  public:
   explicit PreviewPane(backends::Base* backend);
   void Load(cv::Mat image, ImageType image_type);
+  void Reload(cv::Mat image, ImageType image_type);
   void Draw(const std::string& message);
   void Reset();
   void ToggleCrop();

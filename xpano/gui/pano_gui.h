@@ -4,6 +4,8 @@
 #include <optional>
 #include <string>
 
+#include <opencv2/core.hpp>
+
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/panels/about.h"
@@ -46,6 +48,7 @@ class PanoGui {
   Action ResolveFutures();
   Action PerformAction(Action action);
   void Reset();
+  bool IsDebugEnabled() const;
 
   // PODs
   Selection selection_;
@@ -54,6 +57,7 @@ class PanoGui {
 
   pipeline::CompressionOptions compression_options_;
   pipeline::LoadingOptions loading_options_;
+  pipeline::InpaintingOptions inpaint_options_;
   pipeline::MatchingOptions matching_options_;
   pipeline::ProjectionOptions projection_options_;
   std::optional<pipeline::StitcherData> stitcher_data_;
@@ -69,6 +73,10 @@ class PanoGui {
   std::future<pipeline::StitcherData> stitcher_data_future_;
   std::future<pipeline::StitchingResult> pano_future_;
   std::future<pipeline::ExportResult> export_future_;
+  std::future<pipeline::InpaintingResult> inpaint_future_;
+
+  // Used for inpainting
+  std::optional<cv::Mat> pano_mask_;
 };
 
 }  // namespace xpano::gui

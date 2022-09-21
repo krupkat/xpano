@@ -17,6 +17,9 @@
 
 namespace xpano::pipeline {
 
+using InpaintingOptions = algorithm::InpaintingOptions;
+using ProjectionOptions = algorithm::ProjectionOptions;
+
 struct CompressionOptions {
   int jpeg_quality = kDefaultJpegQuality;
   bool jpeg_progressive = false;
@@ -32,8 +35,6 @@ struct MatchingOptions {
 struct LoadingOptions {
   int preview_longer_side = kDefaultPreviewLongerSide;
 };
-
-using ProjectionOptions = algorithm::ProjectionOptions;
 
 struct StitchingOptions {
   int pano_id = 0;
@@ -56,6 +57,11 @@ struct StitcherData {
   std::vector<algorithm::Pano> panos;
 };
 
+struct InpaintingResult {
+  cv::Mat pano;
+  int pixels_inpainted;
+};
+
 struct StitchingResult {
   int pano_id = 0;
   bool full_res = false;
@@ -63,6 +69,7 @@ struct StitchingResult {
   std::optional<cv::Mat> pano;
   std::optional<utils::RectRRf> auto_crop;
   std::optional<std::string> export_path;
+  std::optional<cv::Mat> mask;
 };
 
 struct ExportResult {
@@ -78,6 +85,7 @@ enum class ProgressType {
   kDetectingKeypoints,
   kMatchingImages,
   kExport,
+  kInpainting,
 };
 
 struct ProgressReport {
@@ -112,6 +120,8 @@ class StitcherPipeline {
 
   std::future<ExportResult> RunExport(cv::Mat pano,
                                       const ExportOptions &options);
+  std::future<InpaintingResult> RunInpainting(cv::Mat pano, cv::Mat mask,
+                                              const InpaintingOptions &options);
   ProgressReport Progress() const;
 
   void Cancel();

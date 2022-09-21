@@ -45,7 +45,7 @@ constexpr int kMaxPngCompression = 9;
 
 constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
-constexpr int kSidebarWidth = 23;
+constexpr int kSidebarWidth = 25;
 
 const std::string kOrgName = "krupkat";
 const std::string kAppName = "Xpano";
@@ -70,5 +70,10 @@ const std::string kConfigFilename = "config.txt";
 
 constexpr int kCropEdgeTolerance = 10;
 constexpr int kAutoCropSamplingDistance = 512;
+
+constexpr double kDefaultInpaintingRadius = 3.0;
+constexpr double kMaxInpaintingRadius = 15.0;
+constexpr double kInpaintingRadiusStep = 1.0;
+constexpr float kMegapixel = 1'000'000;
 
 }  // namespace xpano

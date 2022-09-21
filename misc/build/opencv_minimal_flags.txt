@@ -8,7 +8,7 @@
 -DBUILD_opencv_ml=OFF
 -DBUILD_opencv_objc_bindings_generator=OFF
 -DBUILD_opencv_objdetect=OFF
--DBUILD_opencv_photo=OFF
+-DBUILD_opencv_photo=ON
 -DBUILD_opencv_python3=OFF
 -DBUILD_opencv_python_bindings_generator=OFF
 -DBUILD_opencv_python_tests=OFF

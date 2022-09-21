@@ -8,6 +8,7 @@ enum class ActionType {
   kToggleCrop,
   kDisableHighlight,
   kExport,
+  kInpaint,
   kOpenDirectory,
   kOpenFiles,
   kShowAbout,

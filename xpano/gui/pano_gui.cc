@@ -13,6 +13,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/file_dialog.h"
@@ -141,17 +142,11 @@ auto ResolveStitcherDataFuture(
 
 auto ResolveStitchingResultFuture(
     std::future<pipeline::StitchingResult> pano_future, PreviewPane* plot_pane,
-    StatusMessage* status_message) -> std::optional<int> {
+    StatusMessage* status_message)
+    -> std::pair<std::optional<int>, std::optional<cv::Mat>> {
   pipeline::StitchingResult result;
   try {
     result = pano_future.get();
-    if (result.pano) {
-      plot_pane->Load(*result.pano, result.full_res ? ImageType::kPanoFullRes
-                                                    : ImageType::kPanoPreview);
-    }
-    if (result.auto_crop) {
-      plot_pane->SetSuggestedCrop(*result.auto_crop);
-    }
   } catch (const std::exception& e) {
     *status_message = {"Failed to stitch pano", e.what()};
     spdlog::error(*status_message);
@@ -171,14 +166,24 @@ auto ResolveStitchingResultFuture(
   *status_message = {
       fmt::format("Stitched pano {} successfully", result.pano_id)};
   spdlog::info(*status_message);
+
+  plot_pane->Load(*result.pano, result.full_res ? ImageType::kPanoFullRes
+                                                : ImageType::kPanoPreview);
+
+  if (result.auto_crop) {
+    plot_pane->SetSuggestedCrop(*result.auto_crop);
+  }
+
+  std::optional<int> export_pano_id;
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
         *result.export_path};
     spdlog::info(*status_message);
-    return result.pano_id;
+    export_pano_id = result.pano_id;
   }
-  return {};
+
+  return {export_pano_id, result.mask};
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
@@ -203,6 +208,26 @@ auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
   }
   return {};
 }
+
+auto ResolveInpaintingResultFuture(
+    std::future<pipeline::InpaintingResult> inpainting_future,
+    PreviewPane* plot_pane, StatusMessage* status_message) -> void {
+  pipeline::InpaintingResult result;
+  try {
+    result = inpainting_future.get();
+  } catch (const std::exception& e) {
+    *status_message = {"Failed to inpaint pano", e.what()};
+    spdlog::error(*status_message);
+    return;
+  }
+
+  plot_pane->Reload(result.pano, ImageType::kPanoFullRes);
+
+  *status_message = {
+      fmt::format("Auto filled {:.1f} MP",
+                  static_cast<float>(result.pixels_inpainted) / kMegapixel)};
+  spdlog::info(*status_message);
+}
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
@@ -211,6 +236,8 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
       thumbnail_pane_(backend),
       log_pane_(logger),
       about_pane_(std::move(licenses)) {}
+
+bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
 bool PanoGui::Run() {
   Action action{};
@@ -243,8 +270,9 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |= DrawMenu(&compression_options_, &loading_options_,
-                     &matching_options_, &projection_options_);
+  action |=
+      DrawMenu(&compression_options_, &loading_options_, &inpaint_options_,
+               &matching_options_, &projection_options_, IsDebugEnabled());
 
   DrawWelcomeText();
   action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id);
@@ -267,7 +295,7 @@ Action PanoGui::DrawSidebar() {
         selection_.type == SelectionType::kPano ? selection_.target_id : -1;
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, highlight_id);
-    if (log_pane_.IsShown()) {
+    if (IsDebugEnabled()) {
       auto highlight_id =
           selection_.type == SelectionType::kMatch ? selection_.target_id : -1;
       action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
@@ -285,6 +313,7 @@ void PanoGui::Reset() {
   plot_pane_.Reset();
   selection_ = {};
   status_message_ = {};
+  pano_mask_ = cv::Mat{};
   // Order of the following two lines is important
   stitcher_pipeline_.Cancel();
   stitcher_data_.reset();
@@ -328,6 +357,19 @@ Action PanoGui::PerformAction(Action action) {
                                   .projection = projection_options_});
           }
         }
+      }
+      break;
+    }
+    case ActionType::kInpaint: {
+      if (plot_pane_.Type() == ImageType::kPanoFullRes && pano_mask_) {
+        spdlog::info("Auto fill pano {}", selection_.target_id);
+        status_message_ = {};
+        inpaint_future_ = stitcher_pipeline_.RunInpainting(
+            plot_pane_.Image(), *pano_mask_, inpaint_options_);
+      } else {
+        status_message_ = {"Full-resolution panorama not available",
+                           "Please rerun full-resolution stitching"};
+        spdlog::warn(status_message_);
       }
       break;
     }
@@ -383,7 +425,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};
       const auto& img = stitcher_data_->images[action.target_id];
-      plot_pane_.Load(img.Draw(log_pane_.IsShown()), ImageType::kSingleImage);
+      plot_pane_.Load(img.Draw(IsDebugEnabled()), ImageType::kSingleImage);
       thumbnail_pane_.Highlight(action.target_id);
       break;
     }
@@ -414,11 +456,12 @@ Action PanoGui::ResolveFutures() {
   }
 
   if (utils::future::IsReady(pano_future_)) {
-    auto exported_pano_id = ResolveStitchingResultFuture(
+    auto [export_pano_id, export_mask] = ResolveStitchingResultFuture(
         std::move(pano_future_), &plot_pane_, &status_message_);
-    if (exported_pano_id) {
-      stitcher_data_->panos[*exported_pano_id].exported = true;
+    if (export_pano_id) {
+      stitcher_data_->panos[*export_pano_id].exported = true;
     }
+    pano_mask_ = export_mask;
   }
 
   if (utils::future::IsReady(export_future_)) {
@@ -427,6 +470,11 @@ Action PanoGui::ResolveFutures() {
     if (exported_pano_id) {
       stitcher_data_->panos[*exported_pano_id].exported = true;
     }
+  }
+
+  if (utils::future::IsReady(inpaint_future_)) {
+    ResolveInpaintingResultFuture(std::move(inpaint_future_), &plot_pane_,
+                                  &status_message_);
   }
   return {};
 }
