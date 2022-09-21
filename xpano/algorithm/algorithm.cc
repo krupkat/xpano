@@ -273,6 +273,17 @@ std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask) {
   return Rect(largest_rect->start / image_end, largest_rect->end / image_end);
 }
 
+const char* Label(InpaintingMethod inpaint_method) {
+  switch (inpaint_method) {
+    case InpaintingMethod::kNavierStokes:
+      return "NavierStokes";
+    case InpaintingMethod::kTelea:
+      return "Telea";
+    default:
+      return "Unknown";
+  }
+}
+
 cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
                 InpaintingOptions options) {
   cv::Mat result;

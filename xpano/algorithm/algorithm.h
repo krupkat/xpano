@@ -89,8 +89,13 @@ enum class InpaintingMethod {
   kTelea,
 };
 
+const auto kInpaintingMethods =
+    std::array{InpaintingMethod::kNavierStokes, InpaintingMethod::kTelea};
+
+const char* Label(InpaintingMethod inpaint_method);
+
 struct InpaintingOptions {
-  double radius = kDefaultInpaintingInputRadius;
+  double radius = kDefaultInpaintingRadius;
   InpaintingMethod method = InpaintingMethod::kTelea;
 };
 

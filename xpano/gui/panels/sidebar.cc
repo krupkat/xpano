@@ -157,16 +157,47 @@ Action DrawProjectionOptionsMenu(
   return action;
 }
 
+void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
+  if (ImGui::BeginMenu("Auto fill")) {
+    ImGui::Text("Algorithm:");
+    ImGui::Spacing();
+    if (ImGui::BeginCombo("##inpaint_type", Label(inpaint_options->method))) {
+      for (const auto inpainting_method : algorithm::kInpaintingMethods) {
+        if (ImGui::Selectable(Label(inpainting_method),
+                              inpainting_method == inpaint_options->method)) {
+          inpaint_options->method = inpainting_method;
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    ImGui::Text("Advanced algorithm parameters:");
+    ImGui::Spacing();
+    if (ImGui::InputDouble("Radius", &inpaint_options->radius,
+                           kInpaintingRadiusStep, kInpaintingRadiusStep)) {
+      inpaint_options->radius =
+          std::clamp(inpaint_options->radius, kDefaultInpaintingRadius,
+                     kMaxInpaintingRadius);
+    }
+    ImGui::EndMenu();
+  }
+}
+
 Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
                        pipeline::LoadingOptions* loading_options,
+                       pipeline::InpaintingOptions* inpaint_options,
                        pipeline::MatchingOptions* matching_options,
-                       pipeline::ProjectionOptions* projection_options) {
+                       pipeline::ProjectionOptions* projection_options,
+                       bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     DrawCompressionOptionsMenu(compression_options);
     DrawLoadingOptionsMenu(loading_options);
     DrawMatchingOptionsMenu(matching_options);
     action |= DrawProjectionOptionsMenu(projection_options);
+    if (debug_enabled) {
+      DrawAutofillOptionsMenu(inpaint_options);
+    }
     ImGui::EndMenu();
   }
   return action;
@@ -296,13 +327,16 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
 
 Action DrawMenu(pipeline::CompressionOptions* compression_options,
                 pipeline::LoadingOptions* loading_options,
+                pipeline::InpaintingOptions* inpaint_options,
                 pipeline::MatchingOptions* matching_options,
-                pipeline::ProjectionOptions* projection_options) {
+                pipeline::ProjectionOptions* projection_options,
+                bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |= DrawOptionsMenu(compression_options, loading_options,
-                              matching_options, projection_options);
+    action |=
+        DrawOptionsMenu(compression_options, loading_options, inpaint_options,
+                        matching_options, projection_options, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

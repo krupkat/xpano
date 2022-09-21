@@ -46,6 +46,7 @@ class PanoGui {
   Action ResolveFutures();
   Action PerformAction(Action action);
   void Reset();
+  bool IsDebugEnabled() const;
 
   // PODs
   Selection selection_;
@@ -54,6 +55,7 @@ class PanoGui {
 
   pipeline::CompressionOptions compression_options_;
   pipeline::LoadingOptions loading_options_;
+  pipeline::InpaintingOptions inpaint_options_;
   pipeline::MatchingOptions matching_options_;
   pipeline::ProjectionOptions projection_options_;
   std::optional<pipeline::StitcherData> stitcher_data_;

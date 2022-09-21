@@ -236,6 +236,8 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
       log_pane_(logger),
       about_pane_(std::move(licenses)) {}
 
+bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
+
 bool PanoGui::Run() {
   Action action{};
   std::swap(action, delayed_action_);
@@ -267,8 +269,9 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |= DrawMenu(&compression_options_, &loading_options_,
-                     &matching_options_, &projection_options_);
+  action |=
+      DrawMenu(&compression_options_, &loading_options_, &inpaint_options_,
+               &matching_options_, &projection_options_, IsDebugEnabled());
 
   DrawWelcomeText();
   action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id);
@@ -291,7 +294,7 @@ Action PanoGui::DrawSidebar() {
         selection_.type == SelectionType::kPano ? selection_.target_id : -1;
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, highlight_id);
-    if (log_pane_.IsShown()) {
+    if (IsDebugEnabled()) {
       auto highlight_id =
           selection_.type == SelectionType::kMatch ? selection_.target_id : -1;
       action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,
@@ -360,8 +363,8 @@ Action PanoGui::PerformAction(Action action) {
       if (plot_pane_.Type() == ImageType::kPanoFullRes && pano_mask_) {
         spdlog::info("Auto fill pano {}", selection_.target_id);
         status_message_ = {};
-        inpaint_future_ = stitcher_pipeline_.RunInpainting(plot_pane_.Image(),
-                                                           *pano_mask_, {});
+        inpaint_future_ = stitcher_pipeline_.RunInpainting(
+            plot_pane_.Image(), *pano_mask_, inpaint_options_);
       } else {
         status_message_ = {"Full-resolution panorama not available",
                            "Please rerun full-resolution stitching"};
@@ -421,7 +424,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kShowImage: {
       selection_ = {SelectionType::kImage, action.target_id};
       const auto& img = stitcher_data_->images[action.target_id];
-      plot_pane_.Load(img.Draw(log_pane_.IsShown()), ImageType::kSingleImage);
+      plot_pane_.Load(img.Draw(IsDebugEnabled()), ImageType::kSingleImage);
       thumbnail_pane_.Highlight(action.target_id);
       break;
     }
