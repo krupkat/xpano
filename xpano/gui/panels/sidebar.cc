@@ -383,7 +383,7 @@ Action DrawActionButtons(ImageType image_type, int target_id) {
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes,
       [&] {
-        if (ImGui::Button("Crop mode")) {
+        if (ImGui::Button("Crop")) {
           action |= {ActionType::kToggleCrop};
         }
       },

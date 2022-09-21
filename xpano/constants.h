@@ -45,7 +45,7 @@ constexpr int kMaxPngCompression = 9;
 
 constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
-constexpr int kSidebarWidth = 23;
+constexpr int kSidebarWidth = 25;
 
 const std::string kOrgName = "krupkat";
 const std::string kAppName = "Xpano";
