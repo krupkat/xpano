@@ -59,6 +59,7 @@ cmake -B build -G "$env:GENERATOR" `
   -DXPANO_EXTRA_LICENSES=licenses `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
   -DSDL2_DIR="sdl/install/cmake" `
   -DOpenCV_STATIC=ON `
   -DOpenCV_DIR="opencv/install" `

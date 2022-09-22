@@ -18,6 +18,7 @@ cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DCatch2_DIR=../catch/install/lib/cmake/Catch2
 
 cmake --build build -j $(nproc) --target install
