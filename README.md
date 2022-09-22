@@ -84,9 +84,7 @@ Open the "Developer PowerShell for VS 2022" profile in Windows Terminal and run 
 
 Contributions are more than welcome, there is a couple of ideas for enhancements in [open issues](https://github.com/krupkat/xpano/issues) which you could take on - if you start working on one of them, please add a comment there. 
 
-Feel free to open an issue with your comments / encountered bugs / requests for features. 
-
-In case you want to contribute a PR, please open an issue first with a bit of details about the planned change.
+Please check the [contribution guidelines](https://github.com/krupkat/xpano/blob/main/CONTRIBUTING.md) for further details regarding formatting and coding style.
 
 ## License
 
