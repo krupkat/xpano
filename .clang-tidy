@@ -13,7 +13,7 @@ Checks: >
   portability-*,
   readability-*
 
-HeaderFilterRegex: ".*xpano.*"
+HeaderFilterRegex: "xpano.*xpano.*"
 
 CheckOptions:
   - key:   readability-identifier-naming.ClassCase
