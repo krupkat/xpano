@@ -19,11 +19,31 @@ namespace xpano::gui::file_dialog {
 
 namespace {
 
+template <typename TArray>
+TArray Uppercase(const TArray& extensions) {
+  TArray result;
+  auto to_upper = [](const auto& extension) {
+    auto uppercase_extension = extension;
+    std::transform(extension.begin(), extension.end(),
+                   uppercase_extension.begin(),
+                   [](const auto& c) { return std::toupper(c); });
+    return uppercase_extension;
+  };
+  std::transform(extensions.begin(), extensions.end(), result.begin(),
+                 to_upper);
+  return result;
+}
+
 std::vector<std::filesystem::path> MultifileOpen() {
   NFD::UniquePathSet out_paths;
 
   std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
+#ifndef _WIN32
+  extensions = fmt::format("{},{}", extensions,
+                           fmt::join(Uppercase(kSupportedExtensions), ","));
+#endif
+
   filter_item[0] = {"Images", extensions.c_str()};
   std::vector<std::filesystem::path> results;
 
