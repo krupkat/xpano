@@ -1,3 +1,10 @@
+# Xpano 0.7.0
+
+- Auto fill
+  - Automatically fills the panorama boundaries with a generated texture
+  - This allows the user to extend the crop rectangle
+- Fix the file dialog on Linux to also show files with uppercase extensions
+
 # Xpano 0.6.0
 
 - Crop mode
