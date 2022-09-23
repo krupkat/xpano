@@ -26,7 +26,7 @@ TArray Uppercase(const TArray& extensions) {
     auto uppercase_extension = extension;
     std::transform(extension.begin(), extension.end(),
                    uppercase_extension.begin(),
-                   [](const auto& c) { return std::toupper(c); });
+                   [](const auto& letter) { return std::toupper(letter); });
     return uppercase_extension;
   };
   std::transform(extensions.begin(), extensions.end(), result.begin(),
