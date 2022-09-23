@@ -8,7 +8,7 @@ After you import your images, the app auto detects groups of images to stitch in
 
 ## Demo
 
-Check out the app in action on [YouTube](https://youtu.be/-TuKaO9gxsU).
+Check out the app in action on [YouTube](https://youtu.be/MyiTC3i1hK0).
 
 This is how the app looks after importing a directory of 200 images.
 
