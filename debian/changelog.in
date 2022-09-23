@@ -1,3 +1,9 @@
+xpano (0.7.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.7.0, auto fill, fix loading files with uppercase extension
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Fri, 23 Sep 2022 12:42:15 +0200
+
 xpano (0.6.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.6.0, crop mode, faster stitching
