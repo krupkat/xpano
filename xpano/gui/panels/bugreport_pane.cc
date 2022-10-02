@@ -1,19 +1,7 @@
 #include "xpano/gui/panels/bugreport_pane.h"
-#include <iostream>
-
-#include <algorithm>
-#include <iterator>
-#include <sstream>
 #include <string>
-#include <utility>
-#include <vector>
-
 #include <imgui.h>
-
 #include "xpano/constants.h"
-#include "xpano/utils/future.h"
-#include "xpano/utils/text.h"
-#include "xpano/utils/sdl_.h"
 
 namespace xpano::gui {
 
