@@ -14,6 +14,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/photo.hpp>
 #include <opencv2/stitching.hpp>
+#include <spdlog/spdlog.h>
 
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/image.h"
@@ -180,7 +181,16 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
   stitcher->setWarper(warper_creator);
 
   cv::Mat pano;
-  auto status = stitcher->stitch(images, pano);
+  cv::Stitcher::Status status;
+
+  if (options.cameras) {
+    stitcher->setTransform(images, *options.cameras);
+    status = stitcher->composePanorama(pano);
+    spdlog::info("XX Stitching with cameras");
+  } else {
+    status = stitcher->stitch(images, pano);
+    spdlog::info("XX Stitching");
+  }
 
   if (status != cv::Stitcher::OK) {
     return {status, {}, {}};
@@ -191,6 +201,8 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
     stitcher->resultMask().copyTo(mask);
   }
 
+  auto cameras = stitcher->cameras();
+
   if (auto rotate = GetRotationFlags(options.projection); rotate) {
     cv::rotate(pano, pano, *rotate);
     if (options.return_pano_mask) {
@@ -198,7 +210,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
     }
   }
 
-  return {status, pano, mask};
+  return {status, pano, mask, cameras};
 }
 
 std::string ToString(cv::Stitcher::Status& status) {

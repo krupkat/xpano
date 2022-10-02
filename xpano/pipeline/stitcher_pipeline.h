@@ -70,6 +70,7 @@ struct StitchingResult {
   std::optional<utils::RectRRf> auto_crop;
   std::optional<std::string> export_path;
   std::optional<cv::Mat> mask;
+  std::optional<std::vector<cv::detail::CameraParams>> cameras;
 };
 
 struct ExportResult {

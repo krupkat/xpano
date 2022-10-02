@@ -111,9 +111,10 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   }
 
   progress_.SetTaskType(ProgressType::kStitchingPano);
-  auto [status, result, mask] = algorithm::Stitch(
-      imgs,
-      {.projection = options.projection, .return_pano_mask = options.full_res});
+  auto [status, result, mask, cameras] =
+      algorithm::Stitch(imgs, {.projection = options.projection,
+                               .return_pano_mask = options.full_res,
+                               .cameras = pano.cameras});
   progress_.NotifyTaskDone();
 
   if (status != cv::Stitcher::OK) {
@@ -143,8 +144,8 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
     progress_.NotifyTaskDone();
   }
 
-  return StitchingResult{options.pano_id, options.full_res, status,   result,
-                         auto_crop,       export_path,      pano_mask};
+  return StitchingResult{options.pano_id, options.full_res, status,    result,
+                         auto_crop,       export_path,      pano_mask, cameras};
 }
 
 std::future<InpaintingResult> StitcherPipeline::RunInpainting(

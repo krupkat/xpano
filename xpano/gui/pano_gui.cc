@@ -143,7 +143,8 @@ auto ResolveStitcherDataFuture(
 auto ResolveStitchingResultFuture(
     std::future<pipeline::StitchingResult> pano_future, PreviewPane* plot_pane,
     StatusMessage* status_message)
-    -> std::pair<std::optional<int>, std::optional<cv::Mat>> {
+    -> std::tuple<std::optional<int>, std::optional<cv::Mat>,
+                  std::optional<std::vector<cv::detail::CameraParams>>> {
   pipeline::StitchingResult result;
   try {
     result = pano_future.get();
@@ -183,7 +184,7 @@ auto ResolveStitchingResultFuture(
     export_pano_id = result.pano_id;
   }
 
-  return {export_pano_id, result.mask};
+  return {export_pano_id, result.mask, result.cameras};
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
@@ -456,10 +457,11 @@ Action PanoGui::ResolveFutures() {
   }
 
   if (utils::future::IsReady(pano_future_)) {
-    auto [export_pano_id, export_mask] = ResolveStitchingResultFuture(
+    auto [export_pano_id, export_mask, cameras] = ResolveStitchingResultFuture(
         std::move(pano_future_), &plot_pane_, &status_message_);
     if (export_pano_id) {
       stitcher_data_->panos[*export_pano_id].exported = true;
+      stitcher_data_->panos[*export_pano_id].cameras = cameras;
     }
     pano_mask_ = export_mask;
   }

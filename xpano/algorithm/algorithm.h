@@ -17,6 +17,7 @@ namespace xpano::algorithm {
 struct Pano {
   std::vector<int> ids;
   bool exported = false;
+  std::optional<std::vector<cv::detail::CameraParams>> cameras;
 };
 
 struct Match {
@@ -70,12 +71,14 @@ struct ProjectionOptions {
 struct StitchOptions {
   ProjectionOptions projection;
   bool return_pano_mask = false;
+  std::optional<std::vector<cv::detail::CameraParams>> cameras;
 };
 
 struct StitchResult {
   cv::Stitcher::Status status;
   cv::Mat pano;
   cv::Mat mask;
+  std::vector<cv::detail::CameraParams> cameras;
 };
 
 StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options);
