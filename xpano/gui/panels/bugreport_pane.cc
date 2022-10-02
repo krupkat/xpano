@@ -50,9 +50,9 @@ void BugReportPane::Draw() {
   }
 
   ImGui::Text("\n\nThe log file directory is located at: \n");
-  ImGui::Text((*(*logger_).get_log_file_path()).c_str());
+  ImGui::Text((*(*logger_).GetLogFilePath()).c_str());
   if (ImGui::Button("Copy path to clipboard")) {
-    ImGui::SetClipboardText((*(*logger_).get_log_file_path()).c_str());
+    ImGui::SetClipboardText((*(*logger_).GetLogFilePath()).c_str());
   }
 
   ImGui::End();

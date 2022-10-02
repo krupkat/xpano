@@ -30,7 +30,7 @@ class Logger {
   const std::vector<std::string> &Log();
   void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
 
-  std::optional<std::string> get_log_file_path();
+  std::optional<std::string> GetLogFilePath();
 
  private:
   void Concatenate();
@@ -39,7 +39,7 @@ class Logger {
   std::shared_ptr<BufferSinkMt> sink_;
 
   // to store log file path
-  std::optional<std::string> log_file_path;
+  std::optional<std::string> log_file_path_;
 };
 
 void RedirectSDLOutput();
