@@ -71,8 +71,7 @@ void Logger::RedirectSpdlogOutput(
 
   if (app_data_path) {
     auto log_path = *app_data_path / kLogFilename;
-    // set log_file_path_ to *app_data_path to use in bugreport_pane
-    log_file_path_ = (*app_data_path).string();
+    log_dir_path_ = app_data_path->string();
 
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
         log_path.string(), kMaxLogSize, kMaxLogFiles, true));
@@ -94,7 +93,7 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
-std::optional<std::string> Logger::GetLogFilePath() { return log_file_path_; }
+std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_;}
 
 void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 

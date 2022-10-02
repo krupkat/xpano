@@ -29,8 +29,6 @@ void BugReportPane::Draw() {
                                   ImGuiWindowFlags_NoCollapse |
                                   ImGuiWindowFlags_NoSavedSettings;
 
-  const auto text_base_width = ImGui::CalcTextSize("A").x;
-
   ImGui::Begin("Report a bug", &show_, window_flags);
 
   ImGui::Text("Report bugs here: ");
@@ -50,9 +48,14 @@ void BugReportPane::Draw() {
   }
 
   ImGui::Text("\n\nThe log file directory is located at: \n");
-  ImGui::Text((*(*logger_).GetLogFilePath()).c_str());
-  if (ImGui::Button("Copy path to clipboard")) {
-    ImGui::SetClipboardText((*(*logger_).GetLogFilePath()).c_str());
+  if (auto log_path = logger_->GetLogDirPath(); log_path) {
+    ImGui::Text((*log_path).c_str());
+    if (ImGui::Button("Copy path to clipboard")) {
+        ImGui::SetClipboardText((*log_path).c_str());
+    }
+  }
+  else {
+        ImGui::SetClipboardText("Could not initialize log file directory");
   }
 
   ImGui::End();
