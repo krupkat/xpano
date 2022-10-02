@@ -71,6 +71,9 @@ void Logger::RedirectSpdlogOutput(
 
   if (app_data_path) {
     auto log_path = *app_data_path / kLogFilename;
+    //set log_file_path to *app_data_path to use in bugreport_pane
+    log_file_path = (*app_data_path).string();
+
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
         log_path.string(), kMaxLogSize, kMaxLogFiles, true));
   }
