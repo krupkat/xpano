@@ -213,6 +213,9 @@ Action DrawHelpMenu() {
     if (ImGui::MenuItem("About")) {
       action |= {ActionType::kShowAbout};
     }
+    if (ImGui::MenuItem("Report a bug")) {
+      action |= {ActionType::kShowBugReport};
+    }
     ImGui::EndMenu();
   }
   return action;
