@@ -52,7 +52,7 @@ void BugReportPane::Draw() {
   
   ImGui::Text("\n");
   
-  ImGui::Text("You can also send an email to me at: ");
+  ImGui::Text("You can also send the bug report to my email: ");
   ImGui::Text(kAuthorEmailText.c_str());
 
   if (ImGui::Button("Copy email to clipboard")) {
