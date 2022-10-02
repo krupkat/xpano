@@ -9,6 +9,7 @@
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/panels/about.h"
+#include "xpano/gui/panels/bugreport_pane.h"
 #include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
@@ -65,6 +66,7 @@ class PanoGui {
   // Gui panels
   LogPane log_pane_;
   AboutPane about_pane_;
+  BugReportPane bugreport_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
 
