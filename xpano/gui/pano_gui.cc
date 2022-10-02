@@ -236,7 +236,7 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       log_pane_(logger),
-      bugreport_pane_(),
+      bugreport_pane_(logger),
       about_pane_(std::move(licenses)) {}
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
