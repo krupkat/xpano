@@ -22,7 +22,7 @@ namespace {
 const std::string kGithubIssuesLinkText =
     R"(https://github.com/krupkat/xpano/issues)";
 
-const std::string kTomasEmailText =
+const std::string kAuthorEmailText =
     R"(tomas@krupkat.cz)";
 
 }  // namespace
@@ -53,10 +53,10 @@ void BugReportPane::Draw() {
   ImGui::Text("\n");
   
   ImGui::Text("You can also send an email to me at: ");
-  ImGui::Text(kTomasEmailText.c_str());
+  ImGui::Text(kAuthorEmailText.c_str());
 
   if (ImGui::Button("Copy email to clipboard")) {
-      ImGui::SetClipboardText(kTomasEmailText.c_str());
+      ImGui::SetClipboardText(kAuthorEmailText.c_str());
   }
 
   ImGui::Text("\n\nThe log file directory is located at: \n");
