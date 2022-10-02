@@ -64,7 +64,7 @@ void BufferSinkMt::flush_() {}
 Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
 
 void Logger::RedirectSpdlogOutput(
-    std::optional<std::filesystem::path> app_data_path) {
+  std::optional<std::filesystem::path> app_data_path) {
   std::vector<spdlog::sink_ptr> sinks;
   sink_->set_pattern("[%l] %v");
   sinks.push_back(sink_);
