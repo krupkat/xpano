@@ -46,8 +46,6 @@ void BugReportPane::Draw() {
                            ImGuiCond_Once);
   ImGui::Begin("Report a bug", &show_, window_flags);
 
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-
   ImGui::Text("Report bugs here: ");
   ImGui::Text(kGithubIssuesLinkText.c_str());
 
