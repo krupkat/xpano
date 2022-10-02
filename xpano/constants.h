@@ -47,9 +47,6 @@ constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
 constexpr int kSidebarWidth = 25;
 
-constexpr int kBugReportBoxWidth= 70;
-constexpr int kBugReportBoxHeight = 30;
-
 const std::string kOrgName = "krupkat";
 const std::string kAppName = "Xpano";
 

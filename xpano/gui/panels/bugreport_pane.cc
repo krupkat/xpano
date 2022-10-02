@@ -41,9 +41,7 @@ void BugReportPane::Draw() {
                                   ImGuiWindowFlags_NoSavedSettings;
 
   const auto text_base_width = ImGui::CalcTextSize("A").x;
-  ImGui::SetNextWindowSize(ImVec2(kBugReportBoxWidth * text_base_width,
-                                  kBugReportBoxHeight * ImGui::GetTextLineHeight()),
-                           ImGuiCond_Once);
+
   ImGui::Begin("Report a bug", &show_, window_flags);
 
   ImGui::Text("Report bugs here: ");
