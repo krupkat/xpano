@@ -38,7 +38,7 @@ class Logger {
   std::vector<std::string> log_;
   std::shared_ptr<BufferSinkMt> sink_;
 
-  //to store log file path
+  // to store log file path
   std::optional<std::string> log_file_path;
 };
 

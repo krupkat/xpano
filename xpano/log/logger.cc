@@ -64,14 +64,14 @@ void BufferSinkMt::flush_() {}
 Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
 
 void Logger::RedirectSpdlogOutput(
-  std::optional<std::filesystem::path> app_data_path) {
+    std::optional<std::filesystem::path> app_data_path) {
   std::vector<spdlog::sink_ptr> sinks;
   sink_->set_pattern("[%l] %v");
   sinks.push_back(sink_);
 
   if (app_data_path) {
     auto log_path = *app_data_path / kLogFilename;
-    //set log_file_path to *app_data_path to use in bugreport_pane
+    // set log_file_path to *app_data_path to use in bugreport_pane
     log_file_path = (*app_data_path).string();
 
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
@@ -94,9 +94,7 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
-std::optional<std::string> Logger::get_log_file_path() {
-    return log_file_path;
-}
+std::optional<std::string> Logger::get_log_file_path() { return log_file_path; }
 
 void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 

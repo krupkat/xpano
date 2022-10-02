@@ -48,7 +48,6 @@ void DrawInfoMessage(const StatusMessage& status_message) {
   }
 }
 
-
 std::string PreviewMessage(const Selection& selection, ImageType image_type) {
   switch (selection.type) {
     case SelectionType::kImage:

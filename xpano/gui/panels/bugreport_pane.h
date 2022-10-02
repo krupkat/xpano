@@ -6,7 +6,7 @@ namespace xpano::gui {
 
 class BugReportPane {
  public:
-  explicit BugReportPane(logger::Logger *logger);
+  explicit BugReportPane(logger::Logger* logger);
   void Draw();
   void Show();
 
