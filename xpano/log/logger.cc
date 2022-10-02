@@ -93,7 +93,7 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
-std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_;}
+std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_; }
 
 void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 

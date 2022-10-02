@@ -51,11 +51,10 @@ void BugReportPane::Draw() {
   if (auto log_path = logger_->GetLogDirPath(); log_path) {
     ImGui::Text((*log_path).c_str());
     if (ImGui::Button("Copy path to clipboard")) {
-        ImGui::SetClipboardText((*log_path).c_str());
+      ImGui::SetClipboardText((*log_path).c_str());
     }
-  }
-  else {
-        ImGui::SetClipboardText("Could not initialize log file directory");
+  } else {
+    ImGui::SetClipboardText("Could not initialize log file directory");
   }
 
   ImGui::End();
