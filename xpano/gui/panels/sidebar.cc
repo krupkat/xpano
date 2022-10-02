@@ -209,12 +209,12 @@ Action DrawHelpMenu() {
     if (ImGui::MenuItem("Show debug info", Label(ShortcutType::kDebug))) {
       action |= {ActionType::kToggleDebugLog};
     }
+    if (ImGui::MenuItem("Report a bug")) {
+      action |= {ActionType::kShowBugReport};
+    }
     ImGui::Separator();
     if (ImGui::MenuItem("About")) {
       action |= {ActionType::kShowAbout};
-    }
-    if (ImGui::MenuItem("Report a bug")) {
-      action |= {ActionType::kShowBugReport};
     }
     ImGui::EndMenu();
   }
