@@ -94,6 +94,10 @@ void Logger::Concatenate() {
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
 
+std::optional<std::string> Logger::get_log_file_path() {
+    return log_file_path;
+}
+
 void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 
 }  // namespace xpano::logger
