@@ -30,6 +30,9 @@ class Logger {
   const std::vector<std::string> &Log();
   void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
 
+  //to store log file path
+  std::string log_file_path;
+
  private:
   void Concatenate();
 
