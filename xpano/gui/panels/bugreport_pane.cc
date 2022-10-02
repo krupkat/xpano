@@ -27,10 +27,9 @@ const std::string kTomasEmailText =
 
 }  // namespace
 
-BugReportPane::BugReportPane(){}
+BugReportPane::BugReportPane(logger::Logger *logger): logger_(logger){}
   
 void BugReportPane::Show() { show_ = true; }
-
 void BugReportPane::Draw() {
   if (!show_) {
     return;
@@ -60,11 +59,10 @@ void BugReportPane::Draw() {
       ImGui::SetClipboardText(kTomasEmailText.c_str());
   }
 
-  auto log_file_path = *(xpano::utils::sdl::InitializePrefPath());
   ImGui::Text("\n\nThe log file directory is located at: \n");
-  ImGui::Text(log_file_path.string().c_str());
+  ImGui::Text((*logger_).log_file_path.c_str());
   if (ImGui::Button("Copy path to clipboard")) {
-      ImGui::SetClipboardText(log_file_path.string().c_str());
+      ImGui::SetClipboardText((*logger_).log_file_path.c_str());
   }
 
 
