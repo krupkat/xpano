@@ -236,6 +236,7 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       log_pane_(logger),
+      bugreport_pane_(logger),
       about_pane_(std::move(licenses)) {}
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
@@ -264,6 +265,7 @@ Action PanoGui::DrawGui() {
   plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
   log_pane_.Draw();
   about_pane_.Draw();
+  bugreport_pane_.Draw();
   return action;
 }
 
@@ -432,6 +434,10 @@ Action PanoGui::PerformAction(Action action) {
     }
     case ActionType::kShowAbout: {
       about_pane_.Show();
+      break;
+    }
+    case ActionType::kShowBugReport: {
+      bugreport_pane_.Show();
       break;
     }
     case ActionType::kToggleDebugLog: {

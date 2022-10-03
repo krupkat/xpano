@@ -71,6 +71,8 @@ void Logger::RedirectSpdlogOutput(
 
   if (app_data_path) {
     auto log_path = *app_data_path / kLogFilename;
+    log_dir_path_ = app_data_path->string();
+
     sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
         log_path.string(), kMaxLogSize, kMaxLogFiles, true));
   }
@@ -90,6 +92,8 @@ void Logger::Concatenate() {
   auto new_messages = sink_->LastFormatted();
   std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
 }
+
+std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_; }
 
 void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 

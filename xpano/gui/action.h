@@ -12,6 +12,7 @@ enum class ActionType {
   kOpenDirectory,
   kOpenFiles,
   kShowAbout,
+  kShowBugReport,
   kShowImage,
   kShowMatch,
   kShowPano,
