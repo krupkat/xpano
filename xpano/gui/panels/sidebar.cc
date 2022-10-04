@@ -268,7 +268,7 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
     ImGui::TableNextColumn();
     ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
     ImGui::TableNextColumn();
-    ImGui::Text("%d", matches[i].matches.size());
+    ImGui::Text("%ld", matches[i].matches.size());
     ImGui::TableNextColumn();
     ImGui::PushID(i);
     if (ImGui::SmallButton("Show")) {
@@ -303,10 +303,10 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   for (int i = 0; i < panos.size(); i++) {
     ImGui::TableNextColumn();
     auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
-    ImGui::Text("%s", string.c_str());
+    ImGui::TextUnformatted(string.c_str());
     ImGui::TableNextColumn();
     if (panos[i].exported) {
-      ImGui::Text(kCheckMark);
+      ImGui::TextUnformatted(kCheckMark);
     }
     ImGui::TableNextColumn();
     ImGui::PushID(i);
