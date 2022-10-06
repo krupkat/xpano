@@ -10,10 +10,10 @@ namespace xpano::gui {
 
 namespace {
 
-const std::string kGithubIssuesLinkText =
+const std::string kGithubIssuesLink =
     R"(https://github.com/krupkat/xpano/issues)";
 
-const std::string kAuthorEmailText = R"(tomas@krupkat.cz)";
+const std::string kAuthorEmail = R"(tomas@krupkat.cz)";
 
 }  // namespace
 
@@ -32,24 +32,24 @@ void BugReportPane::Draw() {
   ImGui::Begin("Report a bug", &show_, window_flags);
 
   ImGui::Text("Report bugs here: ");
-  ImGui::Text(kGithubIssuesLinkText.c_str());
+  ImGui::TextUnformatted(kGithubIssuesLink.c_str());
 
   if (ImGui::Button("Copy link to clipboard")) {
-    ImGui::SetClipboardText(kGithubIssuesLinkText.c_str());
+    ImGui::SetClipboardText(kGithubIssuesLink.c_str());
   }
 
   ImGui::Text("\n");
 
   ImGui::Text("You can also send the bug report to my email: ");
-  ImGui::Text(kAuthorEmailText.c_str());
+  ImGui::TextUnformatted(kAuthorEmail.c_str());
 
   if (ImGui::Button("Copy email to clipboard")) {
-    ImGui::SetClipboardText(kAuthorEmailText.c_str());
+    ImGui::SetClipboardText(kAuthorEmail.c_str());
   }
 
   ImGui::Text("\n\nThe log file directory is located at: \n");
   if (auto log_path = logger_->GetLogDirPath(); log_path) {
-    ImGui::Text(log_path->c_str());
+    ImGui::TextUnformatted(log_path->c_str());
     if (ImGui::Button("Copy path to clipboard")) {
       ImGui::SetClipboardText(log_path->c_str());
     }
