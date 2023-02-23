@@ -114,7 +114,7 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   auto [status, result, mask, cameras] =
       algorithm::Stitch(imgs, {.projection = options.projection,
                                .return_pano_mask = options.full_res,
-                               .cameras = pano.cameras});
+                               .cameras = pano.modifications.cameras});
   progress_.NotifyTaskDone();
 
   if (status != cv::Stitcher::OK) {

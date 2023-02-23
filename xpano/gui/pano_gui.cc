@@ -262,7 +262,7 @@ Action PanoGui::DrawGui() {
   layout::InitDockSpace();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
-  plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
+  action |= plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
@@ -367,6 +367,8 @@ Action PanoGui::PerformAction(Action action) {
       if (plot_pane_.Type() == ImageType::kPanoFullRes && pano_mask_) {
         spdlog::info("Auto fill pano {}", selection_.target_id);
         status_message_ = {};
+        stitcher_data_->panos[selection_.target_id].modifications.inpainting =
+            inpaint_options_;
         inpaint_future_ = stitcher_pipeline_.RunInpainting(
             plot_pane_.Image(), *pano_mask_, inpaint_options_);
       } else {
@@ -419,6 +421,8 @@ Action PanoGui::PerformAction(Action action) {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
                      Label(projection_options_.type));
+        stitcher_data_->panos[selection_.target_id].modifications.projection =
+            projection_options_;
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
                 .delayed = true};
@@ -445,7 +449,14 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kToggleCrop: {
-      plot_pane_.ToggleCrop();
+      action |= plot_pane_.ToggleCrop();
+      break;
+    }
+    case ActionType::kCropRectChanged: {
+      if (selection_.type == SelectionType::kPano) {
+        stitcher_data_->panos[selection_.target_id].modifications.crop =
+            plot_pane_.CropRect();
+      }
       break;
     }
   }
@@ -467,7 +478,7 @@ Action PanoGui::ResolveFutures() {
         std::move(pano_future_), &plot_pane_, &status_message_);
     if (export_pano_id) {
       stitcher_data_->panos[*export_pano_id].exported = true;
-      stitcher_data_->panos[*export_pano_id].cameras = cameras;
+      stitcher_data_->panos[*export_pano_id].modifications.cameras = cameras;
     }
     pano_mask_ = export_mask;
   }

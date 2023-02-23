@@ -6,6 +6,7 @@
 #include <opencv2/core.hpp>
 
 #include "xpano/constants.h"
+#include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
@@ -49,9 +50,9 @@ class PreviewPane {
   explicit PreviewPane(backends::Base* backend);
   void Load(cv::Mat image, ImageType image_type);
   void Reload(cv::Mat image, ImageType image_type);
-  void Draw(const std::string& message);
+  Action Draw(const std::string& message);
   void Reset();
-  void ToggleCrop();
+  Action ToggleCrop();
   void EndCrop();
   void SetSuggestedCrop(const utils::RectRRf& rect);
 
@@ -66,7 +67,8 @@ class PreviewPane {
   void ZoomOut();
   void AdvanceZoom();
   void ResetZoom();
-  void HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
+  Action HandleInputs(const utils::RectPVf& window,
+                      const utils::RectPVf& image);
 
   utils::Ratio2f tex_coord_;
 

@@ -278,12 +278,13 @@ void PreviewPane::Reset() {
   full_resolution_pano_ = cv::Mat{};
 }
 
-void PreviewPane::Draw(const std::string& message) {
+Action PreviewPane::Draw(const std::string& message) {
   ImGui::Begin("Preview");
   auto window = utils::Rect(utils::ToPoint(ImGui::GetCursorScreenPos()),
                             utils::ToVec(ImGui::GetContentRegionAvail()));
   DrawMessage(window.start + utils::Vec2f{0.0f, window.size[1]}, message);
 
+  Action action;
   if (tex_ && image_type_ != ImageType::kNone) {
     auto mid = window.start + window.size / 2.0f;
 
@@ -304,7 +305,7 @@ void PreviewPane::Draw(const std::string& message) {
                           image_size * Zoom());
     }
 
-    HandleInputs(window, image);
+    action |= HandleInputs(window, image);
 
     auto tex_coords =
         (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial)
@@ -322,10 +323,11 @@ void PreviewPane::Draw(const std::string& message) {
     }
   }
   ImGui::End();
+  return action;
 }
 
-void PreviewPane::HandleInputs(const utils::RectPVf& window,
-                               const utils::RectPVf& image) {
+Action PreviewPane::HandleInputs(const utils::RectPVf& window,
+                                 const utils::RectPVf& image) {
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
   if (crop_mode_ == CropMode::kEnabled) {
@@ -336,11 +338,15 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
     crop_widget_ =
         Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
     SelectMouseCursor(crop_widget_);
-    return;
+    if (std::any_of(crop_widget_.edges.begin(), crop_widget_.edges.end(),
+                    [](const Edge& edge) { return edge.dragging; })) {
+      return {ActionType::kCropRectChanged};
+    }
+    return {};
   }
 
   if (!ImGui::IsWindowHovered()) {
-    return;
+    return {};
   }
 
   // Zoom + pan only when not cropping
@@ -361,20 +367,23 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
   if (mouse_wheel < 0) {
     ZoomOut();
   }
+  return {};
 }
 
 ImageType PreviewPane::Type() const { return image_type_; }
 
-void PreviewPane::ToggleCrop() {
+Action PreviewPane::ToggleCrop() {
   if (image_type_ != ImageType::kPanoFullRes) {
-    return;
+    return {};
   }
 
+  Action action;
   switch (crop_mode_) {
     case CropMode::kInitial:
       ResetZoom();
       crop_widget_.rect = suggested_crop_;
       crop_mode_ = CropMode::kEnabled;
+      action |= {.type = ActionType::kCropRectChanged, .delayed = true};
       break;
     case CropMode::kEnabled:
       crop_mode_ = CropMode::kDisabled;
@@ -386,6 +395,7 @@ void PreviewPane::ToggleCrop() {
     default:
       break;
   }
+  return action;
 }
 
 void PreviewPane::EndCrop() {

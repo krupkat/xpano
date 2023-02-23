@@ -14,23 +14,6 @@
 
 namespace xpano::algorithm {
 
-struct Pano {
-  std::vector<int> ids;
-  bool exported = false;
-  std::optional<std::vector<cv::detail::CameraParams>> cameras;
-};
-
-struct Match {
-  int id1;
-  int id2;
-  std::vector<cv::DMatch> matches;
-};
-
-std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2);
-
-std::vector<Pano> FindPanos(const std::vector<Match>& matches,
-                            int match_threshold);
-
 enum class ProjectionType {
   kPerspective,
   kCylindrical,
@@ -58,15 +41,55 @@ const auto kProjectionTypes =
                ProjectionType::kMercator,
                ProjectionType::kTransverseMercator};
 
-const char* Label(ProjectionType projection_type);
-
-bool HasAdvancedParameters(ProjectionType projection_type);
-
 struct ProjectionOptions {
   ProjectionType type = ProjectionType::kSpherical;
   float a_param = kDefaultPaniniA;
   float b_param = kDefaultPaniniB;
 };
+
+enum class InpaintingMethod {
+  kNavierStokes,
+  kTelea,
+};
+
+const auto kInpaintingMethods =
+    std::array{InpaintingMethod::kNavierStokes, InpaintingMethod::kTelea};
+
+struct InpaintingOptions {
+  double radius = kDefaultInpaintingRadius;
+  InpaintingMethod method = InpaintingMethod::kTelea;
+};
+
+using CameraParams = std::vector<cv::detail::CameraParams>;
+
+struct PanoModifications {
+  ProjectionOptions projection;
+
+  std::optional<utils::RectRRf> crop;
+  std::optional<CameraParams> cameras;
+  std::optional<InpaintingOptions> inpainting;
+};
+
+struct Pano {
+  std::vector<int> ids;
+  bool exported = false;
+  PanoModifications modifications;
+};
+
+struct Match {
+  int id1;
+  int id2;
+  std::vector<cv::DMatch> matches;
+};
+
+std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2);
+
+std::vector<Pano> FindPanos(const std::vector<Match>& matches,
+                            int match_threshold);
+
+const char* Label(ProjectionType projection_type);
+
+bool HasAdvancedParameters(ProjectionType projection_type);
 
 struct StitchOptions {
   ProjectionOptions projection;
@@ -87,20 +110,7 @@ std::string ToString(cv::Stitcher::Status& status);
 
 std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 
-enum class InpaintingMethod {
-  kNavierStokes,
-  kTelea,
-};
-
-const auto kInpaintingMethods =
-    std::array{InpaintingMethod::kNavierStokes, InpaintingMethod::kTelea};
-
 const char* Label(InpaintingMethod inpaint_method);
-
-struct InpaintingOptions {
-  double radius = kDefaultInpaintingRadius;
-  InpaintingMethod method = InpaintingMethod::kTelea;
-};
 
 cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
                 InpaintingOptions options);

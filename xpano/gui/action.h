@@ -5,6 +5,7 @@ namespace xpano::gui {
 enum class ActionType {
   kNone,
   kCancelPipeline,
+  kCropRectChanged,
   kToggleCrop,
   kDisableHighlight,
   kExport,
