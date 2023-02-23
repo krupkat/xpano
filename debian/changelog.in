@@ -1,3 +1,9 @@
+xpano (0.8.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.8.0, quick import buttons, support window
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Thu, 23 Feb 2023 19:28:53 +0000
+
 xpano (0.7.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.7.0, auto fill, fix loading files with uppercase extension
