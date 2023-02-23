@@ -1,3 +1,8 @@
+# Xpano 0.8.0
+
+- Quick import buttons
+- Support window (thanks @poshi1865)
+
 # Xpano 0.7.0
 
 - Auto fill
