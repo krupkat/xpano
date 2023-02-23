@@ -209,7 +209,7 @@ Action DrawHelpMenu() {
     if (ImGui::MenuItem("Show debug info", Label(ShortcutType::kDebug))) {
       action |= {ActionType::kToggleDebugLog};
     }
-    if (ImGui::MenuItem("Report a bug")) {
+    if (ImGui::MenuItem("Support")) {
       action |= {ActionType::kShowBugReport};
     }
     ImGui::Separator();
@@ -346,12 +346,12 @@ Action DrawMenu(pipeline::CompressionOptions* compression_options,
   return action;
 }
 
-void DrawWelcomeText() {
+void DrawWelcomeTextPart1() {
   ImGui::Text("Welcome to Xpano!");
-  ImGui::Text(" 1) Import your images");
-  ImGui::SameLine();
-  utils::imgui::InfoMarker(
-      "(?)", "a) Import individual files\nb) Import all files in a directory");
+  ImGui::Text(" 1) Import your images:");
+}
+
+void DrawWelcomeTextPart2() {
   ImGui::Text(" 2) Select a panorama");
   ImGui::SameLine();
   utils::imgui::InfoMarker(
@@ -369,6 +369,19 @@ void DrawWelcomeText() {
       "exports a full resolution panorama");
   ImGui::Spacing();
 }
+
+Action DrawImportActionButtons() {
+  Action action{};
+  ImGui::Spacing();
+  if (ImGui::Button("Multiple files")) {
+    action |= {ActionType::kOpenFiles};
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Directory")) {
+    action |= {ActionType::kOpenDirectory};
+  }
+  return action;
+};
 
 Action DrawActionButtons(ImageType image_type, int target_id) {
   Action action{};
@@ -390,7 +403,7 @@ Action DrawActionButtons(ImageType image_type, int target_id) {
           action |= {ActionType::kToggleCrop};
         }
       },
-      "First compute full resolution panorama");
+      "First compute a full resolution panorama");
   ImGui::SameLine();
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes,
@@ -399,7 +412,7 @@ Action DrawActionButtons(ImageType image_type, int target_id) {
           action |= {ActionType::kInpaint};
         }
       },
-      "First compute full resolution panorama");
+      "First compute a full resolution panorama");
   ImGui::SameLine();
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes ||
@@ -410,6 +423,7 @@ Action DrawActionButtons(ImageType image_type, int target_id) {
         }
       },
       "First select a panorama");
+  ImGui::Spacing();
   return action;
 }
 

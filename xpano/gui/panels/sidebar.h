@@ -31,7 +31,11 @@ Action DrawMenu(pipeline::CompressionOptions* compression_options,
                 pipeline::ProjectionOptions* projection_options,
                 bool debug_enabled);
 
-void DrawWelcomeText();
+void DrawWelcomeTextPart1();
+
+void DrawWelcomeTextPart2();
+
+Action DrawImportActionButtons();
 
 Action DrawActionButtons(ImageType image_type, int target_id);
 
