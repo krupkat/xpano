@@ -1,7 +1,7 @@
 # useful for building from tarball
 
-TAG_IMGUI="docking_v1.89_wip"
-TAG_NFDE="v1.0.0"
+TAG_IMGUI="docking_v1.89.4_wip"
+TAG_NFDE="v1.0.1"
 TAG_THREAD_POOL="v3.3.1"
 
 cd external
