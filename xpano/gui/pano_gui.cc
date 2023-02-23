@@ -276,9 +276,10 @@ Action PanoGui::DrawSidebar() {
       DrawMenu(&compression_options_, &loading_options_, &inpaint_options_,
                &matching_options_, &projection_options_, IsDebugEnabled());
 
-  DrawWelcomeText();
+  DrawWelcomeTextPart1();
+  action |= DrawImportActionButtons();
+  DrawWelcomeTextPart2();
   action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id);
-  ImGui::Spacing();
 
   auto progress = stitcher_pipeline_.Progress();
   DrawProgressBar(progress);
