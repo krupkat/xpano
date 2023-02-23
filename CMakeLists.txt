@@ -15,7 +15,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory("external/nativefiledialog-extended" EXCLUDE_FROM_ALL)
+add_subdirectory("external/nativefiledialog-extended")
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -23,7 +23,7 @@ set(IMGUI_SOURCES
   "external/imgui/imgui_demo.cpp"
   "external/imgui/imgui_tables.cpp"
   "external/imgui/imgui_widgets.cpp"
-  "external/imgui/backends/imgui_impl_sdl.cpp"
+  "external/imgui/backends/imgui_impl_sdl2.cpp"
   "external/imgui/backends/imgui_impl_sdlrenderer.cpp"
 )
 
