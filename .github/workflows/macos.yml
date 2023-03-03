@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 env:
   BUILD_TYPE: Release
   OPENCV_VERSION: "4.7.0"

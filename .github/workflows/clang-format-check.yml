@@ -11,6 +11,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   clang-format-check:
     runs-on: ubuntu-22.04
