@@ -27,6 +27,7 @@ jobs:
         ./misc/scripts/generate_build_scripts.sh
 
         if ! git diff --exit-code; then
-          echo "Build scripts are inconsistent with workflows,"
-          echo "run misc/scripts/generate_build_scripts to sync them"
+          echo "Build scripts are inconsistent with workflows, please"
+          echo "run 'misc/scripts/generate_build_scripts' to sync them"
+          exit 1
         fi
