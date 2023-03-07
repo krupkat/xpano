@@ -8,6 +8,7 @@ on:
       - ".github/workflows/**"
       - "misc/build/**"
       - "misc/scripts/python/**"
+      - "misc/scripts/generate_build_scripts.sh"
   pull_request:
     branches: [ "main" ]
 
@@ -15,7 +16,7 @@ permissions:
   contents: read # to fetch code (actions/checkout)
 
 jobs:
-  clang-format-check:
+  build-scripts-check:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
@@ -23,5 +24,9 @@ jobs:
     - name: Check build scripts consistency
       run: |
         pip install -r misc/scripts/python/requirements.txt
-        bash misc/scripts/generate_build_scripts.ps1
-        git diff --exit-code
+        ./misc/scripts/generate_build_scripts.sh
+
+        if ! git diff --exit-code; then
+          echo "Build scripts are inconsistent with workflows,"
+          echo "run misc/scripts/generate_build_scripts to sync them"
+        fi
