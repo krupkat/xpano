@@ -1,0 +1,33 @@
+name: Check build scripts consistency
+# Check that build scripts in misc/build are in sync with github workflows
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/**"
+      - "misc/build/**"
+      - "misc/scripts/python/**"
+      - "misc/scripts/generate_build_scripts.sh"
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  build-scripts-check:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Check build scripts consistency
+      run: |
+        pip install -r misc/scripts/python/requirements.txt
+        ./misc/scripts/generate_build_scripts.sh
+
+        if ! git diff --exit-code; then
+          echo "Build scripts are inconsistent with workflows, please"
+          echo "run 'misc/scripts/generate_build_scripts' to sync them"
+          exit 1
+        fi

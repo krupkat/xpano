@@ -6,6 +6,7 @@ export OPENCV_VERSION='4.7.0'
 export SDL_VERSION='release-2.26.3'
 
 git submodule update --init
+#sudo apt-get install -y libgtk-3-dev libspdlog-dev
 
 
 git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
