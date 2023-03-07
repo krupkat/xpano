@@ -13,7 +13,7 @@ git submodule update --init
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $env:OPENCV_VERSION
 cd opencv
 cmake -B build -G "$env:GENERATOR" `
-  -DBUILD_SHARED_LIBS=ON `
+  -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
   @(Get-Content ../misc/build/opencv_minimal_flags.txt)
 cmake --build build --target install --config Release
