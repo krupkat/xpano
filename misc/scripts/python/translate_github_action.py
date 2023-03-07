@@ -8,10 +8,16 @@ def Header(action_path):
 
 
 def ConvertStep(step):
+    # update submodules
     if step.get("uses", "").startswith("actions/checkout"):
         if step.get("with", {}).get("submodules", False) == True:
             return "git submodule update --init"
-    return step.get("run", "")
+    # comment out sudo actions
+    command = step.get("run", "")
+    if command.startswith("sudo"):
+        return "#" + command
+    else:
+        return command
 
 
 def ShellExtension(system):
