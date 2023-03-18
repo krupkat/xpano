@@ -5,5 +5,5 @@ Type=Application
 Keywords=pano
 Exec=Xpano
 Terminal=false
-Icon=xpano.png
+Icon=xpano
 Categories=Graphics;
