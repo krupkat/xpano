@@ -1,3 +1,7 @@
+# Xpano 0.9.0
+
+- Flatpak support
+
 # Xpano 0.8.0
 
 - Quick import buttons
