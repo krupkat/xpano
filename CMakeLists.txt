@@ -120,6 +120,10 @@ if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*|^/app.*")
     "misc/build/deb-package/xpano.png"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps"
   )
+  install(FILES
+    "misc/build/deb-package/xpano.svg"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"
+  )
 endif()
 
 install(DIRECTORY
