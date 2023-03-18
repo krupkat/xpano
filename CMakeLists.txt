@@ -111,7 +111,7 @@ install(FILES
   TYPE BIN
 )
 
-if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*")
+if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*|^/app.*")
   install(FILES
     "misc/build/deb-package/xpano.desktop"
     DESTINATION "/usr/share/applications"
