@@ -114,11 +114,11 @@ install(FILES
 if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*|^/app.*")
   install(FILES
     "misc/build/deb-package/xpano.desktop"
-    DESTINATION "/usr/share/applications"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
   )
   install(FILES
     "misc/build/deb-package/xpano.png"
-    DESTINATION "/usr/share/pixmaps"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps"
   )
 endif()
 
