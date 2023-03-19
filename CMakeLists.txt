@@ -113,16 +113,20 @@ install(FILES
 
 if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*|^/app.*")
   install(FILES
-    "misc/build/deb-package/xpano.desktop"
+    "misc/build/linux/xpano.desktop"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
   )
   install(FILES
-    "misc/build/deb-package/xpano.png"
+    "misc/build/linux/xpano.png"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps"
   )
   install(FILES
-    "misc/build/deb-package/xpano.svg"
+    "misc/build/linux/xpano.svg"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"
+  )
+  install(FILES
+    "misc/build/linux/cz.krupkat.Xpano.metainfo.xml"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/metainfo"
   )
 endif()
 
