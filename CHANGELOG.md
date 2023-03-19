@@ -1,6 +1,7 @@
 # Xpano 0.9.0
 
 - Flatpak support
+- Appstream support (since 0.9.1)
 
 # Xpano 0.8.0
 
