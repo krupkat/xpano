@@ -22,15 +22,15 @@ Check out the demo on [YouTube](https://youtu.be/MyiTC3i1hK0). This is how the a
 
 ![Main Xpano gui](misc/screenshots/xpano.jpg)
 
-## Pre-built packages
+## Installation
 
-There are pre-built packages for Windows and Ubuntu:
+Install directly from Flathub or the Microsoft Store:
 
-- Install the Windows app from the [Microsoft Store](https://www.microsoft.com/store/productId/9PGQ5X33L0SC)
-- Download Windows binaries from [GitHub](https://github.com/krupkat/xpano/releases)
-- Install Ubuntu packages from [Launchpad](https://launchpad.net/~krupkat/+archive/ubuntu/code)
+<a href='https://flathub.org/apps/details/cz.krupkat.Xpano'><img height='70' alt='Download from Flathub' src='https://flathub.org/assets/badges/flathub-badge-en.png'/></a>&nbsp;&nbsp;<a href='https://apps.microsoft.com/store/detail/9PGQ5X33L0SC?launch=true&mode=full'><img height='70' alt='Download from the Microsoft Store' src='https://get.microsoft.com/images/en-US%20dark.svg'/></a>
 
-## Local build
+Additionally you can download Windows executables from [GitHub](https://github.com/krupkat/xpano/releases) and Ubuntu packages from a [Launchpad PPA](https://launchpad.net/~krupkat/+archive/ubuntu/code).
+
+## Development
 
 The project can be built by running a single script from the `misc/build` directory. You will need at least CMake 3.21, git and a compiler with C++20 support.
 
