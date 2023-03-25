@@ -29,7 +29,13 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
-    <release version="0.9.1" date="2023-03-19"/>
+    <release version="0.9.3" date="2023-03-25">
+      <description>
+        <p>
+          Added Flatpak support.
+        </p>
+      </description>
+    </release>
   </releases>
   <content_rating type="oars-1.1"/>
 </component>
