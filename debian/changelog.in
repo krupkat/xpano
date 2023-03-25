@@ -1,3 +1,9 @@
+xpano (0.9.3-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.9.3, flatpak support, appstream metadata
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Sat, 25 Mar 2023 21:04:01 +0000
+
 xpano (0.8.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.8.0, quick import buttons, support window
