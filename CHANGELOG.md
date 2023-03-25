@@ -2,6 +2,7 @@
 
 - Flatpak support
 - Appstream support (since 0.9.1)
+- Simplified app icon (since 0.9.2)
 
 # Xpano 0.8.0
 
