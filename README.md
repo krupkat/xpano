@@ -4,9 +4,13 @@
 
 # xpano
 
-Tool for stitching photos with focus on simplicity and ease of use.
+Xpano is a tool for panorama stitching with focus on simplicity and ease of use, major features include:
 
-After you import your images, the app autodetects groups of images to stitch into panoramas. You can then check the panorama previews and run export to save the full resolution results.
+- Auto detection of groups of images that can be stitched into panoramas
+- Preview + zoom + pan of the computed panoramas
+- Crop mode, boundary auto fill, selectable projection types
+- Export of full resolution panoramas
+
 
 ## Built with
 
