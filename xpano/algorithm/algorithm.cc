@@ -174,10 +174,19 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
+StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
+                    bool return_pano_mask) {
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
   auto warper_creator = PickWarper(options.projection);
   stitcher->setWarper(warper_creator);
+  switch (options.feature) {
+    case FeatureType::kSift:
+      stitcher->setFeaturesFinder(cv::SIFT::create());
+      break;
+    case FeatureType::kOrb:
+      stitcher->setFeaturesFinder(cv::ORB::create());
+      break;
+  }
 
   cv::Mat pano;
   auto status = stitcher->stitch(images, pano);
@@ -187,13 +196,13 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options) {
   }
 
   cv::Mat mask;
-  if (options.return_pano_mask) {
+  if (return_pano_mask) {
     stitcher->resultMask().copyTo(mask);
   }
 
   if (auto rotate = GetRotationFlags(options.projection); rotate) {
     cv::rotate(pano, pano, *rotate);
-    if (options.return_pano_mask) {
+    if (return_pano_mask) {
       cv::rotate(mask, mask, *rotate);
     }
   }
@@ -259,6 +268,17 @@ const char* Label(ProjectionType projection_type) {
       return "Mercator";
     case ProjectionType::kTransverseMercator:
       return "TransverseMercator";
+    default:
+      return "Unknown";
+  }
+}
+
+const char* Label(FeatureType feature_type) {
+  switch (feature_type) {
+    case FeatureType::kSift:
+      return "SIFT";
+    case FeatureType::kOrb:
+      return "ORB";
     default:
       return "Unknown";
   }

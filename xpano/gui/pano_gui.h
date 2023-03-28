@@ -60,7 +60,7 @@ class PanoGui {
   pipeline::LoadingOptions loading_options_;
   pipeline::InpaintingOptions inpaint_options_;
   pipeline::MatchingOptions matching_options_;
-  pipeline::ProjectionOptions projection_options_;
+  pipeline::StitchAlgorithmOptions stitch_options_;
   std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels

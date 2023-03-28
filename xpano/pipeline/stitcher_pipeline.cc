@@ -111,9 +111,9 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   }
 
   progress_.SetTaskType(ProgressType::kStitchingPano);
-  auto [status, result, mask] = algorithm::Stitch(
-      imgs,
-      {.projection = options.projection, .return_pano_mask = options.full_res});
+  auto [status, result, mask] =
+      algorithm::Stitch(imgs, options.stitch_algorithm,
+                        /*return_pano_mask=*/options.full_res);
   progress_.NotifyTaskDone();
 
   if (status != cv::Stitcher::OK) {
