@@ -100,7 +100,30 @@ void DrawLoadingOptionsMenu(pipeline::LoadingOptions* loading_options) {
   }
 }
 
-void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options) {
+bool DrawMatchConf(float* match_conf) {
+  bool value_changed = false;
+  if (ImGui::InputFloat("Match confidence", match_conf, 0.01f, 0.01f, "%.2f")) {
+    value_changed = true;
+
+    if (*match_conf < kMinMatchConf) {
+      *match_conf = kMinMatchConf;
+    }
+
+    if (*match_conf > kMaxMatchConf) {
+      *match_conf = kMaxMatchConf;
+    }
+  }
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)",
+      "Increasing this value will get less matches, but with higher quality."
+      "\nChanging both ways can be useful in case a panorama fails to detect "
+      "or stitch.");
+  return value_changed;
+}
+
+void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
+                             bool debug_enabled) {
   if (ImGui::BeginMenu("Panorama detection")) {
     ImGui::Text(
         "Experiment with this if the app cannot find the panoramas you "
@@ -121,6 +144,10 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options) {
         "(?)",
         "Number of keypoints that need to match in order to include the two "
         "images in a panorama.");
+    if (debug_enabled) {
+      ImGui::Text("[debug options]");
+      DrawMatchConf(&matching_options->match_conf);
+    }
     ImGui::EndMenu();
   }
 }
@@ -181,7 +208,12 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
     action |= DrawProjectionOptions(stitch_options);
 
     if (debug_enabled) {
+      ImGui::Text("[debug options]");
       action |= DrawFeatureMatchingOptions(stitch_options);
+
+      if (DrawMatchConf(&stitch_options->match_conf)) {
+        action |= {ActionType::kRecomputePano};
+      }
     }
     ImGui::EndMenu();
   }
@@ -190,6 +222,7 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
 
 void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
   if (ImGui::BeginMenu("Auto fill")) {
+    ImGui::Text("[debug options]");
     ImGui::Text("Algorithm:");
     ImGui::Spacing();
     if (ImGui::BeginCombo("##inpaint_type", Label(inpaint_options->method))) {
@@ -224,7 +257,7 @@ Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
   if (ImGui::BeginMenu("Options")) {
     DrawCompressionOptionsMenu(compression_options);
     DrawLoadingOptionsMenu(loading_options);
-    DrawMatchingOptionsMenu(matching_options);
+    DrawMatchingOptionsMenu(matching_options, debug_enabled);
     action |= DrawStitchOptionsMenu(stitch_options, debug_enabled);
     if (debug_enabled) {
       DrawAutofillOptionsMenu(inpaint_options);

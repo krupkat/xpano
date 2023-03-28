@@ -14,6 +14,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/photo.hpp>
 #include <opencv2/stitching.hpp>
+#include <opencv2/stitching/detail/matchers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/image.h"
@@ -85,7 +86,8 @@ std::optional<cv::RotateFlags> GetRotationFlags(ProjectionOptions options) {
 
 }  // namespace
 
-std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
+std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
+                                    float match_conf) {
   if (img1.GetKeypoints().empty() || img2.GetKeypoints().empty()) {
     return {};
   }
@@ -98,8 +100,7 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2) {
   // FILTER BY FIRST/SECOND RATIO
   std::vector<cv::DMatch> good_matches;
   for (const auto& match : matches) {
-    double ratio = match[0].distance / match[1].distance;
-    if (ratio < 0.8) {
+    if (match[0].distance < (1.0f - match_conf) * match[1].distance) {
       good_matches.push_back(match[0]);
     }
   }
@@ -187,6 +188,8 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
       stitcher->setFeaturesFinder(cv::ORB::create());
       break;
   }
+  stitcher->setFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
+      false, options.match_conf));
 
   cv::Mat pano;
   auto status = stitcher->stitch(images, pano);

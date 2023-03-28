@@ -65,6 +65,9 @@ constexpr int kStepPreviewLongerSide = 256;
 
 constexpr float kDefaultPaniniA = 2.0f;
 constexpr float kDefaultPaniniB = 1.0f;
+constexpr float kDefaultMatchConf = 0.25f;
+constexpr float kMinMatchConf = 0.1f;
+constexpr float kMaxMatchConf = 0.4f;
 
 const std::string kConfigFilename = "config.txt";
 

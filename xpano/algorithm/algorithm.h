@@ -25,7 +25,8 @@ struct Match {
   std::vector<cv::DMatch> matches;
 };
 
-std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2);
+std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
+                                    float match_conf);
 
 std::vector<Pano> FindPanos(const std::vector<Match>& matches,
                             int match_threshold);
@@ -76,6 +77,7 @@ struct ProjectionOptions {
 struct StitchOptions {
   ProjectionOptions projection;
   FeatureType feature = FeatureType::kSift;
+  float match_conf = kDefaultMatchConf;
 };
 
 struct StitchResult {
