@@ -29,6 +29,13 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.10.0" date="2023-03-28">
+      <description>
+        <p>
+          Fixes to make the stitching algorithm consistent with panorama detection.
+        </p>
+      </description>
+    </release>
     <release version="0.9.3" date="2023-03-25">
       <description>
         <p>

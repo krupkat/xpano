@@ -1,3 +1,9 @@
+# Xpano 0.10.0
+
+- Fixes to make the stitching algorithm consistent with panorama detection
+  - Default to SIFT algorithm in pano stitching
+  - Match confidence the same in pano detection / stitching
+
 # Xpano 0.9.0
 
 - Flatpak support
