@@ -61,6 +61,12 @@ const char* Label(ProjectionType projection_type);
 
 bool HasAdvancedParameters(ProjectionType projection_type);
 
+enum class FeatureType { kSift, kOrb };
+
+const auto kFeatureTypes = std::array{FeatureType::kSift, FeatureType::kOrb};
+
+const char* Label(FeatureType feature_type);
+
 struct ProjectionOptions {
   ProjectionType type = ProjectionType::kSpherical;
   float a_param = kDefaultPaniniA;
@@ -69,7 +75,7 @@ struct ProjectionOptions {
 
 struct StitchOptions {
   ProjectionOptions projection;
-  bool return_pano_mask = false;
+  FeatureType feature = FeatureType::kSift;
 };
 
 struct StitchResult {
@@ -78,7 +84,8 @@ struct StitchResult {
   cv::Mat mask;
 };
 
-StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options);
+StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
+                    bool return_pano_mask);
 
 std::string ToString(cv::Stitcher::Status& status);
 

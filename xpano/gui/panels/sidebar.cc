@@ -125,32 +125,63 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options) {
   }
 }
 
-Action DrawProjectionOptionsMenu(
-    pipeline::ProjectionOptions* projection_options) {
+Action DrawProjectionOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
+  Action action{};
+  ImGui::Text("Projection type:");
+  ImGui::Spacing();
+  if (ImGui::BeginCombo("##projection_type",
+                        Label(stitch_options->projection.type))) {
+    for (const auto projection_type : algorithm::kProjectionTypes) {
+      if (ImGui::Selectable(
+              Label(projection_type),
+              projection_type == stitch_options->projection.type)) {
+        stitch_options->projection.type = projection_type;
+        action |= {ActionType::kRecomputePano};
+      }
+    }
+    ImGui::EndCombo();
+  }
+  if (algorithm::HasAdvancedParameters(stitch_options->projection.type)) {
+    ImGui::Text("Advanced projection parameters:");
+    ImGui::Spacing();
+    if (ImGui::InputFloat("a", &stitch_options->projection.a_param, 0.5f,
+                          0.5f)) {
+      action |= {ActionType::kRecomputePano};
+    }
+    if (ImGui::InputFloat("b", &stitch_options->projection.b_param, 0.5f,
+                          0.5f)) {
+      action |= {ActionType::kRecomputePano};
+    }
+  }
+  return action;
+}
+
+Action DrawFeatureMatchingOptions(
+    pipeline::StitchAlgorithmOptions* stitch_options) {
+  Action action{};
+  ImGui::Text("Feature algorithm for matching:");
+  ImGui::Spacing();
+  if (ImGui::BeginCombo("##feature_type", Label(stitch_options->feature))) {
+    for (const auto feature_type : algorithm::kFeatureTypes) {
+      if (ImGui::Selectable(Label(feature_type),
+                            feature_type == stitch_options->feature)) {
+        stitch_options->feature = feature_type;
+        action |= {ActionType::kRecomputePano};
+      }
+    }
+    ImGui::EndCombo();
+  }
+  return action;
+}
+
+Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
+                             bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Panorama stitching")) {
-    ImGui::Text("Projection type:");
-    ImGui::Spacing();
-    if (ImGui::BeginCombo("##projection_type",
-                          Label(projection_options->type))) {
-      for (const auto projection_type : algorithm::kProjectionTypes) {
-        if (ImGui::Selectable(Label(projection_type),
-                              projection_type == projection_options->type)) {
-          projection_options->type = projection_type;
-          action |= {ActionType::kRecomputePano};
-        }
-      }
-      ImGui::EndCombo();
-    }
-    if (algorithm::HasAdvancedParameters(projection_options->type)) {
-      ImGui::Text("Advanced projection parameters:");
-      ImGui::Spacing();
-      if (ImGui::InputFloat("a", &projection_options->a_param, 0.5f, 0.5f)) {
-        action |= {ActionType::kRecomputePano};
-      }
-      if (ImGui::InputFloat("b", &projection_options->b_param, 0.5f, 0.5f)) {
-        action |= {ActionType::kRecomputePano};
-      }
+    action |= DrawProjectionOptions(stitch_options);
+
+    if (debug_enabled) {
+      action |= DrawFeatureMatchingOptions(stitch_options);
     }
     ImGui::EndMenu();
   }
@@ -187,14 +218,14 @@ Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
                        pipeline::LoadingOptions* loading_options,
                        pipeline::InpaintingOptions* inpaint_options,
                        pipeline::MatchingOptions* matching_options,
-                       pipeline::ProjectionOptions* projection_options,
+                       pipeline::StitchAlgorithmOptions* stitch_options,
                        bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     DrawCompressionOptionsMenu(compression_options);
     DrawLoadingOptionsMenu(loading_options);
     DrawMatchingOptionsMenu(matching_options);
-    action |= DrawProjectionOptionsMenu(projection_options);
+    action |= DrawStitchOptionsMenu(stitch_options, debug_enabled);
     if (debug_enabled) {
       DrawAutofillOptionsMenu(inpaint_options);
     }
@@ -332,14 +363,14 @@ Action DrawMenu(pipeline::CompressionOptions* compression_options,
                 pipeline::LoadingOptions* loading_options,
                 pipeline::InpaintingOptions* inpaint_options,
                 pipeline::MatchingOptions* matching_options,
-                pipeline::ProjectionOptions* projection_options,
+                pipeline::StitchAlgorithmOptions* stitch_options,
                 bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
     action |=
         DrawOptionsMenu(compression_options, loading_options, inpaint_options,
-                        matching_options, projection_options, debug_enabled);
+                        matching_options, stitch_options, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

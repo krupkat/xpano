@@ -274,7 +274,7 @@ Action PanoGui::DrawSidebar() {
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
   action |=
       DrawMenu(&compression_options_, &loading_options_, &inpaint_options_,
-               &matching_options_, &projection_options_, IsDebugEnabled());
+               &matching_options_, &stitch_options_, IsDebugEnabled());
 
   DrawWelcomeTextPart1();
   action |= DrawImportActionButtons();
@@ -357,7 +357,7 @@ Action PanoGui::PerformAction(Action action) {
                                   .full_res = true,
                                   .export_path = *export_path,
                                   .compression = compression_options_,
-                                  .projection = projection_options_});
+                                  .stitch_algorithm = stitch_options_});
           }
         }
       }
@@ -406,7 +406,7 @@ Action PanoGui::PerformAction(Action action) {
           *stitcher_data_,
           {.pano_id = selection_.target_id,
            .full_res = action.type == ActionType::kShowFullResPano,
-           .projection = projection_options_});
+           .stitch_algorithm = stitch_options_});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
@@ -418,7 +418,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
-                     Label(projection_options_.type));
+                     Label(stitch_options_.projection.type));
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
                 .delayed = true};

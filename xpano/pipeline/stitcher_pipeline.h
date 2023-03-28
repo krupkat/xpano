@@ -18,7 +18,7 @@
 namespace xpano::pipeline {
 
 using InpaintingOptions = algorithm::InpaintingOptions;
-using ProjectionOptions = algorithm::ProjectionOptions;
+using StitchAlgorithmOptions = algorithm::StitchOptions;
 
 struct CompressionOptions {
   int jpeg_quality = kDefaultJpegQuality;
@@ -41,7 +41,7 @@ struct StitchingOptions {
   bool full_res = false;
   std::optional<std::string> export_path;
   CompressionOptions compression;
-  ProjectionOptions projection;
+  StitchAlgorithmOptions stitch_algorithm;
 };
 
 struct ExportOptions {
