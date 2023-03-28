@@ -238,8 +238,10 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   for (int j = 0; j < images.size(); j++) {
     for (int i = std::max(0, j - num_neighbors); i < j; i++) {
       matches_future.push_back(
-          pool_.submit([this, i, j, left = images[i], right = images[j]]() {
-            auto match = algorithm::Match{i, j, MatchImages(left, right)};
+          pool_.submit([this, i, j, left = images[i], right = images[j],
+                        match_conf = options.match_conf]() {
+            auto match =
+                algorithm::Match{i, j, MatchImages(left, right, match_conf)};
             progress_.NotifyTaskDone();
             return match;
           }));
