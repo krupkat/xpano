@@ -38,25 +38,20 @@ enum class ProjectionType {
   kFisheye,
   kStereographic,
   kCompressedRectilinear,
-  kCompressedRectilinearPortrait,
   kPanini,
-  kPaniniPortrait,
   kMercator,
   kTransverseMercator
 };
 
-const auto kProjectionTypes =
-    std::array{ProjectionType::kPerspective,
-               ProjectionType::kCylindrical,
-               ProjectionType::kSpherical,
-               ProjectionType::kFisheye,
-               ProjectionType::kStereographic,
-               ProjectionType::kCompressedRectilinear,
-               ProjectionType::kCompressedRectilinearPortrait,
-               ProjectionType::kPanini,
-               ProjectionType::kPaniniPortrait,
-               ProjectionType::kMercator,
-               ProjectionType::kTransverseMercator};
+const auto kProjectionTypes = std::array{ProjectionType::kPerspective,
+                                         ProjectionType::kCylindrical,
+                                         ProjectionType::kSpherical,
+                                         ProjectionType::kFisheye,
+                                         ProjectionType::kStereographic,
+                                         ProjectionType::kCompressedRectilinear,
+                                         ProjectionType::kPanini,
+                                         ProjectionType::kMercator,
+                                         ProjectionType::kTransverseMercator};
 
 const char* Label(ProjectionType projection_type);
 

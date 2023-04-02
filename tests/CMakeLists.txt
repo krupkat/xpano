@@ -23,6 +23,7 @@ copy_file(AutoCropTest ${CMAKE_CURRENT_SOURCE_DIR}/data/mask.png)
 add_executable(StitcherTest 
   stitcher_pipeline_test.cc
   ../xpano/algorithm/algorithm.cc
+  ../xpano/algorithm/bundle_adjuster.cc
   ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/image.cc
   ../xpano/pipeline/stitcher_pipeline.cc

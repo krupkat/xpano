@@ -17,6 +17,7 @@
 #include <opencv2/stitching/detail/matchers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
+#include "xpano/algorithm/bundle_adjuster.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
@@ -51,17 +52,9 @@ cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
       warper_creator = cv::makePtr<cv::CompressedRectilinearWarper>(
           options.a_param, options.b_param);
       break;
-    case ProjectionType::kCompressedRectilinearPortrait:
-      warper_creator = cv::makePtr<cv::CompressedRectilinearPortraitWarper>(
-          options.a_param, options.b_param);
-      break;
     case ProjectionType::kPanini:
       warper_creator =
           cv::makePtr<cv::PaniniWarper>(options.a_param, options.b_param);
-      break;
-    case ProjectionType::kPaniniPortrait:
-      warper_creator = cv::makePtr<cv::PaniniPortraitWarper>(options.a_param,
-                                                             options.b_param);
       break;
     case ProjectionType::kMercator:
       warper_creator = cv::makePtr<cv::MercatorWarper>();
@@ -73,15 +66,20 @@ cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
   return warper_creator;
 }
 
-std::optional<cv::RotateFlags> GetRotationFlags(ProjectionOptions options) {
+std::optional<cv::RotateFlags> GetRotationFlags(
+    ProjectionOptions options, cv::detail::WaveCorrectKind wave_correct_kind) {
   switch (options.type) {
     case ProjectionType::kStereographic:
       return cv::ROTATE_90_COUNTERCLOCKWISE;
     case ProjectionType::kFisheye:
       return cv::ROTATE_90_CLOCKWISE;
     default:
-      return {};
+      break;
   }
+  if (wave_correct_kind == cv::detail::WAVE_CORRECT_VERT) {
+    return cv::ROTATE_90_CLOCKWISE;
+  }
+  return {};
 }
 
 }  // namespace
@@ -191,6 +189,14 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   stitcher->setFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
       false, options.match_conf));
 
+  stitcher->setWaveCorrection(true);
+  stitcher->setWaveCorrectKind(cv::detail::WAVE_CORRECT_AUTO);
+
+  // Using a modified BundleAdjuster to save detected WaveCorrectionKind, since
+  // it isn't available otherwise.
+  auto bundle_adjuster = cv::makePtr<BundleAdjusterRayCustom>();
+  stitcher->setBundleAdjuster(bundle_adjuster);
+
   cv::Mat pano;
   auto status = stitcher->stitch(images, pano);
 
@@ -203,7 +209,9 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
     stitcher->resultMask().copyTo(mask);
   }
 
-  if (auto rotate = GetRotationFlags(options.projection); rotate) {
+  if (auto rotate = GetRotationFlags(options.projection,
+                                     bundle_adjuster->WaveCorrectionKind());
+      rotate) {
     cv::rotate(pano, pano, *rotate);
     if (return_pano_mask) {
       cv::rotate(mask, mask, *rotate);
@@ -234,11 +242,7 @@ bool HasAdvancedParameters(ProjectionType projection_type) {
   switch (projection_type) {
     case ProjectionType::kCompressedRectilinear:
       [[fallthrough]];
-    case ProjectionType::kCompressedRectilinearPortrait:
-      [[fallthrough]];
     case ProjectionType::kPanini:
-      [[fallthrough]];
-    case ProjectionType::kPaniniPortrait:
       return true;
     default:
       return false;
@@ -261,12 +265,8 @@ const char* Label(ProjectionType projection_type) {
       return "Stereographic";
     case ProjectionType::kCompressedRectilinear:
       return "CompressedRectilinear";
-    case ProjectionType::kCompressedRectilinearPortrait:
-      return "CompressedRectilinearPortrait";
     case ProjectionType::kPanini:
       return "Panini";
-    case ProjectionType::kPaniniPortrait:
-      return "PaniniPortrait";
     case ProjectionType::kMercator:
       return "Mercator";
     case ProjectionType::kTransverseMercator:
