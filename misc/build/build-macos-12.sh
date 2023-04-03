@@ -16,7 +16,7 @@ cd opencv
 cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
-  `cat ../misc/build/opencv_minimal_flags.txt`
+  `cat ../misc/build/opencv-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..
 

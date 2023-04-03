@@ -164,6 +164,10 @@ install(FILES
   "CHANGELOG.md"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
 )
+install(FILES
+  "misc/build/opencv-notice.txt"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+)
 install(DIRECTORY
   "${OpenCV_DIR}/etc/licenses"
   TYPE DATA

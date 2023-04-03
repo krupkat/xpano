@@ -30,7 +30,7 @@ cmake -B build \
   -DCMAKE_CXX_COMPILER=g++-10 \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
-  `cat ../misc/build/opencv_minimal_flags.txt`
+  `cat ../misc/build/opencv-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..
 
