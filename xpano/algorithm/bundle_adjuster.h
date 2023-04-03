@@ -7,12 +7,9 @@
 
 namespace xpano::algorithm {
 
-class CV_EXPORTS_W BundleAdjusterRayCustom
-    : public cv::detail::BundleAdjusterRay {
+class BundleAdjusterRayCustom : public cv::detail::BundleAdjusterRay {
  public:
-  CV_WRAP BundleAdjusterRayCustom() : BundleAdjusterRay() {}
-
-  cv::detail::WaveCorrectKind WaveCorrectionKind() const;
+  [[nodiscard]] cv::detail::WaveCorrectKind WaveCorrectionKind() const;
 
  private:
   void setUpInitialCameraParams(

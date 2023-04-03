@@ -67,19 +67,49 @@ cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
 }
 
 std::optional<cv::RotateFlags> GetRotationFlags(
-    ProjectionOptions options, cv::detail::WaveCorrectKind wave_correct_kind) {
-  switch (options.type) {
-    case ProjectionType::kStereographic:
-      return cv::ROTATE_90_COUNTERCLOCKWISE;
-    case ProjectionType::kFisheye:
+    WaveCorrectionType wave_correction,
+    cv::detail::WaveCorrectKind wave_correction_auto) {
+  // have to rotate clockwise in case vertical wave correction was either
+  // selected by user or autodetected
+  switch (wave_correction) {
+    case WaveCorrectionType::kOff:
+      [[fallthrough]];
+    case WaveCorrectionType::kHorizontal:
+      return {};
+    case WaveCorrectionType::kVertical:
       return cv::ROTATE_90_CLOCKWISE;
-    default:
+    case WaveCorrectionType::kAuto:
       break;
   }
-  if (wave_correct_kind == cv::detail::WAVE_CORRECT_VERT) {
+  if (wave_correction_auto == cv::detail::WAVE_CORRECT_VERT) {
     return cv::ROTATE_90_CLOCKWISE;
   }
   return {};
+}
+
+cv::Ptr<cv::FeatureDetector> PickFeaturesFinder(FeatureType feature) {
+  switch (feature) {
+    case FeatureType::kSift:
+      return cv::SIFT::create();
+    case FeatureType::kOrb:
+      return cv::ORB::create();
+    default:
+      return nullptr;
+  }
+}
+
+cv::detail::WaveCorrectKind PickWaveCorrectKind(
+    WaveCorrectionType wave_correction) {
+  switch (wave_correction) {
+    case WaveCorrectionType::kAuto:
+      return cv::detail::WAVE_CORRECT_AUTO;
+    case WaveCorrectionType::kHorizontal:
+      return cv::detail::WAVE_CORRECT_HORIZ;
+    case WaveCorrectionType::kVertical:
+      return cv::detail::WAVE_CORRECT_VERT;
+    default:
+      return cv::detail::WAVE_CORRECT_AUTO;
+  }
 }
 
 }  // namespace
@@ -176,21 +206,15 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
                     bool return_pano_mask) {
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
-  auto warper_creator = PickWarper(options.projection);
-  stitcher->setWarper(warper_creator);
-  switch (options.feature) {
-    case FeatureType::kSift:
-      stitcher->setFeaturesFinder(cv::SIFT::create());
-      break;
-    case FeatureType::kOrb:
-      stitcher->setFeaturesFinder(cv::ORB::create());
-      break;
-  }
+  stitcher->setWarper(PickWarper(options.projection));
+  stitcher->setFeaturesFinder(PickFeaturesFinder(options.feature));
   stitcher->setFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
       false, options.match_conf));
-
-  stitcher->setWaveCorrection(true);
-  stitcher->setWaveCorrectKind(cv::detail::WAVE_CORRECT_AUTO);
+  stitcher->setWaveCorrection(options.wave_correction !=
+                              WaveCorrectionType::kOff);
+  if (stitcher->waveCorrection()) {
+    stitcher->setWaveCorrectKind(PickWaveCorrectKind(options.wave_correction));
+  }
 
   // Using a modified BundleAdjuster to save detected WaveCorrectionKind, since
   // it isn't available otherwise.
@@ -209,7 +233,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
     stitcher->resultMask().copyTo(mask);
   }
 
-  if (auto rotate = GetRotationFlags(options.projection,
+  if (auto rotate = GetRotationFlags(options.wave_correction,
                                      bundle_adjuster->WaveCorrectionKind());
       rotate) {
     cv::rotate(pano, pano, *rotate);
@@ -260,9 +284,9 @@ const char* Label(ProjectionType projection_type) {
     case ProjectionType::kSpherical:
       return "Spherical";
     case ProjectionType::kFisheye:
-      return "Fisheye";
+      return "*Fisheye";
     case ProjectionType::kStereographic:
-      return "Stereographic";
+      return "*Stereographic";
     case ProjectionType::kCompressedRectilinear:
       return "CompressedRectilinear";
     case ProjectionType::kPanini:
@@ -282,6 +306,21 @@ const char* Label(FeatureType feature_type) {
       return "SIFT";
     case FeatureType::kOrb:
       return "ORB";
+    default:
+      return "Unknown";
+  }
+}
+
+const char* Label(WaveCorrectionType wave_correction_type) {
+  switch (wave_correction_type) {
+    case WaveCorrectionType::kOff:
+      return "Off";
+    case WaveCorrectionType::kAuto:
+      return "Auto";
+    case WaveCorrectionType::kHorizontal:
+      return "Horizontal";
+    case WaveCorrectionType::kVertical:
+      return "Vertical";
     default:
       return "Unknown";
   }
