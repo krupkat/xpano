@@ -300,6 +300,7 @@ Action PanoGui::DrawSidebar() {
     action |=
         DrawPanosMenu(stitcher_data_->panos, thumbnail_pane_, highlight_id);
     if (IsDebugEnabled()) {
+      ImGui::SeparatorText("Debug");
       auto highlight_id =
           selection_.type == SelectionType::kMatch ? selection_.target_id : -1;
       action |= DrawMatchesMenu(stitcher_data_->matches, thumbnail_pane_,

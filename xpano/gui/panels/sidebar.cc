@@ -155,7 +155,7 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
         "Number of keypoints that need to match in order to include the two "
         "images in a panorama.");
     if (debug_enabled) {
-      ImGui::Text("[debug options]");
+      ImGui::SeparatorText("Debug");
       DrawMatchConf(&matching_options->match_conf);
     }
     ImGui::EndMenu();
@@ -229,7 +229,7 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
     action |= DrawWaveCorrectionOptions(stitch_options);
 
     if (debug_enabled) {
-      ImGui::Text("[debug options]");
+      ImGui::SeparatorText("Debug");
       action |= DrawFeatureMatchingOptions(stitch_options);
 
       if (DrawMatchConf(&stitch_options->match_conf)) {
@@ -243,7 +243,7 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
 
 void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
   if (ImGui::BeginMenu("Auto fill")) {
-    ImGui::Text("[debug options]");
+    ImGui::SeparatorText("Debug");
     ImGui::Text("Algorithm:");
     ImGui::Spacing();
     utils::imgui::ComboBox(&inpaint_options->method,
