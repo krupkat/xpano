@@ -61,4 +61,15 @@ bool ComboBox(TOptionType* current_option,
   return selected;
 }
 
+template <typename TOptionType, std::size_t N>
+void RadioBox(TOptionType* current_option,
+              const std::array<TOptionType, N>& options) {
+  for (const auto& option : options) {
+    if (ImGui::RadioButton(Label(option), option == *current_option)) {
+      *current_option = option;
+    }
+    ImGui::SameLine();
+  }
+}
+
 }  // namespace xpano::utils::imgui

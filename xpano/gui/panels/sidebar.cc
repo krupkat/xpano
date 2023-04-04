@@ -67,12 +67,22 @@ Action DrawFileMenu() {
 void DrawCompressionOptionsMenu(
     pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Export compression")) {
-    ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
+    ImGui::Text("JPEG");
+    ImGui::SliderInt("Quality", &compression_options->jpeg_quality, 0,
                      kMaxJpegQuality);
-    ImGui::Checkbox("JPEG progressive", &compression_options->jpeg_progressive);
-    ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
-    ImGui::SliderInt("PNG compression", &compression_options->png_compression,
-                     0, kMaxPngCompression);
+    ImGui::Checkbox("Progressive", &compression_options->jpeg_progressive);
+    ImGui::Checkbox("Optimize", &compression_options->jpeg_optimize);
+    ImGui::Text("Chroma subsampling:");
+    ImGui::SameLine();
+    utils::imgui::RadioBox(&compression_options->jpeg_subsampling,
+                           pipeline::kSubsamplingModes);
+    utils::imgui::InfoMarker("(?)",
+                             "Corresponding to the 4:4:4, 4:2:2 and 4:2:0 "
+                             "chroma subsampling modes.");
+    ImGui::Separator();
+    ImGui::Text("PNG");
+    ImGui::SliderInt("Compression", &compression_options->png_compression, 0,
+                     kMaxPngCompression);
     ImGui::EndMenu();
   }
 }

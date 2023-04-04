@@ -22,15 +22,43 @@
 namespace xpano::pipeline {
 namespace {
 
+cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
+    const ChromaSubsampling &subsampling) {
+  switch (subsampling) {
+    case ChromaSubsampling::k444:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_444;
+    case ChromaSubsampling::k422:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_422;
+    case ChromaSubsampling::k420:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_420;
+  }
+}
+
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
-  return {
-      cv::IMWRITE_JPEG_QUALITY,     options.jpeg_quality,
-      cv::IMWRITE_JPEG_PROGRESSIVE, static_cast<int>(options.jpeg_progressive),
-      cv::IMWRITE_JPEG_OPTIMIZE,    static_cast<int>(options.jpeg_optimize),
-      cv::IMWRITE_PNG_COMPRESSION,  options.png_compression};
+  return {cv::IMWRITE_JPEG_QUALITY,
+          options.jpeg_quality,
+          cv::IMWRITE_JPEG_PROGRESSIVE,
+          static_cast<int>(options.jpeg_progressive),
+          cv::IMWRITE_JPEG_OPTIMIZE,
+          static_cast<int>(options.jpeg_optimize),
+          cv::IMWRITE_JPEG_SAMPLING_FACTOR,
+          ToOpenCVEnum(options.jpeg_subsampling),
+          cv::IMWRITE_PNG_COMPRESSION,
+          options.png_compression};
 }
 
 }  // namespace
+
+const char *Label(ChromaSubsampling subsampling) {
+  switch (subsampling) {
+    case ChromaSubsampling::k444:
+      return "Off";
+    case ChromaSubsampling::k422:
+      return "Half";
+    case ChromaSubsampling::k420:
+      return "Quarter";
+  }
+}
 
 void ProgressMonitor::Reset(ProgressType type, int num_tasks) {
   type_ = type;
