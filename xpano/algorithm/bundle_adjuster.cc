@@ -48,6 +48,8 @@
 
 #include "xpano/algorithm/bundle_adjuster.h"
 
+#include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <opencv2/calib3d.hpp>
@@ -60,9 +62,8 @@ namespace {
 cv::detail::WaveCorrectKind DetectWaveCorrect(
     const std::vector<cv::detail::CameraParams>& cameras) {
   std::vector<cv::Mat> rmats;
-  for (const auto& camera : cameras) {
-    rmats.push_back(camera.R.clone());
-  }
+  std::transform(cameras.begin(), cameras.end(), std::back_inserter(rmats),
+                 [](const auto& camera) { return camera.R.clone(); });
   return cv::detail::autoDetectWaveCorrectKind(rmats);
 }
 
