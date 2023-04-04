@@ -31,6 +31,7 @@ set(XPANO_SOURCES
   "xpano/main.cc"
   "xpano/algorithm/algorithm.cc"
   "xpano/algorithm/auto_crop.cc"
+  "xpano/algorithm/bundle_adjuster.cc"
   "xpano/algorithm/image.cc"
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
@@ -161,6 +162,10 @@ install(FILES
 )
 install(FILES
   "CHANGELOG.md"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+)
+install(FILES
+  "misc/build/opencv-notice.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
 )
 install(DIRECTORY

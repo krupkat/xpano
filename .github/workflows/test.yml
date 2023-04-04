@@ -35,7 +35,7 @@ jobs:
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-static-ninja-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-static-ninja-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
@@ -45,7 +45,7 @@ jobs:
         cmake -B build -G "$env:GENERATOR" `
           -DBUILD_SHARED_LIBS=OFF `
           -DCMAKE_INSTALL_PREFIX=install `
-          @(Get-Content ../misc/build/opencv_minimal_flags.txt)
+          @(Get-Content ../misc/build/opencv-minimal-flags.txt)
         cmake --build build --target install --config Release
         cd ..
 
@@ -150,6 +150,7 @@ jobs:
     
     - name: Install prerequisites
       run: |
+          sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
 
     - name: Cache Catch
@@ -200,6 +201,7 @@ jobs:
     
     - name: Install prerequisites
       run: |
+          sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libspdlog-dev
 
     - name: Cache Catch
@@ -228,7 +230,7 @@ jobs:
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}-${{env.BUILD_TYPE}}-20.04
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}-${{env.BUILD_TYPE}}-20.04
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
@@ -240,7 +242,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=g++-10 \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_INSTALL_PREFIX=install \
-          `cat ../misc/build/opencv_minimal_flags.txt`
+          `cat ../misc/build/opencv-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
 
@@ -304,7 +306,7 @@ jobs:
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv_minimal_flags.txt')}}
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
@@ -314,7 +316,7 @@ jobs:
         cmake -B build \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_INSTALL_PREFIX=install \
-          `cat ../misc/build/opencv_minimal_flags.txt`
+          `cat ../misc/build/opencv-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
 

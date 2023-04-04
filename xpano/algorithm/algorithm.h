@@ -38,25 +38,20 @@ enum class ProjectionType {
   kFisheye,
   kStereographic,
   kCompressedRectilinear,
-  kCompressedRectilinearPortrait,
   kPanini,
-  kPaniniPortrait,
   kMercator,
   kTransverseMercator
 };
 
-const auto kProjectionTypes =
-    std::array{ProjectionType::kPerspective,
-               ProjectionType::kCylindrical,
-               ProjectionType::kSpherical,
-               ProjectionType::kFisheye,
-               ProjectionType::kStereographic,
-               ProjectionType::kCompressedRectilinear,
-               ProjectionType::kCompressedRectilinearPortrait,
-               ProjectionType::kPanini,
-               ProjectionType::kPaniniPortrait,
-               ProjectionType::kMercator,
-               ProjectionType::kTransverseMercator};
+const auto kProjectionTypes = std::array{ProjectionType::kPerspective,
+                                         ProjectionType::kCylindrical,
+                                         ProjectionType::kSpherical,
+                                         ProjectionType::kCompressedRectilinear,
+                                         ProjectionType::kPanini,
+                                         ProjectionType::kMercator,
+                                         ProjectionType::kTransverseMercator,
+                                         ProjectionType::kFisheye,
+                                         ProjectionType::kStereographic};
 
 const char* Label(ProjectionType projection_type);
 
@@ -68,6 +63,14 @@ const auto kFeatureTypes = std::array{FeatureType::kSift, FeatureType::kOrb};
 
 const char* Label(FeatureType feature_type);
 
+enum class WaveCorrectionType { kOff, kAuto, kHorizontal, kVertical };
+
+const auto kWaveCorrectionTypes =
+    std::array{WaveCorrectionType::kOff, WaveCorrectionType::kAuto,
+               WaveCorrectionType::kHorizontal, WaveCorrectionType::kVertical};
+
+const char* Label(WaveCorrectionType wave_correction_type);
+
 struct ProjectionOptions {
   ProjectionType type = ProjectionType::kSpherical;
   float a_param = kDefaultPaniniA;
@@ -77,6 +80,7 @@ struct ProjectionOptions {
 struct StitchOptions {
   ProjectionOptions projection;
   FeatureType feature = FeatureType::kSift;
+  WaveCorrectionType wave_correction = WaveCorrectionType::kAuto;
   float match_conf = kDefaultMatchConf;
 };
 

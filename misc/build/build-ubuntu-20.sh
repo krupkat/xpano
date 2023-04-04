@@ -8,6 +8,7 @@ export SPDLOG_VERSION='v1.11.0'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
+#sudo apt-get update
 #sudo apt-get install -y libgtk-3-dev libspdlog-dev
 
 
@@ -30,7 +31,7 @@ cmake -B build \
   -DCMAKE_CXX_COMPILER=g++-10 \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
-  `cat ../misc/build/opencv_minimal_flags.txt`
+  `cat ../misc/build/opencv-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..
 

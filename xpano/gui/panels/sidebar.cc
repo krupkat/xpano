@@ -155,6 +155,9 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
 Action DrawProjectionOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
   Action action{};
   ImGui::Text("Projection type:");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)", "Projection types marked with a star are experimental.");
   ImGui::Spacing();
   if (ImGui::BeginCombo("##projection_type",
                         Label(stitch_options->projection.type))) {
@@ -201,11 +204,38 @@ Action DrawFeatureMatchingOptions(
   return action;
 }
 
+Action DrawWaveCorrectionOptions(
+    pipeline::StitchAlgorithmOptions* stitch_options) {
+  Action action{};
+  ImGui::Text("Wave correction:");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)",
+      "Applies a correction to straighten the panorama. Can be turned off "
+      "completely.\nThe auto option will estimate if the panorama is "
+      "horizontal or vertical.");
+  ImGui::Spacing();
+  if (ImGui::BeginCombo("##wave_correction_type",
+                        Label(stitch_options->wave_correction))) {
+    for (const auto wave_correction_type : algorithm::kWaveCorrectionTypes) {
+      if (ImGui::Selectable(
+              Label(wave_correction_type),
+              wave_correction_type == stitch_options->wave_correction)) {
+        stitch_options->wave_correction = wave_correction_type;
+        action |= {ActionType::kRecomputePano};
+      }
+    }
+    ImGui::EndCombo();
+  }
+  return action;
+}
+
 Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
                              bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Panorama stitching")) {
     action |= DrawProjectionOptions(stitch_options);
+    action |= DrawWaveCorrectionOptions(stitch_options);
 
     if (debug_enabled) {
       ImGui::Text("[debug options]");

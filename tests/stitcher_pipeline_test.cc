@@ -181,3 +181,35 @@ TEST_CASE("Stitcher pipeline loading options") {
              WithinAbs(preview_size * portrait_full_size.aspectRatio(),
                        allowed_margin));
 }
+
+const std::vector<std::string> kVerticalPanoInputs = {
+    "data/image10.jpg",
+    "data/image11.jpg",
+    "data/image12.jpg",
+};
+
+TEST_CASE("Stitcher pipeline vertical pano") {
+  xpano::pipeline::StitcherPipeline stitcher;
+
+  auto result =
+      stitcher
+          .RunLoading(kVerticalPanoInputs, {}, {.neighborhood_search_size = 1})
+          .get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 3);
+  CHECK(result.matches.size() == 2);
+  REQUIRE(result.panos.size() == 1);
+  REQUIRE_THAT(result.panos[0].ids, Equals<int>({0, 1, 2}));
+
+  const float eps = 0.01;
+
+  // preview
+  auto pano0 = stitcher.RunStitching(result, {.pano_id = 0}).get().pano;
+  progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+  REQUIRE(pano0.has_value());
+  CHECK_THAT(pano0->rows, WithinRel(1342, eps));
+  CHECK_THAT(pano0->cols, WithinRel(1030, eps));
+}

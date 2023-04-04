@@ -15,7 +15,7 @@ cd opencv
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
-  @(Get-Content ../misc/build/opencv_minimal_flags.txt)
+  @(Get-Content ../misc/build/opencv-minimal-flags.txt)
 cmake --build build --target install --config Release
 cd ..
 
