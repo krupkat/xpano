@@ -31,6 +31,8 @@ cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
       return cv::IMWRITE_JPEG_SAMPLING_FACTOR_422;
     case ChromaSubsampling::k420:
       return cv::IMWRITE_JPEG_SAMPLING_FACTOR_420;
+    default:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_422;
   }
 }
 
@@ -57,6 +59,8 @@ const char *Label(ChromaSubsampling subsampling) {
       return "Half";
     case ChromaSubsampling::k420:
       return "Quarter";
+    default:
+      return "Unknown";
   }
 }
 
