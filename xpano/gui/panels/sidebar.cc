@@ -159,18 +159,12 @@ Action DrawProjectionOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
   utils::imgui::InfoMarker(
       "(?)", "Projection types marked with a star are experimental.");
   ImGui::Spacing();
-  if (ImGui::BeginCombo("##projection_type",
-                        Label(stitch_options->projection.type))) {
-    for (const auto projection_type : algorithm::kProjectionTypes) {
-      if (ImGui::Selectable(
-              Label(projection_type),
-              projection_type == stitch_options->projection.type)) {
-        stitch_options->projection.type = projection_type;
-        action |= {ActionType::kRecomputePano};
-      }
-    }
-    ImGui::EndCombo();
+  if (utils::imgui::ComboBox(&stitch_options->projection.type,
+                             algorithm::kProjectionTypes,
+                             "##projection_type")) {
+    action |= {ActionType::kRecomputePano};
   }
+
   if (algorithm::HasAdvancedParameters(stitch_options->projection.type)) {
     ImGui::Text("Advanced projection parameters:");
     ImGui::Spacing();
@@ -191,15 +185,9 @@ Action DrawFeatureMatchingOptions(
   Action action{};
   ImGui::Text("Feature algorithm for matching:");
   ImGui::Spacing();
-  if (ImGui::BeginCombo("##feature_type", Label(stitch_options->feature))) {
-    for (const auto feature_type : algorithm::kFeatureTypes) {
-      if (ImGui::Selectable(Label(feature_type),
-                            feature_type == stitch_options->feature)) {
-        stitch_options->feature = feature_type;
-        action |= {ActionType::kRecomputePano};
-      }
-    }
-    ImGui::EndCombo();
+  if (utils::imgui::ComboBox(&stitch_options->feature, algorithm::kFeatureTypes,
+                             "##feature_type")) {
+    action |= {ActionType::kRecomputePano};
   }
   return action;
 }
@@ -215,17 +203,10 @@ Action DrawWaveCorrectionOptions(
       "completely.\nThe auto option will estimate if the panorama is "
       "horizontal or vertical.");
   ImGui::Spacing();
-  if (ImGui::BeginCombo("##wave_correction_type",
-                        Label(stitch_options->wave_correction))) {
-    for (const auto wave_correction_type : algorithm::kWaveCorrectionTypes) {
-      if (ImGui::Selectable(
-              Label(wave_correction_type),
-              wave_correction_type == stitch_options->wave_correction)) {
-        stitch_options->wave_correction = wave_correction_type;
-        action |= {ActionType::kRecomputePano};
-      }
-    }
-    ImGui::EndCombo();
+  if (utils::imgui::ComboBox(&stitch_options->wave_correction,
+                             algorithm::kWaveCorrectionTypes,
+                             "##wave_correction_type")) {
+    action |= {ActionType::kRecomputePano};
   }
   return action;
 }
@@ -255,16 +236,8 @@ void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
     ImGui::Text("[debug options]");
     ImGui::Text("Algorithm:");
     ImGui::Spacing();
-    if (ImGui::BeginCombo("##inpaint_type", Label(inpaint_options->method))) {
-      for (const auto inpainting_method : algorithm::kInpaintingMethods) {
-        if (ImGui::Selectable(Label(inpainting_method),
-                              inpainting_method == inpaint_options->method)) {
-          inpaint_options->method = inpainting_method;
-        }
-      }
-      ImGui::EndCombo();
-    }
-
+    utils::imgui::ComboBox(&inpaint_options->method,
+                           algorithm::kInpaintingMethods, "##inpaint_type");
     ImGui::Text("Advanced algorithm parameters:");
     ImGui::Spacing();
     if (ImGui::InputDouble("Radius", &inpaint_options->radius,
@@ -457,10 +430,11 @@ void DrawWelcomeTextPart2() {
   ImGui::SameLine();
   utils::imgui::InfoMarker(
       "(?)",
-      "a) Compute full resolution panorama preview\nb) Toggle crop mode\nc) "
-      "Auto fill empty space in the panorama\nd) Panorama export\n - Works "
-      "either with preview or full resolution panoramas\n - In both cases "
-      "exports a full resolution panorama");
+      "a) Select projection type\nb) Compute full resolution panorama "
+      "preview\nc) Toggle crop mode\nd) Auto fill empty space in the "
+      "panorama\ne) Panorama export\n - Works either with preview or full "
+      "resolution panoramas\n - In both cases exports a full resolution "
+      "panorama");
   ImGui::Spacing();
 }
 
@@ -477,8 +451,14 @@ Action DrawImportActionButtons() {
   return action;
 };
 
-Action DrawActionButtons(ImageType image_type, int target_id) {
+Action DrawActionButtons(ImageType image_type, int target_id,
+                         algorithm::ProjectionType* projection_type) {
   Action action{};
+  if (utils::imgui::ComboBox(projection_type, algorithm::kProjectionTypes,
+                             "##projection_type", ImGuiComboFlags_NoPreview)) {
+    action |= {ActionType::kRecomputePano};
+  }
+  ImGui::SameLine();
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoPreview,
       [&] {

@@ -37,6 +37,7 @@ void DrawWelcomeTextPart2();
 
 Action DrawImportActionButtons();
 
-Action DrawActionButtons(ImageType image_type, int target_id);
+Action DrawActionButtons(ImageType image_type, int target_id,
+                         algorithm::ProjectionType* projection_type);
 
 }  // namespace xpano::gui
