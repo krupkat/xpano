@@ -60,10 +60,9 @@ namespace {
 cv::detail::WaveCorrectKind DetectWaveCorrect(
     const std::vector<cv::detail::CameraParams>& cameras) {
   std::vector<cv::Mat> rmats;
-  for (size_t i = 0; i < cameras.size(); ++i) {
-    rmats.push_back(cameras[i].R.clone());
+  for (const auto& camera : cameras) {
+    rmats.push_back(camera.R.clone());
   }
-
   return cv::detail::autoDetectWaveCorrectKind(rmats);
 }
 
@@ -81,11 +80,13 @@ void BundleAdjusterRayCustom::setUpInitialCameraParams(
     cam_params_.at<double>(i * 4, 0) = cameras[i].focal;
 
     svd(cameras[i].R, cv::SVD::FULL_UV);
-    cv::Mat R = svd.u * svd.vt;
-    if (cv::determinant(R) < 0) R *= -1;
+    cv::Mat rotation = svd.u * svd.vt;
+    if (cv::determinant(rotation) < 0) {
+      rotation *= -1;
+    }
 
     cv::Mat rvec;
-    cv::Rodrigues(R, rvec);
+    cv::Rodrigues(rotation, rvec);
     CV_Assert(rvec.type() == CV_32F);
     cam_params_.at<double>(i * 4 + 1, 0) = rvec.at<float>(0, 0);
     cam_params_.at<double>(i * 4 + 2, 0) = rvec.at<float>(1, 0);
