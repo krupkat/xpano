@@ -8,6 +8,7 @@ export SPDLOG_VERSION='v1.11.0'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
+#sudo apt-get update
 #sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
 
 
