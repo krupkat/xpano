@@ -29,6 +29,15 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.11.0" date="2023-04-04">
+      <description>
+        <ul>
+          <li>Automatic panorama wave correction</li>
+          <li>Quickly select projection type from the sidebar</li>
+          <li>Chroma subsampling options for jpeg exports</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.10.0" date="2023-03-28">
       <description>
         <p>

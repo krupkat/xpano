@@ -1,3 +1,10 @@
+# Xpano 0.11.0
+
+- Automatic panorama wave correction
+  - Detects horizontal / vertical panorama, with option to override
+- Quickly select projection type from the sidebar
+- Chroma subsampling options for jpeg exports
+
 # Xpano 0.10.0
 
 - Fixes to make the stitching algorithm consistent with panorama detection
