@@ -17,20 +17,56 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/opencv.h"
 #include "xpano/utils/vec_opencv.h"
 
 namespace xpano::pipeline {
 namespace {
 
+#if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
+cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
+    const ChromaSubsampling &subsampling) {
+  switch (subsampling) {
+    case ChromaSubsampling::k444:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_444;
+    case ChromaSubsampling::k422:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_422;
+    case ChromaSubsampling::k420:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_420;
+    default:
+      return cv::IMWRITE_JPEG_SAMPLING_FACTOR_422;
+  }
+}
+#endif
+
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
   return {
-      cv::IMWRITE_JPEG_QUALITY,     options.jpeg_quality,
-      cv::IMWRITE_JPEG_PROGRESSIVE, static_cast<int>(options.jpeg_progressive),
-      cv::IMWRITE_JPEG_OPTIMIZE,    static_cast<int>(options.jpeg_optimize),
-      cv::IMWRITE_PNG_COMPRESSION,  options.png_compression};
+    cv::IMWRITE_JPEG_QUALITY, options.jpeg_quality,
+        cv::IMWRITE_JPEG_PROGRESSIVE,
+        static_cast<int>(options.jpeg_progressive), cv::IMWRITE_JPEG_OPTIMIZE,
+        static_cast<int>(options.jpeg_optimize),
+#if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
+        cv::IMWRITE_JPEG_SAMPLING_FACTOR,
+        ToOpenCVEnum(options.jpeg_subsampling),
+#endif
+        cv::IMWRITE_PNG_COMPRESSION, options.png_compression
+  };
 }
 
 }  // namespace
+
+const char *Label(ChromaSubsampling subsampling) {
+  switch (subsampling) {
+    case ChromaSubsampling::k444:
+      return "Off";
+    case ChromaSubsampling::k422:
+      return "Half";
+    case ChromaSubsampling::k420:
+      return "Quarter";
+    default:
+      return "Unknown";
+  }
+}
 
 void ProgressMonitor::Reset(ProgressType type, int num_tasks) {
   type_ = type;

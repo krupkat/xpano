@@ -18,6 +18,7 @@
 #include "xpano/gui/shortcut.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/imgui_.h"
+#include "xpano/utils/opencv.h"
 
 namespace xpano::gui {
 
@@ -67,12 +68,24 @@ Action DrawFileMenu() {
 void DrawCompressionOptionsMenu(
     pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Export compression")) {
-    ImGui::SliderInt("JPEG quality", &compression_options->jpeg_quality, 0,
+    ImGui::Text("JPEG");
+    ImGui::SliderInt("Quality", &compression_options->jpeg_quality, 0,
                      kMaxJpegQuality);
-    ImGui::Checkbox("JPEG progressive", &compression_options->jpeg_progressive);
-    ImGui::Checkbox("JPEG optimize", &compression_options->jpeg_optimize);
-    ImGui::SliderInt("PNG compression", &compression_options->png_compression,
-                     0, kMaxPngCompression);
+    ImGui::Checkbox("Progressive", &compression_options->jpeg_progressive);
+    ImGui::Checkbox("Optimize", &compression_options->jpeg_optimize);
+    ImGui::Text("Chroma subsampling:");
+    ImGui::SameLine();
+    if constexpr (utils::opencv::HasJpegSubsamplingSupport()) {
+      utils::imgui::RadioBox(&compression_options->jpeg_subsampling,
+                             pipeline::kSubsamplingModes);
+      utils::imgui::InfoMarker("(?)",
+                               "Corresponding to the 4:4:4, 4:2:2 and 4:2:0 "
+                               "chroma subsampling modes.");
+    }
+    ImGui::Separator();
+    ImGui::Text("PNG");
+    ImGui::SliderInt("Compression", &compression_options->png_compression, 0,
+                     kMaxPngCompression);
     ImGui::EndMenu();
   }
 }
@@ -145,7 +158,7 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
         "Number of keypoints that need to match in order to include the two "
         "images in a panorama.");
     if (debug_enabled) {
-      ImGui::Text("[debug options]");
+      ImGui::SeparatorText("Debug");
       DrawMatchConf(&matching_options->match_conf);
     }
     ImGui::EndMenu();
@@ -219,7 +232,7 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
     action |= DrawWaveCorrectionOptions(stitch_options);
 
     if (debug_enabled) {
-      ImGui::Text("[debug options]");
+      ImGui::SeparatorText("Debug");
       action |= DrawFeatureMatchingOptions(stitch_options);
 
       if (DrawMatchConf(&stitch_options->match_conf)) {
@@ -233,7 +246,7 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
 
 void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
   if (ImGui::BeginMenu("Auto fill")) {
-    ImGui::Text("[debug options]");
+    ImGui::SeparatorText("Debug");
     ImGui::Text("Algorithm:");
     ImGui::Spacing();
     utils::imgui::ComboBox(&inpaint_options->method,

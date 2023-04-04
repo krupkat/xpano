@@ -20,10 +20,22 @@ namespace xpano::pipeline {
 using InpaintingOptions = algorithm::InpaintingOptions;
 using StitchAlgorithmOptions = algorithm::StitchOptions;
 
+enum class ChromaSubsampling {
+  k444,
+  k422,
+  k420,
+};
+
+const auto kSubsamplingModes = std::array{
+    ChromaSubsampling::k444, ChromaSubsampling::k422, ChromaSubsampling::k420};
+
+const char *Label(ChromaSubsampling subsampling);
+
 struct CompressionOptions {
   int jpeg_quality = kDefaultJpegQuality;
   bool jpeg_progressive = false;
   bool jpeg_optimize = false;
+  ChromaSubsampling jpeg_subsampling = ChromaSubsampling::k422;
   int png_compression = kDefaultPngCompression;
 };
 
