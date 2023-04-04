@@ -44,4 +44,21 @@ void EnableIf(bool condition, TCallbackType callback,
   }
 }
 
+template <typename TOptionType, std::size_t N>
+bool ComboBox(TOptionType* current_option,
+              const std::array<TOptionType, N>& options, const char* label,
+              ImGuiComboFlags flags = 0) {
+  bool selected = false;
+  if (ImGui::BeginCombo(label, Label(*current_option), flags)) {
+    for (const auto option : options) {
+      if (ImGui::Selectable(Label(option), option == *current_option)) {
+        *current_option = option;
+        selected = true;
+      }
+    }
+    ImGui::EndCombo();
+  }
+  return selected;
+}
+
 }  // namespace xpano::utils::imgui
