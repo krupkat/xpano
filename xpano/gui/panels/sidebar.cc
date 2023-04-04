@@ -371,7 +371,14 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
 
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id) {
-  ImGui::TextUnformatted("List of panos:");
+  ImGui::TextUnformatted("List of panoramas:");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker(
+      "(?)",
+      "Autodetected groups of images where Xpano found an overlap\n - "
+      "add/remove an image from a group by CTRL clicking the image thumbnail\n "
+      "- create a new group by clicking an image thumbnail + CTRL clicking "
+      "another image");
   ImGui::BeginTable("table2", 3);
   ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
   ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
@@ -434,11 +441,9 @@ void DrawWelcomeTextPart1() {
 void DrawWelcomeTextPart2() {
   ImGui::Text(" 2) Select a panorama");
   ImGui::SameLine();
-  utils::imgui::InfoMarker(
-      "(?)",
-      "a) Pick one of the autodetected panoramas\nb) CTRL click on thumbnails "
-      "to add / edit / delete panoramas\nc) Zoom and pan the images with your "
-      "mouse");
+  utils::imgui::InfoMarker("(?)",
+                           "a) Pick one of the autodetected panoramas\nb) Zoom "
+                           "and pan the images with your mouse");
   ImGui::Text(" 3) Available actions:");
   ImGui::SameLine();
   utils::imgui::InfoMarker(
