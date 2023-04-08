@@ -17,6 +17,7 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/exiv2.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/vec_opencv.h"
 
@@ -171,8 +172,10 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
 
   std::optional<std::string> export_path;
   if (options.export_path) {
+    const auto &first_image = images[pano.ids[0]];
     export_path =
-        RunExportPipeline(result, {.export_path = *options.export_path,
+        RunExportPipeline(result, {.metadata_path = first_image.GetPath(),
+                                   .export_path = *options.export_path,
                                    .compression = options.compression})
             .export_path;
   }
@@ -190,7 +193,7 @@ std::future<ExportResult> StitcherPipeline::RunExport(
 
 ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
                                                  const ExportOptions &options) {
-  int num_tasks = 1;
+  int num_tasks = 2;
   progress_.Reset(ProgressType::kExport, num_tasks);
 
   if (options.crop) {
@@ -202,6 +205,10 @@ ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
   if (cv::imwrite(options.export_path, pano,
                   CompressionParameters(options.compression))) {
     export_path = options.export_path;
+  }
+  progress_.NotifyTaskDone();
+  if (export_path) {
+    utils::exiv2::CreateExif(options.metadata_path, *export_path);
   }
   progress_.NotifyTaskDone();
   return ExportResult{options.pano_id, export_path};

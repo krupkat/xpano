@@ -228,6 +228,13 @@ auto ResolveInpaintingResultFuture(
                   static_cast<float>(result.pixels_inpainted) / kMegapixel)};
   spdlog::info(*status_message);
 }
+
+const std::string& FirstPanoImage(const pipeline::StitcherData& stitcher_data,
+                                  int pano_id) {
+  auto image_id = stitcher_data.panos.at(pano_id).ids.front();
+  return stitcher_data.images.at(image_id).GetPath();
+}
+
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
@@ -348,8 +355,11 @@ Action PanoGui::PerformAction(Action action) {
         auto default_name = fmt::format("pano_{}.jpg", selection_.target_id);
         if (auto export_path = file_dialog::Save(default_name); export_path) {
           if (plot_pane_.Type() == ImageType::kPanoFullRes) {
+            auto metadata_path =
+                FirstPanoImage(*stitcher_data_, selection_.target_id);
             export_future_ = stitcher_pipeline_.RunExport(
                 plot_pane_.Image(), {.pano_id = selection_.target_id,
+                                     .metadata_path = metadata_path,
                                      .export_path = *export_path,
                                      .compression = compression_options_,
                                      .crop = plot_pane_.CropRect()});

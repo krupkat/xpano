@@ -79,4 +79,6 @@ const std::vector<cv::KeyPoint>& Image::GetKeypoints() const {
 
 cv::Mat Image::GetDescriptors() const { return descriptors_; }
 
+const std::string& Image::GetPath() const { return path_; }
+
 }  // namespace xpano::algorithm

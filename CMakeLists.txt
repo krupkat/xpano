@@ -49,6 +49,7 @@ set(XPANO_SOURCES
   "xpano/pipeline/stitcher_pipeline.cc"
   "xpano/utils/config.cc"
   "xpano/utils/disjoint_set.cc"
+  "xpano/utils/exiv2.cc"
   "xpano/utils/imgui_.cc"
   "xpano/utils/resource.cc"
   "xpano/utils/sdl_.cc"
@@ -58,6 +59,7 @@ set(XPANO_SOURCES
 find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching)
 find_package(spdlog REQUIRED)
+find_package(exiv2 REQUIRED)
 
 add_executable(Xpano WIN32
   ${XPANO_SOURCES}
@@ -88,6 +90,7 @@ target_link_libraries(Xpano
   SDL2::SDL2
   SDL2::SDL2main
   spdlog::spdlog
+  exiv2lib
 )
 
 copy_runtime_dlls(Xpano)

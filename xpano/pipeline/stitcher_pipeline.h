@@ -59,6 +59,7 @@ struct StitchingOptions {
 
 struct ExportOptions {
   int pano_id = 0;
+  std::string metadata_path;
   std::string export_path;
   CompressionOptions compression;
   std::optional<utils::RectRRf> crop;
