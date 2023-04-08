@@ -171,16 +171,40 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
 
   std::optional<std::string> export_path;
   if (options.export_path) {
-    progress_.SetTaskType(ProgressType::kExport);
-    if (cv::imwrite(*options.export_path, result,
-                    CompressionParameters(options.compression))) {
-      export_path = options.export_path;
-    }
-    progress_.NotifyTaskDone();
+    export_path =
+        RunExportPipeline(result, {.export_path = *options.export_path,
+                                   .compression = options.compression})
+            .export_path;
   }
 
   return StitchingResult{options.pano_id, options.full_res, status,   result,
                          auto_crop,       export_path,      pano_mask};
+}
+
+std::future<ExportResult> StitcherPipeline::RunExport(
+    cv::Mat pano, const ExportOptions &options) {
+  return pool_.submit([pano = std::move(pano), options, this]() {
+    return RunExportPipeline(pano, options);
+  });
+}
+
+ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
+                                                 const ExportOptions &options) {
+  int num_tasks = 1;
+  progress_.Reset(ProgressType::kExport, num_tasks);
+
+  if (options.crop) {
+    auto crop_rect = utils::GetCvRect(pano, *options.crop);
+    pano = pano(crop_rect);
+  }
+
+  std::optional<std::string> export_path;
+  if (cv::imwrite(options.export_path, pano,
+                  CompressionParameters(options.compression))) {
+    export_path = options.export_path;
+  }
+  progress_.NotifyTaskDone();
+  return ExportResult{options.pano_id, export_path};
 }
 
 std::future<InpaintingResult> StitcherPipeline::RunInpainting(
@@ -199,24 +223,6 @@ std::future<InpaintingResult> StitcherPipeline::RunInpainting(
     progress_.NotifyTaskDone();
 
     return InpaintingResult{result, pixels_filled};
-  });
-}
-
-std::future<ExportResult> StitcherPipeline::RunExport(
-    cv::Mat pano, const ExportOptions &options) {
-  return pool_.submit([pano = std::move(pano), options, this]() {
-    int num_tasks = 1;
-    progress_.Reset(ProgressType::kExport, num_tasks);
-
-    auto crop_rect = utils::GetCvRect(pano, options.crop);
-
-    std::optional<std::string> export_path;
-    if (cv::imwrite(options.export_path, pano(crop_rect),
-                    CompressionParameters(options.compression))) {
-      export_path = options.export_path;
-    }
-    progress_.NotifyTaskDone();
-    return ExportResult{options.pano_id, export_path};
   });
 }
 

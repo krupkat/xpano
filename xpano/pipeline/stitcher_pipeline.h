@@ -61,7 +61,7 @@ struct ExportOptions {
   int pano_id = 0;
   std::string export_path;
   CompressionOptions compression;
-  utils::RectRRf crop;
+  std::optional<utils::RectRRf> crop;
 };
 
 struct StitcherData {
@@ -147,6 +147,8 @@ class StitcherPipeline {
   StitchingResult RunStitchingPipeline(
       const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
       const StitchingOptions &options);
+
+  ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options);
 
   ProgressMonitor progress_;
 
