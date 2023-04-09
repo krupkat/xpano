@@ -1,13 +1,18 @@
 #include "xpano/pipeline/stitcher_pipeline.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+#include <exiv2/exiv2.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+
+#include "tests/utils.h"
 
 using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
@@ -212,4 +217,33 @@ TEST_CASE("Stitcher pipeline vertical pano") {
   REQUIRE(pano0.has_value());
   CHECK_THAT(pano0->rows, WithinRel(1342, eps));
   CHECK_THAT(pano0->cols, WithinRel(1030, eps));
+}
+
+TEST_CASE("Export") {
+  const std::string tmp_path = xpano::tests::TmpPath() + ".jpg";
+  std::cout << "Exporting to " << tmp_path << std::endl;
+
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto data =
+      stitcher
+          .RunLoading(kVerticalPanoInputs, {}, {.neighborhood_search_size = 1})
+          .get();
+  REQUIRE(data.panos.size() == 1);
+  stitcher.RunStitching(data, {.pano_id = 0, .export_path = tmp_path}).get();
+
+  const float eps = 0.01;
+
+  REQUIRE(std::filesystem::exists(tmp_path));
+  auto image = cv::imread(tmp_path);
+  REQUIRE(!image.empty());
+  CHECK_THAT(image.rows, WithinRel(1342, eps));
+  CHECK_THAT(image.cols, WithinRel(1030, eps));
+
+  auto read_img = Exiv2::ImageFactory::open(tmp_path);
+  read_img->readMetadata();
+  auto exif = read_img->exifData();
+  auto software = exif["Exif.Image.Software"].toString();
+  REQUIRE(software.starts_with("Xpano"));
+
+  std::filesystem::remove(tmp_path);
 }
