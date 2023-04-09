@@ -335,42 +335,43 @@ cv::Mat DrawMatches(const algorithm::Match& match,
 
 Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
                        const ThumbnailPane& thumbnail_pane, int highlight_id) {
-  ImGui::TextUnformatted("List of matches:");
-  ImGui::BeginTable("table1", 3);
-  ImGui::TableSetupColumn("Matched");
-  ImGui::TableSetupColumn("Inliers");
-  ImGui::TableSetupColumn("Action");
-  ImGui::TableHeadersRow();
-
   Action action{};
+  ImGui::TextUnformatted("List of matches:");
+  if (ImGui::BeginTable("table1", 3)) {
+    ImGui::TableSetupColumn("Matched");
+    ImGui::TableSetupColumn("Inliers");
+    ImGui::TableSetupColumn("Action");
+    ImGui::TableHeadersRow();
 
-  for (int i = 0; i < matches.size(); i++) {
-    ImGui::TableNextColumn();
-    ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
-    ImGui::TableNextColumn();
-    ImGui::Text("%ld", matches[i].matches.size());
-    ImGui::TableNextColumn();
-    ImGui::PushID(i);
-    if (ImGui::SmallButton("Show")) {
-      action = {ActionType::kShowMatch, i};
-    }
-    ImGui::PopID();
+    for (int i = 0; i < matches.size(); i++) {
+      ImGui::TableNextColumn();
+      ImGui::Text("%d, %d", matches[i].id1, matches[i].id2);
+      ImGui::TableNextColumn();
+      ImGui::Text("%ld", matches[i].matches.size());
+      ImGui::TableNextColumn();
+      ImGui::PushID(i);
+      if (ImGui::SmallButton("Show")) {
+        action = {ActionType::kShowMatch, i};
+      }
+      ImGui::PopID();
 
-    if (i == highlight_id || ImGui::IsItemHovered()) {
-      ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
-    }
+      if (i == highlight_id || ImGui::IsItemHovered()) {
+        ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
+      }
 
-    if (ImGui::IsItemHovered()) {
-      thumbnail_pane.ThumbnailTooltip({matches[i].id1, matches[i].id2});
+      if (ImGui::IsItemHovered()) {
+        thumbnail_pane.ThumbnailTooltip({matches[i].id1, matches[i].id2});
+      }
     }
+    ImGui::EndTable();
   }
-  ImGui::EndTable();
   return action;
 }
 
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id) {
+  Action action{};
   ImGui::TextUnformatted("List of panoramas:");
   ImGui::SameLine();
   utils::imgui::InfoMarker(
@@ -379,39 +380,38 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
       "add/remove an image from a group by CTRL clicking the image thumbnail\n "
       "- create a new group by clicking an image thumbnail + CTRL clicking "
       "another image");
-  ImGui::BeginTable("table2", 3);
-  ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
-  ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
-  ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed);
-  ImGui::TableHeadersRow();
+  if (ImGui::BeginTable("table2", 3)) {
+    ImGui::TableSetupColumn("Images", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableHeadersRow();
 
-  Action action{};
+    for (int i = 0; i < panos.size(); i++) {
+      ImGui::TableNextColumn();
+      auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
+      ImGui::TextUnformatted(string.c_str());
+      ImGui::TableNextColumn();
+      if (panos[i].exported) {
+        ImGui::TextUnformatted(kCheckMark);
+      }
+      ImGui::TableNextColumn();
+      ImGui::PushID(i);
+      if (ImGui::SmallButton("Show")) {
+        action = {ActionType::kShowPano, i};
+      }
+      ImGui::PopID();
 
-  for (int i = 0; i < panos.size(); i++) {
-    ImGui::TableNextColumn();
-    auto string = fmt::format("{}", fmt::join(panos[i].ids, ","));
-    ImGui::TextUnformatted(string.c_str());
-    ImGui::TableNextColumn();
-    if (panos[i].exported) {
-      ImGui::TextUnformatted(kCheckMark);
-    }
-    ImGui::TableNextColumn();
-    ImGui::PushID(i);
-    if (ImGui::SmallButton("Show")) {
-      action = {ActionType::kShowPano, i};
-    }
-    ImGui::PopID();
+      if (i == highlight_id || ImGui::IsItemHovered()) {
+        ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
+      }
 
-    if (i == highlight_id || ImGui::IsItemHovered()) {
-      ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
+      if (ImGui::IsItemHovered()) {
+        thumbnail_pane.ThumbnailTooltip(panos[i].ids);
+      }
     }
-
-    if (ImGui::IsItemHovered()) {
-      thumbnail_pane.ThumbnailTooltip(panos[i].ids);
-    }
+    ImGui::EndTable();
   }
-  ImGui::EndTable();
   return action;
 }
 
