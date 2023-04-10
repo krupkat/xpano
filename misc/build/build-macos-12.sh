@@ -14,6 +14,7 @@ brew install sdl2 spdlog catch2
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
 cd opencv
 cmake -B build \
+  -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/opencv-minimal-flags.txt`
