@@ -47,14 +47,14 @@ class PanoGui {
  private:
   Action DrawGui();
   Action DrawSidebar();
-  Action ResolveFutures();
+  MultiAction ResolveFutures();
   Action PerformAction(Action action);
   void Reset();
   bool IsDebugEnabled() const;
 
   // PODs
   Selection selection_;
-  Action delayed_action_ = {ActionType::kNone};
+  MultiAction delayed_actions_;
   StatusMessage status_message_;
 
   pipeline::CompressionOptions compression_options_;

@@ -229,11 +229,9 @@ auto ResolveInpaintingResultFuture(
   spdlog::info(*status_message);
 }
 
-bool ContainsTiff(const std::vector<std::string>& paths) {
-  return std::any_of(paths.begin(), paths.end(), [](const auto& path) {
-    return path.ends_with(".tif") || path.ends_with(".tiff") ||
-           path.ends_with(".TIF") || path.ends_with(".TIFF");
-  });
+bool AnyRawImage(const std::vector<algorithm::Image>& images) {
+  return std::any_of(images.begin(), images.end(),
+                     [](const auto& img) { return img.IsRaw(); });
 }
 }  // namespace
 
@@ -248,20 +246,22 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
 bool PanoGui::Run() {
-  Action action{};
-  std::swap(action, delayed_action_);
+  MultiAction actions = std::move(delayed_actions_);
 
-  action |= DrawGui();
-  action |= CheckKeybindings();
-  action |= ResolveFutures();
-  if (action.type != ActionType::kNone) {
-    action |= PerformAction(action);
-  }
+  actions |= DrawGui();
+  actions |= CheckKeybindings();
+  actions |= ResolveFutures();
 
-  if (action.delayed) {
-    delayed_action_ = RemoveDelay(action);
+  MultiAction extra_actions;
+  for (auto action : actions.items) {
+    extra_actions |= PerformAction(action);
   }
-  return action.type == ActionType::kQuit;
+  actions |= extra_actions;
+  delayed_actions_ = ForwardDelayed(actions);
+
+  return std::any_of(
+      actions.items.begin(), actions.items.end(),
+      [](const auto& action) { return action.type == ActionType::kQuit; });
 }
 
 Action PanoGui::DrawGui() {
@@ -393,9 +393,6 @@ Action PanoGui::PerformAction(Action action) {
         Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(
             results, loading_options_, matching_options_);
-        if (ContainsTiff(results)) {
-          return {.type = ActionType::kWarnInputConversion, .delayed = true};
-        }
       }
       break;
     }
@@ -469,13 +466,17 @@ Action PanoGui::PerformAction(Action action) {
   return action;
 }
 
-Action PanoGui::ResolveFutures() {
+MultiAction PanoGui::ResolveFutures() {
+  MultiAction actions;
   if (utils::future::IsReady(stitcher_data_future_)) {
     stitcher_data_ = ResolveStitcherDataFuture(
         std::move(stitcher_data_future_), &thumbnail_pane_, &status_message_);
 
+    if (stitcher_data_ && AnyRawImage(stitcher_data_->images)) {
+      actions |= {.type = ActionType::kWarnInputConversion};
+    }
     if (stitcher_data_ && !stitcher_data_->panos.empty()) {
-      return {.type = ActionType::kShowPano, .target_id = 0, .delayed = true};
+      actions |= {.type = ActionType::kShowPano, .target_id = 0};
     }
   }
 
@@ -500,7 +501,7 @@ Action PanoGui::ResolveFutures() {
     ResolveInpaintingResultFuture(std::move(inpaint_future_), &plot_pane_,
                                   &status_message_);
   }
-  return {};
+  return actions;
 }
 
 }  // namespace xpano::gui

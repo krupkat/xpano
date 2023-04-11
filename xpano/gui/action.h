@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iterator>
+#include <vector>
+
 namespace xpano::gui {
 
 enum class ActionType {
@@ -30,9 +33,35 @@ struct Action {
   bool delayed = false;
 };
 
+struct MultiAction {
+  std::vector<Action> items;
+};
+
+inline MultiAction& operator|=(MultiAction& lhs, const Action& rhs) {
+  if (rhs.type != ActionType::kNone) {
+    lhs.items.push_back(rhs);
+  }
+  return lhs;
+}
+
+inline MultiAction& operator|=(MultiAction& lhs, const MultiAction& rhs) {
+  std::copy(rhs.items.begin(), rhs.items.end(), std::back_inserter(lhs.items));
+  return lhs;
+}
+
 inline Action RemoveDelay(Action action) {
   action.delayed = false;
   return action;
+}
+
+inline MultiAction ForwardDelayed(const MultiAction& actions) {
+  MultiAction result;
+  for (const auto& action : actions.items) {
+    if (action.delayed) {
+      result.items.push_back(RemoveDelay(action));
+    }
+  }
+  return result;
 }
 
 inline Action& operator|=(Action& lhs, const Action& rhs) {
