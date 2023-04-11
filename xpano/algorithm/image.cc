@@ -22,14 +22,14 @@ Image::Image(std::string path) : path_(std::move(path)) {}
 
 void Image::Load(int preview_longer_side) {
   cv::Mat tmp = cv::imread(path_, cv::IMREAD_COLOR | cv::IMREAD_ANYDEPTH);
-  if (tmp.empty()) {
-    spdlog::error("Failed to load image {}", path_);
-    return;
-  }
-  if (tmp.depth() != CV_8U) {
+  if (!tmp.empty() && tmp.depth() != CV_8U) {
     is_raw_ = true;
     spdlog::warn("Image {} is not 8-bit, converting", path_);
     tmp = cv::imread(path_);
+  }
+  if (tmp.empty()) {
+    spdlog::error("Failed to load image {}", path_);
+    return;
   }
 
   auto full_size = tmp.size();
