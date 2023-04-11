@@ -21,10 +21,15 @@ thread_local cv::Ptr<cv::Feature2D> sift = cv::SIFT::create(kNumFeatures);
 Image::Image(std::string path) : path_(std::move(path)) {}
 
 void Image::Load(int preview_longer_side) {
-  cv::Mat tmp = cv::imread(path_);
+  cv::Mat tmp = cv::imread(path_, cv::IMREAD_COLOR | cv::IMREAD_ANYDEPTH);
   if (tmp.empty()) {
     spdlog::error("Failed to load image {}", path_);
     return;
+  }
+  if (tmp.depth() != CV_8U) {
+    is_raw_ = true;
+    spdlog::warn("Image {} is not 8-bit, converting", path_);
+    tmp = cv::imread(path_);
   }
 
   auto full_size = tmp.size();
@@ -52,6 +57,8 @@ void Image::Load(int preview_longer_side) {
 }
 
 bool Image::IsLoaded() const { return !preview_.empty(); }
+
+bool Image::IsRaw() const { return is_raw_; }
 
 cv::Mat Image::GetFullRes() const { return cv::imread(path_); }
 cv::Mat Image::GetThumbnail() const { return thumbnail_; }
