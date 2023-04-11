@@ -228,6 +228,13 @@ auto ResolveInpaintingResultFuture(
                   static_cast<float>(result.pixels_inpainted) / kMegapixel)};
   spdlog::info(*status_message);
 }
+
+bool ContainsTiff(const std::vector<std::string>& paths) {
+  return std::any_of(paths.begin(), paths.end(), [](const auto& path) {
+    return path.ends_with(".tif") || path.ends_with(".tiff") ||
+           path.ends_with(".TIF") || path.ends_with(".TIFF");
+  });
+}
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
@@ -265,6 +272,7 @@ Action PanoGui::DrawGui() {
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
+  warning_pane_.Draw();
   return action;
 }
 
@@ -385,6 +393,9 @@ Action PanoGui::PerformAction(Action action) {
         Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(
             results, loading_options_, matching_options_);
+        if (ContainsTiff(results)) {
+          return {.type = ActionType::kWarnInputConversion, .delayed = true};
+        }
       }
       break;
     }
@@ -448,6 +459,10 @@ Action PanoGui::PerformAction(Action action) {
     }
     case ActionType::kToggleCrop: {
       plot_pane_.ToggleCrop();
+      break;
+    }
+    case ActionType::kWarnInputConversion: {
+      warning_pane_.Show(action);
       break;
     }
   }

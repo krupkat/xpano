@@ -13,6 +13,7 @@
 #include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/panels/warning_pane.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/text.h"
@@ -69,6 +70,7 @@ class PanoGui {
   BugReportPane bugreport_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
+  WarningPane warning_pane_;
 
   // Algorithm
   pipeline::StitcherPipeline stitcher_pipeline_;

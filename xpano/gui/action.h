@@ -20,7 +20,8 @@ enum class ActionType {
   kModifyPano,
   kRecomputePano,
   kQuit,
-  kToggleDebugLog
+  kToggleDebugLog,
+  kWarnInputConversion
 };
 
 struct Action {

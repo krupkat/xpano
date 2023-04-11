@@ -26,8 +26,8 @@ constexpr int kResizingDelayFrames = 30;
 constexpr int kScrollingStep = 200;
 constexpr int kScrollingStepPerFrame = 25;
 
-const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg", "tiff",
-                                                         "png", "bmp"};
+const std::array<std::string, 6> kSupportedExtensions = {"jpg", "jpeg", "tiff",
+                                                         "tif", "png",  "bmp"};
 
 const std::string kLogFilename = "logs/xpano.log";
 constexpr int kMaxLogSize = 5 * 1024 * 1024;
@@ -46,6 +46,7 @@ constexpr int kMaxPngCompression = 9;
 constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
 constexpr int kSidebarWidth = 27;
+constexpr int kWideButtonWidth = 12;
 
 const std::string kOrgName = "krupkat";
 const std::string kAppName = "Xpano";
