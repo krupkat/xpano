@@ -22,6 +22,7 @@ class Image {
   [[nodiscard]] const std::vector<cv::KeyPoint> &GetKeypoints() const;
   [[nodiscard]] cv::Mat GetDescriptors() const;
   [[nodiscard]] bool IsLoaded() const;
+  [[nodiscard]] bool IsRaw() const;
 
  private:
   std::string path_;
@@ -30,6 +31,7 @@ class Image {
 
   std::vector<cv::KeyPoint> keypoints_;
   cv::Mat descriptors_;
+  bool is_raw_ = false;
 };
 
 }  // namespace xpano::algorithm
