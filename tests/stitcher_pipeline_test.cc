@@ -213,3 +213,37 @@ TEST_CASE("Stitcher pipeline vertical pano") {
   CHECK_THAT(pano0->rows, WithinRel(1342, eps));
   CHECK_THAT(pano0->cols, WithinRel(1030, eps));
 }
+
+const std::vector<std::string> kTiffInputs = {
+    "data/8bit.tif",
+    "data/16bit.tif",
+};
+
+TEST_CASE("TIFF inputs") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result = stitcher.RunLoading(kTiffInputs, {}, {}).get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.size() == 2);
+  REQUIRE(!result.images[0].IsRaw());
+  REQUIRE(result.images[1].IsRaw());
+
+  auto preview0 = result.images[0].GetPreview();
+  auto preview1 = result.images[1].GetPreview();
+  CHECK(preview0.depth() == CV_8U);
+  CHECK(preview1.depth() == CV_8U);
+}
+
+const std::string kMalformedInput = "data/malformed.jpg";
+
+TEST_CASE("Malformed input") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result = stitcher.RunLoading({kMalformedInput}, {}, {}).get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.empty());
+  REQUIRE(result.matches.empty());
+  REQUIRE(result.panos.empty());
+}
