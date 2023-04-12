@@ -41,9 +41,10 @@ struct Selection {
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::Logger* logger,
-          std::future<utils::Texts> licenses);
+          pipeline::Options options, std::future<utils::Texts> licenses);
 
   bool Run();
+  pipeline::Options GetOptions() const;
 
  private:
   Action DrawGui();

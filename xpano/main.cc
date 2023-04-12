@@ -132,7 +132,8 @@ int main(int /*unused*/, char** /*unused*/) {
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
+  xpano::gui::PanoGui gui(&backend, &logger, config.pipeline_options,
+                          std::move(license_texts));
 
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
@@ -185,8 +186,10 @@ int main(int /*unused*/, char** /*unused*/) {
   }
 
   auto size = xpano::utils::sdl::GetSize(window);
-  xpano::utils::config::Save(app_data_path, {.window_width = size.width,
-                                             .window_height = size.height});
+  xpano::utils::config::Save(app_data_path,
+                             {.window_width = size.width,
+                              .window_height = size.height,
+                              .pipeline_options = gui.GetOptions()});
 
   // Cleanup
   ImGui_ImplSDLRenderer_Shutdown();

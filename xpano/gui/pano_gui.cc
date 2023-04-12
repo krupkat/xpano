@@ -236,11 +236,12 @@ bool AnyRawImage(const std::vector<algorithm::Image>& images) {
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
-                 std::future<utils::Texts> licenses)
+                 pipeline::Options options, std::future<utils::Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       log_pane_(logger),
       bugreport_pane_(logger),
+      options_(options),
       about_pane_(std::move(licenses)) {}
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
@@ -501,5 +502,7 @@ MultiAction PanoGui::ResolveFutures() {
   }
   return actions;
 }
+
+pipeline::Options PanoGui::GetOptions() const { return options_; }
 
 }  // namespace xpano::gui

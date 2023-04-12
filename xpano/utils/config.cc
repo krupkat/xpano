@@ -38,7 +38,8 @@ Config Load(std::optional<std::filesystem::path> app_data_path) {
   return config;
 }
 
-void Save(std::optional<std::filesystem::path> app_data_path, Config config) {
+void Save(std::optional<std::filesystem::path> app_data_path,
+          const Config& config) {
   if (!app_data_path) {
     spdlog::warn("No app data path provided, not saving config");
     return;
