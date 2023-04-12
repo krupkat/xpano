@@ -21,6 +21,11 @@ const char* WarningMessage(ActionType action_type) {
 }  // namespace
 
 void WarningPane::Draw() {
+  if (current_action_type_ == ActionType::kNone && !pending_warnings_.empty()) {
+    Show(pending_warnings_.front());
+    pending_warnings_.pop();
+  }
+
   ImVec2 center = ImGui::GetMainViewport()->GetCenter();
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
@@ -34,6 +39,7 @@ void WarningPane::Draw() {
     const auto text_base_width = ImGui::CalcTextSize("A").x;
     if (ImGui::Button("OK", ImVec2(text_base_width * kWideButtonWidth, 0))) {
       ImGui::CloseCurrentPopup();
+      current_action_type_ = ActionType::kNone;
     }
     ImGui::SameLine();
     bool dont_show_again = dont_show_again_.contains(current_action_type_);
@@ -48,10 +54,12 @@ void WarningPane::Draw() {
   }
 }
 
-void WarningPane::Show(Action action) {
-  if (!dont_show_again_.contains(action.type)) {
+void WarningPane::Queue(Action action) { pending_warnings_.push(action.type); }
+
+void WarningPane::Show(ActionType action_type) {
+  if (!dont_show_again_.contains(action_type)) {
     ImGui::OpenPopup("Warning!");
-    current_action_type_ = action.type;
+    current_action_type_ = action_type;
   }
   spdlog::warn(WarningMessage(current_action_type_));
 }

@@ -458,7 +458,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kWarnInputConversion: {
-      warning_pane_.Show(action);
+      warning_pane_.Queue(action);
       break;
     }
   }
