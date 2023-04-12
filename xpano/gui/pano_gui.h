@@ -15,6 +15,7 @@
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/panels/warning_pane.h"
 #include "xpano/log/logger.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/text.h"
 
@@ -57,11 +58,7 @@ class PanoGui {
   MultiAction delayed_actions_;
   StatusMessage status_message_;
 
-  pipeline::CompressionOptions compression_options_;
-  pipeline::LoadingOptions loading_options_;
-  pipeline::InpaintingOptions inpaint_options_;
-  pipeline::MatchingOptions matching_options_;
-  pipeline::StitchAlgorithmOptions stitch_options_;
+  pipeline::Options options_;
   std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels

@@ -16,6 +16,7 @@
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/shortcut.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/opencv.h"
@@ -263,20 +264,15 @@ void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
   }
 }
 
-Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
-                       pipeline::LoadingOptions* loading_options,
-                       pipeline::InpaintingOptions* inpaint_options,
-                       pipeline::MatchingOptions* matching_options,
-                       pipeline::StitchAlgorithmOptions* stitch_options,
-                       bool debug_enabled) {
+Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
-    DrawCompressionOptionsMenu(compression_options);
-    DrawLoadingOptionsMenu(loading_options);
-    DrawMatchingOptionsMenu(matching_options, debug_enabled);
-    action |= DrawStitchOptionsMenu(stitch_options, debug_enabled);
+    DrawCompressionOptionsMenu(&options->compression);
+    DrawLoadingOptionsMenu(&options->loading);
+    DrawMatchingOptionsMenu(&options->matching, debug_enabled);
+    action |= DrawStitchOptionsMenu(&options->stitch, debug_enabled);
     if (debug_enabled) {
-      DrawAutofillOptionsMenu(inpaint_options);
+      DrawAutofillOptionsMenu(&options->inpaint);
     }
     ImGui::EndMenu();
   }
@@ -415,18 +411,11 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(pipeline::CompressionOptions* compression_options,
-                pipeline::LoadingOptions* loading_options,
-                pipeline::InpaintingOptions* inpaint_options,
-                pipeline::MatchingOptions* matching_options,
-                pipeline::StitchAlgorithmOptions* stitch_options,
-                bool debug_enabled) {
+Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |=
-        DrawOptionsMenu(compression_options, loading_options, inpaint_options,
-                        matching_options, stitch_options, debug_enabled);
+    action |= DrawOptionsMenu(options, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

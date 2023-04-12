@@ -260,72 +260,6 @@ std::string ToString(cv::Stitcher::Status& status) {
   }
 }
 
-// NOLINTBEGIN(bugprone-branch-clone): doesn't work with [[fallthrough]]
-
-bool HasAdvancedParameters(ProjectionType projection_type) {
-  switch (projection_type) {
-    case ProjectionType::kCompressedRectilinear:
-      [[fallthrough]];
-    case ProjectionType::kPanini:
-      return true;
-    default:
-      return false;
-  }
-}
-
-// NOLINTEND(bugprone-branch-clone)
-
-const char* Label(ProjectionType projection_type) {
-  switch (projection_type) {
-    case ProjectionType::kPerspective:
-      return "Perspective";
-    case ProjectionType::kCylindrical:
-      return "Cylindrical";
-    case ProjectionType::kSpherical:
-      return "Spherical";
-    case ProjectionType::kFisheye:
-      return "*Fisheye";
-    case ProjectionType::kStereographic:
-      return "*Stereographic";
-    case ProjectionType::kCompressedRectilinear:
-      return "CompressedRectilinear";
-    case ProjectionType::kPanini:
-      return "Panini";
-    case ProjectionType::kMercator:
-      return "Mercator";
-    case ProjectionType::kTransverseMercator:
-      return "TransverseMercator";
-    default:
-      return "Unknown";
-  }
-}
-
-const char* Label(FeatureType feature_type) {
-  switch (feature_type) {
-    case FeatureType::kSift:
-      return "SIFT";
-    case FeatureType::kOrb:
-      return "ORB";
-    default:
-      return "Unknown";
-  }
-}
-
-const char* Label(WaveCorrectionType wave_correction_type) {
-  switch (wave_correction_type) {
-    case WaveCorrectionType::kOff:
-      return "Off";
-    case WaveCorrectionType::kAuto:
-      return "Auto";
-    case WaveCorrectionType::kHorizontal:
-      return "Horizontal";
-    case WaveCorrectionType::kVertical:
-      return "Vertical";
-    default:
-      return "Unknown";
-  }
-}
-
 std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask) {
   std::optional<utils::RectPPi> largest_rect = crop::FindLargestCrop(mask);
   if (!largest_rect) {
@@ -333,17 +267,6 @@ std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask) {
   }
   auto image_end = utils::Point2i{mask.cols, mask.rows};
   return Rect(largest_rect->start / image_end, largest_rect->end / image_end);
-}
-
-const char* Label(InpaintingMethod inpaint_method) {
-  switch (inpaint_method) {
-    case InpaintingMethod::kNavierStokes:
-      return "NavierStokes";
-    case InpaintingMethod::kTelea:
-      return "Telea";
-    default:
-      return "Unknown";
-  }
 }
 
 cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,

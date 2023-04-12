@@ -26,6 +26,8 @@ add_executable(StitcherTest
   ../xpano/algorithm/bundle_adjuster.cc
   ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/image.cc
+  ../xpano/algorithm/options.cc
+  ../xpano/pipeline/options.cc
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc)
 

@@ -280,15 +280,13 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |=
-      DrawMenu(&compression_options_, &loading_options_, &inpaint_options_,
-               &matching_options_, &stitch_options_, IsDebugEnabled());
 
+  action |= DrawMenu(&options_, IsDebugEnabled());
   DrawWelcomeTextPart1();
   action |= DrawImportActionButtons();
   DrawWelcomeTextPart2();
   action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id,
-                              &stitch_options_.projection.type);
+                              &options_.stitch.projection.type);
 
   auto progress = stitcher_pipeline_.Progress();
   DrawProgressBar(progress);
@@ -359,15 +357,15 @@ Action PanoGui::PerformAction(Action action) {
             export_future_ = stitcher_pipeline_.RunExport(
                 plot_pane_.Image(), {.pano_id = selection_.target_id,
                                      .export_path = *export_path,
-                                     .compression = compression_options_,
+                                     .compression = options_.compression,
                                      .crop = plot_pane_.CropRect()});
           } else {
             pano_future_ = stitcher_pipeline_.RunStitching(
                 *stitcher_data_, {.pano_id = selection_.target_id,
                                   .full_res = true,
                                   .export_path = *export_path,
-                                  .compression = compression_options_,
-                                  .stitch_algorithm = stitch_options_});
+                                  .compression = options_.compression,
+                                  .stitch_algorithm = options_.stitch});
           }
         }
       }
@@ -378,7 +376,7 @@ Action PanoGui::PerformAction(Action action) {
         spdlog::info("Auto fill pano {}", selection_.target_id);
         status_message_ = {};
         inpaint_future_ = stitcher_pipeline_.RunInpainting(
-            plot_pane_.Image(), *pano_mask_, inpaint_options_);
+            plot_pane_.Image(), *pano_mask_, options_.inpaint);
       } else {
         status_message_ = {"Full-resolution panorama not available",
                            "Please rerun full-resolution stitching"};
@@ -392,7 +390,7 @@ Action PanoGui::PerformAction(Action action) {
       if (auto results = file_dialog::Open(action); !results.empty()) {
         Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(
-            results, loading_options_, matching_options_);
+            results, options_.loading, options_.matching);
       }
       break;
     }
@@ -416,7 +414,7 @@ Action PanoGui::PerformAction(Action action) {
           *stitcher_data_,
           {.pano_id = selection_.target_id,
            .full_res = action.type == ActionType::kShowFullResPano,
-           .stitch_algorithm = stitch_options_});
+           .stitch_algorithm = options_.stitch});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
@@ -428,7 +426,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
-                     Label(stitch_options_.projection.type));
+                     Label(options_.stitch.projection.type));
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
                 .delayed = true};

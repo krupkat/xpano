@@ -9,6 +9,7 @@
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 
 namespace xpano::gui {
@@ -24,12 +25,7 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id);
 
-Action DrawMenu(pipeline::CompressionOptions* compression_options,
-                pipeline::LoadingOptions* loading_options,
-                pipeline::InpaintingOptions* inpaint_options,
-                pipeline::MatchingOptions* matching_options,
-                pipeline::StitchAlgorithmOptions* stitch_options,
-                bool debug_enabled);
+Action DrawMenu(pipeline::Options* options, bool debug_enabled);
 
 void DrawWelcomeTextPart1();
 
