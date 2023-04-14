@@ -27,6 +27,10 @@ void InfoMarker(const std::string& label, const std::string& desc);
 
 std::string InitIniFilePath(std::optional<std::filesystem::path> app_data_path);
 
+void DrawScrollableText(const char* label,
+                        const std::vector<std::string>& lines,
+                        ImVec2 size = ImVec2(0, 0));
+
 template <typename TCallbackType>
 void EnableIf(bool condition, TCallbackType callback,
               const char* disabled_label) {

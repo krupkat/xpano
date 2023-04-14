@@ -82,4 +82,20 @@ std::string InitIniFilePath(
                        : ini_file_name;
 }
 
+void DrawScrollableText(const char* label,
+                        const std::vector<std::string>& lines, ImVec2 size) {
+  ImGui::BeginChild(label, size);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+  ImGuiListClipper clipper;
+  int num_lines = static_cast<int>(lines.size());
+  clipper.Begin(num_lines);
+  while (clipper.Step()) {
+    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+      ImGui::TextUnformatted(lines[i].c_str());
+    }
+  }
+  ImGui::PopStyleVar();
+  ImGui::EndChild();
+}
+
 }  // namespace xpano::utils::imgui
