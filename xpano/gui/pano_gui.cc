@@ -24,6 +24,7 @@
 #include "xpano/gui/shortcut.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/config.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
 
@@ -233,16 +234,34 @@ bool AnyRawImage(const std::vector<algorithm::Image>& images) {
   return std::any_of(images.begin(), images.end(),
                      [](const auto& img) { return img.IsRaw(); });
 }
+
+WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
+  switch (loading_status) {
+    case utils::config::LoadingStatus::kNoSuchFile:
+      return WarningType::kFirstTimeLaunch;
+    case utils::config::LoadingStatus::kBreakingChange:
+      return WarningType::kUserPrefBreakingChange;
+    case utils::config::LoadingStatus::kUnknownError:
+      return WarningType::kUserPrefCouldntLoad;
+    default:
+      return WarningType::kNone;
+  }
+}
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
-                 pipeline::Options options, std::future<utils::Texts> licenses)
+                 const utils::config::Config& config,
+                 std::future<utils::Texts> licenses)
     : plot_pane_(backend),
       thumbnail_pane_(backend),
       log_pane_(logger),
       bugreport_pane_(logger),
-      options_(options),
-      about_pane_(std::move(licenses)) {}
+      options_(config.user_options),
+      about_pane_(std::move(licenses)) {
+  if (config.user_options_status != utils::config::LoadingStatus::kSuccess) {
+    warning_pane_.Queue(GetWarningType(config.user_options_status));
+  }
+}
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
@@ -458,7 +477,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
     case ActionType::kWarnInputConversion: {
-      warning_pane_.Queue(action);
+      warning_pane_.Queue(WarningType::kWarnInputConversion);
       break;
     }
   }

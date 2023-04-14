@@ -422,10 +422,7 @@ Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
   return action;
 }
 
-void DrawWelcomeTextPart1() {
-  ImGui::Text("Welcome to Xpano!");
-  ImGui::Text(" 1) Import your images:");
-}
+void DrawWelcomeTextPart1() { ImGui::Text(" 1) Import your images:"); }
 
 void DrawWelcomeTextPart2() {
   ImGui::Text(" 2) Select a panorama");

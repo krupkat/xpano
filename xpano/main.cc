@@ -133,8 +133,7 @@ int main(int /*unused*/, char** /*unused*/) {
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, config.user_options,
-                          std::move(license_texts));
+  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts));
 
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);

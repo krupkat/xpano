@@ -17,6 +17,7 @@
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/config.h"
 #include "xpano/utils/text.h"
 
 namespace xpano::gui {
@@ -41,7 +42,8 @@ struct Selection {
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::Logger* logger,
-          pipeline::Options options, std::future<utils::Texts> licenses);
+          const utils::config::Config& config,
+          std::future<utils::Texts> licenses);
 
   bool Run();
   pipeline::Options GetOptions() const;

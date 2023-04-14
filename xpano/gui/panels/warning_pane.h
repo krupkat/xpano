@@ -7,18 +7,26 @@
 
 namespace xpano::gui {
 
+enum class WarningType {
+  kNone,
+  kWarnInputConversion,
+  kFirstTimeLaunch,
+  kUserPrefBreakingChange,
+  kUserPrefCouldntLoad
+};
+
 class WarningPane {
  public:
   void Draw();
-  void Queue(Action action);
+  void Queue(WarningType warning);
 
  private:
-  void Show(ActionType action);
+  void Show(WarningType warning);
 
-  ActionType current_action_type_ = ActionType::kNone;
+  WarningType current_warning_ = WarningType::kNone;
 
-  std::queue<ActionType> pending_warnings_;
-  std::unordered_set<ActionType> dont_show_again_;
+  std::queue<WarningType> pending_warnings_;
+  std::unordered_set<WarningType> dont_show_again_;
 };
 
 }  // namespace xpano::gui
