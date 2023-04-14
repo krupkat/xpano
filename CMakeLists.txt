@@ -16,7 +16,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("external/nativefiledialog-extended")
-add_subdirectory("external/alpaca")
+add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -154,6 +154,11 @@ install(FILES
   "external/thread-pool/LICENSE.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "thread-pool-license.txt"
+)
+install(FILES
+  "external/alpaca/LICENSE"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "alpaca-license.txt"
 )
 install(FILES
   "misc/assets/OFL.txt"
