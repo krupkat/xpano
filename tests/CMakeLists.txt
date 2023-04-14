@@ -81,12 +81,29 @@ target_include_directories(DisjointSetTest PRIVATE
   ".."
 )
 
+add_executable(SerializeTest 
+  serialize_test.cc
+  ../xpano/algorithm/options.cc
+  ../xpano/pipeline/options.cc
+)
+
+target_link_libraries(SerializeTest 
+  Catch2::Catch2WithMain
+  alpaca
+  spdlog::spdlog
+)
+
+target_include_directories(SerializeTest PRIVATE 
+  ".."
+)
+
 set(ALL_TEST_TARGETS
   AutoCropTest
   DisjointSetTest
   RectTest
   StitcherTest
-  VecTest  
+  VecTest
+  SerializeTest
 )
 
 foreach(name ${ALL_TEST_TARGETS})
