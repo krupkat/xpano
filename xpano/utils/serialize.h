@@ -27,8 +27,8 @@
 namespace xpano::utils::serialize {
 
 template <typename TType>
-std::error_code SerializeWithVersion(const std::filesystem::path& path,
-                                     const TType& value) {
+[[nodiscard]] std::error_code SerializeWithVersion(
+    const std::filesystem::path& path, const TType& value) {
   std::ofstream ostream(path, std::ios::binary);
   if (!ostream) {
     spdlog::warn("Failed to open {}", path.string());

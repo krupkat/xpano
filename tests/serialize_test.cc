@@ -34,7 +34,9 @@ TEST_CASE("Deserialize") {
   auto tmp_path = xpano::tests::TmpPath();
   auto foo = Foo{1, 2, {3, 4}};
 
-  xpano::utils::serialize::SerializeWithVersion(tmp_path, foo);
+  auto error = xpano::utils::serialize::SerializeWithVersion(tmp_path, foo);
+  REQUIRE(!error);
+
   auto [status, foo_recovered] =
       xpano::utils::serialize::DeserializeWithVersion<Foo>(tmp_path);
 
@@ -59,7 +61,9 @@ TEST_CASE("Deserialize breaking change") {
   auto tmp_path = xpano::tests::TmpPath();
   auto foo = Foo{1, 2, {3, 4}};
 
-  xpano::utils::serialize::SerializeWithVersion(tmp_path, foo);
+  auto error = xpano::utils::serialize::SerializeWithVersion(tmp_path, foo);
+  REQUIRE(!error);
+
   auto [status, foo_recovered] =
       xpano::utils::serialize::DeserializeWithVersion<FooV2>(tmp_path);
 
@@ -77,7 +81,9 @@ TEST_CASE("Deserialize pipeline options") {
   options.matching.neighborhood_search_size = 3;
   options.stitch.projection.type = xpano::algorithm::ProjectionType::kPanini;
 
-  xpano::utils::serialize::SerializeWithVersion(tmp_path, options);
+  auto error = xpano::utils::serialize::SerializeWithVersion(tmp_path, options);
+  REQUIRE(!error);
+
   auto [status, options_recovered] =
       xpano::utils::serialize::DeserializeWithVersion<xpano::pipeline::Options>(
           tmp_path);
