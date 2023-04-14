@@ -31,7 +31,7 @@ void WarningPane::Draw() {
 
   if (ImGui::BeginPopupModal("Warning!", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text(WarningMessage(current_action_type_));
+    ImGui::TextUnformatted(WarningMessage(current_action_type_));
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
