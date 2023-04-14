@@ -15,7 +15,9 @@
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/panels/warning_pane.h"
 #include "xpano/log/logger.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/config.h"
 #include "xpano/utils/text.h"
 
 namespace xpano::gui {
@@ -40,9 +42,11 @@ struct Selection {
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::Logger* logger,
+          const utils::config::Config& config,
           std::future<utils::Texts> licenses);
 
   bool Run();
+  pipeline::Options GetOptions() const;
 
  private:
   Action DrawGui();
@@ -57,11 +61,7 @@ class PanoGui {
   MultiAction delayed_actions_;
   StatusMessage status_message_;
 
-  pipeline::CompressionOptions compression_options_;
-  pipeline::LoadingOptions loading_options_;
-  pipeline::InpaintingOptions inpaint_options_;
-  pipeline::MatchingOptions matching_options_;
-  pipeline::StitchAlgorithmOptions stitch_options_;
+  pipeline::Options options_;
   std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels

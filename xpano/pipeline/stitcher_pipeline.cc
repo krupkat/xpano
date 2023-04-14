@@ -55,19 +55,6 @@ std::vector<int> CompressionParameters(const CompressionOptions &options) {
 
 }  // namespace
 
-const char *Label(ChromaSubsampling subsampling) {
-  switch (subsampling) {
-    case ChromaSubsampling::k444:
-      return "Off";
-    case ChromaSubsampling::k422:
-      return "Half";
-    case ChromaSubsampling::k420:
-      return "Quarter";
-    default:
-      return "Unknown";
-  }
-}
-
 void ProgressMonitor::Reset(ProgressType type, int num_tasks) {
   type_ = type;
   done_ = 0;

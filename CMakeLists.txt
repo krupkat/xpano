@@ -16,6 +16,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("external/nativefiledialog-extended")
+add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -33,6 +34,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/auto_crop.cc"
   "xpano/algorithm/bundle_adjuster.cc"
   "xpano/algorithm/image.cc"
+  "xpano/algorithm/options.cc"
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
   "xpano/gui/backends/sdl.cc"
@@ -47,6 +49,7 @@ set(XPANO_SOURCES
   "xpano/gui/panels/warning_pane.cc"
   "xpano/gui/pano_gui.cc"
   "xpano/gui/shortcut.cc"
+  "xpano/pipeline/options.cc"
   "xpano/pipeline/stitcher_pipeline.cc"
   "xpano/utils/config.cc"
   "xpano/utils/disjoint_set.cc"
@@ -84,6 +87,7 @@ set(OPENCV_TARGETS
 )
 
 target_link_libraries(Xpano
+  alpaca
   nfd
   ${OPENCV_TARGETS}
   SDL2::SDL2
@@ -150,6 +154,11 @@ install(FILES
   "external/thread-pool/LICENSE.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "thread-pool-license.txt"
+)
+install(FILES
+  "external/alpaca/LICENSE"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "alpaca-license.txt"
 )
 install(FILES
   "misc/assets/OFL.txt"

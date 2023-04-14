@@ -98,7 +98,8 @@ int main(int /*unused*/, char** /*unused*/) {
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
   SDL_Window* window =
       SDL_CreateWindow("Xpano", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       config.window_width, config.window_height, window_flags);
+                       config.app_state.window_width,
+                       config.app_state.window_height, window_flags);
 
   SDL_Renderer* renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -132,7 +133,7 @@ int main(int /*unused*/, char** /*unused*/) {
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
+  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts));
 
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
@@ -185,8 +186,7 @@ int main(int /*unused*/, char** /*unused*/) {
   }
 
   auto size = xpano::utils::sdl::GetSize(window);
-  xpano::utils::config::Save(app_data_path, {.window_width = size.width,
-                                             .window_height = size.height});
+  xpano::utils::config::Save(app_data_path, size, gui.GetOptions());
 
   // Cleanup
   ImGui_ImplSDLRenderer_Shutdown();
