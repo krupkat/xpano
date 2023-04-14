@@ -13,7 +13,7 @@ const char* WarningMessage(WarningType warning) {
   switch (warning) {
     case WarningType::kWarnInputConversion:
       return "Only 8-bit stitching pipeline is implemented!\nHigher bit depth "
-             "images are converted to 8-bit depth.";
+             "images are converted to 8-bit.";
     case WarningType::kFirstTimeLaunch:
       return "Your friendly panorama stitching app:\n"
              " - default settings are designed to work out of the box with "
@@ -24,6 +24,9 @@ const char* WarningMessage(WarningType warning) {
       return "The user settings format has changed, reverting to defaults.";
     case WarningType::kUserPrefCouldntLoad:
       return "Couldn't load user settings, reverting to defaults.";
+    case WarningType::kUserPrefResetOnRequest:
+      return "User settings were reset to default values,\nyou can keep "
+             "experimenting!";
     default:
       return "";
   }
@@ -33,6 +36,8 @@ const char* Title(WarningType warning) {
   switch (warning) {
     case WarningType::kFirstTimeLaunch:
       return "Welcome to Xpano!";
+    case WarningType::kUserPrefResetOnRequest:
+      return "Info";
     default:
       return "Warning!";
   }

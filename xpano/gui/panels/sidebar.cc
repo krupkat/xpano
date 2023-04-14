@@ -264,9 +264,17 @@ void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
   }
 }
 
+Action DrawResetButton() {
+  if (ImGui::MenuItem("Reset options", Label(ShortcutType::kReset))) {
+    return {ActionType::kResetOptions};
+  }
+  return {};
+}
+
 Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
+    action |= DrawResetButton();
     DrawCompressionOptionsMenu(&options->compression);
     DrawLoadingOptionsMenu(&options->loading);
     DrawMatchingOptionsMenu(&options->matching, debug_enabled);

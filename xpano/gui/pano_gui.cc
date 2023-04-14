@@ -480,6 +480,11 @@ Action PanoGui::PerformAction(Action action) {
       warning_pane_.Queue(WarningType::kWarnInputConversion);
       break;
     }
+    case ActionType::kResetOptions: {
+      options_ = {};
+      warning_pane_.Queue(WarningType::kUserPrefResetOnRequest);
+      break;
+    }
   }
   return action;
 }

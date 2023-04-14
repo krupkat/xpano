@@ -12,7 +12,8 @@ enum class WarningType {
   kWarnInputConversion,
   kFirstTimeLaunch,
   kUserPrefBreakingChange,
-  kUserPrefCouldntLoad
+  kUserPrefCouldntLoad,
+  kUserPrefResetOnRequest
 };
 
 class WarningPane {

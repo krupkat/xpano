@@ -24,7 +24,8 @@ enum class ActionType {
   kRecomputePano,
   kQuit,
   kToggleDebugLog,
-  kWarnInputConversion
+  kWarnInputConversion,
+  kResetOptions
 };
 
 struct Action {
