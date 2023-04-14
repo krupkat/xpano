@@ -7,6 +7,12 @@
 
 namespace xpano::pipeline {
 
+// Used for serialization, bump when changing the options structs.
+//  - Major changes can be auto detected by alpaca reflection, but e.g.
+//    modifying the enums cannot, so bump the version number in this case.
+//  - Will result in reloading the default values when loading the config.
+constexpr int kOptionsVersion = 1;
+
 enum class ChromaSubsampling {
   k444,
   k422,

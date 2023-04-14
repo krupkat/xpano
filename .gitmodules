@@ -7,3 +7,6 @@
 [submodule "external/thread-pool"]
 	path = external/thread-pool
 	url = ../thread-pool.git
+[submodule "external/alpaca"]
+	path = external/alpaca
+	url = ../../p-ranav/alpaca.git

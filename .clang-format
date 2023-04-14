@@ -2,7 +2,7 @@ BasedOnStyle: Google
 
 SortIncludes: CaseInsensitive
 IncludeCategories:
-  - Regex:           '<(absl|BS_|imgui|nfd|opencv2|SDL|catch|spdlog).*>'
+  - Regex:           '<(absl|BS_|imgui|nfd|opencv2|SDL|catch|spdlog|alpaca).*>'
     Priority:        2
   - Regex:           '<[[:alnum:]._]+>'
     Priority:        1

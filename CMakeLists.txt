@@ -16,6 +16,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("external/nativefiledialog-extended")
+add_subdirectory("external/alpaca")
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -86,6 +87,7 @@ set(OPENCV_TARGETS
 )
 
 target_link_libraries(Xpano
+  alpaca
   nfd
   ${OPENCV_TARGETS}
   SDL2::SDL2

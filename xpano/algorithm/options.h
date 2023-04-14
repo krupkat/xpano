@@ -6,6 +6,9 @@
 
 namespace xpano::algorithm {
 
+// Bump kOptionsVersion in xpano/pipeline/options.h when changing the
+// definitions
+
 enum class ProjectionType {
   kPerspective,
   kCylindrical,
