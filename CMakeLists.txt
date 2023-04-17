@@ -86,6 +86,11 @@ set(OPENCV_TARGETS
   opencv_stitching
 )
 
+if(NOT TARGET SDL2::SDL2main)
+# This is a workaround for SDL 2.24.0, still needed for build on Kinetic
+  add_library(SDL2::SDL2main INTERFACE IMPORTED)
+endif()
+
 target_link_libraries(Xpano
   alpaca
   nfd
