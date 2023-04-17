@@ -29,6 +29,16 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.12.0" date="2023-04-17">
+      <description>
+        <ul>
+          <li>Persistent user preferences</li>
+          <li>Added support for popup info messages</li>
+          <li>Allow loading files with the 'tif' extension</li>
+          <li>Fix crash when minimizing the app</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.11.0" date="2023-04-04">
       <description>
         <ul>

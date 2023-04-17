@@ -5,7 +5,7 @@
 namespace xpano::version {
 
 constexpr int kMajor = 0;
-constexpr int kMinor = 11;
+constexpr int kMinor = 12;
 constexpr int kPatch = 0;
 
 using Triplet = std::tuple<int, int, int>;
