@@ -1,3 +1,9 @@
+xpano (0.12.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.12.0, persistent user preferences
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Mon, 17 Apr 2023 16:13:58 +0200
+
 xpano (0.11.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.11.0, automatic panorama wave correction
