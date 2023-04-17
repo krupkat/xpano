@@ -4,13 +4,13 @@
 #include <imgui_internal.h>
 
 #include "xpano/constants.h"
+#include "xpano/utils/imgui_.h"
 
 namespace xpano::gui::layout {
 
 namespace {
 void InitDockSpaceFirstTime(ImGuiID dockspace_id, ImVec2 viewport_size) {
-  const auto text_base_width = ImGui::CalcTextSize("A").x;
-  const auto sidebar_width = kSidebarWidth * text_base_width;
+  const auto sidebar_width = utils::imgui::DpiAwareSize(kSidebarWidth, 0).x;
 
   ImGuiID dock_main_id = dockspace_id;
   ImGuiID dock_id_thumbnails = ImGui::DockBuilderSplitNode(

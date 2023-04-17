@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -11,6 +12,7 @@
 
 #include "xpano/constants.h"
 #include "xpano/utils/future.h"
+#include "xpano/utils/imgui_.h"
 #include "xpano/utils/text.h"
 
 namespace xpano::gui {
@@ -59,30 +61,45 @@ AboutPane::AboutPane(std::future<utils::Texts> licenses)
 
 void AboutPane::Show() { show_ = true; }
 
+std::optional<utils::Text> AboutPane::GetText(const std::string& name) {
+  if (licenses_future_.valid()) {
+    WaitForLicenseLoading();
+  }
+  auto result = std::find_if(
+      licenses_.begin(), licenses_.end(),
+      [&name](const utils::Text& text) { return text.name == name; });
+  if (result == licenses_.end()) {
+    return {};
+  }
+  return *result;
+}
+
+void AboutPane::WaitForLicenseLoading() {
+  auto temp_licenses = licenses_future_.get();
+  std::copy(temp_licenses.begin(), temp_licenses.end(),
+            std::back_inserter(licenses_));
+}
+
 void AboutPane::Draw() {
   if (!show_) {
     return;
+  }
+
+  if (licenses_.size() == 1 &&
+      xpano::utils::future::IsReady(licenses_future_)) {
+    WaitForLicenseLoading();
   }
 
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking |
                                   ImGuiWindowFlags_NoCollapse |
                                   ImGuiWindowFlags_NoSavedSettings;
 
-  const auto text_base_width = ImGui::CalcTextSize("A").x;
-  ImGui::SetNextWindowSize(ImVec2(kAboutBoxWidth * text_base_width,
-                                  kAboutBoxHeight * ImGui::GetTextLineHeight()),
-                           ImGuiCond_Once);
+  ImGui::SetNextWindowSize(
+      utils::imgui::DpiAwareSize(kAboutBoxWidth, kAboutBoxHeight),
+      ImGuiCond_Once);
   ImGui::Begin("About", &show_, window_flags);
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-
-  if (licenses_.size() == 1 &&
-      xpano::utils::future::IsReady(licenses_future_)) {
-    auto temp_licenses = licenses_future_.get();
-    std::copy(temp_licenses.begin(), temp_licenses.end(),
-              std::back_inserter(licenses_));
-  }
-
   if (ImGui::BeginCombo("##license_combo",
                         licenses_[current_license_].name.c_str())) {
     for (int i = 0; i < licenses_.size(); ++i) {
@@ -93,20 +110,8 @@ void AboutPane::Draw() {
     ImGui::EndCombo();
   }
 
-  ImGui::BeginChild("License", ImVec2(0, 0));
-  const auto& license = licenses_[current_license_];
-
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-  ImGuiListClipper clipper;
-  int num_lines = static_cast<int>(license.lines.size());
-  clipper.Begin(num_lines);
-  while (clipper.Step()) {
-    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-      ImGui::TextUnformatted(license.lines[i].c_str());
-    }
-  }
-  ImGui::PopStyleVar();
-  ImGui::EndChild();
+  utils::imgui::DrawScrollableText("License",
+                                   licenses_[current_license_].lines);
 
   ImGui::End();
 }

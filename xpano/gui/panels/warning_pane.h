@@ -1,9 +1,12 @@
 #pragma once
 
+#include <optional>
 #include <queue>
+#include <string>
 #include <unordered_set>
 
-#include "xpano/gui/action.h"
+#include "xpano/utils/text.h"
+#include "xpano/version.h"
 
 namespace xpano::gui {
 
@@ -13,13 +16,17 @@ enum class WarningType {
   kFirstTimeLaunch,
   kUserPrefBreakingChange,
   kUserPrefCouldntLoad,
-  kUserPrefResetOnRequest
+  kUserPrefResetOnRequest,
+  kNewVersion
 };
 
 class WarningPane {
  public:
   void Draw();
+  void DrawExtra(WarningType warning);
   void Queue(WarningType warning);
+  void QueueNewVersion(version::Triplet previous_version,
+                       std::optional<utils::Text> changelog);
 
  private:
   void Show(WarningType warning);
@@ -28,6 +35,9 @@ class WarningPane {
 
   std::queue<WarningType> pending_warnings_;
   std::unordered_set<WarningType> dont_show_again_;
+
+  std::string new_version_message_;
+  std::optional<utils::Text> changelog_;
 };
 
 }  // namespace xpano::gui

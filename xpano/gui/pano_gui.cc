@@ -27,6 +27,7 @@
 #include "xpano/utils/config.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
+#include "xpano/version.h"
 
 template <>
 struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {
@@ -252,12 +253,16 @@ WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
                  const utils::config::Config& config,
                  std::future<utils::Texts> licenses)
-    : plot_pane_(backend),
-      thumbnail_pane_(backend),
+    : options_(config.user_options),
       log_pane_(logger),
+      about_pane_(std::move(licenses)),
       bugreport_pane_(logger),
-      options_(config.user_options),
-      about_pane_(std::move(licenses)) {
+      plot_pane_(backend),
+      thumbnail_pane_(backend) {
+  if (config.app_state.xpano_version != version::Current()) {
+    warning_pane_.QueueNewVersion(config.app_state.xpano_version,
+                                  about_pane_.GetText(kChangelogFilename));
+  }
   if (config.user_options_status != utils::config::LoadingStatus::kSuccess) {
     warning_pane_.Queue(GetWarningType(config.user_options_status));
   }

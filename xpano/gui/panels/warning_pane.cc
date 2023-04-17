@@ -1,10 +1,12 @@
 #include "xpano/gui/panels/warning_pane.h"
 
 #include <imgui.h>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
-#include "xpano/gui/action.h"
+#include "xpano/utils/imgui_.h"
+#include "xpano/version_fmt.h"
 
 namespace xpano::gui {
 
@@ -15,18 +17,17 @@ const char* WarningMessage(WarningType warning) {
       return "Only 8-bit stitching pipeline is implemented!\nHigher bit depth "
              "images are converted to 8-bit.";
     case WarningType::kFirstTimeLaunch:
-      return "Your friendly panorama stitching app:\n"
-             " - default settings are designed to work out of the box with "
-             "most images\n"
-             " - hover over the little question marks for detailed "
-             "instructions";
+      return "Your friendly panorama stitching app";
     case WarningType::kUserPrefBreakingChange:
-      return "The user settings format has changed, reverting to defaults.";
+      return "The user settings format has "
+             "changed, reverting to defaults.";
     case WarningType::kUserPrefCouldntLoad:
       return "Couldn't load user settings, reverting to defaults.";
     case WarningType::kUserPrefResetOnRequest:
       return "User settings were reset to default values,\nyou can keep "
              "experimenting!";
+    case WarningType::kNewVersion:
+      return "Xpano was updated!";
     default:
       return "";
   }
@@ -36,6 +37,8 @@ const char* Title(WarningType warning) {
   switch (warning) {
     case WarningType::kFirstTimeLaunch:
       return "Welcome to Xpano!";
+    case WarningType::kNewVersion:
+      return "Version update";
     case WarningType::kUserPrefResetOnRequest:
       return "Info";
     default:
@@ -51,10 +54,14 @@ bool EnableSnooze(WarningType warning) {
       return false;
   }
 }
+
 }  // namespace
 
 void WarningPane::Draw() {
-  if (current_warning_ == WarningType::kNone && !pending_warnings_.empty()) {
+  if (current_warning_ == WarningType::kNone) {
+    if (pending_warnings_.empty()) {
+      return;
+    }
     Show(pending_warnings_.front());
     pending_warnings_.pop();
   }
@@ -65,12 +72,12 @@ void WarningPane::Draw() {
   if (ImGui::BeginPopupModal(Title(current_warning_), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::TextUnformatted(WarningMessage(current_warning_));
+    DrawExtra(current_warning_);
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
-    const auto text_base_width = ImGui::CalcTextSize("A").x;
-    if (ImGui::Button("OK", ImVec2(text_base_width * kWideButtonWidth, 0))) {
+    if (ImGui::Button("OK", utils::imgui::DpiAwareSize(kWideButtonWidth, 0))) {
       ImGui::CloseCurrentPopup();
       current_warning_ = WarningType::kNone;
     }
@@ -89,8 +96,46 @@ void WarningPane::Draw() {
   }
 }
 
+void WarningPane::DrawExtra(WarningType warning) {
+  switch (warning) {
+    case WarningType::kFirstTimeLaunch: {
+      ImGui::Text(
+          " - default settings are designed to work out of the box with most "
+          "images");
+      ImGui::Text(
+          " - hover over the little question marks for detailed instructions:");
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)", "You can try importing a whole directory at once");
+      break;
+    }
+    case WarningType::kNewVersion: {
+      ImGui::TextUnformatted(new_version_message_.c_str());
+      if (changelog_) {
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        utils::imgui::DrawScrollableText(
+            "Changelog", changelog_->lines,
+            utils::imgui::DpiAwareSize(kAboutBoxWidth, kAboutBoxHeight / 2));
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 void WarningPane::Queue(WarningType warning) {
   pending_warnings_.push(warning);
+}
+
+void WarningPane::QueueNewVersion(version::Triplet previous_version,
+                                  std::optional<utils::Text> changelog) {
+  pending_warnings_.push(WarningType::kNewVersion);
+  new_version_message_ = fmt::format(" - from version {} to version {}",
+                                     previous_version, version::Current());
+  changelog_ = std::move(changelog);
 }
 
 void WarningPane::Show(WarningType warning) {
