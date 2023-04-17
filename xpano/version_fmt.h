@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <spdlog/fmt/fmt.h>
 
 #include "xpano/version.h"
