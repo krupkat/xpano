@@ -258,10 +258,10 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
       about_pane_(std::move(licenses)),
       bugreport_pane_(logger),
       plot_pane_(backend),
-      thumbnail_pane_(backend),
-      warning_pane_(&about_pane_) {
+      thumbnail_pane_(backend) {
   if (config.app_state.xpano_version != version::Current()) {
-    warning_pane_.QueueNewVersion(config.app_state.xpano_version);
+    warning_pane_.QueueNewVersion(config.app_state.xpano_version,
+                                  about_pane_.GetText(kChangelogFilename));
   }
   if (config.user_options_status != utils::config::LoadingStatus::kSuccess) {
     warning_pane_.Queue(GetWarningType(config.user_options_status));

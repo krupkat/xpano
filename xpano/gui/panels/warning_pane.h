@@ -5,8 +5,6 @@
 #include <string>
 #include <unordered_set>
 
-#include "xpano/gui/action.h"
-#include "xpano/gui/panels/about.h"
 #include "xpano/utils/text.h"
 #include "xpano/version.h"
 
@@ -24,17 +22,14 @@ enum class WarningType {
 
 class WarningPane {
  public:
-  WarningPane(AboutPane* about_pane) : about_pane_(about_pane) {}
-
   void Draw();
   void DrawExtra(WarningType warning);
   void Queue(WarningType warning);
-  void QueueNewVersion(version::Triplet previous_version);
+  void QueueNewVersion(version::Triplet previous_version,
+                       std::optional<utils::Text> changelog);
 
  private:
   void Show(WarningType warning);
-
-  AboutPane* about_pane_;
 
   WarningType current_warning_ = WarningType::kNone;
 

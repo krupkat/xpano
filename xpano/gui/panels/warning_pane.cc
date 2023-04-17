@@ -5,8 +5,6 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
-#include "xpano/gui/action.h"
-#include "xpano/gui/panels/about.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/version_fmt.h"
 
@@ -132,11 +130,12 @@ void WarningPane::Queue(WarningType warning) {
   pending_warnings_.push(warning);
 }
 
-void WarningPane::QueueNewVersion(version::Triplet previous_version) {
+void WarningPane::QueueNewVersion(version::Triplet previous_version,
+                                  std::optional<utils::Text> changelog) {
   pending_warnings_.push(WarningType::kNewVersion);
   new_version_message_ = fmt::format(" - from version {} to version {}",
                                      previous_version, version::Current());
-  changelog_ = about_pane_->GetText(kChangelogFilename);
+  changelog_ = std::move(changelog);
 }
 
 void WarningPane::Show(WarningType warning) {
