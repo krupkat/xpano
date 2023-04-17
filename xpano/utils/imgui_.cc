@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <optional>
 #include <utility>
+#include <vector>
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer.h>
