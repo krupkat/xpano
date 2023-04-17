@@ -38,6 +38,7 @@
 #include "xpano/utils/resource.h"
 #include "xpano/utils/sdl_.h"
 #include "xpano/utils/text.h"
+#include "xpano/version_fmt.h"
 
 #if !SDL_VERSION_ATLEAST(2, 0, 17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
@@ -96,9 +97,10 @@ int main(int /*unused*/, char** /*unused*/) {
 
   // Setup SDL Window + Renderer
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+  auto window_title = fmt::format("Xpano {}", xpano::version::Current());
   SDL_Window* window =
-      SDL_CreateWindow("Xpano", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       config.app_state.window_width,
+      SDL_CreateWindow(window_title.c_str(), SDL_WINDOWPOS_CENTERED,
+                       SDL_WINDOWPOS_CENTERED, config.app_state.window_width,
                        config.app_state.window_height, window_flags);
 
   SDL_Renderer* renderer = SDL_CreateRenderer(
