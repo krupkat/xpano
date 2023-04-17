@@ -1,13 +1,14 @@
 #include "xpano/gui/panels/warning_pane.h"
 
 #include <imgui.h>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/about.h"
 #include "xpano/utils/imgui_.h"
-#include "xpano/version.h"
+#include "xpano/version_fmt.h"
 
 namespace xpano::gui {
 
@@ -56,38 +57,6 @@ bool EnableSnooze(WarningType warning) {
   }
 }
 
-void DrawExtra(WarningType warning, const std::string& extra_message,
-               AboutPane* about_pane) {
-  switch (warning) {
-    case WarningType::kFirstTimeLaunch: {
-      ImGui::Text(
-          " - default settings are designed to work out of the box with most "
-          "images");
-      ImGui::Text(
-          " - hover over the little question marks for detailed instructions:");
-      ImGui::SameLine();
-      utils::imgui::InfoMarker(
-          "(?)", "You can try importing a whole directory at once");
-      break;
-    }
-    case WarningType::kNewVersion: {
-      ImGui::TextUnformatted(extra_message.c_str());
-      if (auto text = about_pane->GetText("CHANGELOG.md"); text) {
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-        const auto text_base_width = ImGui::CalcTextSize("A").x;
-        auto size = ImVec2(kAboutBoxWidth * text_base_width,
-                           kAboutBoxHeight * ImGui::GetTextLineHeight() / 2);
-        utils::imgui::DrawScrollableText("Changelog", text->lines, size);
-      }
-      break;
-    }
-    default:
-      break;
-  }
-}
-
 }  // namespace
 
 void WarningPane::Draw() {
@@ -105,13 +74,12 @@ void WarningPane::Draw() {
   if (ImGui::BeginPopupModal(Title(current_warning_), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::TextUnformatted(WarningMessage(current_warning_));
-    DrawExtra(current_warning_, extra_message_, about_pane_);
+    DrawExtra(current_warning_);
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 
-    const auto text_base_width = ImGui::CalcTextSize("A").x;
-    if (ImGui::Button("OK", ImVec2(text_base_width * kWideButtonWidth, 0))) {
+    if (ImGui::Button("OK", utils::imgui::DpiAwareSize(kWideButtonWidth, 0))) {
       ImGui::CloseCurrentPopup();
       current_warning_ = WarningType::kNone;
     }
@@ -130,14 +98,45 @@ void WarningPane::Draw() {
   }
 }
 
+void WarningPane::DrawExtra(WarningType warning) {
+  switch (warning) {
+    case WarningType::kFirstTimeLaunch: {
+      ImGui::Text(
+          " - default settings are designed to work out of the box with most "
+          "images");
+      ImGui::Text(
+          " - hover over the little question marks for detailed instructions:");
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)", "You can try importing a whole directory at once");
+      break;
+    }
+    case WarningType::kNewVersion: {
+      ImGui::TextUnformatted(new_version_message_.c_str());
+      if (changelog_) {
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        utils::imgui::DrawScrollableText(
+            "Changelog", changelog_->lines,
+            utils::imgui::DpiAwareSize(kAboutBoxWidth, kAboutBoxHeight / 2));
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 void WarningPane::Queue(WarningType warning) {
   pending_warnings_.push(warning);
 }
 
-void WarningPane::QueueNewVersion(version::Triplet latest_version) {
+void WarningPane::QueueNewVersion(version::Triplet previous_version) {
   pending_warnings_.push(WarningType::kNewVersion);
-  extra_message_ = " - from version " + version::ToString(latest_version) +
-                   " to version " + version::ToString(version::Current());
+  new_version_message_ = fmt::format(" - from version {} to version {}",
+                                     previous_version, version::Current());
+  changelog_ = about_pane_->GetText(kChangelogFilename);
 }
 
 void WarningPane::Show(WarningType warning) {

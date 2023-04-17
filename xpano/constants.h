@@ -72,6 +72,7 @@ constexpr float kMaxMatchConf = 0.4f;
 
 const std::string kAppConfigFilename = "app_config.alpaca";
 const std::string kUserConfigFilename = "user_config.alpaca";
+const std::string kChangelogFilename = "CHANGELOG.md";
 
 constexpr int kCropEdgeTolerance = 10;
 constexpr int kAutoCropSamplingDistance = 512;

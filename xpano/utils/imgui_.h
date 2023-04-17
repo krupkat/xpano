@@ -76,4 +76,6 @@ void RadioBox(TOptionType* current_option,
   }
 }
 
+ImVec2 DpiAwareSize(int width, int height);
+
 }  // namespace xpano::utils::imgui

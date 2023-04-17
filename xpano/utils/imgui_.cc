@@ -98,4 +98,9 @@ void DrawScrollableText(const char* label,
   ImGui::EndChild();
 }
 
+ImVec2 DpiAwareSize(int width, int height) {
+  return ImVec2(width * ImGui::CalcTextSize("A").x,
+                height * ImGui::GetTextLineHeight());
+}
+
 }  // namespace xpano::utils::imgui

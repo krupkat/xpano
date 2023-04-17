@@ -94,10 +94,9 @@ void AboutPane::Draw() {
                                   ImGuiWindowFlags_NoCollapse |
                                   ImGuiWindowFlags_NoSavedSettings;
 
-  const auto text_base_width = ImGui::CalcTextSize("A").x;
-  ImGui::SetNextWindowSize(ImVec2(kAboutBoxWidth * text_base_width,
-                                  kAboutBoxHeight * ImGui::GetTextLineHeight()),
-                           ImGuiCond_Once);
+  ImGui::SetNextWindowSize(
+      utils::imgui::DpiAwareSize(kAboutBoxWidth, kAboutBoxHeight),
+      ImGuiCond_Once);
   ImGui::Begin("About", &show_, window_flags);
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
