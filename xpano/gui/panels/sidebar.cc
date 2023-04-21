@@ -74,9 +74,9 @@ void DrawCompressionOptionsMenu(
                      kMaxJpegQuality);
     ImGui::Checkbox("Progressive", &compression_options->jpeg_progressive);
     ImGui::Checkbox("Optimize", &compression_options->jpeg_optimize);
-    ImGui::Text("Chroma subsampling:");
-    ImGui::SameLine();
     if constexpr (utils::opencv::HasJpegSubsamplingSupport()) {
+      ImGui::Text("Chroma subsampling:");
+      ImGui::SameLine();
       utils::imgui::RadioBox(&compression_options->jpeg_subsampling,
                              pipeline::kSubsamplingModes);
       utils::imgui::InfoMarker("(?)",
@@ -401,7 +401,9 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
       ImGui::TableNextColumn();
       ImGui::PushID(i);
       if (ImGui::SmallButton("Show")) {
-        action = {ActionType::kShowPano, i};
+        action = {.type = ActionType::kShowPano,
+                  .target_id = i,
+                  .extra = ShowPanoExtra{.scroll_thumbnails = true}};
       }
       ImGui::PopID();
 
@@ -475,8 +477,9 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       image_type == ImageType::kPanoPreview,
       [&] {
         if (ImGui::Button("Full-res")) {
-          action |=
-              {.type = ActionType::kShowFullResPano, .target_id = target_id};
+          action |= {.type = ActionType::kShowPano,
+                     .target_id = target_id,
+                     .extra = ShowPanoExtra{.full_res = true}};
         }
       },
       image_type == ImageType::kPanoFullRes ? "Already computed"
