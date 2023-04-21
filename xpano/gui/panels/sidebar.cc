@@ -74,9 +74,9 @@ void DrawCompressionOptionsMenu(
                      kMaxJpegQuality);
     ImGui::Checkbox("Progressive", &compression_options->jpeg_progressive);
     ImGui::Checkbox("Optimize", &compression_options->jpeg_optimize);
-    ImGui::Text("Chroma subsampling:");
-    ImGui::SameLine();
     if constexpr (utils::opencv::HasJpegSubsamplingSupport()) {
+      ImGui::Text("Chroma subsampling:");
+      ImGui::SameLine();
       utils::imgui::RadioBox(&compression_options->jpeg_subsampling,
                              pipeline::kSubsamplingModes);
       utils::imgui::InfoMarker("(?)",
