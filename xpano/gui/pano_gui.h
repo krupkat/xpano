@@ -6,6 +6,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "xpano/cli/args.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/panels/about.h"
@@ -43,7 +44,7 @@ class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::Logger* logger,
           const utils::config::Config& config,
-          std::future<utils::Texts> licenses);
+          std::future<utils::Texts> licenses, const cli::Args& args);
 
   bool Run();
   pipeline::Options GetOptions() const;
@@ -58,7 +59,7 @@ class PanoGui {
 
   // PODs
   Selection selection_;
-  MultiAction delayed_actions_;
+  MultiAction next_actions_;
   StatusMessage status_message_;
 
   pipeline::Options options_;

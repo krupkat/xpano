@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <iterator>
 #include <variant>
 #include <vector>
@@ -13,6 +14,7 @@ enum class ActionType {
   kDisableHighlight,
   kExport,
   kInpaint,
+  kLoadFiles,
   kOpenDirectory,
   kOpenFiles,
   kShowAbout,
@@ -33,11 +35,13 @@ struct ShowPanoExtra {
   bool scroll_thumbnails = false;
 };
 
+using LoadFilesExtra = std::vector<std::filesystem::path>;
+
 struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
   bool delayed = false;
-  std::variant<ShowPanoExtra> extra;
+  std::variant<ShowPanoExtra, LoadFilesExtra> extra;
 };
 
 template <typename TExtraType>

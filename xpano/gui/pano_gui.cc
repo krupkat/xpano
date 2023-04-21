@@ -13,6 +13,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/cli/args.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
@@ -27,6 +28,7 @@
 #include "xpano/utils/config.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
+#include "xpano/utils/path.h"
 #include "xpano/version.h"
 
 template <>
@@ -252,7 +254,7 @@ WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
                  const utils::config::Config& config,
-                 std::future<utils::Texts> licenses)
+                 std::future<utils::Texts> licenses, const cli::Args& args)
     : options_(config.user_options),
       log_pane_(logger),
       about_pane_(std::move(licenses)),
@@ -266,12 +268,16 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
   if (config.user_options_status != utils::config::LoadingStatus::kSuccess) {
     warning_pane_.Queue(GetWarningType(config.user_options_status));
   }
+  if (args.run_gui) {
+    next_actions_ |=
+        Action{.type = ActionType::kLoadFiles, .extra = args.input_paths};
+  }
 }
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
 bool PanoGui::Run() {
-  MultiAction actions = std::move(delayed_actions_);
+  MultiAction actions = std::move(next_actions_);
 
   actions |= DrawGui();
   actions |= CheckKeybindings();
@@ -282,7 +288,7 @@ bool PanoGui::Run() {
     extra_actions |= PerformAction(action);
   }
   actions |= extra_actions;
-  delayed_actions_ = ForwardDelayed(actions);
+  next_actions_ = ForwardDelayed(actions);
 
   return std::any_of(
       actions.items.begin(), actions.items.end(),
@@ -357,7 +363,7 @@ void PanoGui::Reset() {
 
 Action PanoGui::PerformAction(Action action) {
   if (action.delayed) {
-    return action;
+    return {};
   }
 
   switch (action.type) {
@@ -381,14 +387,14 @@ Action PanoGui::PerformAction(Action action) {
           if (plot_pane_.Type() == ImageType::kPanoFullRes) {
             export_future_ = stitcher_pipeline_.RunExport(
                 plot_pane_.Image(), {.pano_id = selection_.target_id,
-                                     .export_path = *export_path,
+                                     .export_path = export_path->string(),
                                      .compression = options_.compression,
                                      .crop = plot_pane_.CropRect()});
           } else {
             pano_future_ = stitcher_pipeline_.RunStitching(
                 *stitcher_data_, {.pano_id = selection_.target_id,
                                   .full_res = true,
-                                  .export_path = *export_path,
+                                  .export_path = export_path->string(),
                                   .compression = options_.compression,
                                   .stitch_algorithm = options_.stitch});
           }
@@ -412,10 +418,15 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      if (auto results = file_dialog::Open(action); !results.empty()) {
+      return {.type = ActionType::kLoadFiles,
+              .delayed = true,
+              .extra = file_dialog::Open(action)};
+    }
+    case ActionType::kLoadFiles: {
+      if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {
         Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(
-            results, options_.loading, options_.matching);
+            utils::path::ToString(files), options_.loading, options_.matching);
       }
       break;
     }
@@ -491,7 +502,7 @@ Action PanoGui::PerformAction(Action action) {
       break;
     }
   }
-  return action;
+  return {};
 }
 
 MultiAction PanoGui::ResolveFutures() {

@@ -29,6 +29,7 @@
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
+#include "xpano/cli/args.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/sdl.h"
 #include "xpano/gui/pano_gui.h"
@@ -44,7 +45,11 @@
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-int main(int /*unused*/, char** /*unused*/) {
+int main(int argc, char** argv) {
+  std::string locale = std::setlocale(LC_ALL, "en_US.UTF-8");
+
+  auto args = xpano::cli::ParseArgs(argc, argv);
+
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
   // This feature isn't compatible with ImGui as of v1.88
@@ -72,9 +77,7 @@ int main(int /*unused*/, char** /*unused*/) {
   xpano::logger::Logger logger{};
   logger.RedirectSpdlogOutput(app_data_path);
   xpano::logger::RedirectSDLOutput();
-
-  std::string result = std::setlocale(LC_ALL, "en_US.UTF-8");
-  spdlog::info("Current locale: {}", result);
+  spdlog::info("Current locale: {}", locale);
 
   if (!app_data_path) {
     spdlog::warn(
@@ -135,7 +138,8 @@ int main(int /*unused*/, char** /*unused*/) {
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts));
+  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
+                          args);
 
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
