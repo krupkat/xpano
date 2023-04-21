@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iterator>
+#include <variant>
 #include <vector>
 
 namespace xpano::gui {
@@ -19,7 +20,6 @@ enum class ActionType {
   kShowImage,
   kShowMatch,
   kShowPano,
-  kShowFullResPano,
   kModifyPano,
   kRecomputePano,
   kQuit,
@@ -28,11 +28,25 @@ enum class ActionType {
   kResetOptions
 };
 
+struct ShowPanoExtra {
+  bool full_res = false;
+  bool scroll_thumbnails = false;
+};
+
 struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
   bool delayed = false;
+  std::variant<ShowPanoExtra> extra;
 };
+
+template <typename TExtraType>
+TExtraType ValueOrDefault(const Action& action) {
+  if (const auto* extra = std::get_if<TExtraType>(&action.extra); extra) {
+    return *extra;
+  }
+  return {};
+}
 
 struct MultiAction {
   std::vector<Action> items;
@@ -70,6 +84,7 @@ inline Action& operator|=(Action& lhs, const Action& rhs) {
     lhs.type = rhs.type;
     lhs.target_id = rhs.target_id;
     lhs.delayed = rhs.delayed;
+    lhs.extra = rhs.extra;
   }
   return lhs;
 }

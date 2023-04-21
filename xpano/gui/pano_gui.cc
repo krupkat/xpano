@@ -429,20 +429,20 @@ Action PanoGui::PerformAction(Action action) {
       thumbnail_pane_.Highlight(match.id1, match.id2);
       break;
     }
-    case ActionType::kShowFullResPano:
-      [[fallthrough]];
     case ActionType::kShowPano: {
       selection_ = {SelectionType::kPano, action.target_id};
       spdlog::info("Calculating pano preview {}", selection_.target_id);
       status_message_ = {};
+      auto extra = ValueOrDefault<ShowPanoExtra>(action);
       pano_future_ = stitcher_pipeline_.RunStitching(
-          *stitcher_data_,
-          {.pano_id = selection_.target_id,
-           .full_res = action.type == ActionType::kShowFullResPano,
-           .stitch_algorithm = options_.stitch});
+          *stitcher_data_, {.pano_id = selection_.target_id,
+                            .full_res = extra.full_res,
+                            .stitch_algorithm = options_.stitch});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
-      thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
+      if (extra.scroll_thumbnails) {
+        thumbnail_pane_.SetScrollX(pano.ids);
+      }
       break;
     }
     case ActionType::kModifyPano: {
