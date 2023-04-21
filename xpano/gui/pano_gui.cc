@@ -504,7 +504,10 @@ MultiAction PanoGui::ResolveFutures() {
       actions |= {.type = ActionType::kWarnInputConversion};
     }
     if (stitcher_data_ && !stitcher_data_->panos.empty()) {
-      actions |= {.type = ActionType::kShowPano, .target_id = 0};
+      actions |= {.type = ActionType::kShowPano,
+                  .target_id = 0,
+                  .delayed = true,
+                  .extra = ShowPanoExtra{.scroll_thumbnails = true}};
     }
   }
 
