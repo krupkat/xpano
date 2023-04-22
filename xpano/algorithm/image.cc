@@ -1,6 +1,7 @@
 #include "xpano/algorithm/image.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <utility>
@@ -35,17 +36,18 @@ std::optional<cv::Size> PreviewSize(cv::Size full_size,
 
 }  // namespace
 
-Image::Image(std::string path) : path_(std::move(path)) {}
+Image::Image(std::filesystem::path path) : path_(std::move(path)) {}
 
 void Image::Load(ImageLoadOptions options) {
-  cv::Mat tmp = cv::imread(path_, cv::IMREAD_COLOR | cv::IMREAD_ANYDEPTH);
+  cv::Mat tmp =
+      cv::imread(path_.string(), cv::IMREAD_COLOR | cv::IMREAD_ANYDEPTH);
   if (!tmp.empty() && tmp.depth() != CV_8U) {
     is_raw_ = true;
-    spdlog::warn("Image {} is not 8-bit, converting", path_);
-    tmp = cv::imread(path_);
+    spdlog::warn("Image {} is not 8-bit, converting", path_.string());
+    tmp = cv::imread(path_.string());
   }
   if (tmp.empty()) {
-    spdlog::error("Failed to load image {}", path_);
+    spdlog::error("Failed to load image {}", path_.string());
     return;
   }
 
@@ -62,7 +64,7 @@ void Image::Load(ImageLoadOptions options) {
   cv::resize(preview_, thumbnail_, cv::Size(kThumbnailSize, kThumbnailSize), 0,
              0, cv::INTER_AREA);
 
-  spdlog::info("Loaded {}", path_);
+  spdlog::info("Loaded {}", path_.string());
   if (options.compute_keypoints) {
     spdlog::info("Size: {} x {}, Keypoints: {}", preview_.size[1],
                  preview_.size[0], keypoints_.size());
@@ -75,7 +77,7 @@ bool Image::IsLoaded() const { return !preview_.empty(); }
 
 bool Image::IsRaw() const { return is_raw_; }
 
-cv::Mat Image::GetFullRes() const { return cv::imread(path_); }
+cv::Mat Image::GetFullRes() const { return cv::imread(path_.string()); }
 cv::Mat Image::GetThumbnail() const { return thumbnail_; }
 cv::Mat Image::GetPreview() const { return preview_; }
 

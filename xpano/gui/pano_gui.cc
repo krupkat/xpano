@@ -182,7 +182,7 @@ auto ResolveStitchingResultFuture(
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
-        *result.export_path};
+        result.export_path->string()};
     spdlog::info(*status_message);
     export_pano_id = result.pano_id;
   }
@@ -205,7 +205,7 @@ auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
-        *result.export_path};
+        result.export_path->string()};
     spdlog::info(*status_message);
     plot_pane->EndCrop();
     return result.pano_id;
@@ -387,14 +387,14 @@ Action PanoGui::PerformAction(Action action) {
           if (plot_pane_.Type() == ImageType::kPanoFullRes) {
             export_future_ = stitcher_pipeline_.RunExport(
                 plot_pane_.Image(), {.pano_id = selection_.target_id,
-                                     .export_path = export_path->string(),
+                                     .export_path = *export_path,
                                      .compression = options_.compression,
                                      .crop = plot_pane_.CropRect()});
           } else {
             pano_future_ = stitcher_pipeline_.RunStitching(
                 *stitcher_data_, {.pano_id = selection_.target_id,
                                   .full_res = true,
-                                  .export_path = export_path->string(),
+                                  .export_path = *export_path,
                                   .compression = options_.compression,
                                   .stitch_algorithm = options_.stitch});
           }
@@ -426,7 +426,7 @@ Action PanoGui::PerformAction(Action action) {
       if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {
         Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(
-            utils::path::ToString(files), options_.loading, options_.matching);
+            files, options_.loading, options_.matching);
       }
       break;
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -15,7 +16,7 @@ struct ImageLoadOptions {
 class Image {
  public:
   Image() = default;
-  explicit Image(std::string path);
+  explicit Image(std::filesystem::path path);
 
   void Load(ImageLoadOptions options);
 
@@ -30,7 +31,7 @@ class Image {
   [[nodiscard]] bool IsRaw() const;
 
  private:
-  std::string path_;
+  std::filesystem::path path_;
   cv::Mat preview_;
   cv::Mat thumbnail_;
 

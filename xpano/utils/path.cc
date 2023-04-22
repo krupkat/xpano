@@ -24,15 +24,6 @@ bool IsExtensionSupported(const std::filesystem::path& path) {
                    LowercaseExtension(path)) != kSupportedExtensions.end();
 }
 
-std::vector<std::string> ToString(
-    const std::vector<std::filesystem::path>& paths) {
-  std::vector<std::string> results;
-  std::transform(
-      paths.begin(), paths.end(), std::back_inserter(results),
-      [](const std::filesystem::path& path) { return path.string(); });
-  return results;
-}
-
 std::vector<std::filesystem::path> KeepSupported(
     const std::vector<std::filesystem::path>& paths) {
   std::vector<std::filesystem::path> valid_paths;

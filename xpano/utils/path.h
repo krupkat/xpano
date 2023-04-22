@@ -7,9 +7,6 @@ namespace xpano::utils::path {
 
 bool IsExtensionSupported(const std::filesystem::path& path);
 
-std::vector<std::string> ToString(
-    const std::vector<std::filesystem::path>& paths);
-
 std::vector<std::filesystem::path> KeepSupported(
     const std::vector<std::filesystem::path>& paths);
 

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <string>
@@ -91,7 +92,7 @@ void StitcherPipeline::Cancel() {
 }
 
 std::future<StitcherData> StitcherPipeline::RunLoading(
-    const std::vector<std::string> &inputs,
+    const std::vector<std::filesystem::path> &inputs,
     const LoadingOptions &loading_options,
     const MatchingOptions &matching_options) {
   return pool_.submit([this, loading_options, matching_options, inputs]() {
@@ -158,10 +159,10 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
     progress_.NotifyTaskDone();
   }
 
-  std::optional<std::string> export_path;
+  std::optional<std::filesystem::path> export_path;
   if (options.export_path) {
     progress_.SetTaskType(ProgressType::kExport);
-    if (cv::imwrite(*options.export_path, result,
+    if (cv::imwrite(options.export_path->string(), result,
                     CompressionParameters(options.compression))) {
       export_path = options.export_path;
     }
@@ -199,8 +200,8 @@ std::future<ExportResult> StitcherPipeline::RunExport(
 
     auto crop_rect = utils::GetCvRect(pano, options.crop);
 
-    std::optional<std::string> export_path;
-    if (cv::imwrite(options.export_path, pano(crop_rect),
+    std::optional<std::filesystem::path> export_path;
+    if (cv::imwrite(options.export_path.string(), pano(crop_rect),
                     CompressionParameters(options.compression))) {
       export_path = options.export_path;
     }
@@ -214,8 +215,8 @@ ProgressReport StitcherPipeline::Progress() const {
 }
 
 std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
-    const std::vector<std::string> &inputs, const LoadingOptions &options,
-    bool compute_keypoints) {
+    const std::vector<std::filesystem::path> &inputs,
+    const LoadingOptions &options, bool compute_keypoints) {
   int num_tasks = static_cast<int>(inputs.size());
   progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
   BS::multi_future<algorithm::Image> loading_future;

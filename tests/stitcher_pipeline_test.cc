@@ -1,5 +1,6 @@
 #include "xpano/pipeline/stitcher_pipeline.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -13,7 +14,7 @@ using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
 using Catch::Matchers::WithinRel;
 
-const std::vector<std::string> kInputs = {
+const std::vector<std::filesystem::path> kInputs = {
     "data/image00.jpg", "data/image01.jpg", "data/image02.jpg",
     "data/image03.jpg", "data/image04.jpg", "data/image05.jpg",
     "data/image06.jpg", "data/image07.jpg", "data/image08.jpg",
@@ -75,7 +76,7 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK(total_pixels == non_zero_pixels);
 }
 
-const std::vector<std::string> kShuffledInputs = {
+const std::vector<std::filesystem::path> kShuffledInputs = {
     "data/image01.jpg",  // Pano 1
     "data/image06.jpg",  // 2
     "data/image02.jpg",  // Pano 1
@@ -182,7 +183,7 @@ TEST_CASE("Stitcher pipeline loading options") {
                        allowed_margin));
 }
 
-const std::vector<std::string> kVerticalPanoInputs = {
+const std::vector<std::filesystem::path> kVerticalPanoInputs = {
     "data/image10.jpg",
     "data/image11.jpg",
     "data/image12.jpg",
@@ -214,7 +215,7 @@ TEST_CASE("Stitcher pipeline vertical pano") {
   CHECK_THAT(pano0->cols, WithinRel(1030, eps));
 }
 
-const std::vector<std::string> kTiffInputs = {
+const std::vector<std::filesystem::path> kTiffInputs = {
     "data/8bit.tif",
     "data/16bit.tif",
 };
@@ -235,7 +236,7 @@ TEST_CASE("TIFF inputs") {
   CHECK(preview1.depth() == CV_8U);
 }
 
-const std::string kMalformedInput = "data/malformed.jpg";
+const std::filesystem::path kMalformedInput = "data/malformed.jpg";
 
 TEST_CASE("Malformed input") {
   xpano::pipeline::StitcherPipeline stitcher;
