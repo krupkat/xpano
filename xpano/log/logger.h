@@ -28,7 +28,7 @@ class Logger {
  public:
   Logger();
   const std::vector<std::string> &Log();
-  void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
+  void RedirectSpdlogToGui(std::optional<std::filesystem::path> app_data_path);
 
   std::optional<std::string> GetLogDirPath();
 
@@ -42,5 +42,7 @@ class Logger {
 };
 
 void RedirectSDLOutput();
+
+void RedirectSpdlogToCout();
 
 }  // namespace xpano::logger

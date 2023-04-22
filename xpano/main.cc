@@ -30,6 +30,8 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/cli/args.h"
+#include "xpano/cli/pano_cli.h"
+#include "xpano/cli/windows_console.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/sdl.h"
 #include "xpano/gui/pano_gui.h"
@@ -47,8 +49,13 @@
 
 int main(int argc, char** argv) {
   std::string locale = std::setlocale(LC_ALL, "en_US.UTF-8");
+  auto attach = xpano::cli::windows::Attach();
+  xpano::logger::RedirectSpdlogToCout();
 
   auto args = xpano::cli::ParseArgs(argc, argv);
+  if (!args) {
+    return -1;
+  }
 
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
@@ -75,7 +82,7 @@ int main(int argc, char** argv) {
 
   // Setup logging
   xpano::logger::Logger logger{};
-  logger.RedirectSpdlogOutput(app_data_path);
+  logger.RedirectSpdlogToGui(app_data_path);
   xpano::logger::RedirectSDLOutput();
   spdlog::info("Current locale: {}", locale);
 
@@ -139,7 +146,7 @@ int main(int argc, char** argv) {
                  xpano::kLicensePath);
 
   xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
-                          args);
+                          *args);
 
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);

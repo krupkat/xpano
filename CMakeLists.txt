@@ -37,6 +37,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/options.cc"
   "xpano/cli/args.cc"
   "xpano/cli/pano_cli.cc"
+  "xpano/cli/windows_console.cc"
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
   "xpano/gui/backends/sdl.cc"

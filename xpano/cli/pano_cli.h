@@ -1,3 +1,9 @@
 #pragma once
 
-namespace xpano::cli {}  // namespace xpano::cli
+#include "xpano/cli/args.h"
+
+namespace xpano::cli {
+
+inline void RunXPanoCLI(const Args &args);
+
+}  // namespace xpano::cli
