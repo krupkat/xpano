@@ -76,6 +76,9 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK(total_pixels == non_zero_pixels);
 }
 
+// Clang-tidy doesn't like the macros
+// NOLINTBEGIN(readability-function-cognitive-complexity)
+
 TEST_CASE("Stitcher pipeline single pano matching") {
   xpano::pipeline::StitcherPipeline stitcher;
   auto result =
@@ -116,6 +119,8 @@ TEST_CASE("Stitcher pipeline no matching") {
     REQUIRE(image.GetDescriptors().empty());
   }
 }
+
+// NOLINTEND(readability-function-cognitive-complexity)
 
 const std::vector<std::filesystem::path> kShuffledInputs = {
     "data/image01.jpg",  // Pano 1
