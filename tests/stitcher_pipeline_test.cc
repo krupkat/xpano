@@ -76,6 +76,47 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK(total_pixels == non_zero_pixels);
 }
 
+TEST_CASE("Stitcher pipeline single pano matching") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result =
+      stitcher
+          .RunLoading(kInputs, {},
+                      {.type = xpano::pipeline::MatchingType::kSinglePano})
+          .get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 10);
+  CHECK(result.matches.empty());
+  REQUIRE(result.panos.size() == 1);
+  REQUIRE_THAT(result.panos[0].ids,
+               Equals<int>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+
+  for (const auto& image : result.images) {
+    REQUIRE(image.GetKeypoints().empty());
+    REQUIRE(image.GetDescriptors().empty());
+  }
+}
+
+TEST_CASE("Stitcher pipeline no matching") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result = stitcher
+                    .RunLoading(kInputs, {},
+                                {.type = xpano::pipeline::MatchingType::kNone})
+                    .get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 10);
+  CHECK(result.matches.empty());
+  REQUIRE(result.panos.empty());
+
+  for (const auto& image : result.images) {
+    REQUIRE(image.GetKeypoints().empty());
+    REQUIRE(image.GetDescriptors().empty());
+  }
+}
+
 const std::vector<std::filesystem::path> kShuffledInputs = {
     "data/image01.jpg",  // Pano 1
     "data/image06.jpg",  // 2
