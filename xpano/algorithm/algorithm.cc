@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -278,6 +279,13 @@ cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
   }
   cv::inpaint(pano, mask, result, options.radius, method);
   return result;
+}
+
+Pano SinglePano(int size) {
+  Pano pano;
+  pano.ids.resize(size);
+  std::iota(pano.ids.begin(), pano.ids.end(), 0);
+  return pano;
 }
 
 }  // namespace xpano::algorithm

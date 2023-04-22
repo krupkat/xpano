@@ -248,6 +248,15 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
     return {};
   }
 
+  if (options.type == MatchingType::kNone) {
+    return StitcherData{std::move(images)};
+  }
+
+  if (options.type == MatchingType::kSinglePano) {
+    auto pano = algorithm::SinglePano(images.size());
+    return StitcherData{std::move(images), {}, {pano}};
+  }
+
   int num_images = static_cast<int>(images.size());
   int num_neighbors =
       std::min(options.neighborhood_search_size, num_images - 1);
