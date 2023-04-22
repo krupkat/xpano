@@ -29,6 +29,7 @@ class Image {
   [[nodiscard]] cv::Mat GetDescriptors() const;
   [[nodiscard]] bool IsLoaded() const;
   [[nodiscard]] bool IsRaw() const;
+  [[nodiscard]] std::string PanoName() const;
 
  private:
   std::filesystem::path path_;

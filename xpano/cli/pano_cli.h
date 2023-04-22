@@ -4,6 +4,6 @@
 
 namespace xpano::cli {
 
-inline void RunXPanoCLI(const Args &args);
+int Run(const Args &args);
 
 }  // namespace xpano::cli

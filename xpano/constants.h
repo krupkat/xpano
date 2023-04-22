@@ -82,4 +82,7 @@ constexpr double kMaxInpaintingRadius = 15.0;
 constexpr double kInpaintingRadiusStep = 1.0;
 constexpr float kMegapixel = 1'000'000;
 
+const std::string kDefaultPanoSuffix = "_pano";
+constexpr int kMaxImageSizeForCLI = 8192;
+
 }  // namespace xpano

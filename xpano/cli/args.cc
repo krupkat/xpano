@@ -3,8 +3,10 @@
 #include <filesystem>
 #include <vector>
 
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
+#include "xpano/constants.h"
 #include "xpano/utils/path.h"
 
 namespace xpano::cli {
@@ -12,11 +14,7 @@ namespace xpano::cli {
 namespace {
 std::optional<std::filesystem::path> ParsePath(const std::string& arg) {
   try {
-    auto path = std::filesystem::path(arg);
-    if (path.is_relative()) {
-      path = std::filesystem::current_path() / path;
-    }
-    return path;
+    return std::filesystem::path(arg);
   } catch (const std::filesystem::filesystem_error& e) {
     spdlog::error("Invalid path: {}", arg);
   }
@@ -39,6 +37,7 @@ bool ValidateArgs(const Args& args) {
 
 }  // namespace
 
+// Custom args parsing... TODO: move to cxxopts when adding an argument
 std::optional<Args> ParseArgs(int argc, char** argv) {
   Args result;
   std::vector<std::filesystem::path> input_paths;
@@ -69,8 +68,9 @@ std::optional<Args> ParseArgs(int argc, char** argv) {
   return result;
 }
 
-std::string Help() {
-  return "Usage: xpano [--gui] [--output=<path>] [<input files>]";
+void PrintHelp() {
+  spdlog::info("Usage: xpano [--gui] [--output=<path>] [<input files>]");
+  spdlog::info("Supported formats: {}", fmt::join(kSupportedExtensions, ", "));
 }
 
 }  // namespace xpano::cli

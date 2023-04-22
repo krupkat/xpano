@@ -103,4 +103,9 @@ const std::vector<cv::KeyPoint>& Image::GetKeypoints() const {
 
 cv::Mat Image::GetDescriptors() const { return descriptors_; }
 
+std::string Image::PanoName() const {
+  return path_.stem().string() + kDefaultPanoSuffix +
+         path_.extension().string();
+}
+
 }  // namespace xpano::algorithm

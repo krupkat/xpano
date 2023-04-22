@@ -14,6 +14,6 @@ struct Args {
 
 std::optional<Args> ParseArgs(int argc, char** argv);
 
-std::string Help();
+void PrintHelp();
 
 }  // namespace xpano::cli

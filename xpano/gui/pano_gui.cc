@@ -250,6 +250,13 @@ WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
       return WarningType::kNone;
   }
 }
+
+algorithm::Image const* FirstImage(const pipeline::StitcherData& stitcher_data,
+                                   int pano_id) {
+  const auto& pano = stitcher_data.panos.at(pano_id);
+  return &stitcher_data.images.at(pano.ids.at(0));
+}
+
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
@@ -268,7 +275,7 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
   if (config.user_options_status != utils::config::LoadingStatus::kSuccess) {
     warning_pane_.Queue(GetWarningType(config.user_options_status));
   }
-  if (args.run_gui) {
+  if (!args.input_paths.empty()) {
     next_actions_ |=
         Action{.type = ActionType::kLoadFiles, .extra = args.input_paths};
   }
@@ -382,7 +389,8 @@ Action PanoGui::PerformAction(Action action) {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Exporting pano {}", selection_.target_id);
         status_message_ = {};
-        auto default_name = fmt::format("pano_{}.jpg", selection_.target_id);
+        auto default_name =
+            FirstImage(*stitcher_data_, selection_.target_id)->PanoName();
         if (auto export_path = file_dialog::Save(default_name); export_path) {
           if (plot_pane_.Type() == ImageType::kPanoFullRes) {
             export_future_ = stitcher_pipeline_.RunExport(

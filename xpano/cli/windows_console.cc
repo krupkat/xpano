@@ -11,6 +11,9 @@
 
 namespace xpano::cli::windows {
 
+// This is needed to redirect stdout to the console on Windows, because we are
+// building with the WIN32 subsystem (app with no console window).
+
 Attach::Attach() {
 #ifdef _WIN32
   if (AttachConsole(ATTACH_PARENT_PROCESS)) {

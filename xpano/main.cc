@@ -54,7 +54,12 @@ int main(int argc, char** argv) {
 
   auto args = xpano::cli::ParseArgs(argc, argv);
   if (!args) {
+    xpano::cli::PrintHelp();
     return -1;
+  }
+
+  if (!args->run_gui && !args->input_paths.empty()) {
+    return xpano::cli::Run(*args);
   }
 
 #if SDL_VERSION_ATLEAST(2, 23, 1)
