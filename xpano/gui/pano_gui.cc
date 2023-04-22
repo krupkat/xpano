@@ -291,7 +291,7 @@ bool PanoGui::Run() {
   actions |= ResolveFutures();
 
   MultiAction extra_actions;
-  for (auto action : actions.items) {
+  for (const auto& action : actions.items) {
     extra_actions |= PerformAction(action);
   }
   actions |= extra_actions;
@@ -368,7 +368,7 @@ void PanoGui::Reset() {
   stitcher_data_.reset();
 }
 
-Action PanoGui::PerformAction(Action action) {
+Action PanoGui::PerformAction(const Action& action) {
   if (action.delayed) {
     return {};
   }

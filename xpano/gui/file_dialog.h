@@ -9,7 +9,7 @@
 
 namespace xpano::gui::file_dialog {
 
-std::vector<std::filesystem::path> Open(Action action);
+std::vector<std::filesystem::path> Open(const Action& action);
 
 std::optional<std::filesystem::path> Save(const std::string& default_name);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace xpano::cli::windows {
 
@@ -15,8 +15,8 @@ class Attach {
   Attach& operator=(Attach&&) = delete;
 
  private:
-  bool attached_console = false;
-  FILE* attached_stdout = nullptr;
+  bool attached_console_ = false;
+  FILE* attached_stdout_ = nullptr;
 };
 
 }  // namespace xpano::cli::windows

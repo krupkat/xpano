@@ -12,6 +12,10 @@
 namespace xpano::cli {
 
 namespace {
+
+const std::string kGuiFlag = "--gui";
+const std::string kOutputFlag = "--output=";
+
 std::optional<std::filesystem::path> ParsePath(const std::string& arg) {
   try {
     return std::filesystem::path(arg);
@@ -43,10 +47,11 @@ std::optional<Args> ParseArgs(int argc, char** argv) {
   std::vector<std::filesystem::path> input_paths;
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
-    if (arg == "--gui") {
+    if (arg == kGuiFlag) {
       result.run_gui = true;
-    } else if (arg.starts_with("--output=")) {
-      if (auto path = ParsePath(arg.substr(9)); path) {
+    } else if (arg.starts_with(kOutputFlag)) {
+      auto substr = arg.substr(kOutputFlag.size());
+      if (auto path = ParsePath(substr); path) {
         result.output_path = *path;
       } else {
         return {};

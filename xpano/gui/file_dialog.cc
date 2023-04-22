@@ -92,7 +92,7 @@ std::vector<std::filesystem::path> DirectoryOpen() {
 
 }  // namespace
 
-std::vector<std::filesystem::path> Open(Action action) {
+std::vector<std::filesystem::path> Open(const Action& action) {
   std::vector<std::filesystem::path> paths;
 
   if (action.type == ActionType::kOpenFiles) {
