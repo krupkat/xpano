@@ -7,12 +7,17 @@
 
 namespace xpano::algorithm {
 
+struct ImageLoadOptions {
+  int preview_longer_side = 0;
+  bool compute_keypoints = true;
+};
+
 class Image {
  public:
   Image() = default;
   explicit Image(std::string path);
 
-  void Load(int preview_longer_side);
+  void Load(ImageLoadOptions options);
 
   [[nodiscard]] cv::Mat GetFullRes() const;
   [[nodiscard]] cv::Mat GetThumbnail() const;

@@ -110,7 +110,8 @@ class StitcherPipeline {
 
  private:
   std::vector<algorithm::Image> RunLoadingPipeline(
-      const std::vector<std::string> &inputs, const LoadingOptions &options);
+      const std::vector<std::string> &inputs,
+      const LoadingOptions &loading_options, bool compute_keypoints);
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
                                    const MatchingOptions &options);
   StitchingResult RunStitchingPipeline(

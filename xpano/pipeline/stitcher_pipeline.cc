@@ -95,7 +95,9 @@ std::future<StitcherData> StitcherPipeline::RunLoading(
     const LoadingOptions &loading_options,
     const MatchingOptions &matching_options) {
   return pool_.submit([this, loading_options, matching_options, inputs]() {
-    auto images = RunLoadingPipeline(inputs, loading_options);
+    auto images = RunLoadingPipeline(
+        inputs, loading_options,
+        /*compute_keypoints=*/matching_options.type == MatchingType::kAuto);
     return RunMatchingPipeline(images, matching_options);
   });
 }
@@ -212,17 +214,20 @@ ProgressReport StitcherPipeline::Progress() const {
 }
 
 std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
-    const std::vector<std::string> &inputs, const LoadingOptions &options) {
+    const std::vector<std::string> &inputs, const LoadingOptions &options,
+    bool compute_keypoints) {
   int num_tasks = static_cast<int>(inputs.size());
   progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
   BS::multi_future<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
-    loading_future.push_back(pool_.submit([this, options, input]() {
-      algorithm::Image image(input);
-      image.Load(options.preview_longer_side);
-      progress_.NotifyTaskDone();
-      return image;
-    }));
+    loading_future.push_back(
+        pool_.submit([this, options, input, compute_keypoints]() {
+          algorithm::Image image(input);
+          image.Load({.preview_longer_side = options.preview_longer_side,
+                      .compute_keypoints = compute_keypoints});
+          progress_.NotifyTaskDone();
+          return image;
+        }));
   }
 
   std::future_status status;
@@ -253,7 +258,7 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   }
 
   if (options.type == MatchingType::kSinglePano) {
-    auto pano = algorithm::SinglePano(images.size());
+    auto pano = algorithm::SinglePano(static_cast<int>(images.size()));
     return StitcherData{std::move(images), {}, {pano}};
   }
 
