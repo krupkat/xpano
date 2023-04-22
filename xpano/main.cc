@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
   auto args = xpano::cli::ParseArgs(argc, argv);
   if (!args) {
     xpano::cli::PrintHelp();
-    return -1;
+    return -1;  // inconsistent args
   }
 
   if (!args->run_gui && !args->input_paths.empty()) {

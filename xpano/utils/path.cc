@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <iterator>
 #include <string>
+#include <vector>
 
 #include "xpano/constants.h"
 
