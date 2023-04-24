@@ -83,11 +83,10 @@ void StitcherPipeline::Cancel() {
     pool_.wait_for_tasks();
     cancel_tasks_ = false;
 
-    spdlog::info("Cancelling remaining tasks");
     pool_.cancel_tasks();
     pool_.unpause();
-
     progress_.Reset(ProgressType::kNone, 0);
+    spdlog::info("Done");
   }
 }
 

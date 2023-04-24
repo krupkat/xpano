@@ -37,7 +37,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/options.cc"
   "xpano/cli/args.cc"
   "xpano/cli/pano_cli.cc"
-  "xpano/cli/windows_console.cc"
+  "xpano/cli/signal.cc"
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
   "xpano/gui/backends/sdl.cc"
@@ -62,6 +62,10 @@ set(XPANO_SOURCES
   "xpano/utils/sdl_.cc"
   "xpano/utils/text.cc"
 )
+
+if (WIN32)
+ list(APPEND XPANO_SOURCES "xpano/cli/windows_console.cc")
+endif()
 
 find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching)

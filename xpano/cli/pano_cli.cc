@@ -1,21 +1,54 @@
 #include "xpano/cli/pano_cli.h"
 
+#include <atomic>
 #include <filesystem>
 
 #include <spdlog/spdlog.h>
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/cli/args.h"
-#include "xpano/cli/windows_console.h"
+#include "xpano/cli/signal.h"
 #include "xpano/constants.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
-#include "xpano/utils/path.h"
+#include "xpano/utils/future.h"
 #include "xpano/version_fmt.h"
+
+#ifdef _WIN32
+#include "xpano/cli/windows_console.h"
+#endif
 
 namespace xpano::cli {
 
 namespace {
+
+std::atomic_int cancel = 0;
+
+#ifdef _WIN32
+BOOL WINAPI InterruptHandler(DWORD event_type) {
+  switch (event_type) {
+    case CTRL_C_EVENT: {
+      auto previous_cancel_requests = cancel.fetch_add(1);
+      if (previous_cancel_requests == 0) {
+        spdlog::info("Canceling, press CTRL+C again to force quit.");
+        return TRUE;  // keep running
+      }
+      if (previous_cancel_requests > 0) {
+        spdlog::info("Shutdown, press ENTER to continue.");
+        return FALSE;  // exit
+      }
+      break;
+    }
+    default: {
+      spdlog::info("Shutdown, press ENTER to continue.");
+      return FALSE;  // exit
+    }
+  }
+  return FALSE;  // exit
+}
+#else
+
+#endif
 
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
 
@@ -29,7 +62,11 @@ ResultType RunPipeline(const Args &args) {
   pipeline::StitcherData stitcher_data;
 
   try {
-    stitcher_data = stitcher_data_future.get();
+    stitcher_data = utils::future::WaitWithCancellation(
+        std::move(stitcher_data_future), cancel);
+  } catch (const utils::future::Cancelled) {
+    pipeline.Cancel();
+    return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to load images: {}", e.what());
     return ResultType::kError;
@@ -51,7 +88,11 @@ ResultType RunPipeline(const Args &args) {
   pipeline::StitchingResult stitching_result;
 
   try {
-    stitching_result = stitching_result_future.get();
+    stitching_result = utils::future::WaitWithCancellation(
+        std::move(stitching_result_future), cancel);
+  } catch (const utils::future::Cancelled) {
+    pipeline.Cancel();
+    return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to stitch panorama: {}", e.what());
     return ResultType::kError;
@@ -79,10 +120,13 @@ ResultType RunPipeline(const Args &args) {
 }  // namespace
 
 std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
-  auto attach = xpano::cli::windows::Attach();
-  xpano::logger::RedirectSpdlogToCout();
+#ifdef _WIN32
+  auto attach_console = windows::Attach();
+#endif
+  logger::RedirectSpdlogToCout();
+  signal::RegisterInterruptHandler(InterruptHandler);
 
-  auto args = xpano::cli::ParseArgs(argc, argv);
+  auto args = ParseArgs(argc, argv);
 
   if (!args) {
     PrintHelp();
@@ -99,7 +143,7 @@ std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
     return {ResultType::kSuccess, std::nullopt};
   }
 
-  if (args->run_gui) {
+  if (args->run_gui || args->input_paths.empty()) {
     return {ResultType::kForwardToGui, args};
   }
 
