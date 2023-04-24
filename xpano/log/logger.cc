@@ -101,7 +101,7 @@ void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
 void RedirectSpdlogToCout() {
   auto logger = spdlog::stdout_logger_mt("console");
   logger->flush_on(spdlog::level::info);
-  logger->set_pattern("[%l] %v");
+  logger->set_pattern("%l: %v");
   spdlog::set_default_logger(logger);
 };
 

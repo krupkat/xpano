@@ -29,9 +29,7 @@
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
-#include "xpano/cli/args.h"
 #include "xpano/cli/pano_cli.h"
-#include "xpano/cli/windows_console.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/sdl.h"
 #include "xpano/gui/pano_gui.h"
@@ -49,17 +47,10 @@
 
 int main(int argc, char** argv) {
   std::string locale = std::setlocale(LC_ALL, "en_US.UTF-8");
-  auto attach = xpano::cli::windows::Attach();
-  xpano::logger::RedirectSpdlogToCout();
+  auto [cli_status, args] = xpano::cli::Run(argc, argv);
 
-  auto args = xpano::cli::ParseArgs(argc, argv);
-  if (!args) {
-    xpano::cli::PrintHelp();
-    return -1;  // inconsistent args
-  }
-
-  if (!args->run_gui && !args->input_paths.empty()) {
-    return xpano::cli::Run(*args);
+  if (cli_status != xpano::cli::ResultType::kForwardToGui) {
+    return xpano::cli::ExitCode(cli_status);
   }
 
 #if SDL_VERSION_ATLEAST(2, 23, 1)

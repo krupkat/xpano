@@ -8,6 +8,8 @@ namespace xpano::cli {
 
 struct Args {
   bool run_gui = false;
+  bool print_help = false;
+  bool print_version = false;
   std::vector<std::filesystem::path> input_paths;
   std::optional<std::filesystem::path> output_path;
 };

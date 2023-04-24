@@ -13,16 +13,37 @@ namespace xpano::cli {
 
 namespace {
 
+// Custom args parsing...
+// TODO: move to cxxopts / cli11 when adding new arguments
+
 const std::string kGuiFlag = "--gui";
 const std::string kOutputFlag = "--output=";
+const std::string kHelpFlag = "--help";
+const std::string kVersionFlag = "--version";
 
-std::optional<std::filesystem::path> ParsePath(const std::string& arg) {
-  try {
-    return std::filesystem::path(arg);
-  } catch (const std::filesystem::filesystem_error& e) {
-    spdlog::error("Invalid path: {}", arg);
+void ParseArg(Args* result, const std::string& arg) {
+  if (arg == kGuiFlag) {
+    result->run_gui = true;
+  } else if (arg == kHelpFlag) {
+    result->print_help = true;
+  } else if (arg == kVersionFlag) {
+    result->print_version = true;
+  } else if (arg.starts_with(kOutputFlag)) {
+    auto substr = arg.substr(kOutputFlag.size());
+    result->output_path = std::filesystem::path(substr);
+  } else {
+    result->input_paths.push_back(std::filesystem::path(arg));
   }
-  return {};
+}
+
+Args ParseArgsRaw(int argc, char** argv) {
+  Args result;
+  std::vector<std::filesystem::path> input_paths;
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    ParseArg(&result, arg);
+  }
+  return result;
 }
 
 bool ValidateArgs(const Args& args) {
@@ -36,45 +57,42 @@ bool ValidateArgs(const Args& args) {
                   args.output_path->extension().string());
     return false;
   }
+  if (args.output_path && args.run_gui) {
+    spdlog::error(
+        "Specifying --gui and --output together is not yet supported.");
+    return false;
+  }
   return true;
 }
 
 }  // namespace
 
-// Custom args parsing... TODO: move to cxxopts when adding an argument
 std::optional<Args> ParseArgs(int argc, char** argv) {
-  Args result;
-  std::vector<std::filesystem::path> input_paths;
-  for (int i = 1; i < argc; ++i) {
-    std::string arg = argv[i];
-    if (arg == kGuiFlag) {
-      result.run_gui = true;
-    } else if (arg.starts_with(kOutputFlag)) {
-      auto substr = arg.substr(kOutputFlag.size());
-      if (auto path = ParsePath(substr); path) {
-        result.output_path = *path;
-      } else {
-        return {};
-      }
-    } else {
-      if (auto path = ParsePath(arg); path) {
-        input_paths.push_back(*path);
-      } else {
-        return {};
-      }
-    }
-  }
-  result.input_paths = utils::path::KeepSupported(input_paths);
-
-  if (!ValidateArgs(result)) {
+  Args args;
+  try {
+    args = ParseArgsRaw(argc, argv);
+  } catch (const std::exception& e) {
+    spdlog::error("Error parsing arguments: {}", e.what());
     return {};
   }
 
-  return result;
+  auto supported_inputs = utils::path::KeepSupported(args.input_paths);
+  if (supported_inputs.empty() && !args.input_paths.empty()) {
+    spdlog::error("No supported images provided!");
+    return {};
+  }
+  args.input_paths = supported_inputs;
+
+  if (!ValidateArgs(args)) {
+    return {};
+  }
+
+  return args;
 }
 
 void PrintHelp() {
-  spdlog::info("Usage: xpano [--gui] [--output=<path>] [<input files>]");
+  spdlog::info("Usage: xpano [<input files>] [--output=<path>]");
+  spdlog::info("\t[--gui] [--help] [--version]");
   spdlog::info("Supported formats: {}", fmt::join(kSupportedExtensions, ", "));
 }
 

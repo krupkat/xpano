@@ -6,15 +6,20 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/cli/args.h"
+#include "xpano/cli/windows_console.h"
 #include "xpano/constants.h"
+#include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/path.h"
+#include "xpano/version_fmt.h"
 
 namespace xpano::cli {
 
-namespace {}
+namespace {
 
-int Run(const Args &args) {
+void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
+
+ResultType RunPipeline(const Args &args) {
   pipeline::StitcherPipeline pipeline;
 
   auto stitcher_data_future = pipeline.RunLoading(
@@ -27,12 +32,12 @@ int Run(const Args &args) {
     stitcher_data = stitcher_data_future.get();
   } catch (const std::exception &e) {
     spdlog::error("Failed to load images: {}", e.what());
-    return -1;
+    return ResultType::kError;
   }
 
   if (stitcher_data.images.empty()) {
     spdlog::error("Failed to load any images");
-    return -1;
+    return ResultType::kError;
   }
 
   auto export_path =
@@ -49,19 +54,19 @@ int Run(const Args &args) {
     stitching_result = stitching_result_future.get();
   } catch (const std::exception &e) {
     spdlog::error("Failed to stitch panorama: {}", e.what());
-    return -1;
+    return ResultType::kError;
   }
 
   if (!stitching_result.pano) {
     spdlog::error("Failed to stitch panorama: {}",
                   algorithm::ToString(stitching_result.status));
-    return -1;
+    return ResultType::kError;
   }
 
   if (!stitching_result.export_path) {
     spdlog::error("Failed to export panorama to file: {}",
                   export_path.string());
-    return -1;
+    return ResultType::kError;
   }
 
   spdlog::info("Successfully exported to {}",
@@ -69,7 +74,43 @@ int Run(const Args &args) {
   spdlog::info("Size: {} x {}", stitching_result.pano->cols,
                stitching_result.pano->rows);
 
-  return 0;
+  return ResultType::kSuccess;
+}
+}  // namespace
+
+std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
+  auto attach = xpano::cli::windows::Attach();
+  xpano::logger::RedirectSpdlogToCout();
+
+  auto args = xpano::cli::ParseArgs(argc, argv);
+
+  if (!args) {
+    PrintHelp();
+    return {ResultType::kError, std::nullopt};
+  }
+
+  if (args->print_help) {
+    PrintHelp();
+    return {ResultType::kSuccess, std::nullopt};
+  }
+
+  if (args->print_version) {
+    PrintVersion();
+    return {ResultType::kSuccess, std::nullopt};
+  }
+
+  if (args->run_gui) {
+    return {ResultType::kForwardToGui, args};
+  }
+
+  return {RunPipeline(*args), args};
+}
+
+int ExitCode(ResultType result) {
+  if (result == ResultType::kSuccess) {
+    return 0;
+  }
+  return -1;
 }
 
 }  // namespace xpano::cli
