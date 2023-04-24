@@ -14,7 +14,7 @@ namespace xpano::cli {
 namespace {
 
 // Custom args parsing...
-// TODO: move to cxxopts / cli11 when adding new arguments
+// TODO(krupkat): move to cxxopts / cli11 when adding new arguments
 
 const std::string kGuiFlag = "--gui";
 const std::string kOutputFlag = "--output=";
@@ -32,7 +32,7 @@ void ParseArg(Args* result, const std::string& arg) {
     auto substr = arg.substr(kOutputFlag.size());
     result->output_path = std::filesystem::path(substr);
   } else {
-    result->input_paths.push_back(std::filesystem::path(arg));
+    result->input_paths.emplace_back(arg);
   }
 }
 

@@ -9,9 +9,9 @@ namespace xpano::cli::signal {
 #ifdef _WIN32
 void RegisterInterruptHandler(PHANDLER_ROUTINE handler);
 #else
-typedef void (*signal_handler)(int);
+using SignalHandler = void (*)(int);
 
-void RegisterInterruptHandler(signal_handler handler);
+void RegisterInterruptHandler(SignalHandler handler);
 #endif
 
 }  // namespace xpano::cli::signal

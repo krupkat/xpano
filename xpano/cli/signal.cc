@@ -10,12 +10,12 @@ namespace xpano::cli::signal {
 
 #ifdef _WIN32
 void RegisterInterruptHandler(PHANDLER_ROUTINE handler) {
-  if (!SetConsoleCtrlHandler(handler, true)) {
+  if (SetConsoleCtrlHandler(handler, TRUE) == 0) {
     spdlog::warn("Failed to register console ctrl handler");
   }
 }
 #else
-void RegisterInterruptHandler(signal_handler handler) {
+void RegisterInterruptHandler(SignalHandler handler) {
   // unimplemented
 }
 #endif

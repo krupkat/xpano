@@ -47,7 +47,9 @@ BOOL WINAPI InterruptHandler(DWORD event_type) {
   return FALSE;  // exit
 }
 #else
-
+void InterruptHandler(int signal) {
+  // unimplemented
+}
 #endif
 
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
