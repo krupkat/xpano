@@ -25,28 +25,18 @@ namespace {
 std::atomic_int cancel = 0;
 
 #ifdef _WIN32
-BOOL WINAPI InterruptHandler(DWORD event_type) {
-  switch (event_type) {
-    case CTRL_C_EVENT: {
-      auto previous_cancel_requests = cancel.fetch_add(1);
-      if (previous_cancel_requests == 0) {
-        return TRUE;  // keep running
-      }
-      if (previous_cancel_requests > 0) {
-        spdlog::info("Shutdown, press ENTER to continue.");
-        return FALSE;  // exit
-      }
-      break;
-    }
-    default: {
-      spdlog::info("Shutdown, press ENTER to continue.");
-      return FALSE;  // exit
+BOOL WINAPI CancelHandler(DWORD event_type) {
+  if (event_type == CTRL_C_EVENT) {
+    auto previous_cancel_requests = cancel.fetch_add(1);
+    if (previous_cancel_requests == 0) {
+      return TRUE;  // keep running
     }
   }
+  spdlog::info("Shutdown, press ENTER to continue.");
   return FALSE;  // exit
 }
 #else
-void InterruptHandler(int signal) { cancel.fetch_add(1); }
+void CancelHandler(int /*signal*/) { cancel.fetch_add(1); }
 #endif
 
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
@@ -147,7 +137,7 @@ std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
     return {ResultType::kForwardToGui, args};
   }
 
-  signal::RegisterInterruptHandler(InterruptHandler);
+  signal::RegisterInterruptHandler(CancelHandler);
   return {RunPipeline(*args), args};
 }
 

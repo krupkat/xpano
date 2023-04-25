@@ -5,7 +5,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <signal.h>
+#include <signal.h>  // NOLINT(modernize-deprecated-headers)
 #endif
 
 namespace xpano::cli::signal {
@@ -22,7 +22,7 @@ void RegisterInterruptHandler(SignalHandler handler) {
   action.sa_handler = handler;
   sigfillset(&action.sa_mask);
   action.sa_flags = SA_RESETHAND;
-  sigaction(SIGINT, &action, NULL);
+  sigaction(SIGINT, &action, nullptr);
 }
 #endif
 
