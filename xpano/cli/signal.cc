@@ -4,6 +4,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <signal.h>
 #endif
 
 namespace xpano::cli::signal {
@@ -16,7 +18,11 @@ void RegisterInterruptHandler(PHANDLER_ROUTINE handler) {
 }
 #else
 void RegisterInterruptHandler(SignalHandler handler) {
-  // unimplemented
+  struct sigaction action;
+  action.sa_handler = handler;
+  sigfillset(&action.sa_mask);
+  action.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &action, NULL);
 }
 #endif
 

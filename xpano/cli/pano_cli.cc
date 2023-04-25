@@ -30,7 +30,6 @@ BOOL WINAPI InterruptHandler(DWORD event_type) {
     case CTRL_C_EVENT: {
       auto previous_cancel_requests = cancel.fetch_add(1);
       if (previous_cancel_requests == 0) {
-        spdlog::info("Canceling, press CTRL+C again to force quit.");
         return TRUE;  // keep running
       }
       if (previous_cancel_requests > 0) {
@@ -47,9 +46,7 @@ BOOL WINAPI InterruptHandler(DWORD event_type) {
   return FALSE;  // exit
 }
 #else
-void InterruptHandler(int signal) {
-  // unimplemented
-}
+void InterruptHandler(int signal) { cancel.fetch_add(1); }
 #endif
 
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
@@ -67,6 +64,7 @@ ResultType RunPipeline(const Args &args) {
     stitcher_data = utils::future::WaitWithCancellation(
         std::move(stitcher_data_future), cancel);
   } catch (const utils::future::Cancelled) {
+    spdlog::info("Canceling, press CTRL+C again to force quit.");
     pipeline.Cancel();
     return ResultType::kError;
   } catch (const std::exception &e) {
@@ -93,6 +91,7 @@ ResultType RunPipeline(const Args &args) {
     stitching_result = utils::future::WaitWithCancellation(
         std::move(stitching_result_future), cancel);
   } catch (const utils::future::Cancelled) {
+    spdlog::info("Canceling, press CTRL+C again to force quit.");
     pipeline.Cancel();
     return ResultType::kError;
   } catch (const std::exception &e) {
@@ -126,7 +125,6 @@ std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
   auto attach_console = windows::Attach();
 #endif
   logger::RedirectSpdlogToCout();
-  signal::RegisterInterruptHandler(InterruptHandler);
 
   auto args = ParseArgs(argc, argv);
 
@@ -149,6 +147,7 @@ std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
     return {ResultType::kForwardToGui, args};
   }
 
+  signal::RegisterInterruptHandler(InterruptHandler);
   return {RunPipeline(*args), args};
 }
 
