@@ -1,3 +1,9 @@
+xpano (0.13.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.13.0, command line support
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Wed, 26 Apr 2023 16:28:57 +0200
+
 xpano (0.12.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.12.0, persistent user preferences
