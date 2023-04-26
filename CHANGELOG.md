@@ -1,3 +1,8 @@
+# Xpano 0.13.0
+
+- Basic command line support
+- Panorama detection type: auto, single pano, none
+
 # Xpano 0.12.0
 
 - Persistent user preferences
