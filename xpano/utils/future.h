@@ -17,14 +17,14 @@ bool IsReady(const std::future<TType>& future) {
 struct Cancelled {};
 
 template <typename TType>
-TType WaitWithCancellation(std::future<TType> future,
-                           const std::atomic_int& cancel) {
-  std::future_status status = future.wait_for(kCancellationTimeout);
-  while (status != std::future_status::ready) {
+TType GetWithCancellation(std::future<TType> future,
+                          const std::atomic_int& cancel) {
+  for (auto status = std::future_status::timeout;
+       status != std::future_status::ready;
+       status = future.wait_for(kCancellationTimeout)) {
     if (cancel > 0) {
       throw Cancelled();
     }
-    status = future.wait_for(kCancellationTimeout);
   }
   return future.get();
 }

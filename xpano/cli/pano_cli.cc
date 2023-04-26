@@ -51,7 +51,7 @@ ResultType RunPipeline(const Args &args) {
   pipeline::StitcherData stitcher_data;
 
   try {
-    stitcher_data = utils::future::WaitWithCancellation(
+    stitcher_data = utils::future::GetWithCancellation(
         std::move(stitcher_data_future), cancel);
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
@@ -78,7 +78,7 @@ ResultType RunPipeline(const Args &args) {
   pipeline::StitchingResult stitching_result;
 
   try {
-    stitching_result = utils::future::WaitWithCancellation(
+    stitching_result = utils::future::GetWithCancellation(
         std::move(stitching_result_future), cancel);
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
