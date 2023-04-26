@@ -15,4 +15,17 @@ const char *Label(ChromaSubsampling subsampling) {
   }
 }
 
+const char *Label(MatchingType type) {
+  switch (type) {
+    case MatchingType::kNone:
+      return "Off";
+    case MatchingType::kSinglePano:
+      return "Single pano";
+    case MatchingType::kAuto:
+      return "Auto";
+    default:
+      return "Unknown";
+  }
+}
+
 }  // namespace xpano::pipeline

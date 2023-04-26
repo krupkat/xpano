@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -7,12 +8,17 @@
 
 namespace xpano::algorithm {
 
+struct ImageLoadOptions {
+  int preview_longer_side = 0;
+  bool compute_keypoints = true;
+};
+
 class Image {
  public:
   Image() = default;
-  explicit Image(std::string path);
+  explicit Image(std::filesystem::path path);
 
-  void Load(int preview_longer_side);
+  void Load(ImageLoadOptions options);
 
   [[nodiscard]] cv::Mat GetFullRes() const;
   [[nodiscard]] cv::Mat GetThumbnail() const;
@@ -23,9 +29,10 @@ class Image {
   [[nodiscard]] cv::Mat GetDescriptors() const;
   [[nodiscard]] bool IsLoaded() const;
   [[nodiscard]] bool IsRaw() const;
+  [[nodiscard]] std::string PanoName() const;
 
  private:
-  std::string path_;
+  std::filesystem::path path_;
   cv::Mat preview_;
   cv::Mat thumbnail_;
 

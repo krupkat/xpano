@@ -24,6 +24,13 @@ const char *Label(ChromaSubsampling subsampling);
 const auto kSubsamplingModes = std::array{
     ChromaSubsampling::k444, ChromaSubsampling::k422, ChromaSubsampling::k420};
 
+enum class MatchingType { kNone, kSinglePano, kAuto };
+
+const char *Label(MatchingType type);
+
+const auto kMatchingTypes = std::array{
+    MatchingType::kAuto, MatchingType::kSinglePano, MatchingType::kNone};
+
 /*****************************************************************************/
 
 struct CompressionOptions {
@@ -41,6 +48,7 @@ struct LoadingOptions {
 using InpaintingOptions = algorithm::InpaintingOptions;
 
 struct MatchingOptions {
+  MatchingType type = MatchingType::kAuto;
   int neighborhood_search_size = kDefaultNeighborhoodSearchSize;
   int match_threshold = kDefaultMatchThreshold;
   float match_conf = kDefaultMatchConf;

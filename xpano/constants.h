@@ -37,6 +37,7 @@ const char* const kCheckMark = reinterpret_cast<const char*>(u8"✓");
 const char* const kCommandSymbol = reinterpret_cast<const char*>(u8"⌘");
 
 constexpr auto kTaskCancellationTimeout = std::chrono::milliseconds(500);
+constexpr auto kCancellationTimeout = std::chrono::milliseconds(500);
 
 constexpr int kDefaultJpegQuality = 95;
 constexpr int kMaxJpegQuality = 100;
@@ -81,5 +82,8 @@ constexpr double kDefaultInpaintingRadius = 3.0;
 constexpr double kMaxInpaintingRadius = 15.0;
 constexpr double kInpaintingRadiusStep = 1.0;
 constexpr float kMegapixel = 1'000'000;
+
+const std::string kDefaultPanoSuffix = "_pano";
+constexpr int kMaxImageSizeForCLI = 8192;
 
 }  // namespace xpano

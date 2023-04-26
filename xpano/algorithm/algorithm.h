@@ -26,6 +26,8 @@ struct Match {
   std::vector<cv::DMatch> matches;
 };
 
+Pano SinglePano(int size);
+
 std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
                                     float match_conf);
 

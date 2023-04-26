@@ -139,28 +139,40 @@ bool DrawMatchConf(float* match_conf) {
 void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
                              bool debug_enabled) {
   if (ImGui::BeginMenu("Panorama detection")) {
-    ImGui::Text(
-        "Experiment with this if the app cannot find the panoramas you "
-        "want.");
-    ImGui::Spacing();
-    ImGui::SliderInt("Matching distance",
-                     &matching_options->neighborhood_search_size, 0,
-                     kMaxNeighborhoodSearchSize);
+    ImGui::Text("Matching type:");
     ImGui::SameLine();
-    utils::imgui::InfoMarker(
-        "(?)",
-        "Select how many neighboring images will be considered for panorama "
-        "auto detection.");
-    ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
-                     kMinMatchThreshold, kMaxMatchThreshold);
-    ImGui::SameLine();
-    utils::imgui::InfoMarker(
-        "(?)",
-        "Number of keypoints that need to match in order to include the two "
-        "images in a panorama.");
-    if (debug_enabled) {
-      ImGui::SeparatorText("Debug");
-      DrawMatchConf(&matching_options->match_conf);
+    utils::imgui::RadioBox(&matching_options->type, pipeline::kMatchingTypes);
+    utils::imgui::InfoMarker("(?)",
+                             "(1) Autodetect panoramas\n(2) Put all images in "
+                             "a single panorama\n(3) No groups are created "
+                             "(useful for manual image selection)");
+
+    if (matching_options->type == pipeline::MatchingType::kAuto) {
+      ImGui::Separator();
+      ImGui::Spacing();
+      ImGui::Text(
+          "Experiment with this if the app cannot find the panoramas you "
+          "want.");
+      ImGui::Spacing();
+      ImGui::SliderInt("Matching distance",
+                       &matching_options->neighborhood_search_size, 0,
+                       kMaxNeighborhoodSearchSize);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker("(?)",
+                               "Select how many neighboring images will be "
+                               "considered for panorama "
+                               "auto detection.");
+      ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
+                       kMinMatchThreshold, kMaxMatchThreshold);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker("(?)",
+                               "Number of keypoints that need to match in "
+                               "order to include the two "
+                               "images in a panorama.");
+      if (debug_enabled) {
+        ImGui::SeparatorText("Debug");
+        DrawMatchConf(&matching_options->match_conf);
+      }
     }
     ImGui::EndMenu();
   }

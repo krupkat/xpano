@@ -97,6 +97,21 @@ target_include_directories(SerializeTest PRIVATE
   ".."
 )
 
+add_executable(ArgsTest 
+  args_test.cc
+  ../xpano/cli/args.cc
+  ../xpano/utils/path.cc
+)
+
+target_link_libraries(ArgsTest 
+  Catch2::Catch2WithMain
+  spdlog::spdlog
+)
+
+target_include_directories(ArgsTest PRIVATE 
+  ".."
+)
+
 set(ALL_TEST_TARGETS
   AutoCropTest
   DisjointSetTest
@@ -104,6 +119,7 @@ set(ALL_TEST_TARGETS
   StitcherTest
   VecTest
   SerializeTest
+  ArgsTest
 )
 
 foreach(name ${ALL_TEST_TARGETS})

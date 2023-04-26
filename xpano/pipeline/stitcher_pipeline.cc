@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <string>
@@ -82,20 +83,21 @@ void StitcherPipeline::Cancel() {
     pool_.wait_for_tasks();
     cancel_tasks_ = false;
 
-    spdlog::info("Cancelling remaining tasks");
     pool_.cancel_tasks();
     pool_.unpause();
-
     progress_.Reset(ProgressType::kNone, 0);
+    spdlog::info("Done");
   }
 }
 
 std::future<StitcherData> StitcherPipeline::RunLoading(
-    const std::vector<std::string> &inputs,
+    const std::vector<std::filesystem::path> &inputs,
     const LoadingOptions &loading_options,
     const MatchingOptions &matching_options) {
   return pool_.submit([this, loading_options, matching_options, inputs]() {
-    auto images = RunLoadingPipeline(inputs, loading_options);
+    auto images = RunLoadingPipeline(
+        inputs, loading_options,
+        /*compute_keypoints=*/matching_options.type == MatchingType::kAuto);
     return RunMatchingPipeline(images, matching_options);
   });
 }
@@ -156,10 +158,10 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
     progress_.NotifyTaskDone();
   }
 
-  std::optional<std::string> export_path;
+  std::optional<std::filesystem::path> export_path;
   if (options.export_path) {
     progress_.SetTaskType(ProgressType::kExport);
-    if (cv::imwrite(*options.export_path, result,
+    if (cv::imwrite(options.export_path->string(), result,
                     CompressionParameters(options.compression))) {
       export_path = options.export_path;
     }
@@ -197,8 +199,8 @@ std::future<ExportResult> StitcherPipeline::RunExport(
 
     auto crop_rect = utils::GetCvRect(pano, options.crop);
 
-    std::optional<std::string> export_path;
-    if (cv::imwrite(options.export_path, pano(crop_rect),
+    std::optional<std::filesystem::path> export_path;
+    if (cv::imwrite(options.export_path.string(), pano(crop_rect),
                     CompressionParameters(options.compression))) {
       export_path = options.export_path;
     }
@@ -212,17 +214,20 @@ ProgressReport StitcherPipeline::Progress() const {
 }
 
 std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
-    const std::vector<std::string> &inputs, const LoadingOptions &options) {
+    const std::vector<std::filesystem::path> &inputs,
+    const LoadingOptions &options, bool compute_keypoints) {
   int num_tasks = static_cast<int>(inputs.size());
   progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
   BS::multi_future<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
-    loading_future.push_back(pool_.submit([this, options, input]() {
-      algorithm::Image image(input);
-      image.Load(options.preview_longer_side);
-      progress_.NotifyTaskDone();
-      return image;
-    }));
+    loading_future.push_back(
+        pool_.submit([this, options, input, compute_keypoints]() {
+          algorithm::Image image(input);
+          image.Load({.preview_longer_side = options.preview_longer_side,
+                      .compute_keypoints = compute_keypoints});
+          progress_.NotifyTaskDone();
+          return image;
+        }));
   }
 
   std::future_status status;
@@ -246,6 +251,15 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
     std::vector<algorithm::Image> images, const MatchingOptions &options) {
   if (images.empty()) {
     return {};
+  }
+
+  if (options.type == MatchingType::kNone) {
+    return StitcherData{std::move(images)};
+  }
+
+  if (options.type == MatchingType::kSinglePano) {
+    auto pano = algorithm::SinglePano(static_cast<int>(images.size()));
+    return StitcherData{std::move(images), {}, {pano}};
   }
 
   int num_images = static_cast<int>(images.size());

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
@@ -8,8 +9,8 @@
 
 namespace xpano::gui::file_dialog {
 
-std::vector<std::string> Open(Action action);
+std::vector<std::filesystem::path> Open(const Action& action);
 
-std::optional<std::string> Save(const std::string& default_name);
+std::optional<std::filesystem::path> Save(const std::string& default_name);
 
 }  // namespace xpano::gui::file_dialog
