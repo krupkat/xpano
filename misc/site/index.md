@@ -33,6 +33,14 @@ Install directly from Flathub or the Microsoft Store:
 
 Additionally you can download Windows executables from [GitHub](https://github.com/krupkat/xpano/releases) and Ubuntu packages from a [Launchpad PPA](https://launchpad.net/~krupkat/+archive/ubuntu/code).
 
+## Command line
+
+Xpano has basic CLI support, you can either run it fully automatic in the command line, or launch to gui with the `--gui` flag.
+
+```
+Xpano [<input files>] [--output=<path>] [--gui] [--help] [--version]
+```
+
 ## Development
 
 Check out the [build instructions](https://github.com/krupkat/xpano#development) for MacOS, Linux and Windows.

@@ -91,7 +91,7 @@ std::optional<Args> ParseArgs(int argc, char** argv) {
 }
 
 void PrintHelp() {
-  spdlog::info("Usage: xpano [<input files>] [--output=<path>]");
+  spdlog::info("Usage: Xpano [<input files>] [--output=<path>]");
   spdlog::info("\t[--gui] [--help] [--version]");
   spdlog::info("Supported formats: {}", fmt::join(kSupportedExtensions, ", "));
 }
