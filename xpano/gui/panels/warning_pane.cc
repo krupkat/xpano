@@ -71,7 +71,7 @@ void WarningPane::Draw() {
     pending_warnings_.pop();
   }
 
-  ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+  const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
   if (ImGui::BeginPopupModal(Title(current_warning_.type), nullptr,

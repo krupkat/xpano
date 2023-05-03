@@ -24,8 +24,8 @@ enum class WarningType {
 };
 
 struct Warning {
-  WarningType type;
-  std::string extra_message;
+  WarningType type = WarningType::kNone;
+  std::string extra_message = {};
 };
 
 class WarningPane {
