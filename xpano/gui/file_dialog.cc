@@ -39,34 +39,30 @@ TArray Uppercase(const TArray& extensions) {
 utils::Expected<std::vector<std::filesystem::path>, Error> MultifileOpen() {
   NFD::UniquePathSet out_paths;
 
-  std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
 #ifndef _WIN32
   extensions = fmt::format("{},{}", extensions,
                            fmt::join(Uppercase(kSupportedExtensions), ","));
 #endif
+  auto filter_item = std::array{nfdfilteritem_t{"Images", extensions.c_str()}};
+  auto nfd_result = NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
 
-  filter_item[0] = {"Images", extensions.c_str()};
-  std::vector<std::filesystem::path> results;
-
-  // show the dialog
-  nfdresult_t result =
-      NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
-  if (result == NFD_OKAY) {
-    spdlog::info("Selected files [OpenDialogMultiple]");
-
-    nfdpathsetsize_t num_paths;
-    NFD::PathSet::Count(out_paths, num_paths);
-
-    for (nfdpathsetsize_t i = 0; i < num_paths; ++i) {
-      NFD::UniquePathSetPath path;
-      NFD::PathSet::GetPath(out_paths, i, path);
-      results.emplace_back(path.get());
-    }
-  } else if (result == NFD_CANCEL) {
+  if (nfd_result == NFD_CANCEL) {
     return utils::Unexpected<Error>(ErrorType::kUserCancelled);
-  } else {
+  } else if (nfd_result == NFD_ERROR) {
     return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
+  }
+
+  spdlog::info("Selected files [OpenDialogMultiple]");
+
+  nfdpathsetsize_t num_paths;
+  NFD::PathSet::Count(out_paths, num_paths);
+
+  std::vector<std::filesystem::path> results;
+  for (nfdpathsetsize_t i = 0; i < num_paths; ++i) {
+    NFD::UniquePathSetPath path;
+    NFD::PathSet::GetPath(out_paths, i, path);
+    results.emplace_back(path.get());
   }
 
   return results;
@@ -74,22 +70,24 @@ utils::Expected<std::vector<std::filesystem::path>, Error> MultifileOpen() {
 
 utils::Expected<std::vector<std::filesystem::path>, Error> DirectoryOpen() {
   NFD::UniquePath out_path;
-  std::vector<std::filesystem::path> results;
-  nfdresult_t result = NFD::PickFolder(out_path);
-  if (result == NFD_OKAY) {
-    auto dir_path = std::filesystem::path(out_path.get());
-    if (!std::filesystem::is_directory(dir_path)) {
-      return utils::Unexpected<Error>(ErrorType::kTargetNotDirectory,
-                                      dir_path.string());
-    }
-    spdlog::info("Selected directory {}", dir_path.string());
-    for (const auto& file : std::filesystem::directory_iterator(dir_path)) {
-      results.emplace_back(file.path());
-    }
-  } else if (result == NFD_CANCEL) {
+  auto nfd_result = NFD::PickFolder(out_path);
+
+  if (nfd_result == NFD_CANCEL) {
     return utils::Unexpected<Error>(ErrorType::kUserCancelled);
-  } else {
+  } else if (nfd_result == NFD_ERROR) {
     return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
+  }
+
+  auto dir_path = std::filesystem::path(out_path.get());
+  if (!std::filesystem::is_directory(dir_path)) {
+    return utils::Unexpected<Error>(ErrorType::kTargetNotDirectory,
+                                    dir_path.string());
+  }
+  spdlog::info("Selected directory {}", dir_path.string());
+
+  std::vector<std::filesystem::path> results;
+  for (const auto& file : std::filesystem::directory_iterator(dir_path)) {
+    results.emplace_back(file.path());
   }
   std::sort(results.begin(), results.end());
   return results;
@@ -113,16 +111,14 @@ utils::Expected<std::vector<std::filesystem::path>, Error> Open(
 utils::Expected<std::filesystem::path, Error> Save(
     const std::string& default_name) {
   NFD::UniquePath out_path;
-  std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
-  filter_item[0] = {"Images", extensions.c_str()};
+  auto filter_item = std::array{nfdfilteritem_t{"Images", extensions.c_str()}};
+  auto nfd_result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
+                                    default_name.c_str());
 
-  nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
-                                       default_name.c_str());
-
-  if (result == NFD_CANCEL) {
+  if (nfd_result == NFD_CANCEL) {
     return utils::Unexpected<Error>(ErrorType::kUserCancelled);
-  } else if (result == NFD_ERROR) {
+  } else if (nfd_result == NFD_ERROR) {
     return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
 
