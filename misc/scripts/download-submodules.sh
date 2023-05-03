@@ -1,7 +1,7 @@
 # useful for building from tarball
 
 TAG_IMGUI="docking_v1.89.5_highdpi"
-TAG_NFDE="v1.0.1"
+TAG_NFDE="v1.0.3"
 TAG_THREAD_POOL="v3.3.1"
 TAG_ALPACA="v0.2.1"
 
