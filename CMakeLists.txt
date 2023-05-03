@@ -18,6 +18,9 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory("external/nativefiledialog-extended")
 add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
+set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
+add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
+
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
   "external/imgui/imgui_draw.cpp"
@@ -101,6 +104,7 @@ endif()
 
 target_link_libraries(Xpano
   alpaca
+  expected
   nfd
   ${OPENCV_TARGETS}
   SDL2::SDL2

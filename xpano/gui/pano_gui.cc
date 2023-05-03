@@ -406,6 +406,9 @@ Action PanoGui::PerformAction(const Action& action) {
                                   .compression = options_.compression,
                                   .stitch_algorithm = options_.stitch});
           }
+        } else {
+          spdlog::warn(export_path.error());
+          warning_pane_.QueueFilePickerError(export_path.error());
         }
       }
       break;
@@ -426,9 +429,13 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      return {.type = ActionType::kLoadFiles,
-              .delayed = true,
-              .extra = file_dialog::Open(action)};
+      auto files = file_dialog::Open(action);
+      if (!files) {
+        spdlog::warn(files.error());
+        warning_pane_.QueueFilePickerError(files.error());
+        break;
+      }
+      return {.type = ActionType::kLoadFiles, .delayed = true, .extra = *files};
     }
     case ActionType::kLoadFiles: {
       if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {

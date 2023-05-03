@@ -14,11 +14,17 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/utils/expected.h"
 #include "xpano/utils/path.h"
 
 namespace xpano::gui::file_dialog {
 
 namespace {
+
+template <typename... Args>
+utils::Unexpected<Error> MakeUnexpected(Args&&... args) {
+  return utils::Unexpected<Error>(Error{std::forward<Args>(args)...});
+}
 
 template <typename TArray>
 TArray Uppercase(const TArray& extensions) {
@@ -35,56 +41,59 @@ TArray Uppercase(const TArray& extensions) {
   return result;
 }
 
-std::vector<std::filesystem::path> MultifileOpen() {
+utils::Expected<std::vector<std::filesystem::path>, Error> MultifileOpen() {
   NFD::UniquePathSet out_paths;
 
-  std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
 #ifndef _WIN32
   extensions = fmt::format("{},{}", extensions,
                            fmt::join(Uppercase(kSupportedExtensions), ","));
 #endif
+  auto filter_item = std::array{nfdfilteritem_t{"Images", extensions.c_str()}};
+  auto nfd_result = NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
 
-  filter_item[0] = {"Images", extensions.c_str()};
+  if (nfd_result == NFD_CANCEL) {
+    return MakeUnexpected(ErrorType::kUserCancelled);
+  }
+  if (nfd_result == NFD_ERROR) {
+    return MakeUnexpected(ErrorType::kUnknownError, NFD::GetError());
+  }
+
+  spdlog::info("Selected files [OpenDialogMultiple]");
+
+  nfdpathsetsize_t num_paths;
+  NFD::PathSet::Count(out_paths, num_paths);
+
   std::vector<std::filesystem::path> results;
-
-  // show the dialog
-  nfdresult_t result =
-      NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
-  if (result == NFD_OKAY) {
-    spdlog::info("Selected files [OpenDialogMultiple]");
-
-    nfdpathsetsize_t num_paths;
-    NFD::PathSet::Count(out_paths, num_paths);
-
-    for (nfdpathsetsize_t i = 0; i < num_paths; ++i) {
-      NFD::UniquePathSetPath path;
-      NFD::PathSet::GetPath(out_paths, i, path);
-      results.emplace_back(path.get());
-    }
-  } else if (result == NFD_CANCEL) {
-    spdlog::info("User pressed cancel.");
-  } else {
-    spdlog::error("Error: %s", NFD::GetError());
+  for (nfdpathsetsize_t i = 0; i < num_paths; ++i) {
+    NFD::UniquePathSetPath path;
+    NFD::PathSet::GetPath(out_paths, i, path);
+    results.emplace_back(path.get());
   }
 
   return results;
 }
 
-std::vector<std::filesystem::path> DirectoryOpen() {
+utils::Expected<std::vector<std::filesystem::path>, Error> DirectoryOpen() {
   NFD::UniquePath out_path;
+  auto nfd_result = NFD::PickFolder(out_path);
+
+  if (nfd_result == NFD_CANCEL) {
+    return MakeUnexpected(ErrorType::kUserCancelled);
+  }
+  if (nfd_result == NFD_ERROR) {
+    return MakeUnexpected(ErrorType::kUnknownError, NFD::GetError());
+  }
+
+  auto dir_path = std::filesystem::path(out_path.get());
+  if (!std::filesystem::is_directory(dir_path)) {
+    return MakeUnexpected(ErrorType::kTargetNotDirectory, dir_path.string());
+  }
+  spdlog::info("Selected directory {}", dir_path.string());
+
   std::vector<std::filesystem::path> results;
-  nfdresult_t result = NFD::PickFolder(out_path);
-  if (result == NFD_OKAY) {
-    spdlog::info("Selected directory {}", out_path.get());
-    for (const auto& file :
-         std::filesystem::directory_iterator(out_path.get())) {
-      results.emplace_back(file.path());
-    }
-  } else if (result == NFD_CANCEL) {
-    spdlog::info("User pressed cancel.");
-  } else {
-    spdlog::error("Error: %s", NFD::GetError());
+  for (const auto& file : std::filesystem::directory_iterator(dir_path)) {
+    results.emplace_back(file.path());
   }
   std::sort(results.begin(), results.end());
   return results;
@@ -92,40 +101,42 @@ std::vector<std::filesystem::path> DirectoryOpen() {
 
 }  // namespace
 
-std::vector<std::filesystem::path> Open(const Action& action) {
-  std::vector<std::filesystem::path> paths;
-
+utils::Expected<std::vector<std::filesystem::path>, Error> Open(
+    const Action& action) {
   if (action.type == ActionType::kOpenFiles) {
-    paths = MultifileOpen();
+    return MultifileOpen().map(utils::path::KeepSupported);
   }
 
   if (action.type == ActionType::kOpenDirectory) {
-    paths = DirectoryOpen();
+    return DirectoryOpen().map(utils::path::KeepSupported);
   }
 
-  return utils::path::KeepSupported(paths);
+  return MakeUnexpected(ErrorType::kUnknownAction);
 }
 
-std::optional<std::filesystem::path> Save(const std::string& default_name) {
+utils::Expected<std::filesystem::path, Error> Save(
+    const std::string& default_name) {
   NFD::UniquePath out_path;
-  std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
-  filter_item[0] = {"Images", extensions.c_str()};
+  auto filter_item = std::array{nfdfilteritem_t{"Images", extensions.c_str()}};
+  auto nfd_result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
+                                    default_name.c_str());
 
-  nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
-                                       default_name.c_str());
-  if (result == NFD_OKAY) {
-    spdlog::info("Picked save file {}", out_path.get());
-    if (utils::path::IsExtensionSupported(out_path.get())) {
-      return out_path.get();
-    }
-    spdlog::error("Unsupported extension");
-  } else if (result == NFD_CANCEL) {
-    spdlog::info("User pressed cancel.");
-  } else {
-    spdlog::error("Error: %s", NFD::GetError());
+  if (nfd_result == NFD_CANCEL) {
+    return MakeUnexpected(ErrorType::kUserCancelled);
   }
-  return {};
+  if (nfd_result == NFD_ERROR) {
+    return MakeUnexpected(ErrorType::kUnknownError, NFD::GetError());
+  }
+
+  auto result_path = std::filesystem::path(out_path.get());
+  spdlog::info("Picked save file {}", result_path.string());
+  if (!utils::path::IsExtensionSupported(result_path)) {
+    return MakeUnexpected(ErrorType::kUnsupportedExtension,
+                          result_path.filename().string());
+  }
+
+  return result_path;
 }
 
 }  // namespace xpano::gui::file_dialog
