@@ -143,29 +143,29 @@ void WarningPane::DrawExtra(const Warning& warning) {
 }
 
 void WarningPane::Queue(WarningType warning) {
-  pending_warnings_.emplace(warning);
+  pending_warnings_.push({warning});
 }
 
 void WarningPane::QueueNewVersion(version::Triplet previous_version,
                                   std::optional<utils::Text> changelog) {
-  pending_warnings_.emplace(WarningType::kNewVersion,
-                            fmt::format(" - from version {} to version {}",
-                                        previous_version, version::Current()));
+  pending_warnings_.push({WarningType::kNewVersion,
+                          fmt::format(" - from version {} to version {}",
+                                      previous_version, version::Current())});
   changelog_ = std::move(changelog);
 }
 
 void WarningPane::QueueFilePickerError(const file_dialog::Error& error) {
   switch (error.type) {
     case file_dialog::ErrorType::kUnsupportedExtension: {
-      pending_warnings_.emplace(
-          WarningType::kFilePickerUnsupportedExt,
-          fmt::format("Selected filename: {}\nSupported extensions: {}",
-                      error.message, fmt::join(kSupportedExtensions, ", ")));
+      pending_warnings_.push(
+          {WarningType::kFilePickerUnsupportedExt,
+           fmt::format("Selected filename: {}\nSupported extensions: {}",
+                       error.message, fmt::join(kSupportedExtensions, ", "))});
       break;
     }
     case file_dialog::ErrorType::kUnknownError: {
-      pending_warnings_.emplace(WarningType::kFilePickerUnknownError,
-                                error.message);
+      pending_warnings_.push(
+          {WarningType::kFilePickerUnknownError, error.message});
       break;
     }
     default:
