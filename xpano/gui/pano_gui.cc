@@ -429,13 +429,13 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      if (auto files = file_dialog::Open(action); files) {
-        return {
-            .type = ActionType::kLoadFiles, .delayed = true, .extra = *files};
-      } else {
+      auto files = file_dialog::Open(action);
+      if (!files) {
         spdlog::warn(files.error());
         warning_pane_.QueueFilePickerError(files.error());
+        break;
       }
+      return {.type = ActionType::kLoadFiles, .delayed = true, .extra = *files};
     }
     case ActionType::kLoadFiles: {
       if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {

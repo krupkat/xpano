@@ -101,7 +101,7 @@ void WarningPane::Draw() {
   }
 }
 
-void WarningPane::DrawExtra(Warning warning) {
+void WarningPane::DrawExtra(const Warning& warning) {
   switch (warning.type) {
     case WarningType::kFirstTimeLaunch: {
       ImGui::Text(
@@ -176,7 +176,7 @@ void WarningPane::QueueFilePickerError(const file_dialog::Error& error) {
 void WarningPane::Show(Warning warning) {
   if (!dont_show_again_.contains(warning.type)) {
     ImGui::OpenPopup(Title(warning.type));
-    current_warning_ = warning;
+    current_warning_ = std::move(warning);
   }
   spdlog::warn(WarningMessage(current_warning_.type));
 }

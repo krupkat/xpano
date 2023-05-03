@@ -49,7 +49,8 @@ utils::Expected<std::vector<std::filesystem::path>, Error> MultifileOpen() {
 
   if (nfd_result == NFD_CANCEL) {
     return utils::Unexpected<Error>(ErrorType::kUserCancelled);
-  } else if (nfd_result == NFD_ERROR) {
+  }
+  if (nfd_result == NFD_ERROR) {
     return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
 
@@ -74,7 +75,8 @@ utils::Expected<std::vector<std::filesystem::path>, Error> DirectoryOpen() {
 
   if (nfd_result == NFD_CANCEL) {
     return utils::Unexpected<Error>(ErrorType::kUserCancelled);
-  } else if (nfd_result == NFD_ERROR) {
+  }
+  if (nfd_result == NFD_ERROR) {
     return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
 
@@ -118,7 +120,8 @@ utils::Expected<std::filesystem::path, Error> Save(
 
   if (nfd_result == NFD_CANCEL) {
     return utils::Unexpected<Error>(ErrorType::kUserCancelled);
-  } else if (nfd_result == NFD_ERROR) {
+  }
+  if (nfd_result == NFD_ERROR) {
     return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
 

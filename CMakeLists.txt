@@ -17,7 +17,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("external/nativefiledialog-extended")
 add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
-add_subdirectory("external/expected")
+
+set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
+add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"

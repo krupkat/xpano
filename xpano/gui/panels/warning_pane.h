@@ -5,9 +5,9 @@
 #include <string>
 #include <unordered_set>
 
+#include "xpano/gui/file_dialog.h"
 #include "xpano/utils/text.h"
 #include "xpano/version.h"
-#include "xpano/gui/file_dialog.h"
 
 namespace xpano::gui {
 
@@ -38,7 +38,7 @@ class WarningPane {
 
  private:
   void Show(Warning warning);
-  void DrawExtra(Warning warning);
+  void DrawExtra(const Warning& warning);
 
   Warning current_warning_ = {WarningType::kNone};
 
