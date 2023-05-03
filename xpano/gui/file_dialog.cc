@@ -21,6 +21,11 @@ namespace xpano::gui::file_dialog {
 
 namespace {
 
+template <typename... Args>
+utils::Unexpected<Error> MakeError(Args&&... args) {
+  return utils::Unexpected<Error>(Error{std::forward<Args>(args)...});
+}
+
 template <typename TArray>
 TArray Uppercase(const TArray& extensions) {
   TArray result;
@@ -48,10 +53,10 @@ utils::Expected<std::vector<std::filesystem::path>, Error> MultifileOpen() {
   auto nfd_result = NFD::OpenDialogMultiple(out_paths, filter_item.data(), 1);
 
   if (nfd_result == NFD_CANCEL) {
-    return utils::Unexpected<Error>(ErrorType::kUserCancelled);
+    return MakeError(ErrorType::kUserCancelled);
   }
   if (nfd_result == NFD_ERROR) {
-    return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
+    return MakeError(ErrorType::kUnknownError, NFD::GetError());
   }
 
   spdlog::info("Selected files [OpenDialogMultiple]");
@@ -74,16 +79,15 @@ utils::Expected<std::vector<std::filesystem::path>, Error> DirectoryOpen() {
   auto nfd_result = NFD::PickFolder(out_path);
 
   if (nfd_result == NFD_CANCEL) {
-    return utils::Unexpected<Error>(ErrorType::kUserCancelled);
+    return MakeError(ErrorType::kUserCancelled);
   }
   if (nfd_result == NFD_ERROR) {
-    return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
+    return MakeError(ErrorType::kUnknownError, NFD::GetError());
   }
 
   auto dir_path = std::filesystem::path(out_path.get());
   if (!std::filesystem::is_directory(dir_path)) {
-    return utils::Unexpected<Error>(ErrorType::kTargetNotDirectory,
-                                    dir_path.string());
+    return MakeError(ErrorType::kTargetNotDirectory, dir_path.string());
   }
   spdlog::info("Selected directory {}", dir_path.string());
 
@@ -107,7 +111,7 @@ utils::Expected<std::vector<std::filesystem::path>, Error> Open(
     return DirectoryOpen().map(utils::path::KeepSupported);
   }
 
-  return utils::Unexpected<Error>(ErrorType::kUnknownAction);
+  return MakeError(ErrorType::kUnknownAction);
 }
 
 utils::Expected<std::filesystem::path, Error> Save(
@@ -119,17 +123,17 @@ utils::Expected<std::filesystem::path, Error> Save(
                                     default_name.c_str());
 
   if (nfd_result == NFD_CANCEL) {
-    return utils::Unexpected<Error>(ErrorType::kUserCancelled);
+    return MakeError(ErrorType::kUserCancelled);
   }
   if (nfd_result == NFD_ERROR) {
-    return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
+    return MakeError(ErrorType::kUnknownError, NFD::GetError());
   }
 
   auto result_path = std::filesystem::path(out_path.get());
   spdlog::info("Picked save file {}", result_path.string());
   if (!utils::path::IsExtensionSupported(result_path)) {
-    return utils::Unexpected<Error>(ErrorType::kUnsupportedExtension,
-                                    result_path.filename().string());
+    return MakeError(ErrorType::kUnsupportedExtension,
+                     result_path.filename().string());
   }
 
   return result_path;
