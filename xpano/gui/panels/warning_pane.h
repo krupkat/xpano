@@ -7,6 +7,7 @@
 
 #include "xpano/utils/text.h"
 #include "xpano/version.h"
+#include "xpano/gui/file_dialog.h"
 
 namespace xpano::gui {
 
@@ -17,26 +18,33 @@ enum class WarningType {
   kUserPrefBreakingChange,
   kUserPrefCouldntLoad,
   kUserPrefResetOnRequest,
-  kNewVersion
+  kNewVersion,
+  kFilePickerUnsupportedExt,
+  kFilePickerUnknownError
+};
+
+struct Warning {
+  WarningType type;
+  std::string extra_message;
 };
 
 class WarningPane {
  public:
   void Draw();
-  void DrawExtra(WarningType warning);
   void Queue(WarningType warning);
   void QueueNewVersion(version::Triplet previous_version,
                        std::optional<utils::Text> changelog);
+  void QueueFilePickerError(const file_dialog::Error& error);
 
  private:
-  void Show(WarningType warning);
+  void Show(Warning warning);
+  void DrawExtra(Warning warning);
 
-  WarningType current_warning_ = WarningType::kNone;
+  Warning current_warning_ = {WarningType::kNone};
 
-  std::queue<WarningType> pending_warnings_;
+  std::queue<Warning> pending_warnings_;
   std::unordered_set<WarningType> dont_show_again_;
 
-  std::string new_version_message_;
   std::optional<utils::Text> changelog_;
 };
 

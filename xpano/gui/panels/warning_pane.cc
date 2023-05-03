@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/gui/file_dialog.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/version_fmt.h"
 
@@ -28,6 +29,10 @@ const char* WarningMessage(WarningType warning) {
              "experimenting!";
     case WarningType::kNewVersion:
       return "Xpano was updated!";
+    case WarningType::kFilePickerUnsupportedExt:
+      return "File format is not supported!";
+    case WarningType::kFilePickerUnknownError:
+      return "File picker error!";
     default:
       return "";
   }
@@ -58,7 +63,7 @@ bool EnableSnooze(WarningType warning) {
 }  // namespace
 
 void WarningPane::Draw() {
-  if (current_warning_ == WarningType::kNone) {
+  if (current_warning_.type == WarningType::kNone) {
     if (pending_warnings_.empty()) {
       return;
     }
@@ -69,9 +74,9 @@ void WarningPane::Draw() {
   ImVec2 center = ImGui::GetMainViewport()->GetCenter();
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-  if (ImGui::BeginPopupModal(Title(current_warning_), nullptr,
+  if (ImGui::BeginPopupModal(Title(current_warning_.type), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextUnformatted(WarningMessage(current_warning_));
+    ImGui::TextUnformatted(WarningMessage(current_warning_.type));
     DrawExtra(current_warning_);
     ImGui::Spacing();
     ImGui::Separator();
@@ -79,16 +84,16 @@ void WarningPane::Draw() {
 
     if (ImGui::Button("OK", utils::imgui::DpiAwareSize(kWideButtonWidth, 0))) {
       ImGui::CloseCurrentPopup();
-      current_warning_ = WarningType::kNone;
+      current_warning_ = {WarningType::kNone};
     }
-    if (EnableSnooze(current_warning_)) {
+    if (EnableSnooze(current_warning_.type)) {
       ImGui::SameLine();
-      bool dont_show_again = dont_show_again_.contains(current_warning_);
+      bool dont_show_again = dont_show_again_.contains(current_warning_.type);
       if (ImGui::Checkbox("Do not warn next time", &dont_show_again)) {
         if (dont_show_again) {
-          dont_show_again_.insert(current_warning_);
+          dont_show_again_.insert(current_warning_.type);
         } else {
-          dont_show_again_.erase(current_warning_);
+          dont_show_again_.erase(current_warning_.type);
         }
       }
     }
@@ -96,8 +101,8 @@ void WarningPane::Draw() {
   }
 }
 
-void WarningPane::DrawExtra(WarningType warning) {
-  switch (warning) {
+void WarningPane::DrawExtra(Warning warning) {
+  switch (warning.type) {
     case WarningType::kFirstTimeLaunch: {
       ImGui::Text(
           " - default settings are designed to work out of the box with most "
@@ -110,7 +115,7 @@ void WarningPane::DrawExtra(WarningType warning) {
       break;
     }
     case WarningType::kNewVersion: {
-      ImGui::TextUnformatted(new_version_message_.c_str());
+      ImGui::TextUnformatted(warning.extra_message.c_str());
       if (changelog_) {
         ImGui::Spacing();
         ImGui::Separator();
@@ -121,29 +126,59 @@ void WarningPane::DrawExtra(WarningType warning) {
       }
       break;
     }
+    case WarningType::kFilePickerUnsupportedExt: {
+      ImGui::TextUnformatted(warning.extra_message.c_str());
+      break;
+    }
+    case WarningType::kFilePickerUnknownError: {
+      ImGui::BeginChild("FilePickerError",
+                        utils::imgui::DpiAwareSize(kAboutBoxWidth, 3));
+      ImGui::TextWrapped("%s", warning.extra_message.c_str());
+      ImGui::EndChild();
+      break;
+    }
     default:
       break;
   }
 }
 
 void WarningPane::Queue(WarningType warning) {
-  pending_warnings_.push(warning);
+  pending_warnings_.emplace(warning);
 }
 
 void WarningPane::QueueNewVersion(version::Triplet previous_version,
                                   std::optional<utils::Text> changelog) {
-  pending_warnings_.push(WarningType::kNewVersion);
-  new_version_message_ = fmt::format(" - from version {} to version {}",
-                                     previous_version, version::Current());
+  pending_warnings_.emplace(WarningType::kNewVersion,
+                            fmt::format(" - from version {} to version {}",
+                                        previous_version, version::Current()));
   changelog_ = std::move(changelog);
 }
 
-void WarningPane::Show(WarningType warning) {
-  if (!dont_show_again_.contains(warning)) {
-    ImGui::OpenPopup(Title(warning));
+void WarningPane::QueueFilePickerError(const file_dialog::Error& error) {
+  switch (error.type) {
+    case file_dialog::ErrorType::kUnsupportedExtension: {
+      pending_warnings_.emplace(
+          WarningType::kFilePickerUnsupportedExt,
+          fmt::format("Selected filename: {}\nSupported extensions: {}",
+                      error.message, fmt::join(kSupportedExtensions, ", ")));
+      break;
+    }
+    case file_dialog::ErrorType::kUnknownError: {
+      pending_warnings_.emplace(WarningType::kFilePickerUnknownError,
+                                error.message);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void WarningPane::Show(Warning warning) {
+  if (!dont_show_again_.contains(warning.type)) {
+    ImGui::OpenPopup(Title(warning.type));
     current_warning_ = warning;
   }
-  spdlog::warn(WarningMessage(current_warning_));
+  spdlog::warn(WarningMessage(current_warning_.type));
 }
 
 }  // namespace xpano::gui

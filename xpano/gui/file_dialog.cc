@@ -14,6 +14,7 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/utils/expected.h"
 #include "xpano/utils/path.h"
 
 namespace xpano::gui::file_dialog {
@@ -35,7 +36,7 @@ TArray Uppercase(const TArray& extensions) {
   return result;
 }
 
-std::vector<std::filesystem::path> MultifileOpen() {
+utils::Expected<std::vector<std::filesystem::path>, Error> MultifileOpen() {
   NFD::UniquePathSet out_paths;
 
   std::array<nfdfilteritem_t, 1> filter_item;
@@ -63,28 +64,32 @@ std::vector<std::filesystem::path> MultifileOpen() {
       results.emplace_back(path.get());
     }
   } else if (result == NFD_CANCEL) {
-    spdlog::info("User pressed cancel.");
+    return utils::Unexpected<Error>(ErrorType::kUserCancelled);
   } else {
-    spdlog::error("Error: %s", NFD::GetError());
+    return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
 
   return results;
 }
 
-std::vector<std::filesystem::path> DirectoryOpen() {
+utils::Expected<std::vector<std::filesystem::path>, Error> DirectoryOpen() {
   NFD::UniquePath out_path;
   std::vector<std::filesystem::path> results;
   nfdresult_t result = NFD::PickFolder(out_path);
   if (result == NFD_OKAY) {
-    spdlog::info("Selected directory {}", out_path.get());
-    for (const auto& file :
-         std::filesystem::directory_iterator(out_path.get())) {
+    auto dir_path = std::filesystem::path(out_path.get());
+    if (!std::filesystem::is_directory(dir_path)) {
+      return utils::Unexpected<Error>(ErrorType::kTargetNotDirectory,
+                                      dir_path.string());
+    }
+    spdlog::info("Selected directory {}", dir_path.string());
+    for (const auto& file : std::filesystem::directory_iterator(dir_path)) {
       results.emplace_back(file.path());
     }
   } else if (result == NFD_CANCEL) {
-    spdlog::info("User pressed cancel.");
+    return utils::Unexpected<Error>(ErrorType::kUserCancelled);
   } else {
-    spdlog::error("Error: %s", NFD::GetError());
+    return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
   std::sort(results.begin(), results.end());
   return results;
@@ -92,21 +97,21 @@ std::vector<std::filesystem::path> DirectoryOpen() {
 
 }  // namespace
 
-std::vector<std::filesystem::path> Open(const Action& action) {
-  std::vector<std::filesystem::path> paths;
-
+utils::Expected<std::vector<std::filesystem::path>, Error> Open(
+    const Action& action) {
   if (action.type == ActionType::kOpenFiles) {
-    paths = MultifileOpen();
+    return MultifileOpen().map(utils::path::KeepSupported);
   }
 
   if (action.type == ActionType::kOpenDirectory) {
-    paths = DirectoryOpen();
+    return DirectoryOpen().map(utils::path::KeepSupported);
   }
 
-  return utils::path::KeepSupported(paths);
+  return utils::Unexpected<Error>(ErrorType::kUnknownAction);
 }
 
-std::optional<std::filesystem::path> Save(const std::string& default_name) {
+utils::Expected<std::filesystem::path, Error> Save(
+    const std::string& default_name) {
   NFD::UniquePath out_path;
   std::array<nfdfilteritem_t, 1> filter_item;
   auto extensions = fmt::format("{}", fmt::join(kSupportedExtensions, ","));
@@ -114,18 +119,21 @@ std::optional<std::filesystem::path> Save(const std::string& default_name) {
 
   nfdresult_t result = NFD::SaveDialog(out_path, filter_item.data(), 1, nullptr,
                                        default_name.c_str());
-  if (result == NFD_OKAY) {
-    spdlog::info("Picked save file {}", out_path.get());
-    if (utils::path::IsExtensionSupported(out_path.get())) {
-      return out_path.get();
-    }
-    spdlog::error("Unsupported extension");
-  } else if (result == NFD_CANCEL) {
-    spdlog::info("User pressed cancel.");
-  } else {
-    spdlog::error("Error: %s", NFD::GetError());
+
+  if (result == NFD_CANCEL) {
+    return utils::Unexpected<Error>(ErrorType::kUserCancelled);
+  } else if (result == NFD_ERROR) {
+    return utils::Unexpected<Error>(ErrorType::kUnknownError, NFD::GetError());
   }
-  return {};
+
+  auto result_path = std::filesystem::path(out_path.get());
+  spdlog::info("Picked save file {}", result_path.string());
+  if (!utils::path::IsExtensionSupported(result_path)) {
+    return utils::Unexpected<Error>(ErrorType::kUnsupportedExtension,
+                                    result_path.filename().string());
+  }
+
+  return result_path;
 }
 
 }  // namespace xpano::gui::file_dialog
