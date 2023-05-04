@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Vaibhav Sharma
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/gui/panels/about.h"
 
 #include <algorithm>
@@ -31,7 +35,9 @@ This software is based in part on the work of the Independent JPEG Group.
 =============
 
 Xpano - a tool for stitching photos into panoramas.
-Copyright (C) 2022  Tomas Krupka
+Copyright (C) 2023  Tomas Krupka
+Copyright (C) 2022  Naachiket Pant
+Copyright (C) 2022  Vaibhav Sharma
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

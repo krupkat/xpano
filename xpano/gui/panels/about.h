@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Vaibhav Sharma
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <future>

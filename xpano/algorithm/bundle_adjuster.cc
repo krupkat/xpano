@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
+//
+///////////////////////////////////////////////////////////////////////////////////////
 //
 //  Contents of the setUpInitialCameraParams function are copied from OpenCV,
 //  adding the copyright notice:
