@@ -98,7 +98,7 @@ Please check the [contribution guidelines](https://github.com/krupkat/xpano/blob
 
 ## License
 
-Distributed under the GPL-3.0 license. See `LICENSE` for more information.
+Distributed under the *GPL-3.0-or-later* license. See the full [license text](https://github.com/krupkat/xpano/blob/main/LICENSE) for more information.
 
 ## Contact
 

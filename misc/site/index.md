@@ -47,4 +47,4 @@ Check out the [build instructions](https://github.com/krupkat/xpano#development)
 
 ## License
 
-Distributed under the GPL-3.0 license. See the [license](https://github.com/krupkat/xpano/blob/main/LICENSE) page for more information.
+Distributed under the *GPL-3.0-or-later* license. See the [license](https://github.com/krupkat/xpano/blob/main/LICENSE) page for more information.
