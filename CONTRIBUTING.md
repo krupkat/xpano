@@ -22,3 +22,13 @@ Static analysis is checked upon submission, please make sure there are 0 clang-t
  /misc/scripts/tidy.ps1
  /misc/scripts/tidy.sh
  ```
+
+## Copyright
+
+Feel free to add your copyright to the files you modify by adding this comment:
+
+```
+// SPDX-FileCopyrightText: year name
+```
+
+You can also add yourself to the list of authors shown in the app ([about.cc](https://github.com/krupkat/xpano/blob/main/xpano/gui/panels/about.cc)).

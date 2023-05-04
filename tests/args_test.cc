@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/cli/args.h"
 
 #include <catch2/catch_test_macros.hpp>
