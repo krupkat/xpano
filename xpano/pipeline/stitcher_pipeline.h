@@ -1,6 +1,11 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Vaibhav Sharma
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <atomic>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <string>
@@ -13,54 +18,23 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/utils/rect.h"
 
 namespace xpano::pipeline {
 
-using InpaintingOptions = algorithm::InpaintingOptions;
-using StitchAlgorithmOptions = algorithm::StitchOptions;
-
-enum class ChromaSubsampling {
-  k444,
-  k422,
-  k420,
-};
-
-const auto kSubsamplingModes = std::array{
-    ChromaSubsampling::k444, ChromaSubsampling::k422, ChromaSubsampling::k420};
-
-const char *Label(ChromaSubsampling subsampling);
-
-struct CompressionOptions {
-  int jpeg_quality = kDefaultJpegQuality;
-  bool jpeg_progressive = false;
-  bool jpeg_optimize = false;
-  ChromaSubsampling jpeg_subsampling = ChromaSubsampling::k422;
-  int png_compression = kDefaultPngCompression;
-};
-
-struct MatchingOptions {
-  int neighborhood_search_size = kDefaultNeighborhoodSearchSize;
-  int match_threshold = kDefaultMatchThreshold;
-  float match_conf = kDefaultMatchConf;
-};
-
-struct LoadingOptions {
-  int preview_longer_side = kDefaultPreviewLongerSide;
-};
-
 struct StitchingOptions {
   int pano_id = 0;
   bool full_res = false;
-  std::optional<std::string> export_path;
+  std::optional<std::filesystem::path> export_path;
   CompressionOptions compression;
   StitchAlgorithmOptions stitch_algorithm;
 };
 
 struct ExportOptions {
   int pano_id = 0;
-  std::string metadata_path;
-  std::string export_path;
+  std::filesystem::path metadata_path;
+  std::filesystem::path export_path;
   CompressionOptions compression;
   std::optional<utils::RectRRf> crop;
 };
@@ -82,13 +56,13 @@ struct StitchingResult {
   cv::Stitcher::Status status;
   std::optional<cv::Mat> pano;
   std::optional<utils::RectRRf> auto_crop;
-  std::optional<std::string> export_path;
+  std::optional<std::filesystem::path> export_path;
   std::optional<cv::Mat> mask;
 };
 
 struct ExportResult {
   int pano_id = 0;
-  std::optional<std::string> export_path;
+  std::optional<std::filesystem::path> export_path;
 };
 
 enum class ProgressType {
@@ -126,9 +100,10 @@ class StitcherPipeline {
  public:
   StitcherPipeline() = default;
   ~StitcherPipeline();
-  std::future<StitcherData> RunLoading(const std::vector<std::string> &inputs,
-                                       const LoadingOptions &loading_options,
-                                       const MatchingOptions &matching_options);
+  std::future<StitcherData> RunLoading(
+      const std::vector<std::filesystem::path> &inputs,
+      const LoadingOptions &loading_options,
+      const MatchingOptions &matching_options);
   std::future<StitchingResult> RunStitching(const StitcherData &data,
                                             const StitchingOptions &options);
 
@@ -142,7 +117,8 @@ class StitcherPipeline {
 
  private:
   std::vector<algorithm::Image> RunLoadingPipeline(
-      const std::vector<std::string> &inputs, const LoadingOptions &options);
+      const std::vector<std::filesystem::path> &inputs,
+      const LoadingOptions &loading_options, bool compute_keypoints);
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
                                    const MatchingOptions &options);
   StitchingResult RunStitchingPipeline(

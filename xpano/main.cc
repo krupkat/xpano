@@ -1,20 +1,6 @@
-/*
-    Xpano - a tool for stitching photos into panoramas.
-    Copyright (C) 2022  Tomas Krupka
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Vaibhav Sharma
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <clocale>
 #include <cstdio>
@@ -29,6 +15,7 @@
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 
+#include "xpano/cli/pano_cli.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/sdl.h"
 #include "xpano/gui/pano_gui.h"
@@ -38,12 +25,20 @@
 #include "xpano/utils/resource.h"
 #include "xpano/utils/sdl_.h"
 #include "xpano/utils/text.h"
+#include "xpano/version_fmt.h"
 
 #if !SDL_VERSION_ATLEAST(2, 0, 17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
-int main(int /*unused*/, char** /*unused*/) {
+int main(int argc, char** argv) {
+  std::string locale = std::setlocale(LC_ALL, "en_US.UTF-8");
+  auto [cli_status, args] = xpano::cli::Run(argc, argv);
+
+  if (cli_status != xpano::cli::ResultType::kForwardToGui) {
+    return xpano::cli::ExitCode(cli_status);
+  }
+
 #if SDL_VERSION_ATLEAST(2, 23, 1)
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
   // This feature isn't compatible with ImGui as of v1.88
@@ -69,11 +64,9 @@ int main(int /*unused*/, char** /*unused*/) {
 
   // Setup logging
   xpano::logger::Logger logger{};
-  logger.RedirectSpdlogOutput(app_data_path);
+  logger.RedirectSpdlogToGui(app_data_path);
   xpano::logger::RedirectSDLOutput();
-
-  std::string result = std::setlocale(LC_ALL, "en_US.UTF-8");
-  spdlog::info("Current locale: {}", result);
+  spdlog::info("Current locale: {}", locale);
 
   if (!app_data_path) {
     spdlog::warn(
@@ -96,9 +89,11 @@ int main(int /*unused*/, char** /*unused*/) {
 
   // Setup SDL Window + Renderer
   auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+  auto window_title = fmt::format("Xpano {}", xpano::version::Current());
   SDL_Window* window =
-      SDL_CreateWindow("Xpano", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       config.window_width, config.window_height, window_flags);
+      SDL_CreateWindow(window_title.c_str(), SDL_WINDOWPOS_CENTERED,
+                       SDL_WINDOWPOS_CENTERED, config.app_state.window_width,
+                       config.app_state.window_height, window_flags);
 
   SDL_Renderer* renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -132,7 +127,8 @@ int main(int /*unused*/, char** /*unused*/) {
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, std::move(license_texts));
+  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
+                          *args);
 
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
@@ -185,8 +181,7 @@ int main(int /*unused*/, char** /*unused*/) {
   }
 
   auto size = xpano::utils::sdl::GetSize(window);
-  xpano::utils::config::Save(app_data_path, {.window_width = size.width,
-                                             .window_height = size.height});
+  xpano::utils::config::Save(app_data_path, size, gui.GetOptions());
 
   // Cleanup
   ImGui_ImplSDLRenderer_Shutdown();

@@ -17,7 +17,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  CATCH_VERSION: "v3.3.1"
+  CATCH_VERSION: "v3.3.2"
 
 jobs:
   clang-tidy-check:

@@ -26,6 +26,8 @@ add_executable(StitcherTest
   ../xpano/algorithm/bundle_adjuster.cc
   ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/image.cc
+  ../xpano/algorithm/options.cc
+  ../xpano/pipeline/options.cc
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc
   ../xpano/utils/exiv2.cc)
@@ -81,12 +83,45 @@ target_include_directories(DisjointSetTest PRIVATE
   ".."
 )
 
+add_executable(SerializeTest 
+  serialize_test.cc
+  ../xpano/algorithm/options.cc
+  ../xpano/pipeline/options.cc
+)
+
+target_link_libraries(SerializeTest 
+  Catch2::Catch2WithMain
+  alpaca
+  spdlog::spdlog
+)
+
+target_include_directories(SerializeTest PRIVATE 
+  ".."
+)
+
+add_executable(ArgsTest 
+  args_test.cc
+  ../xpano/cli/args.cc
+  ../xpano/utils/path.cc
+)
+
+target_link_libraries(ArgsTest 
+  Catch2::Catch2WithMain
+  spdlog::spdlog
+)
+
+target_include_directories(ArgsTest PRIVATE 
+  ".."
+)
+
 set(ALL_TEST_TARGETS
   AutoCropTest
   DisjointSetTest
   RectTest
   StitcherTest
-  VecTest  
+  VecTest
+  SerializeTest
+  ArgsTest
 )
 
 foreach(name ${ALL_TEST_TARGETS})

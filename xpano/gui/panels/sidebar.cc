@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Naachiket Pant
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/gui/panels/sidebar.h"
 
 #include <algorithm>
@@ -16,6 +20,7 @@
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/shortcut.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/opencv.h"
@@ -73,9 +78,9 @@ void DrawCompressionOptionsMenu(
                      kMaxJpegQuality);
     ImGui::Checkbox("Progressive", &compression_options->jpeg_progressive);
     ImGui::Checkbox("Optimize", &compression_options->jpeg_optimize);
-    ImGui::Text("Chroma subsampling:");
-    ImGui::SameLine();
     if constexpr (utils::opencv::HasJpegSubsamplingSupport()) {
+      ImGui::Text("Chroma subsampling:");
+      ImGui::SameLine();
       utils::imgui::RadioBox(&compression_options->jpeg_subsampling,
                              pipeline::kSubsamplingModes);
       utils::imgui::InfoMarker("(?)",
@@ -138,28 +143,40 @@ bool DrawMatchConf(float* match_conf) {
 void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
                              bool debug_enabled) {
   if (ImGui::BeginMenu("Panorama detection")) {
-    ImGui::Text(
-        "Experiment with this if the app cannot find the panoramas you "
-        "want.");
-    ImGui::Spacing();
-    ImGui::SliderInt("Matching distance",
-                     &matching_options->neighborhood_search_size, 0,
-                     kMaxNeighborhoodSearchSize);
+    ImGui::Text("Matching type:");
     ImGui::SameLine();
-    utils::imgui::InfoMarker(
-        "(?)",
-        "Select how many neighboring images will be considered for panorama "
-        "auto detection.");
-    ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
-                     kMinMatchThreshold, kMaxMatchThreshold);
-    ImGui::SameLine();
-    utils::imgui::InfoMarker(
-        "(?)",
-        "Number of keypoints that need to match in order to include the two "
-        "images in a panorama.");
-    if (debug_enabled) {
-      ImGui::SeparatorText("Debug");
-      DrawMatchConf(&matching_options->match_conf);
+    utils::imgui::RadioBox(&matching_options->type, pipeline::kMatchingTypes);
+    utils::imgui::InfoMarker("(?)",
+                             "(1) Autodetect panoramas\n(2) Put all images in "
+                             "a single panorama\n(3) No groups are created "
+                             "(useful for manual image selection)");
+
+    if (matching_options->type == pipeline::MatchingType::kAuto) {
+      ImGui::Separator();
+      ImGui::Spacing();
+      ImGui::Text(
+          "Experiment with this if the app cannot find the panoramas you "
+          "want.");
+      ImGui::Spacing();
+      ImGui::SliderInt("Matching distance",
+                       &matching_options->neighborhood_search_size, 0,
+                       kMaxNeighborhoodSearchSize);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker("(?)",
+                               "Select how many neighboring images will be "
+                               "considered for panorama "
+                               "auto detection.");
+      ImGui::SliderInt("Matching threshold", &matching_options->match_threshold,
+                       kMinMatchThreshold, kMaxMatchThreshold);
+      ImGui::SameLine();
+      utils::imgui::InfoMarker("(?)",
+                               "Number of keypoints that need to match in "
+                               "order to include the two "
+                               "images in a panorama.");
+      if (debug_enabled) {
+        ImGui::SeparatorText("Debug");
+        DrawMatchConf(&matching_options->match_conf);
+      }
     }
     ImGui::EndMenu();
   }
@@ -263,20 +280,23 @@ void DrawAutofillOptionsMenu(pipeline::InpaintingOptions* inpaint_options) {
   }
 }
 
-Action DrawOptionsMenu(pipeline::CompressionOptions* compression_options,
-                       pipeline::LoadingOptions* loading_options,
-                       pipeline::InpaintingOptions* inpaint_options,
-                       pipeline::MatchingOptions* matching_options,
-                       pipeline::StitchAlgorithmOptions* stitch_options,
-                       bool debug_enabled) {
+Action DrawResetButton() {
+  if (ImGui::MenuItem("Reset options", Label(ShortcutType::kReset))) {
+    return {ActionType::kResetOptions};
+  }
+  return {};
+}
+
+Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
-    DrawCompressionOptionsMenu(compression_options);
-    DrawLoadingOptionsMenu(loading_options);
-    DrawMatchingOptionsMenu(matching_options, debug_enabled);
-    action |= DrawStitchOptionsMenu(stitch_options, debug_enabled);
+    action |= DrawResetButton();
+    DrawCompressionOptionsMenu(&options->compression);
+    DrawLoadingOptionsMenu(&options->loading);
+    DrawMatchingOptionsMenu(&options->matching, debug_enabled);
+    action |= DrawStitchOptionsMenu(&options->stitch, debug_enabled);
     if (debug_enabled) {
-      DrawAutofillOptionsMenu(inpaint_options);
+      DrawAutofillOptionsMenu(&options->inpaint);
     }
     ImGui::EndMenu();
   }
@@ -397,7 +417,9 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
       ImGui::TableNextColumn();
       ImGui::PushID(i);
       if (ImGui::SmallButton("Show")) {
-        action = {ActionType::kShowPano, i};
+        action = {.type = ActionType::kShowPano,
+                  .target_id = i,
+                  .extra = ShowPanoExtra{.scroll_thumbnails = true}};
       }
       ImGui::PopID();
 
@@ -415,28 +437,18 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(pipeline::CompressionOptions* compression_options,
-                pipeline::LoadingOptions* loading_options,
-                pipeline::InpaintingOptions* inpaint_options,
-                pipeline::MatchingOptions* matching_options,
-                pipeline::StitchAlgorithmOptions* stitch_options,
-                bool debug_enabled) {
+Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
-    action |=
-        DrawOptionsMenu(compression_options, loading_options, inpaint_options,
-                        matching_options, stitch_options, debug_enabled);
+    action |= DrawOptionsMenu(options, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }
   return action;
 }
 
-void DrawWelcomeTextPart1() {
-  ImGui::Text("Welcome to Xpano!");
-  ImGui::Text(" 1) Import your images:");
-}
+void DrawWelcomeTextPart1() { ImGui::Text(" 1) Import your images:"); }
 
 void DrawWelcomeTextPart2() {
   ImGui::Text(" 2) Select a panorama");
@@ -481,8 +493,9 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       image_type == ImageType::kPanoPreview,
       [&] {
         if (ImGui::Button("Full-res")) {
-          action |=
-              {.type = ActionType::kShowFullResPano, .target_id = target_id};
+          action |= {.type = ActionType::kShowPano,
+                     .target_id = target_id,
+                     .extra = ShowPanoExtra{.full_res = true}};
         }
       },
       image_type == ImageType::kPanoFullRes ? "Already computed"

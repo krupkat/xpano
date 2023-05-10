@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Naachiket Pant
+// SPDX-FileCopyrightText: 2022 Vaibhav Sharma
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/gui/pano_gui.h"
 
 #include <algorithm>
@@ -13,6 +18,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/cli/args.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
@@ -24,8 +30,11 @@
 #include "xpano/gui/shortcut.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/config.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
+#include "xpano/utils/path.h"
+#include "xpano/version.h"
 
 template <>
 struct fmt::formatter<xpano::gui::StatusMessage> : formatter<std::string> {
@@ -178,7 +187,7 @@ auto ResolveStitchingResultFuture(
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
-        *result.export_path};
+        result.export_path->string()};
     spdlog::info(*status_message);
     export_pano_id = result.pano_id;
   }
@@ -201,7 +210,7 @@ auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
-        *result.export_path};
+        result.export_path->string()};
     spdlog::info(*status_message);
     plot_pane->EndCrop();
     return result.pano_id;
@@ -229,39 +238,73 @@ auto ResolveInpaintingResultFuture(
   spdlog::info(*status_message);
 }
 
-const std::string& FirstPanoImage(const pipeline::StitcherData& stitcher_data,
-                                  int pano_id) {
-  auto image_id = stitcher_data.panos.at(pano_id).ids.front();
-  return stitcher_data.images.at(image_id).GetPath();
+bool AnyRawImage(const std::vector<algorithm::Image>& images) {
+  return std::any_of(images.begin(), images.end(),
+                     [](const auto& img) { return img.IsRaw(); });
+}
+
+WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
+  switch (loading_status) {
+    case utils::config::LoadingStatus::kNoSuchFile:
+      return WarningType::kFirstTimeLaunch;
+    case utils::config::LoadingStatus::kBreakingChange:
+      return WarningType::kUserPrefBreakingChange;
+    case utils::config::LoadingStatus::kUnknownError:
+      return WarningType::kUserPrefCouldntLoad;
+    default:
+      return WarningType::kNone;
+  }
+}
+
+algorithm::Image const* FirstImage(const pipeline::StitcherData& stitcher_data,
+                                   int pano_id) {
+  const auto& pano = stitcher_data.panos.at(pano_id);
+  return &stitcher_data.images.at(pano.ids.at(0));
 }
 
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
-                 std::future<utils::Texts> licenses)
-    : plot_pane_(backend),
-      thumbnail_pane_(backend),
+                 const utils::config::Config& config,
+                 std::future<utils::Texts> licenses, const cli::Args& args)
+    : options_(config.user_options),
       log_pane_(logger),
+      about_pane_(std::move(licenses)),
       bugreport_pane_(logger),
-      about_pane_(std::move(licenses)) {}
+      plot_pane_(backend),
+      thumbnail_pane_(backend) {
+  if (config.app_state.xpano_version != version::Current()) {
+    warning_pane_.QueueNewVersion(config.app_state.xpano_version,
+                                  about_pane_.GetText(kChangelogFilename));
+  }
+  if (config.user_options_status != utils::config::LoadingStatus::kSuccess) {
+    warning_pane_.Queue(GetWarningType(config.user_options_status));
+  }
+  if (!args.input_paths.empty()) {
+    next_actions_ |=
+        Action{.type = ActionType::kLoadFiles, .extra = args.input_paths};
+  }
+}
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
 bool PanoGui::Run() {
-  Action action{};
-  std::swap(action, delayed_action_);
+  MultiAction actions = std::move(next_actions_);
 
-  action |= DrawGui();
-  action |= CheckKeybindings();
-  action |= ResolveFutures();
-  if (action.type != ActionType::kNone) {
-    action |= PerformAction(action);
-  }
+  actions |= DrawGui();
+  actions |= CheckKeybindings();
+  actions |= ResolveFutures();
 
-  if (action.delayed) {
-    delayed_action_ = RemoveDelay(action);
+  MultiAction extra_actions;
+  for (const auto& action : actions.items) {
+    extra_actions |= PerformAction(action);
   }
-  return action.type == ActionType::kQuit;
+  actions |= extra_actions;
+  next_actions_ = ForwardDelayed(actions);
+
+  return std::any_of(
+      actions.items.begin(), actions.items.end(),
+      [](const auto& action) { return action.type == ActionType::kQuit; });
 }
 
 Action PanoGui::DrawGui() {
@@ -272,6 +315,7 @@ Action PanoGui::DrawGui() {
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
+  warning_pane_.Draw();
   return action;
 }
 
@@ -279,15 +323,13 @@ Action PanoGui::DrawSidebar() {
   Action action{};
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
-  action |=
-      DrawMenu(&compression_options_, &loading_options_, &inpaint_options_,
-               &matching_options_, &stitch_options_, IsDebugEnabled());
 
+  action |= DrawMenu(&options_, IsDebugEnabled());
   DrawWelcomeTextPart1();
   action |= DrawImportActionButtons();
   DrawWelcomeTextPart2();
   action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id,
-                              &stitch_options_.projection.type);
+                              &options_.stitch.projection.type);
 
   auto progress = stitcher_pipeline_.Progress();
   DrawProgressBar(progress);
@@ -331,9 +373,9 @@ void PanoGui::Reset() {
   stitcher_data_.reset();
 }
 
-Action PanoGui::PerformAction(Action action) {
+Action PanoGui::PerformAction(const Action& action) {
   if (action.delayed) {
-    return action;
+    return {};
   }
 
   switch (action.type) {
@@ -352,25 +394,29 @@ Action PanoGui::PerformAction(Action action) {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Exporting pano {}", selection_.target_id);
         status_message_ = {};
-        auto default_name = fmt::format("pano_{}.jpg", selection_.target_id);
+        auto default_name =
+            FirstImage(*stitcher_data_, selection_.target_id)->PanoName();
         if (auto export_path = file_dialog::Save(default_name); export_path) {
           if (plot_pane_.Type() == ImageType::kPanoFullRes) {
             auto metadata_path =
-                FirstPanoImage(*stitcher_data_, selection_.target_id);
+                FirstImage(*stitcher_data_, selection_.target_id)->GetPath();
             export_future_ = stitcher_pipeline_.RunExport(
                 plot_pane_.Image(), {.pano_id = selection_.target_id,
                                      .metadata_path = metadata_path,
                                      .export_path = *export_path,
-                                     .compression = compression_options_,
+                                     .compression = options_.compression,
                                      .crop = plot_pane_.CropRect()});
           } else {
             pano_future_ = stitcher_pipeline_.RunStitching(
                 *stitcher_data_, {.pano_id = selection_.target_id,
                                   .full_res = true,
                                   .export_path = *export_path,
-                                  .compression = compression_options_,
-                                  .stitch_algorithm = stitch_options_});
+                                  .compression = options_.compression,
+                                  .stitch_algorithm = options_.stitch});
           }
+        } else {
+          spdlog::warn(export_path.error());
+          warning_pane_.QueueFilePickerError(export_path.error());
         }
       }
       break;
@@ -380,7 +426,7 @@ Action PanoGui::PerformAction(Action action) {
         spdlog::info("Auto fill pano {}", selection_.target_id);
         status_message_ = {};
         inpaint_future_ = stitcher_pipeline_.RunInpainting(
-            plot_pane_.Image(), *pano_mask_, inpaint_options_);
+            plot_pane_.Image(), *pano_mask_, options_.inpaint);
       } else {
         status_message_ = {"Full-resolution panorama not available",
                            "Please rerun full-resolution stitching"};
@@ -391,10 +437,19 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      if (auto results = file_dialog::Open(action); !results.empty()) {
+      auto files = file_dialog::Open(action);
+      if (!files) {
+        spdlog::warn(files.error());
+        warning_pane_.QueueFilePickerError(files.error());
+        break;
+      }
+      return {.type = ActionType::kLoadFiles, .delayed = true, .extra = *files};
+    }
+    case ActionType::kLoadFiles: {
+      if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {
         Reset();
         stitcher_data_future_ = stitcher_pipeline_.RunLoading(
-            results, loading_options_, matching_options_);
+            files, options_.loading, options_.matching);
       }
       break;
     }
@@ -408,20 +463,20 @@ Action PanoGui::PerformAction(Action action) {
       thumbnail_pane_.Highlight(match.id1, match.id2);
       break;
     }
-    case ActionType::kShowFullResPano:
-      [[fallthrough]];
     case ActionType::kShowPano: {
       selection_ = {SelectionType::kPano, action.target_id};
       spdlog::info("Calculating pano preview {}", selection_.target_id);
       status_message_ = {};
+      auto extra = ValueOrDefault<ShowPanoExtra>(action);
       pano_future_ = stitcher_pipeline_.RunStitching(
-          *stitcher_data_,
-          {.pano_id = selection_.target_id,
-           .full_res = action.type == ActionType::kShowFullResPano,
-           .stitch_algorithm = stitch_options_});
+          *stitcher_data_, {.pano_id = selection_.target_id,
+                            .full_res = extra.full_res,
+                            .stitch_algorithm = options_.stitch});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
-      thumbnail_pane_.SetScrollX(pano.ids);
       thumbnail_pane_.Highlight(pano.ids);
+      if (extra.scroll_thumbnails) {
+        thumbnail_pane_.SetScrollX(pano.ids);
+      }
       break;
     }
     case ActionType::kModifyPano: {
@@ -430,7 +485,7 @@ Action PanoGui::PerformAction(Action action) {
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
-                     Label(stitch_options_.projection.type));
+                     Label(options_.stitch.projection.type));
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
                 .delayed = true};
@@ -460,17 +515,35 @@ Action PanoGui::PerformAction(Action action) {
       plot_pane_.ToggleCrop();
       break;
     }
+    case ActionType::kWarnInputConversion: {
+      warning_pane_.Queue(WarningType::kWarnInputConversion);
+      break;
+    }
+    case ActionType::kResetOptions: {
+      options_ = {};
+      warning_pane_.Queue(WarningType::kUserPrefResetOnRequest);
+      break;
+    }
   }
-  return action;
+  return {};
 }
 
-Action PanoGui::ResolveFutures() {
+MultiAction PanoGui::ResolveFutures() {
+  MultiAction actions;
   if (utils::future::IsReady(stitcher_data_future_)) {
     stitcher_data_ = ResolveStitcherDataFuture(
         std::move(stitcher_data_future_), &thumbnail_pane_, &status_message_);
 
+    if (stitcher_data_ && AnyRawImage(stitcher_data_->images)) {
+      actions |= {.type = ActionType::kWarnInputConversion};
+    }
     if (stitcher_data_ && !stitcher_data_->panos.empty()) {
-      return {.type = ActionType::kShowPano, .target_id = 0, .delayed = true};
+      // keep delayed == true to wait for the thumbnails to be drawn at leaset
+      // once before scrolling
+      actions |= {.type = ActionType::kShowPano,
+                  .target_id = 0,
+                  .delayed = true,
+                  .extra = ShowPanoExtra{.scroll_thumbnails = true}};
     }
   }
 
@@ -495,7 +568,9 @@ Action PanoGui::ResolveFutures() {
     ResolveInpaintingResultFuture(std::move(inpaint_future_), &plot_pane_,
                                   &status_message_);
   }
-  return {};
+  return actions;
 }
+
+pipeline::Options PanoGui::GetOptions() const { return options_; }
 
 }  // namespace xpano::gui

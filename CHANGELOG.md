@@ -1,3 +1,18 @@
+# Xpano 0.13.0
+
+- Basic command line support
+- Panorama detection type: auto, single pano, none
+
+# Xpano 0.12.0
+
+- Persistent user preferences
+  - With option to reset to defaults
+- Added support for popup info messages, e.g.:
+  - Show changelog after version update
+  - Warn when loading 16-bit images
+- Allow loading files with the 'tif' extension
+- Fix crash when minimizing the app
+
 # Xpano 0.11.0
 
 - Automatic panorama wave correction

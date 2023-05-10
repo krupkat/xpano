@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Naachiket Pant
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <filesystem>
@@ -28,7 +32,7 @@ class Logger {
  public:
   Logger();
   const std::vector<std::string> &Log();
-  void RedirectSpdlogOutput(std::optional<std::filesystem::path> app_data_path);
+  void RedirectSpdlogToGui(std::optional<std::filesystem::path> app_data_path);
 
   std::optional<std::string> GetLogDirPath();
 
@@ -42,5 +46,7 @@ class Logger {
 };
 
 void RedirectSDLOutput();
+
+void RedirectSpdlogToCout();
 
 }  // namespace xpano::logger

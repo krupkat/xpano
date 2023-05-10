@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Naachiket Pant
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/log/logger.h"
 
 #include <algorithm>
@@ -11,6 +15,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/logger.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
@@ -63,7 +68,7 @@ void BufferSinkMt::flush_() {}
 
 Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
 
-void Logger::RedirectSpdlogOutput(
+void Logger::RedirectSpdlogToGui(
     std::optional<std::filesystem::path> app_data_path) {
   std::vector<spdlog::sink_ptr> sinks;
   sink_->set_pattern("[%l] %v");
@@ -96,5 +101,12 @@ void Logger::Concatenate() {
 std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_; }
 
 void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
+
+void RedirectSpdlogToCout() {
+  auto logger = spdlog::stdout_logger_mt("console");
+  logger->flush_on(spdlog::level::info);
+  logger->set_pattern("%l: %v");
+  spdlog::set_default_logger(logger);
+};
 
 }  // namespace xpano::logger

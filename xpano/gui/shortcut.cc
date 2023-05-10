@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/gui/shortcut.h"
 
 #include <imgui.h>
@@ -13,6 +16,8 @@ const char* Label(ShortcutType type) {
       return reinterpret_cast<const char*>(u8"⌘ S");
     case ShortcutType::kDebug:
       return reinterpret_cast<const char*>(u8"⌘ D");
+    case ShortcutType::kReset:
+      return reinterpret_cast<const char*>(u8"⌘ R");
     default:
       return "";
   }
@@ -24,6 +29,8 @@ const char* Label(ShortcutType type) {
       return "CTRL+S";
     case ShortcutType::kDebug:
       return "CTRL+D";
+    case ShortcutType::kReset:
+      return "CTRL+R";
     default:
       return "";
   }
@@ -44,6 +51,9 @@ Action CheckKeybindings() {
   }
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
     return {ActionType::kToggleDebugLog};
+  }
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_R)) {
+    return {ActionType::kResetOptions};
   }
   return {ActionType::kNone};
 }

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <array>
@@ -26,8 +29,8 @@ constexpr int kResizingDelayFrames = 30;
 constexpr int kScrollingStep = 200;
 constexpr int kScrollingStepPerFrame = 25;
 
-const std::array<std::string, 5> kSupportedExtensions = {"jpg", "jpeg", "tiff",
-                                                         "png", "bmp"};
+const std::array<std::string, 6> kSupportedExtensions = {"jpg", "jpeg", "tiff",
+                                                         "tif", "png",  "bmp"};
 
 const std::string kLogFilename = "logs/xpano.log";
 constexpr int kMaxLogSize = 5 * 1024 * 1024;
@@ -37,6 +40,7 @@ const char* const kCheckMark = reinterpret_cast<const char*>(u8"✓");
 const char* const kCommandSymbol = reinterpret_cast<const char*>(u8"⌘");
 
 constexpr auto kTaskCancellationTimeout = std::chrono::milliseconds(500);
+constexpr auto kCancellationTimeout = std::chrono::milliseconds(500);
 
 constexpr int kDefaultJpegQuality = 95;
 constexpr int kMaxJpegQuality = 100;
@@ -46,6 +50,7 @@ constexpr int kMaxPngCompression = 9;
 constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
 constexpr int kSidebarWidth = 27;
+constexpr int kWideButtonWidth = 12;
 
 const std::string kOrgName = "krupkat";
 const std::string kAppName = "Xpano";
@@ -69,7 +74,9 @@ constexpr float kDefaultMatchConf = 0.25f;
 constexpr float kMinMatchConf = 0.1f;
 constexpr float kMaxMatchConf = 0.4f;
 
-const std::string kConfigFilename = "config.txt";
+const std::string kAppConfigFilename = "app_config.alpaca";
+const std::string kUserConfigFilename = "user_config.alpaca";
+const std::string kChangelogFilename = "CHANGELOG.md";
 
 constexpr int kCropEdgeTolerance = 10;
 constexpr int kAutoCropSamplingDistance = 512;
@@ -78,5 +85,8 @@ constexpr double kDefaultInpaintingRadius = 3.0;
 constexpr double kMaxInpaintingRadius = 15.0;
 constexpr double kInpaintingRadiusStep = 1.0;
 constexpr float kMegapixel = 1'000'000;
+
+const std::string kDefaultPanoSuffix = "_pano";
+constexpr int kMaxImageSizeForCLI = 8192;
 
 }  // namespace xpano

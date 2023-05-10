@@ -16,6 +16,10 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("external/nativefiledialog-extended")
+add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
+
+set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
+add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -33,6 +37,10 @@ set(XPANO_SOURCES
   "xpano/algorithm/auto_crop.cc"
   "xpano/algorithm/bundle_adjuster.cc"
   "xpano/algorithm/image.cc"
+  "xpano/algorithm/options.cc"
+  "xpano/cli/args.cc"
+  "xpano/cli/pano_cli.cc"
+  "xpano/cli/signal.cc"
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
   "xpano/gui/backends/sdl.cc"
@@ -44,17 +52,24 @@ set(XPANO_SOURCES
   "xpano/gui/panels/preview_pane.cc"
   "xpano/gui/panels/sidebar.cc"
   "xpano/gui/panels/thumbnail_pane.cc"
+  "xpano/gui/panels/warning_pane.cc"
   "xpano/gui/pano_gui.cc"
   "xpano/gui/shortcut.cc"
+  "xpano/pipeline/options.cc"
   "xpano/pipeline/stitcher_pipeline.cc"
   "xpano/utils/config.cc"
   "xpano/utils/disjoint_set.cc"
   "xpano/utils/exiv2.cc"
   "xpano/utils/imgui_.cc"
+  "xpano/utils/path.cc"
   "xpano/utils/resource.cc"
   "xpano/utils/sdl_.cc"
   "xpano/utils/text.cc"
 )
+
+if (WIN32)
+ list(APPEND XPANO_SOURCES "xpano/cli/windows_console.cc")
+endif()
 
 find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching)
@@ -84,7 +99,14 @@ set(OPENCV_TARGETS
   opencv_stitching
 )
 
+if(NOT TARGET SDL2::SDL2main)
+# This is a workaround for SDL 2.24.0, still needed for build on Kinetic
+  add_library(SDL2::SDL2main INTERFACE IMPORTED)
+endif()
+
 target_link_libraries(Xpano
+  alpaca
+  expected
   nfd
   ${OPENCV_TARGETS}
   SDL2::SDL2
@@ -152,6 +174,11 @@ install(FILES
   "external/thread-pool/LICENSE.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "thread-pool-license.txt"
+)
+install(FILES
+  "external/alpaca/LICENSE"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "alpaca-license.txt"
 )
 install(FILES
   "misc/assets/OFL.txt"

@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <imgui.h>
 
@@ -26,6 +30,10 @@ class FontLoader {
 void InfoMarker(const std::string& label, const std::string& desc);
 
 std::string InitIniFilePath(std::optional<std::filesystem::path> app_data_path);
+
+void DrawScrollableText(const char* label,
+                        const std::vector<std::string>& lines,
+                        ImVec2 size = ImVec2(0, 0));
 
 template <typename TCallbackType>
 void EnableIf(bool condition, TCallbackType callback,
@@ -71,5 +79,7 @@ void RadioBox(TOptionType* current_option,
     ImGui::SameLine();
   }
 }
+
+ImVec2 DpiAwareSize(int width, int height);
 
 }  // namespace xpano::utils::imgui

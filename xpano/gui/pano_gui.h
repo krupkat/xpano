@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-FileCopyrightText: 2022 Naachiket Pant
+// SPDX-FileCopyrightText: 2022 Vaibhav Sharma
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <future>
@@ -6,6 +11,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "xpano/cli/args.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/panels/about.h"
@@ -13,8 +19,11 @@
 #include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/panels/warning_pane.h"
 #include "xpano/log/logger.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/config.h"
 #include "xpano/utils/text.h"
 
 namespace xpano::gui {
@@ -39,28 +48,26 @@ struct Selection {
 class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::Logger* logger,
-          std::future<utils::Texts> licenses);
+          const utils::config::Config& config,
+          std::future<utils::Texts> licenses, const cli::Args& args);
 
   bool Run();
+  pipeline::Options GetOptions() const;
 
  private:
   Action DrawGui();
   Action DrawSidebar();
-  Action ResolveFutures();
-  Action PerformAction(Action action);
+  MultiAction ResolveFutures();
+  Action PerformAction(const Action& action);
   void Reset();
   bool IsDebugEnabled() const;
 
   // PODs
   Selection selection_;
-  Action delayed_action_ = {ActionType::kNone};
+  MultiAction next_actions_;
   StatusMessage status_message_;
 
-  pipeline::CompressionOptions compression_options_;
-  pipeline::LoadingOptions loading_options_;
-  pipeline::InpaintingOptions inpaint_options_;
-  pipeline::MatchingOptions matching_options_;
-  pipeline::StitchAlgorithmOptions stitch_options_;
+  pipeline::Options options_;
   std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels
@@ -69,6 +76,7 @@ class PanoGui {
   BugReportPane bugreport_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
+  WarningPane warning_pane_;
 
   // Algorithm
   pipeline::StitcherPipeline stitcher_pipeline_;

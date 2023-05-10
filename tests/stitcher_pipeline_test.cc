@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/pipeline/stitcher_pipeline.h"
 
 #include <filesystem>
@@ -18,7 +21,7 @@ using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
 using Catch::Matchers::WithinRel;
 
-const std::vector<std::string> kInputs = {
+const std::vector<std::filesystem::path> kInputs = {
     "data/image00.jpg", "data/image01.jpg", "data/image02.jpg",
     "data/image03.jpg", "data/image04.jpg", "data/image05.jpg",
     "data/image06.jpg", "data/image07.jpg", "data/image08.jpg",
@@ -80,7 +83,53 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK(total_pixels == non_zero_pixels);
 }
 
-const std::vector<std::string> kShuffledInputs = {
+// Clang-tidy doesn't like the macros
+// NOLINTBEGIN(readability-function-cognitive-complexity)
+
+TEST_CASE("Stitcher pipeline single pano matching") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result =
+      stitcher
+          .RunLoading(kInputs, {},
+                      {.type = xpano::pipeline::MatchingType::kSinglePano})
+          .get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 10);
+  CHECK(result.matches.empty());
+  REQUIRE(result.panos.size() == 1);
+  REQUIRE_THAT(result.panos[0].ids,
+               Equals<int>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+
+  for (const auto& image : result.images) {
+    REQUIRE(image.GetKeypoints().empty());
+    REQUIRE(image.GetDescriptors().empty());
+  }
+}
+
+TEST_CASE("Stitcher pipeline no matching") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result = stitcher
+                    .RunLoading(kInputs, {},
+                                {.type = xpano::pipeline::MatchingType::kNone})
+                    .get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 10);
+  CHECK(result.matches.empty());
+  REQUIRE(result.panos.empty());
+
+  for (const auto& image : result.images) {
+    REQUIRE(image.GetKeypoints().empty());
+    REQUIRE(image.GetDescriptors().empty());
+  }
+}
+
+// NOLINTEND(readability-function-cognitive-complexity)
+
+const std::vector<std::filesystem::path> kShuffledInputs = {
     "data/image01.jpg",  // Pano 1
     "data/image06.jpg",  // 2
     "data/image02.jpg",  // Pano 1
@@ -187,7 +236,7 @@ TEST_CASE("Stitcher pipeline loading options") {
                        allowed_margin));
 }
 
-const std::vector<std::string> kVerticalPanoInputs = {
+const std::vector<std::filesystem::path> kVerticalPanoInputs = {
     "data/image10.jpg",
     "data/image11.jpg",
     "data/image12.jpg",
@@ -220,8 +269,8 @@ TEST_CASE("Stitcher pipeline vertical pano") {
 }
 
 TEST_CASE("Export") {
-  const std::string tmp_path = xpano::tests::TmpPath() + ".jpg";
-  std::cout << "Exporting to " << tmp_path << std::endl;
+  const std::filesystem::path tmp_path =
+      xpano::tests::TmpPath().replace_extension("jpg");
 
   xpano::pipeline::StitcherPipeline stitcher;
   auto data =
@@ -234,16 +283,50 @@ TEST_CASE("Export") {
   const float eps = 0.01;
 
   REQUIRE(std::filesystem::exists(tmp_path));
-  auto image = cv::imread(tmp_path);
+  auto image = cv::imread(tmp_path.string());
   REQUIRE(!image.empty());
   CHECK_THAT(image.rows, WithinRel(1342, eps));
   CHECK_THAT(image.cols, WithinRel(1030, eps));
 
-  auto read_img = Exiv2::ImageFactory::open(tmp_path);
+  auto read_img = Exiv2::ImageFactory::open(tmp_path.string());
   read_img->readMetadata();
   auto exif = read_img->exifData();
   auto software = exif["Exif.Image.Software"].toString();
   REQUIRE(software.starts_with("Xpano"));
 
   std::filesystem::remove(tmp_path);
+}
+
+const std::vector<std::filesystem::path> kTiffInputs = {
+    "data/8bit.tif",
+    "data/16bit.tif",
+};
+
+TEST_CASE("TIFF inputs") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result = stitcher.RunLoading(kTiffInputs, {}, {}).get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.size() == 2);
+  REQUIRE(!result.images[0].IsRaw());
+  REQUIRE(result.images[1].IsRaw());
+
+  auto preview0 = result.images[0].GetPreview();
+  auto preview1 = result.images[1].GetPreview();
+  CHECK(preview0.depth() == CV_8U);
+  CHECK(preview1.depth() == CV_8U);
+}
+
+const std::filesystem::path kMalformedInput = "data/malformed.jpg";
+
+TEST_CASE("Malformed input") {
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto result = stitcher.RunLoading({kMalformedInput}, {}, {}).get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(result.images.empty());
+  REQUIRE(result.matches.empty());
+  REQUIRE(result.panos.empty());
 }
