@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Tomas Krupka
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "xpano/utils/exiv2.h"
 
 #include <exiv2/exiv2.hpp>
