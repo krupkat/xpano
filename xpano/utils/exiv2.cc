@@ -40,7 +40,11 @@ void UpdateImageSize(Exiv2::ExifData& exif_data, const Vec2i& image_size) {
 
 void UpdateOrientation(Exiv2::ExifData& exif_data, int orientation) {
   UpdateTagIfExisting(exif_data, "Exif.Image.Orientation", orientation);
-  UpdateTagIfExisting(exif_data, "Exif.Thumbnail.Orientation", orientation);
+}
+
+void EraseThumbnail(Exiv2::ExifData& exif_data) {
+  auto thumb = Exiv2::ExifThumb(exif_data);
+  thumb.erase();
 }
 
 }  // namespace
@@ -67,6 +71,7 @@ void CreateExif(const std::filesystem::path& from_path,
     AddSoftwareTag(write_img->exifData());
     UpdateImageSize(write_img->exifData(), image_size);
     UpdateOrientation(write_img->exifData(), kExifDefaultOrientation);
+    EraseThumbnail(write_img->exifData());
 
     write_img->writeMetadata();
   } catch (const Exiv2::Error&) {
