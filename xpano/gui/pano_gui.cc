@@ -392,7 +392,7 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kExport: {
       if (selection_.type == SelectionType::kPano) {
-        PerformExportAction(action);
+        PerformExportAction(selection_.target_id);
       }
       break;
     }
@@ -503,11 +503,11 @@ Action PanoGui::PerformAction(const Action& action) {
   return {};
 }
 
-void PanoGui::PerformExportAction(const Action& action) {
-  spdlog::info("Exporting pano {}", selection_.target_id);
+void PanoGui::PerformExportAction(int pano_id) {
+  spdlog::info("Exporting pano {}", pano_id);
   status_message_ = {};
 
-  const auto* first_image = FirstImage(*stitcher_data_, selection_.target_id);
+  const auto* first_image = FirstImage(*stitcher_data_, pano_id);
   auto export_path = file_dialog::Save(first_image->PanoName());
 
   if (!export_path) {
@@ -522,14 +522,14 @@ void PanoGui::PerformExportAction(const Action& action) {
       metadata_path = first_image->GetPath();
     }
     export_future_ = stitcher_pipeline_.RunExport(
-        plot_pane_.Image(), {.pano_id = selection_.target_id,
+        plot_pane_.Image(), {.pano_id = pano_id,
                              .export_path = *export_path,
                              .metadata_path = metadata_path,
                              .compression = options_.compression,
                              .crop = plot_pane_.CropRect()});
   } else {
     pano_future_ = stitcher_pipeline_.RunStitching(
-        *stitcher_data_, {.pano_id = selection_.target_id,
+        *stitcher_data_, {.pano_id = pano_id,
                           .full_res = true,
                           .export_path = *export_path,
                           .metadata = options_.metadata,

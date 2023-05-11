@@ -59,7 +59,7 @@ class PanoGui {
   Action DrawSidebar();
   MultiAction ResolveFutures();
   Action PerformAction(const Action& action);
-  void PerformExportAction(const Action& action);
+  void PerformExportAction(int pano_id);
   void Reset();
   bool IsDebugEnabled() const;
 
