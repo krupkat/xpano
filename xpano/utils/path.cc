@@ -20,12 +20,23 @@ std::string LowercaseExtension(const std::filesystem::path& path) {
                  [](unsigned char letter) { return std::tolower(letter); });
   return extension;
 }
+
+template <typename TArray>
+bool ContainsExtensionIgnoreCase(const TArray& extensions,
+                                 const std::filesystem::path& path) {
+  return path.has_extension() &&
+         std::find(extensions.begin(), extensions.end(),
+                   LowercaseExtension(path)) != extensions.end();
+}
+
 }  // namespace
 
 bool IsExtensionSupported(const std::filesystem::path& path) {
-  return path.has_extension() &&
-         std::find(kSupportedExtensions.begin(), kSupportedExtensions.end(),
-                   LowercaseExtension(path)) != kSupportedExtensions.end();
+  return ContainsExtensionIgnoreCase(kSupportedExtensions, path);
+}
+
+bool IsMetadataExtensionSupported(const std::filesystem::path& path) {
+  return ContainsExtensionIgnoreCase(kMetadataSupportedExtensions, path);
 }
 
 std::vector<std::filesystem::path> KeepSupported(

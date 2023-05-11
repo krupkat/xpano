@@ -30,7 +30,8 @@ add_executable(StitcherTest
   ../xpano/pipeline/options.cc
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc
-  ../xpano/utils/exiv2.cc)
+  ../xpano/utils/exiv2.cc
+  ../xpano/utils/path.cc)
 
 target_link_libraries(StitcherTest 
   Catch2::Catch2WithMain

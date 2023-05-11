@@ -32,6 +32,9 @@ constexpr int kScrollingStepPerFrame = 25;
 const std::array<std::string, 6> kSupportedExtensions = {"jpg", "jpeg", "tiff",
                                                          "tif", "png",  "bmp"};
 
+const std::array<std::string, 4> kMetadataSupportedExtensions = {"jpg", "jpeg",
+                                                                 "tiff", "tif"};
+
 const std::string kLogFilename = "logs/xpano.log";
 constexpr int kMaxLogSize = 5 * 1024 * 1024;
 constexpr int kMaxLogFiles = 5;

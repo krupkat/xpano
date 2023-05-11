@@ -4,6 +4,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
+#include "xpano/utils/path.h"
 #include "xpano/version_fmt.h"
 
 namespace xpano::utils::exiv2 {
@@ -18,6 +19,16 @@ void AddSoftwareTag(Exiv2::ExifData& exif_data) {
 
 void CreateExif(const std::filesystem::path& from_path,
                 const std::filesystem::path& to_path) {
+  if (!path::IsMetadataExtensionSupported(from_path)) {
+    spdlog::info("Reading metadata is not supported for {}",
+                 from_path.string());
+    return;
+  }
+  if (!path::IsMetadataExtensionSupported(to_path)) {
+    spdlog::warn("Writing metadata is not supported for {}", to_path.string());
+    return;
+  }
+
   try {
     auto read_img = Exiv2::ImageFactory::open(from_path.string());
     read_img->readMetadata();
