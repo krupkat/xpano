@@ -16,6 +16,7 @@ env:
   OPENCV_VERSION: "4.7.0"
   CATCH_VERSION: "v3.3.2"
   SPDLOG_VERSION: "v1.11.0"
+  EXIV2_VERSION: "v0.28.0"
   GENERATOR: "Ninja Multi-Config"
 
 jobs:
@@ -111,11 +112,34 @@ jobs:
         cmake --build build --target install --config $env:BUILD_TYPE
         cd ..
 
+    - name: Cache exiv2
+      uses: actions/cache@v3
+      id: cache-exiv2
+      with:
+        path: |
+          exiv2/COPYING
+          exiv2/install
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-static-${{env.BUILD_TYPE}}-ninja
+
+    - name: Install exiv2
+      if: steps.cache-exiv2.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $env:EXIV2_VERSION
+        cd exiv2
+        cmake -B build -G "$env:GENERATOR" `
+          -DBUILD_SHARED_LIBS=OFF `
+          -DEXIV2_ENABLE_DYNAMIC_RUNTIME=OFF `
+          -DCMAKE_INSTALL_PREFIX=install `
+          @(Get-Content ../misc/build/exiv2-minimal-flags.txt)
+        cmake --build build --target install --config $env:BUILD_TYPE
+        cd ..
+
     - name: Bundle extra licenses
       run: |
         New-Item -Name "licenses" -ItemType "directory"
         Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
         Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
+        Copy-Item "exiv2/COPYING" -Destination "licenses/exiv2-license.txt"
 
     - name: Configure CMake
       run: |
@@ -130,6 +154,7 @@ jobs:
           -DOpenCV_DIR="opencv/install" `
           -Dspdlog_DIR="spdlog/build/install/lib/cmake/spdlog" `
           -DCatch2_DIR="../catch/install/lib/cmake/Catch2" `
+          -Dexiv2_DIR="exiv2/install/lib/cmake/exiv2"
 
     - name: Build
       run: cmake --build build --config $env:BUILD_TYPE --target install
@@ -137,7 +162,7 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest -C $env:BUILD_TYPE
+        ctest -C $env:BUILD_TYPE --output-on-failure
         cd ..
 
   build-ubuntu-22:
@@ -169,6 +194,24 @@ jobs:
         cmake --build build -j $(nproc) --target install
         cd ..
 
+    - name: Cache exiv2
+      uses: actions/cache@v3
+      id: cache-exiv2
+      with:
+        path: exiv2/install
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-22.04
+
+    - name: Install exiv2
+      if: steps.cache-exiv2.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
+        cd exiv2
+        cmake -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/exiv2-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
     - name: Configure CMake
       run: |
         cmake -B build \
@@ -176,7 +219,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DCatch2_DIR=../catch/install/lib/cmake/Catch2
+          -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
+          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -184,7 +228,7 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
         cd ..
 
   build-ubuntu-20:
@@ -266,6 +310,26 @@ jobs:
         cmake --build build --target install -j $(nproc)
         cd ..
 
+    - name: Cache exiv2
+      uses: actions/cache@v3
+      id: cache-exiv2
+      with:
+        path: exiv2/install
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-20.04
+
+    - name: Install exiv2
+      if: steps.cache-exiv2.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
+        cd exiv2
+        cmake -B build \
+          -DCMAKE_C_COMPILER=gcc-10 \
+          -DCMAKE_CXX_COMPILER=g++-10 \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/exiv2-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
     - name: Configure CMake
       run: |
         cmake -B build \
@@ -277,7 +341,8 @@ jobs:
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
           -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
-          -DSDL2_DIR=SDL/install/lib/cmake/SDL2
+          -DSDL2_DIR=SDL/install/lib/cmake/SDL2 \
+          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -285,7 +350,7 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
         cd ..
 
   build-macos-12:
@@ -314,10 +379,27 @@ jobs:
         git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
         cd opencv
         cmake -B build \
-          -DBUILD_SHARED_LIBS=OFF \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_INSTALL_PREFIX=install \
           `cat ../misc/build/opencv-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
+    - name: Cache exiv2
+      uses: actions/cache@v3
+      id: cache-exiv2
+      with:
+        path: exiv2/install
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
+
+    - name: Install exiv2
+      if: steps.cache-exiv2.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
+        cd exiv2
+        cmake -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
 
@@ -328,7 +410,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DOpenCV_DIR=opencv/install/lib/cmake/opencv4
+          -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
+          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -336,5 +419,5 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
         cd ..

@@ -5,6 +5,7 @@ $env:SDL_VERSION = 'release-2.26.5'
 $env:OPENCV_VERSION = '4.7.0'
 $env:CATCH_VERSION = 'v3.3.2'
 $env:SPDLOG_VERSION = 'v1.11.0'
+$env:EXIV2_VERSION = 'v0.28.0'
 $env:GENERATOR = 'Ninja Multi-Config'
 
 git submodule update --init
@@ -50,9 +51,21 @@ cmake -B build -G "$env:GENERATOR" `
 cmake --build build --target install --config $env:BUILD_TYPE
 cd ..
 
+
+git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $env:EXIV2_VERSION
+cd exiv2
+cmake -B build -G "$env:GENERATOR" `
+  -DBUILD_SHARED_LIBS=OFF `
+  -DEXIV2_ENABLE_DYNAMIC_RUNTIME=OFF `
+  -DCMAKE_INSTALL_PREFIX=install `
+  @(Get-Content ../misc/build/exiv2-minimal-flags.txt)
+cmake --build build --target install --config $env:BUILD_TYPE
+cd ..
+
 New-Item -Name "licenses" -ItemType "directory"
 Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
 Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
+Copy-Item "exiv2/COPYING" -Destination "licenses/exiv2-license.txt"
 
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_TESTING=ON `
@@ -65,8 +78,9 @@ cmake -B build -G "$env:GENERATOR" `
   -DOpenCV_DIR="opencv/install" `
   -Dspdlog_DIR="spdlog/build/install/lib/cmake/spdlog" `
   -DCatch2_DIR="../catch/install/lib/cmake/Catch2" `
+  -Dexiv2_DIR="exiv2/install/lib/cmake/exiv2"
 
 cmake --build build --config $env:BUILD_TYPE --target install
 cd build
-ctest -C $env:BUILD_TYPE
+ctest -C $env:BUILD_TYPE --output-on-failure
 cd ..

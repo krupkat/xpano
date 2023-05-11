@@ -5,6 +5,7 @@ export SDL_VERSION='release-2.26.5'
 export OPENCV_VERSION='4.7.0'
 export CATCH_VERSION='v3.3.2'
 export SPDLOG_VERSION='v1.11.0'
+export EXIV2_VERSION='v0.28.0'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
@@ -14,10 +15,18 @@ brew install sdl2 spdlog catch2
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
 cd opencv
 cmake -B build \
-  -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/opencv-minimal-flags.txt`
+cmake --build build --target install -j $(nproc)
+cd ..
+
+
+git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
+cd exiv2
+cmake -B build \
+  -DCMAKE_INSTALL_PREFIX=install \
+  `cat ../misc/build/exiv2-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..
 
@@ -26,9 +35,10 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DOpenCV_DIR=opencv/install/lib/cmake/opencv4
+  -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
+  -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
 
 cmake --build build -j $(nproc) --target install
 cd build
-ctest
+ctest --output-on-failure
 cd ..

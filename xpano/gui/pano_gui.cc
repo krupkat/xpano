@@ -392,29 +392,7 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kExport: {
       if (selection_.type == SelectionType::kPano) {
-        spdlog::info("Exporting pano {}", selection_.target_id);
-        status_message_ = {};
-        auto default_name =
-            FirstImage(*stitcher_data_, selection_.target_id)->PanoName();
-        if (auto export_path = file_dialog::Save(default_name); export_path) {
-          if (plot_pane_.Type() == ImageType::kPanoFullRes) {
-            export_future_ = stitcher_pipeline_.RunExport(
-                plot_pane_.Image(), {.pano_id = selection_.target_id,
-                                     .export_path = *export_path,
-                                     .compression = options_.compression,
-                                     .crop = plot_pane_.CropRect()});
-          } else {
-            pano_future_ = stitcher_pipeline_.RunStitching(
-                *stitcher_data_, {.pano_id = selection_.target_id,
-                                  .full_res = true,
-                                  .export_path = *export_path,
-                                  .compression = options_.compression,
-                                  .stitch_algorithm = options_.stitch});
-          }
-        } else {
-          spdlog::warn(export_path.error());
-          warning_pane_.QueueFilePickerError(export_path.error());
-        }
+        PerformExportAction(selection_.target_id);
       }
       break;
     }
@@ -523,6 +501,41 @@ Action PanoGui::PerformAction(const Action& action) {
     }
   }
   return {};
+}
+
+void PanoGui::PerformExportAction(int pano_id) {
+  spdlog::info("Exporting pano {}", pano_id);
+  status_message_ = {};
+
+  const auto* first_image = FirstImage(*stitcher_data_, pano_id);
+  auto export_path = file_dialog::Save(first_image->PanoName());
+
+  if (!export_path) {
+    spdlog::warn(export_path.error());
+    warning_pane_.QueueFilePickerError(export_path.error());
+    return;
+  }
+
+  if (plot_pane_.Type() == ImageType::kPanoFullRes) {
+    std::optional<std::filesystem::path> metadata_path;
+    if (options_.metadata.copy_from_first_image) {
+      metadata_path = first_image->GetPath();
+    }
+    export_future_ = stitcher_pipeline_.RunExport(
+        plot_pane_.Image(), {.pano_id = pano_id,
+                             .export_path = *export_path,
+                             .metadata_path = metadata_path,
+                             .compression = options_.compression,
+                             .crop = plot_pane_.CropRect()});
+  } else {
+    pano_future_ = stitcher_pipeline_.RunStitching(
+        *stitcher_data_, {.pano_id = pano_id,
+                          .full_res = true,
+                          .export_path = *export_path,
+                          .metadata = options_.metadata,
+                          .compression = options_.compression,
+                          .stitch_algorithm = options_.stitch});
+  }
 }
 
 MultiAction PanoGui::ResolveFutures() {

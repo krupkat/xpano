@@ -14,7 +14,7 @@
       <li>Auto detection of groups of images that can be stitched into panoramas</li>
       <li>Preview + zoom + pan of the computed panoramas</li>
       <li>Crop mode, boundary auto fill, selectable projection types</li>
-      <li>Export of full resolution panoramas</li>
+      <li>Export of full resolution panoramas including exif metadata</li>
     </ul>
   </description>
   <launchable type="desktop-id">xpano.desktop</launchable>

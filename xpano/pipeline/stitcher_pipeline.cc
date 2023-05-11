@@ -22,6 +22,7 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/exiv2.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/vec_opencv.h"
 
@@ -164,16 +165,51 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
 
   std::optional<std::filesystem::path> export_path;
   if (options.export_path) {
-    progress_.SetTaskType(ProgressType::kExport);
-    if (cv::imwrite(options.export_path->string(), result,
-                    CompressionParameters(options.compression))) {
-      export_path = options.export_path;
+    std::optional<std::filesystem::path> metadata_path;
+    if (options.metadata.copy_from_first_image) {
+      const auto &first_image = images[pano.ids[0]];
+      metadata_path = first_image.GetPath();
     }
-    progress_.NotifyTaskDone();
+
+    export_path =
+        RunExportPipeline(result, {.export_path = *options.export_path,
+                                   .metadata_path = metadata_path,
+                                   .compression = options.compression})
+            .export_path;
   }
 
   return StitchingResult{options.pano_id, options.full_res, status,   result,
                          auto_crop,       export_path,      pano_mask};
+}
+
+std::future<ExportResult> StitcherPipeline::RunExport(
+    cv::Mat pano, const ExportOptions &options) {
+  return pool_.submit([pano = std::move(pano), options, this]() {
+    return RunExportPipeline(pano, options);
+  });
+}
+
+ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
+                                                 const ExportOptions &options) {
+  int num_tasks = 2;
+  progress_.Reset(ProgressType::kExport, num_tasks);
+
+  if (options.crop) {
+    auto crop_rect = utils::GetCvRect(pano, *options.crop);
+    pano = pano(crop_rect);
+  }
+
+  std::optional<std::filesystem::path> export_path;
+  if (cv::imwrite(options.export_path.string(), pano,
+                  CompressionParameters(options.compression))) {
+    export_path = options.export_path;
+  }
+  progress_.NotifyTaskDone();
+  if (export_path && options.metadata_path) {
+    utils::exiv2::CreateExif(*options.metadata_path, *export_path);
+  }
+  progress_.NotifyTaskDone();
+  return ExportResult{options.pano_id, export_path};
 }
 
 std::future<InpaintingResult> StitcherPipeline::RunInpainting(
@@ -192,24 +228,6 @@ std::future<InpaintingResult> StitcherPipeline::RunInpainting(
     progress_.NotifyTaskDone();
 
     return InpaintingResult{result, pixels_filled};
-  });
-}
-
-std::future<ExportResult> StitcherPipeline::RunExport(
-    cv::Mat pano, const ExportOptions &options) {
-  return pool_.submit([pano = std::move(pano), options, this]() {
-    int num_tasks = 1;
-    progress_.Reset(ProgressType::kExport, num_tasks);
-
-    auto crop_rect = utils::GetCvRect(pano, options.crop);
-
-    std::optional<std::filesystem::path> export_path;
-    if (cv::imwrite(options.export_path.string(), pano(crop_rect),
-                    CompressionParameters(options.compression))) {
-      export_path = options.export_path;
-    }
-    progress_.NotifyTaskDone();
-    return ExportResult{options.pano_id, export_path};
   });
 }
 

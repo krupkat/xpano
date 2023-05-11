@@ -18,6 +18,7 @@ permissions:
 env:
   BUILD_TYPE: Release
   CATCH_VERSION: "v3.3.2"
+  EXIV2_VERSION: "v0.28.0"
 
 jobs:
   clang-tidy-check:
@@ -48,6 +49,24 @@ jobs:
         cmake --build build -j $(nproc) --target install
         cd ..
 
+    - name: Cache exiv2
+      uses: actions/cache@v3
+      id: cache-exiv2
+      with:
+        path: exiv2/install
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-22.04
+
+    - name: Install exiv2
+      if: steps.cache-exiv2.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
+        cd exiv2
+        cmake -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/exiv2-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
     - name: Configure CMake
       run: |
         cmake -B build \
@@ -55,7 +74,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DBUILD_TESTING=ON \
-          -DCatch2_DIR=../catch/install/lib/cmake/Catch2
+          -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
+          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
 
     - name: Run clang-tidy
       run: |

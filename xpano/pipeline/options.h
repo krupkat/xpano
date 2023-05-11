@@ -36,6 +36,10 @@ const auto kMatchingTypes = std::array{
 
 /*****************************************************************************/
 
+struct MetadataOptions {
+  bool copy_from_first_image = true;
+};
+
 struct CompressionOptions {
   int jpeg_quality = kDefaultJpegQuality;
   bool jpeg_progressive = false;
@@ -60,6 +64,7 @@ struct MatchingOptions {
 using StitchAlgorithmOptions = algorithm::StitchOptions;
 
 struct Options {
+  MetadataOptions metadata;
   CompressionOptions compression;
   LoadingOptions loading;
   InpaintingOptions inpaint;

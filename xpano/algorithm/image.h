@@ -28,9 +28,10 @@ class Image {
   [[nodiscard]] cv::Mat GetPreview() const;
   [[nodiscard]] float GetAspect() const;
   [[nodiscard]] cv::Mat Draw(bool show_debug) const;
-  [[nodiscard]] const std::vector<cv::KeyPoint> &GetKeypoints() const;
+  [[nodiscard]] const std::vector<cv::KeyPoint>& GetKeypoints() const;
   [[nodiscard]] cv::Mat GetDescriptors() const;
   [[nodiscard]] bool IsLoaded() const;
+  [[nodiscard]] std::filesystem::path GetPath() const;
   [[nodiscard]] bool IsRaw() const;
   [[nodiscard]] std::string PanoName() const;
 
