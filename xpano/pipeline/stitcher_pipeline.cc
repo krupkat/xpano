@@ -165,10 +165,15 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
 
   std::optional<std::filesystem::path> export_path;
   if (options.export_path) {
-    const auto &first_image = images[pano.ids[0]];
+    std::optional<std::filesystem::path> metadata_path;
+    if (options.metadata.copy_from_first_image) {
+      const auto &first_image = images[pano.ids[0]];
+      metadata_path = first_image.GetPath();
+    }
+
     export_path =
-        RunExportPipeline(result, {.metadata_path = first_image.GetPath(),
-                                   .export_path = *options.export_path,
+        RunExportPipeline(result, {.export_path = *options.export_path,
+                                   .metadata_path = metadata_path,
                                    .compression = options.compression})
             .export_path;
   }
@@ -200,8 +205,8 @@ ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
     export_path = options.export_path;
   }
   progress_.NotifyTaskDone();
-  if (export_path) {
-    utils::exiv2::CreateExif(options.metadata_path, *export_path);
+  if (export_path && options.metadata_path) {
+    utils::exiv2::CreateExif(*options.metadata_path, *export_path);
   }
   progress_.NotifyTaskDone();
   return ExportResult{options.pano_id, export_path};

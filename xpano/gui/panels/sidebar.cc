@@ -70,9 +70,19 @@ Action DrawFileMenu() {
   return action;
 }
 
-void DrawCompressionOptionsMenu(
-    pipeline::CompressionOptions* compression_options) {
-  if (ImGui::BeginMenu("Export compression")) {
+void DrawExportOptionsMenu(pipeline::MetadataOptions* metadata_options,
+                           pipeline::CompressionOptions* compression_options) {
+  if (ImGui::BeginMenu("Image export")) {
+    ImGui::Text("Exif metadata");
+    ImGui::Checkbox("Copy from first image",
+                    &metadata_options->copy_from_first_image);
+    ImGui::SameLine();
+    utils::imgui::InfoMarker(
+        "(?)",
+        "Copy the Exif metadata from the first image of the exported "
+        "panorama.\nSupported file extensions: jpg, jpeg, tif, tiff.");
+    ImGui::Spacing();
+    ImGui::Separator();
     ImGui::Text("JPEG");
     ImGui::SliderInt("Quality", &compression_options->jpeg_quality, 0,
                      kMaxJpegQuality);
@@ -291,7 +301,7 @@ Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     action |= DrawResetButton();
-    DrawCompressionOptionsMenu(&options->compression);
+    DrawExportOptionsMenu(&options->metadata, &options->compression);
     DrawLoadingOptionsMenu(&options->loading);
     DrawMatchingOptionsMenu(&options->matching, debug_enabled);
     action |= DrawStitchOptionsMenu(&options->stitch, debug_enabled);

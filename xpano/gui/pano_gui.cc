@@ -517,10 +517,14 @@ void PanoGui::PerformExportAction(const Action& action) {
   }
 
   if (plot_pane_.Type() == ImageType::kPanoFullRes) {
+    std::optional<std::filesystem::path> metadata_path;
+    if (options_.metadata.copy_from_first_image) {
+      metadata_path = first_image->GetPath();
+    }
     export_future_ = stitcher_pipeline_.RunExport(
         plot_pane_.Image(), {.pano_id = selection_.target_id,
-                             .metadata_path = first_image->GetPath(),
                              .export_path = *export_path,
+                             .metadata_path = metadata_path,
                              .compression = options_.compression,
                              .crop = plot_pane_.CropRect()});
   } else {
@@ -528,6 +532,7 @@ void PanoGui::PerformExportAction(const Action& action) {
         *stitcher_data_, {.pano_id = selection_.target_id,
                           .full_res = true,
                           .export_path = *export_path,
+                          .metadata = options_.metadata,
                           .compression = options_.compression,
                           .stitch_algorithm = options_.stitch});
   }

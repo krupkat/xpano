@@ -27,14 +27,15 @@ struct StitchingOptions {
   int pano_id = 0;
   bool full_res = false;
   std::optional<std::filesystem::path> export_path;
+  MetadataOptions metadata;
   CompressionOptions compression;
   StitchAlgorithmOptions stitch_algorithm;
 };
 
 struct ExportOptions {
   int pano_id = 0;
-  std::filesystem::path metadata_path;
   std::filesystem::path export_path;
+  std::optional<std::filesystem::path> metadata_path;
   CompressionOptions compression;
   std::optional<utils::RectRRf> crop;
 };
