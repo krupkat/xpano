@@ -199,7 +199,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-22.04
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -315,7 +315,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-20.04
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
