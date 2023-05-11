@@ -115,6 +115,13 @@ target_link_libraries(Xpano
   exiv2lib
 )
 
+if(NOT MSVC)
+  target_link_options(Xpano
+    PRIVATE
+    "LINKER:-v,--trace"
+  )
+endif()
+
 copy_runtime_dlls(Xpano)
 copy_directory(Xpano 
   "${CMAKE_SOURCE_DIR}/misc/assets"
