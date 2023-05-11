@@ -82,5 +82,5 @@ cmake -B build -G "$env:GENERATOR" `
 
 cmake --build build --config $env:BUILD_TYPE --target install
 cd build
-ctest -C $env:BUILD_TYPE
+ctest -C $env:BUILD_TYPE --output-on-failure
 cd ..

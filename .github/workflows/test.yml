@@ -162,7 +162,7 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest -C $env:BUILD_TYPE
+        ctest -C $env:BUILD_TYPE --output-on-failure
         cd ..
 
   build-ubuntu-22:
@@ -228,7 +228,7 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
         cd ..
 
   build-ubuntu-20:
@@ -350,7 +350,7 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
         cd ..
 
   build-macos-12:
@@ -419,5 +419,5 @@ jobs:
     - name: Run Tests
       run: |
         cd build
-        ctest
+        ctest --output-on-failure
         cd ..
