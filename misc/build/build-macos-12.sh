@@ -15,7 +15,6 @@ brew install sdl2 spdlog catch2
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
 cd opencv
 cmake -B build \
-  -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/opencv-minimal-flags.txt`
@@ -26,7 +25,6 @@ cd ..
 git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
 cd exiv2
 cmake -B build \
-  -DBUILD_SHARED_LIBS=OFF \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/exiv2-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
