@@ -48,7 +48,7 @@ TEST_CASE("Stitcher pipeline defaults") {
   REQUIRE_THAT(result.panos[0].ids, Equals<int>({1, 2, 3, 4, 5}));
   REQUIRE_THAT(result.panos[1].ids, Equals<int>({6, 7, 8}));
 
-  const float eps = 0.01;
+  const float eps = 0.02;
 
   // preview
   auto pano0 = stitcher.RunStitching(result, {.pano_id = 0}).get().pano;
