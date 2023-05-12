@@ -92,4 +92,6 @@ constexpr float kMegapixel = 1'000'000;
 const std::string kDefaultPanoSuffix = "_pano";
 constexpr int kMaxImageSizeForCLI = 8192;
 
+constexpr int kExifDefaultOrientation = 1;
+
 }  // namespace xpano

@@ -4,10 +4,13 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
+
+#include "xpano/utils/vec.h"
 
 namespace xpano::utils::exiv2 {
 
-void CreateExif(const std::filesystem::path& from_path,
-                const std::filesystem::path& to_path);
+void CreateExif(const std::optional<std::filesystem::path>& from_path,
+                const std::filesystem::path& to_path, const Vec2i& image_size);
 
 }  // namespace xpano::utils::exiv2

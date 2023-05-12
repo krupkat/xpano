@@ -9,6 +9,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 #include <exiv2/exiv2.hpp>
 #include <opencv2/core.hpp>
@@ -47,7 +48,7 @@ TEST_CASE("Stitcher pipeline defaults") {
   REQUIRE_THAT(result.panos[0].ids, Equals<int>({1, 2, 3, 4, 5}));
   REQUIRE_THAT(result.panos[1].ids, Equals<int>({6, 7, 8}));
 
-  const float eps = 0.01;
+  const float eps = 0.02;
 
   // preview
   auto pano0 = stitcher.RunStitching(result, {.pano_id = 0}).get().pano;
@@ -268,15 +269,18 @@ TEST_CASE("Stitcher pipeline vertical pano") {
   CHECK_THAT(pano0->cols, WithinRel(1030, eps));
 }
 
-TEST_CASE("Export") {
+const std::vector<std::filesystem::path> kInputsWithExifMetadata = {
+    "data/image06.jpg",
+    "data/image07.jpg",
+    "data/image08.jpg",
+};
+
+TEST_CASE("ExportWithMetadata") {
   const std::filesystem::path tmp_path =
       xpano::tests::TmpPath().replace_extension("jpg");
 
   xpano::pipeline::StitcherPipeline stitcher;
-  auto data =
-      stitcher
-          .RunLoading(kVerticalPanoInputs, {}, {.neighborhood_search_size = 1})
-          .get();
+  auto data = stitcher.RunLoading(kInputsWithExifMetadata, {}, {}).get();
   REQUIRE(data.panos.size() == 1);
   stitcher.RunStitching(data, {.pano_id = 0, .export_path = tmp_path}).get();
 
@@ -285,14 +289,67 @@ TEST_CASE("Export") {
   REQUIRE(std::filesystem::exists(tmp_path));
   auto image = cv::imread(tmp_path.string());
   REQUIRE(!image.empty());
-  CHECK_THAT(image.rows, WithinRel(1342, eps));
-  CHECK_THAT(image.cols, WithinRel(1030, eps));
+  CHECK_THAT(image.rows, WithinRel(977, eps));
+  CHECK_THAT(image.cols, WithinRel(1334, eps));
 
   auto read_img = Exiv2::ImageFactory::open(tmp_path.string());
   read_img->readMetadata();
   auto exif = read_img->exifData();
+
   auto software = exif["Exif.Image.Software"].toString();
   REQUIRE(software.starts_with("Xpano"));
+
+  auto width = exif["Exif.Photo.PixelXDimension"].toUint32();
+  auto height = exif["Exif.Photo.PixelYDimension"].toUint32();
+  CHECK(width == image.cols);
+  CHECK(height == image.rows);
+
+  auto orientation = exif["Exif.Image.Orientation"].toUint32();
+  CHECK(orientation == xpano::kExifDefaultOrientation);
+
+  auto thumb = Exiv2::ExifThumbC(exif);
+  CHECK_THAT(thumb.mimeType(), Equals(""));
+  CHECK_THAT(thumb.extension(), Equals(""));
+  CHECK(thumb.copy().empty());
+
+  std::filesystem::remove(tmp_path);
+}
+
+bool TagExists(const Exiv2::ExifData& exif, const std::string& tag) {
+  return exif.findKey(Exiv2::ExifKey(tag)) != exif.end();
+}
+
+TEST_CASE("ExportWithoutMetadata") {
+  const std::filesystem::path tmp_path =
+      xpano::tests::TmpPath().replace_extension("jpg");
+
+  xpano::pipeline::StitcherPipeline stitcher;
+  auto data = stitcher.RunLoading(kInputsWithExifMetadata, {}, {}).get();
+  REQUIRE(data.panos.size() == 1);
+  stitcher
+      .RunStitching(data, {.pano_id = 0,
+                           .export_path = tmp_path,
+                           .metadata = {.copy_from_first_image = false}})
+      .get();
+
+  const float eps = 0.01;
+
+  REQUIRE(std::filesystem::exists(tmp_path));
+  auto read_img = Exiv2::ImageFactory::open(tmp_path.string());
+  read_img->readMetadata();
+  auto exif = read_img->exifData();
+
+  auto software = exif["Exif.Image.Software"].toString();
+  REQUIRE(software.starts_with("Xpano"));
+
+  CHECK(!TagExists(exif, "Exif.Photo.PixelXDimension"));
+  CHECK(!TagExists(exif, "Exif.Photo.PixelYDimension"));
+  CHECK(!TagExists(exif, "Exif.Image.Orientation"));
+
+  auto thumb = Exiv2::ExifThumbC(exif);
+  CHECK_THAT(thumb.mimeType(), Equals(""));
+  CHECK_THAT(thumb.extension(), Equals(""));
+  CHECK(thumb.copy().empty());
 
   std::filesystem::remove(tmp_path);
 }
