@@ -223,10 +223,12 @@ install(FILES
   RENAME "opencv-license.txt"
   OPTIONAL
 )
-install(FILES
-  "misc/build/exiv2-notice.txt"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
-)
+if (exiv2_FOUND)
+  install(FILES
+    "misc/build/exiv2-notice.txt"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  )
+endif()
 if(DEFINED XPANO_EXTRA_LICENSES)
   install(DIRECTORY
     "${XPANO_EXTRA_LICENSES}"
