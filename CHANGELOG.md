@@ -1,3 +1,9 @@
+# Xpano 0.14.0
+
+- Exif metadata support
+ - Copy over exif metadata from the first image of the exported panorama
+- Fix crash when opening a directory (flatpak + xdg-desktop-portal < 1.7.1)
+
 # Xpano 0.13.0
 
 - Basic command line support

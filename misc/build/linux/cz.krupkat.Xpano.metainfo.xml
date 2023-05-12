@@ -29,6 +29,14 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.14.0" date="2023-05-12">
+      <description>
+        <ul>
+          <li>Exif metadata support</li>
+          <li>Fix crash when opening a directory (flatpak + xdg-desktop-portal &lt; 1.7.1)</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.13.0" date="2023-04-26">
       <description>
         <ul>
