@@ -3,7 +3,9 @@
 
 #include "xpano/utils/exiv2.h"
 
+#ifdef XPANO_WITH_EXIV2
 #include <exiv2/exiv2.hpp>
+#endif
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
@@ -15,7 +17,7 @@
 namespace xpano::utils::exiv2 {
 
 namespace {
-
+#ifdef XPANO_WITH_EXIV2
 template <typename TValueType>
 void UpdateTagIfExisting(Exiv2::ExifData& exif_data, const std::string& key,
                          TValueType value) {
@@ -46,11 +48,12 @@ void EraseThumbnail(Exiv2::ExifData& exif_data) {
   auto thumb = Exiv2::ExifThumb(exif_data);
   thumb.erase();
 }
-
+#endif
 }  // namespace
 
 void CreateExif(const std::optional<std::filesystem::path>& from_path,
                 const std::filesystem::path& to_path, const Vec2i& image_size) {
+#ifdef XPANO_WITH_EXIV2
   if (from_path && !path::IsMetadataExtensionSupported(*from_path)) {
     spdlog::info("Reading metadata is not supported for {}",
                  from_path->string());
@@ -83,6 +86,9 @@ void CreateExif(const std::optional<std::filesystem::path>& from_path,
   } catch (const Exiv2::Error&) {
     spdlog::warn("Could not write Exif data to {}", to_path.string());
   }
+#else
+  spdlog::error("Exiv2 support is not enabled");
+#endif
 }
 
 }  // namespace xpano::utils::exiv2

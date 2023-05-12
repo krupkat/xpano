@@ -22,6 +22,7 @@
 #include "xpano/gui/shortcut.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/exiv2.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/opencv.h"
 
@@ -74,13 +75,20 @@ void DrawExportOptionsMenu(pipeline::MetadataOptions* metadata_options,
                            pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Image export")) {
     ImGui::Text("Exif metadata");
-    ImGui::Checkbox("Copy from first image",
-                    &metadata_options->copy_from_first_image);
-    ImGui::SameLine();
-    utils::imgui::InfoMarker(
-        "(?)",
-        "Copy the Exif metadata from the first image of the exported "
-        "panorama.\nSupported file extensions: jpg, jpeg, tif, tiff.");
+    utils::imgui::EnableIf(
+        utils::exiv2::Enabled(),
+        [&] {
+          ImGui::Checkbox("Copy from first image",
+                          &metadata_options->copy_from_first_image);
+          ImGui::SameLine();
+          utils::imgui::InfoMarker(
+              "(?)",
+              "Copy the Exif metadata from the first image of the exported "
+              "panorama.\nSupported file extensions: jpg, jpeg, tif, tiff.");
+        },
+        "This version was not built with exif support.\nAvailable in: Flatpak, "
+        "Windows, built from source.");
+
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Text("JPEG");
