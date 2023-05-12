@@ -7,6 +7,7 @@
 
 #include "xpano/algorithm/options.h"
 #include "xpano/constants.h"
+#include "xpano/utils/exiv2.h"
 
 namespace xpano::pipeline {
 
@@ -37,7 +38,7 @@ const auto kMatchingTypes = std::array{
 /*****************************************************************************/
 
 struct MetadataOptions {
-  bool copy_from_first_image = true;
+  bool copy_from_first_image = utils::exiv2::Enabled();
 };
 
 struct CompressionOptions {

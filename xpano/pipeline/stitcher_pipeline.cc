@@ -205,7 +205,7 @@ ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
     export_path = options.export_path;
   }
   progress_.NotifyTaskDone();
-  if (export_path) {
+  if (export_path && utils::exiv2::Enabled()) {
     auto pano_size = utils::ToIntVec(pano.size);
     utils::exiv2::CreateExif(options.metadata_path, *export_path, pano_size);
   }

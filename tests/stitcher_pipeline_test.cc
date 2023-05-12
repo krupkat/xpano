@@ -11,7 +11,9 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+#ifdef XPANO_WITH_EXIV2
 #include <exiv2/exiv2.hpp>
+#endif
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -292,6 +294,7 @@ TEST_CASE("ExportWithMetadata") {
   CHECK_THAT(image.rows, WithinRel(977, eps));
   CHECK_THAT(image.cols, WithinRel(1334, eps));
 
+#ifdef XPANO_WITH_EXIV2
   auto read_img = Exiv2::ImageFactory::open(tmp_path.string());
   read_img->readMetadata();
   auto exif = read_img->exifData();
@@ -311,13 +314,15 @@ TEST_CASE("ExportWithMetadata") {
   CHECK_THAT(thumb.mimeType(), Equals(""));
   CHECK_THAT(thumb.extension(), Equals(""));
   CHECK(thumb.copy().empty());
-
+#endif
   std::filesystem::remove(tmp_path);
 }
 
+#ifdef XPANO_WITH_EXIV2
 bool TagExists(const Exiv2::ExifData& exif, const std::string& tag) {
   return exif.findKey(Exiv2::ExifKey(tag)) != exif.end();
 }
+#endif
 
 TEST_CASE("ExportWithoutMetadata") {
   const std::filesystem::path tmp_path =
@@ -333,8 +338,9 @@ TEST_CASE("ExportWithoutMetadata") {
       .get();
 
   const float eps = 0.01;
-
   REQUIRE(std::filesystem::exists(tmp_path));
+
+#ifdef XPANO_WITH_EXIV2
   auto read_img = Exiv2::ImageFactory::open(tmp_path.string());
   read_img->readMetadata();
   auto exif = read_img->exifData();
@@ -350,6 +356,7 @@ TEST_CASE("ExportWithoutMetadata") {
   CHECK_THAT(thumb.mimeType(), Equals(""));
   CHECK_THAT(thumb.extension(), Equals(""));
   CHECK(thumb.copy().empty());
+#endif
 
   std::filesystem::remove(tmp_path);
 }

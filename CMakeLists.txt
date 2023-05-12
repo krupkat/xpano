@@ -74,7 +74,17 @@ endif()
 find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching)
 find_package(spdlog REQUIRED)
-find_package(exiv2 REQUIRED)
+find_package(exiv2 0.28.0 QUIET)
+
+if (exiv2_FOUND)
+  message(STATUS "Building with exiv2 version ${exiv2_VERSION}")
+else()
+  message(STATUS "Building without exiv2 support")
+  if (exiv2_CONSIDERED_VERSIONS)
+    message(STATUS "  Required version: 0.28.0")
+    message(STATUS "  Found exiv2 versions: ${exiv2_CONSIDERED_VERSIONS}")
+  endif()
+endif()
 
 add_executable(Xpano WIN32
   ${XPANO_SOURCES}
@@ -112,8 +122,12 @@ target_link_libraries(Xpano
   SDL2::SDL2
   SDL2::SDL2main
   spdlog::spdlog
-  exiv2lib
 )
+
+if(exiv2_FOUND)
+  target_compile_definitions(Xpano PRIVATE XPANO_WITH_EXIV2)
+  target_link_libraries(Xpano exiv2lib)
+endif()
 
 copy_runtime_dlls(Xpano)
 copy_directory(Xpano 
@@ -209,10 +223,12 @@ install(FILES
   RENAME "opencv-license.txt"
   OPTIONAL
 )
-install(FILES
-  "misc/build/exiv2-notice.txt"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
-)
+if (exiv2_FOUND)
+  install(FILES
+    "misc/build/exiv2-notice.txt"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  )
+endif()
 if(DEFINED XPANO_EXTRA_LICENSES)
   install(DIRECTORY
     "${XPANO_EXTRA_LICENSES}"
