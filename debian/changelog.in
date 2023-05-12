@@ -1,3 +1,9 @@
+xpano (0.14.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.14.0, metadata support
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Fri, 12 May 2023 15:06:15 +0200
+
 xpano (0.13.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.13.0, command line support

@@ -102,6 +102,12 @@ License:   MIT
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
 
+Files:     external/expected/*
+Copyright: not-applicable
+License:   CC0-1.0
+ No license required for any purpose; the work is not subject to copyright
+ in any jurisdiction.
+
 Files:     misc/assets/OFL.txt
            misc/assets/NotoSansSymbols2-Regular.ttf
            misc/assets/NotoSans-Regular.ttf
