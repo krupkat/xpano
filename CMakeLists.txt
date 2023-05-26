@@ -116,7 +116,7 @@ if(NOT TARGET SDL2::SDL2main)
   add_library(SDL2::SDL2main INTERFACE IMPORTED)
 endif()
 
-target_link_libraries(Xpano WIN32
+target_link_libraries(Xpano
   alpaca
   expected
   nfd
