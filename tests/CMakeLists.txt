@@ -26,6 +26,7 @@ add_executable(StitcherTest
   ../xpano/algorithm/bundle_adjuster.cc
   ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/image.cc
+  ../xpano/algorithm/multiblend.cc
   ../xpano/algorithm/options.cc
   ../xpano/pipeline/options.cc
   ../xpano/pipeline/stitcher_pipeline.cc
@@ -37,6 +38,7 @@ target_link_libraries(StitcherTest
   Catch2::Catch2WithMain
   ${OPENCV_TARGETS}
   spdlog::spdlog
+  MultiblendLib
 )
 
 if(exiv2_FOUND)

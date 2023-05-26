@@ -20,6 +20,7 @@ add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
 set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
 add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
+add_subdirectory("external/multiblend")
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -37,6 +38,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/auto_crop.cc"
   "xpano/algorithm/bundle_adjuster.cc"
   "xpano/algorithm/image.cc"
+  "xpano/algorithm/multiblend.cc"
   "xpano/algorithm/options.cc"
   "xpano/cli/args.cc"
   "xpano/cli/pano_cli.cc"
@@ -86,7 +88,7 @@ else()
   endif()
 endif()
 
-add_executable(Xpano WIN32
+add_executable(Xpano
   ${XPANO_SOURCES}
   ${IMGUI_SOURCES}
 )
@@ -114,7 +116,7 @@ if(NOT TARGET SDL2::SDL2main)
   add_library(SDL2::SDL2main INTERFACE IMPORTED)
 endif()
 
-target_link_libraries(Xpano
+target_link_libraries(Xpano WIN32
   alpaca
   expected
   nfd
@@ -122,6 +124,7 @@ target_link_libraries(Xpano
   SDL2::SDL2
   SDL2::SDL2main
   spdlog::spdlog
+  MultiblendLib
 )
 
 if(exiv2_FOUND)

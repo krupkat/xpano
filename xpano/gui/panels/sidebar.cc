@@ -259,12 +259,28 @@ Action DrawWaveCorrectionOptions(
   return action;
 }
 
+Action DrawBlendingOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
+  Action action{};
+  ImGui::Text("Blending:");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker("(?)",
+                           "OpenCV: better seam finding\nMultiblend: better "
+                           "image detail and smoother image transitions");
+  ImGui::Spacing();
+  if (utils::imgui::ComboBox(&stitch_options->blending_method,
+                             algorithm::kBlendingMethods, "##blending_type")) {
+    action |= {ActionType::kRecomputePano};
+  }
+  return action;
+}
+
 Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
                              bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Panorama stitching")) {
     action |= DrawProjectionOptions(stitch_options);
     action |= DrawWaveCorrectionOptions(stitch_options);
+    action |= DrawBlendingOptions(stitch_options);
 
     if (debug_enabled) {
       ImGui::SeparatorText("Debug");

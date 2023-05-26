@@ -33,10 +33,13 @@ enum class InpaintingMethod {
   kTelea,
 };
 
+enum class BlendingMethod { kOpenCV, kMultiblend };
+
 const char* Label(ProjectionType projection_type);
 const char* Label(FeatureType feature_type);
 const char* Label(WaveCorrectionType wave_correction_type);
 const char* Label(InpaintingMethod inpaint_method);
+const char* Label(BlendingMethod blending_method);
 
 bool HasAdvancedParameters(ProjectionType projection_type);
 
@@ -59,6 +62,9 @@ const auto kWaveCorrectionTypes =
 const auto kInpaintingMethods =
     std::array{InpaintingMethod::kNavierStokes, InpaintingMethod::kTelea};
 
+const auto kBlendingMethods =
+    std::array{BlendingMethod::kOpenCV, BlendingMethod::kMultiblend};
+
 /*****************************************************************************/
 
 struct ProjectionOptions {
@@ -72,6 +78,7 @@ struct StitchOptions {
   FeatureType feature = FeatureType::kSift;
   WaveCorrectionType wave_correction = WaveCorrectionType::kAuto;
   float match_conf = kDefaultMatchConf;
+  BlendingMethod blending_method = BlendingMethod::kOpenCV;
 };
 
 struct InpaintingOptions {

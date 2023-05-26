@@ -24,6 +24,7 @@
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/bundle_adjuster.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/multiblend.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
@@ -114,6 +115,17 @@ cv::detail::WaveCorrectKind PickWaveCorrectKind(
       return cv::detail::WAVE_CORRECT_VERT;
     default:
       return cv::detail::WAVE_CORRECT_AUTO;
+  }
+}
+
+cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method) {
+  switch (blending_method) {
+    case BlendingMethod::kOpenCV:
+      return cv::makePtr<cv::detail::MultiBandBlender>();
+    case BlendingMethod::kMultiblend:
+      return cv::makePtr<mb::MultiblendBlender>();
+    default:
+      return nullptr;
   }
 }
 
@@ -225,6 +237,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   // it isn't available otherwise.
   auto bundle_adjuster = cv::makePtr<BundleAdjusterRayCustom>();
   stitcher->setBundleAdjuster(bundle_adjuster);
+  stitcher->setBlender(PickBlender(options.blending_method));
 
   cv::Mat pano;
   auto status = stitcher->stitch(images, pano);
