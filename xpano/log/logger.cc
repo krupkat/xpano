@@ -18,6 +18,10 @@
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
+#ifdef XPANO_WITH_MULTIBLEND
+#include <mb/logging.h>
+#endif
+
 #include "xpano/constants.h"
 
 namespace xpano::logger {
@@ -86,6 +90,10 @@ void Logger::RedirectSpdlogToGui(
       std::make_shared<spdlog::logger>("XPano", sinks.begin(), sinks.end());
   logger->flush_on(spdlog::level::err);
   spdlog::set_default_logger(logger);
+
+#ifdef XPANO_WITH_MULTIBLEND
+  multiblend::utils::SetLogger(logger);
+#endif
 }
 
 const std::vector<std::string> &Logger::Log() {

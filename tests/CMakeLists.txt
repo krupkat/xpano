@@ -38,7 +38,6 @@ target_link_libraries(StitcherTest
   Catch2::Catch2WithMain
   ${OPENCV_TARGETS}
   spdlog::spdlog
-  MultiblendLib
 )
 
 if(exiv2_FOUND)

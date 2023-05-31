@@ -5,7 +5,9 @@
 
 #include <stdexcept>
 
+#ifdef XPANO_WITH_MULTIBLEND
 #include <mb/multiblend.h>
+#endif
 #include <spdlog/fmt/fmt.h>
 
 namespace xpano::algorithm::mb {
@@ -18,6 +20,7 @@ void MultiblendBlender::prepare(cv::Rect dst_roi) {
 
 void MultiblendBlender::feed(cv::InputArray input_img,
                              cv::InputArray input_mask, cv::Point tl) {
+#ifdef XPANO_WITH_MULTIBLEND
   CV_Assert(input_img.type() == CV_16SC3);
   CV_Assert(input_mask.type() == CV_8U);
 
@@ -55,10 +58,14 @@ void MultiblendBlender::feed(cv::InputArray input_img,
   }
 
   images_.emplace_back(std::move(mb_image));
+#else
+  throw(std::runtime_error("Multiblend support not compiled in"));
+#endif
 }
 
 void MultiblendBlender::blend(cv::InputOutputArray dst,
                               cv::InputOutputArray dst_mask) {
+#ifdef XPANO_WITH_MULTIBLEND
   auto result = multiblend::Multiblend(
       images_, {.output_type = multiblend::io::ImageType::MB_IN_MEMORY,
                 .output_bpp = 8});
@@ -87,6 +94,9 @@ void MultiblendBlender::blend(cv::InputOutputArray dst,
 
   dst.assign(pano);
   dst_mask.assign(dst_mask_);
+#else
+  throw(std::runtime_error("Multiblend support not compiled in"));
+#endif
 }
 
 }  // namespace xpano::algorithm::mb

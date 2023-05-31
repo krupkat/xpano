@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.21)
+project(Xpano)
+
+cmake_host_system_information(RESULT has_sse QUERY HAS_SSE)
+
 OPTION(BUILD_TESTING "Build tests" OFF)
+OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
+OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ${has_sse})
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-project(Xpano)
 include(CTest)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
@@ -20,7 +25,11 @@ add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
 set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
 add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
-add_subdirectory("external/multiblend")
+
+if(XPANO_WITH_MULTIBLEND)
+  add_subdirectory("external/multiblend")
+  target_include_directories(MultiblendLib PRIVATE "external/thread-pool")
+endif()
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -88,12 +97,12 @@ else()
   endif()
 endif()
 
-add_executable(Xpano
+add_executable(Xpano WIN32
   ${XPANO_SOURCES}
   ${IMGUI_SOURCES}
 )
 
-target_include_directories(Xpano PRIVATE 
+target_include_directories(Xpano PRIVATE
   "external/imgui" 
   "external/imgui/backends"
   "external/thread-pool"
@@ -124,12 +133,16 @@ target_link_libraries(Xpano
   SDL2::SDL2
   SDL2::SDL2main
   spdlog::spdlog
-  MultiblendLib
 )
 
 if(exiv2_FOUND)
   target_compile_definitions(Xpano PRIVATE XPANO_WITH_EXIV2)
   target_link_libraries(Xpano exiv2lib)
+endif()
+
+if(XPANO_WITH_MULTIBLEND)
+  target_compile_definitions(Xpano PRIVATE XPANO_WITH_MULTIBLEND)
+  target_link_libraries(Xpano MultiblendLib)
 endif()
 
 copy_runtime_dlls(Xpano)

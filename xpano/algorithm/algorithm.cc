@@ -8,6 +8,7 @@
 #include <iterator>
 #include <numeric>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -120,10 +121,16 @@ cv::detail::WaveCorrectKind PickWaveCorrectKind(
 
 cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method) {
   switch (blending_method) {
-    case BlendingMethod::kOpenCV:
+    case BlendingMethod::kOpenCV: {
       return cv::makePtr<cv::detail::MultiBandBlender>();
-    case BlendingMethod::kMultiblend:
-      return cv::makePtr<mb::MultiblendBlender>();
+    }
+    case BlendingMethod::kMultiblend: {
+      if constexpr (mb::Enabled()) {
+        return cv::makePtr<mb::MultiblendBlender>();
+      }
+      throw std::runtime_error(
+          "Multiblend is not supported in this build of xpano");
+    }
     default:
       return nullptr;
   }
