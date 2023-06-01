@@ -245,6 +245,18 @@ if (exiv2_FOUND)
     DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   )
 endif()
+if (XPANO_WITH_MULTIBLEND)
+  install(FILES
+    "external/multiblend/COPYRIGHT"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "multiblend-notice.txt"
+  )
+  install(FILES
+    "external/multiblend/LICENSE"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "multiblend-license.txt"
+  )
+endif()
 if(DEFINED XPANO_EXTRA_LICENSES)
   install(DIRECTORY
     "${XPANO_EXTRA_LICENSES}"
