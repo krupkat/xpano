@@ -3,6 +3,7 @@
 
 #include "xpano/algorithm/multiblend.h"
 
+#include <cstring>
 #include <stdexcept>
 
 #ifdef XPANO_WITH_MULTIBLEND
@@ -13,6 +14,10 @@
 
 namespace xpano::algorithm::mb {
 
+namespace {
+constexpr int kChannelDepth = 8;
+}
+
 void MultiblendBlender::prepare(cv::Rect dst_roi) {
   dst_mask_.create(dst_roi.size(), CV_8U);
   dst_mask_.setTo(cv::Scalar::all(0));
@@ -20,24 +25,25 @@ void MultiblendBlender::prepare(cv::Rect dst_roi) {
 }
 
 void MultiblendBlender::feed(cv::InputArray input_img,
-                             cv::InputArray input_mask, cv::Point tl) {
+                             cv::InputArray input_mask, cv::Point top_left) {
 #ifdef XPANO_WITH_MULTIBLEND
   CV_Assert(input_img.type() == CV_16SC3);
   CV_Assert(input_mask.type() == CV_8U);
 
+  constexpr int kNumChannels = 3;
   auto mb_image = multiblend::io::InMemoryImage{.tiff_width = input_img.cols(),
                                                 .tiff_height = input_img.rows(),
-                                                .bpp = 8,
-                                                .spp = 3,
-                                                .xpos_add = tl.x,
-                                                .ypos_add = tl.y,
+                                                .bpp = kChannelDepth,
+                                                .spp = kNumChannels,
+                                                .xpos_add = top_left.x,
+                                                .ypos_add = top_left.y,
                                                 .data = {}};
 
   cv::Mat mask = input_mask.getMat();
   cv::Mat dst_mask = dst_mask_.getMat(cv::ACCESS_RW);
 
-  int dx = tl.x - dst_roi_.x;
-  int dy = tl.y - dst_roi_.y;
+  int start_x = top_left.x - dst_roi_.x;
+  int start_y = top_left.y - dst_roi_.y;
 
   cv::Mat img;
   input_img.getMat().convertTo(img, CV_8UC3);
@@ -47,14 +53,14 @@ void MultiblendBlender::feed(cv::InputArray input_img,
   auto row_size = img.cols * img.elemSize();
 
   for (int y = 0; y < img.rows; ++y, mb_image_data += row_size) {
-    const cv::Point3_<uint8_t> *src_row = img.ptr<cv::Point3_<uint8_t>>(y);
-    memcpy(mb_image_data, src_row, row_size);
+    const auto *src_row = img.ptr<uint8_t>(y);
+    std::memcpy(mb_image_data, src_row, row_size);
 
-    const uint8_t *mask_row = mask.ptr<uint8_t>(y);
-    uint8_t *dst_mask_row = dst_mask.ptr<uint8_t>(dy + y);
+    const auto *mask_row = mask.ptr<uint8_t>(y);
+    auto *dst_mask_row = dst_mask.ptr<uint8_t>(start_y + y);
 
     for (int x = 0; x < img.cols; ++x) {
-      dst_mask_row[dx + x] |= mask_row[x];
+      dst_mask_row[start_x + x] |= mask_row[x];
     }
   }
 
@@ -64,12 +70,14 @@ void MultiblendBlender::feed(cv::InputArray input_img,
 #endif
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters): OpenCV API
 void MultiblendBlender::blend(cv::InputOutputArray dst,
                               cv::InputOutputArray dst_mask) {
 #ifdef XPANO_WITH_MULTIBLEND
   auto result = multiblend::Multiblend(
       images_,
-      {.output_type = multiblend::io::ImageType::MB_IN_MEMORY, .output_bpp = 8},
+      {.output_type = multiblend::io::ImageType::MB_IN_MEMORY,
+       .output_bpp = kChannelDepth},
       multiblend::mt::ThreadpoolPtr{threadpool_});
 
   if (result.width != dst_mask_.cols || result.height != dst_mask_.rows) {

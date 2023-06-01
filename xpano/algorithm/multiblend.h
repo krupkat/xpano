@@ -22,10 +22,11 @@ constexpr bool Enabled() {
 
 class MultiblendBlender : public cv::detail::Blender {
  public:
-  MultiblendBlender(utils::mt::Threadpool* threadpool)
+  explicit MultiblendBlender(utils::mt::Threadpool* threadpool)
       : threadpool_(threadpool) {}
   void prepare(cv::Rect dst_roi) override;
-  void feed(cv::InputArray img, cv::InputArray mask, cv::Point tl) override;
+  void feed(cv::InputArray img, cv::InputArray mask,
+            cv::Point top_left) override;
   void blend(cv::InputOutputArray dst, cv::InputOutputArray dst_mask) override;
 
  private:
