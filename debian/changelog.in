@@ -1,3 +1,9 @@
+xpano (0.15.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.15.0, Multiblend integration
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Thu, 01 Jun 2023 21:24:11 +0200
+
 xpano (0.14.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.14.0, metadata support
