@@ -1,7 +1,14 @@
+# Xpano 0.15.0
+
+- Multiblend integration
+  - Original code by David Horman: https://horman.net/multiblend/
+  - Improved detail preservation, smoother image transitions
+  - To use set the new blending type in "Options -> Panorama stitching"
+
 # Xpano 0.14.0
 
 - Exif metadata support
- - Copy over exif metadata from the first image of the exported panorama
+  - Copy over exif metadata from the first image of the exported panorama
 - Fix crash when opening a directory (flatpak + xdg-desktop-portal < 1.7.1)
 
 # Xpano 0.13.0
