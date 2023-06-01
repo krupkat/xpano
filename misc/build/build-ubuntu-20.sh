@@ -10,7 +10,7 @@ export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libgtk-3-dev libspdlog-dev
+#sudo apt-get install -y libgtk-3-dev
 
 
 git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
@@ -48,6 +48,17 @@ cmake --build build --target install -j $(nproc)
 cd ..
 
 
+git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+cd spdlog
+cmake -B build \
+  -DCMAKE_C_COMPILER=gcc-10 \
+  -DCMAKE_CXX_COMPILER=g++-10 \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX=build/install
+cmake --build build --target install -j $(nproc)
+cd ..
+
+
 git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
 cd exiv2
 cmake -B build \
@@ -68,7 +79,8 @@ cmake -B build \
   -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
   -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
   -DSDL2_DIR=SDL/install/lib/cmake/SDL2 \
-  -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+  -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2 \
+  -Dspdlog_DIR=`pwd`/spdlog/build/install/lib/cmake/spdlog
 
 cmake --build build -j $(nproc) --target install
 cd build

@@ -13,3 +13,6 @@
 [submodule "external/expected"]
 	path = external/expected
 	url = ../../TartanLlama/expected.git
+[submodule "external/multiblend"]
+	path = external/multiblend
+	url = ../multiblend.git

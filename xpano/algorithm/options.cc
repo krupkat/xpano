@@ -82,4 +82,15 @@ const char* Label(InpaintingMethod inpaint_method) {
   }
 }
 
+const char* Label(BlendingMethod blending_method) {
+  switch (blending_method) {
+    case BlendingMethod::kOpenCV:
+      return "OpenCV";
+    case BlendingMethod::kMultiblend:
+      return "Multiblend";
+    default:
+      return "Unknown";
+  }
+}
+
 }  // namespace xpano::algorithm

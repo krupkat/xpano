@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.21)
+project(Xpano)
+
+cmake_host_system_information(RESULT has_sse QUERY HAS_SSE)
+
 OPTION(BUILD_TESTING "Build tests" OFF)
+OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
+OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ${has_sse})
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-project(Xpano)
 include(CTest)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
@@ -20,6 +25,11 @@ add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
 set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
 add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
+
+if(XPANO_WITH_MULTIBLEND)
+  add_subdirectory("external/multiblend")
+  target_include_directories(MultiblendLib PRIVATE "external/thread-pool")
+endif()
 
 set(IMGUI_SOURCES 
   "external/imgui/imgui.cpp"
@@ -37,6 +47,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/auto_crop.cc"
   "xpano/algorithm/bundle_adjuster.cc"
   "xpano/algorithm/image.cc"
+  "xpano/algorithm/multiblend.cc"
   "xpano/algorithm/options.cc"
   "xpano/cli/args.cc"
   "xpano/cli/pano_cli.cc"
@@ -91,7 +102,7 @@ add_executable(Xpano WIN32
   ${IMGUI_SOURCES}
 )
 
-target_include_directories(Xpano PRIVATE 
+target_include_directories(Xpano PRIVATE
   "external/imgui" 
   "external/imgui/backends"
   "external/thread-pool"
@@ -127,6 +138,11 @@ target_link_libraries(Xpano
 if(exiv2_FOUND)
   target_compile_definitions(Xpano PRIVATE XPANO_WITH_EXIV2)
   target_link_libraries(Xpano exiv2lib)
+endif()
+
+if(XPANO_WITH_MULTIBLEND)
+  target_compile_definitions(Xpano PRIVATE XPANO_WITH_MULTIBLEND)
+  target_link_libraries(Xpano MultiblendLib)
 endif()
 
 copy_runtime_dlls(Xpano)
@@ -227,6 +243,18 @@ if (exiv2_FOUND)
   install(FILES
     "misc/build/exiv2-notice.txt"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  )
+endif()
+if (XPANO_WITH_MULTIBLEND)
+  install(FILES
+    "external/multiblend/COPYRIGHT"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "multiblend-notice.txt"
+  )
+  install(FILES
+    "external/multiblend/LICENSE"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    RENAME "multiblend-license.txt"
   )
 endif()
 if(DEFINED XPANO_EXTRA_LICENSES)

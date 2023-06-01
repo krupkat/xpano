@@ -68,3 +68,5 @@ CheckOptions:
     value: L;LL
   - key:   readability-magic-numbers.IgnoreAllFloatingPointValues
     value: 1
+  - key:   readability-identifier-length.IgnoredLoopCounterNames
+    value: ^[ijkxy_]$

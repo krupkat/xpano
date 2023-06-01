@@ -8,6 +8,7 @@
 #include <iterator>
 #include <numeric>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -24,8 +25,10 @@
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/bundle_adjuster.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/multiblend.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
+#include "xpano/utils/threadpool.h"
 #include "xpano/utils/vec.h"
 
 namespace xpano::algorithm {
@@ -114,6 +117,24 @@ cv::detail::WaveCorrectKind PickWaveCorrectKind(
       return cv::detail::WAVE_CORRECT_VERT;
     default:
       return cv::detail::WAVE_CORRECT_AUTO;
+  }
+}
+
+cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method,
+                                         utils::mt::Threadpool* threadpool) {
+  switch (blending_method) {
+    case BlendingMethod::kOpenCV: {
+      return cv::makePtr<cv::detail::MultiBandBlender>();
+    }
+    case BlendingMethod::kMultiblend: {
+      if constexpr (mb::Enabled()) {
+        return cv::makePtr<mb::MultiblendBlender>(threadpool);
+      }
+      throw std::runtime_error(
+          "Multiblend is not supported in this build of xpano");
+    }
+    default:
+      return nullptr;
   }
 }
 
@@ -209,7 +230,7 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 }
 
 StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
-                    bool return_pano_mask) {
+                    bool return_pano_mask, utils::mt::Threadpool* threadpool) {
   auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
   stitcher->setWarper(PickWarper(options.projection));
   stitcher->setFeaturesFinder(PickFeaturesFinder(options.feature));
@@ -225,6 +246,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   // it isn't available otherwise.
   auto bundle_adjuster = cv::makePtr<BundleAdjusterRayCustom>();
   stitcher->setBundleAdjuster(bundle_adjuster);
+  stitcher->setBlender(PickBlender(options.blending_method, threadpool));
 
   cv::Mat pano;
   auto status = stitcher->stitch(images, pano);
