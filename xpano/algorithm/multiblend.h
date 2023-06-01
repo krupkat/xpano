@@ -8,6 +8,8 @@
 #endif
 #include <opencv2/stitching/detail/blenders.hpp>
 
+#include "xpano/utils/threadpool.h"
+
 namespace xpano::algorithm::mb {
 
 constexpr bool Enabled() {
@@ -20,6 +22,8 @@ constexpr bool Enabled() {
 
 class MultiblendBlender : public cv::detail::Blender {
  public:
+  MultiblendBlender(utils::mt::Threadpool* threadpool)
+      : threadpool_(threadpool) {}
   void prepare(cv::Rect dst_roi) override;
   void feed(cv::InputArray img, cv::InputArray mask, cv::Point tl) override;
   void blend(cv::InputOutputArray dst, cv::InputOutputArray dst_mask) override;
@@ -28,6 +32,7 @@ class MultiblendBlender : public cv::detail::Blender {
 #ifdef XPANO_WITH_MULTIBLEND
   std::vector<multiblend::io::Image> images_;
 #endif
+  utils::mt::Threadpool* threadpool_;
 };
 
 }  // namespace xpano::algorithm::mb

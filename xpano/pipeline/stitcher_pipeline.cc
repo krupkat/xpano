@@ -13,7 +13,6 @@
 #include <utility>
 #include <vector>
 
-#include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/stitching.hpp>
@@ -24,6 +23,7 @@
 #include "xpano/constants.h"
 #include "xpano/utils/exiv2.h"
 #include "xpano/utils/opencv.h"
+#include "xpano/utils/threadpool.h"
 #include "xpano/utils/vec_opencv.h"
 
 namespace xpano::pipeline {
@@ -124,7 +124,7 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   progress_.Reset(ProgressType::kLoadingImages, num_tasks);
   std::vector<cv::Mat> imgs;
   if (options.full_res) {
-    BS::multi_future<cv::Mat> imgs_future;
+    utils::mt::MultiFuture<cv::Mat> imgs_future;
     for (const auto &img_id : pano.ids) {
       imgs_future.push_back(pool_.submit([this, &image = images[img_id]]() {
         auto full_res_image = image.GetFullRes();
@@ -143,7 +143,7 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   progress_.SetTaskType(ProgressType::kStitchingPano);
   auto [status, result, mask] =
       algorithm::Stitch(imgs, options.stitch_algorithm,
-                        /*return_pano_mask=*/options.full_res);
+                        /*return_pano_mask=*/options.full_res, &pool_);
   progress_.NotifyTaskDone();
 
   if (status != cv::Stitcher::OK) {
@@ -241,7 +241,7 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
     const LoadingOptions &options, bool compute_keypoints) {
   int num_tasks = static_cast<int>(inputs.size());
   progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
-  BS::multi_future<algorithm::Image> loading_future;
+  utils::mt::MultiFuture<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
     loading_future.push_back(
         pool_.submit([this, options, input, compute_keypoints]() {
@@ -294,7 +294,7 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
       ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
 
   progress_.Reset(ProgressType::kMatchingImages, num_tasks);
-  BS::multi_future<algorithm::Match> matches_future;
+  utils::mt::MultiFuture<algorithm::Match> matches_future;
   for (int j = 0; j < images.size(); j++) {
     for (int i = std::max(0, j - num_neighbors); i < j; i++) {
       matches_future.push_back(

@@ -45,6 +45,11 @@ if(exiv2_FOUND)
   target_link_libraries(StitcherTest exiv2lib)
 endif()
 
+if(XPANO_WITH_MULTIBLEND)
+  target_compile_definitions(StitcherTest PRIVATE XPANO_WITH_MULTIBLEND)
+  target_link_libraries(StitcherTest MultiblendLib)
+endif()
+
 target_include_directories(StitcherTest PRIVATE 
   ".."
   "../external/thread-pool"

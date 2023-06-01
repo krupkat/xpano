@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include <BS_thread_pool.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/stitching.hpp>
 
@@ -20,6 +19,7 @@
 #include "xpano/constants.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/rect.h"
+#include "xpano/utils/threadpool.h"
 
 namespace xpano::pipeline {
 
@@ -131,7 +131,7 @@ class StitcherPipeline {
   ProgressMonitor progress_;
 
   std::atomic<bool> cancel_tasks_ = false;
-  BS::thread_pool pool_;
+  utils::mt::Threadpool pool_;
 };
 
 }  // namespace xpano::pipeline

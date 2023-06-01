@@ -16,6 +16,7 @@
 #include "xpano/algorithm/options.h"
 #include "xpano/constants.h"
 #include "xpano/utils/rect.h"
+#include "xpano/utils/threadpool.h"
 
 namespace xpano::algorithm {
 
@@ -45,7 +46,7 @@ struct StitchResult {
 };
 
 StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
-                    bool return_pano_mask);
+                    bool return_pano_mask, utils::mt::Threadpool* threadpool);
 
 std::string ToString(cv::Stitcher::Status& status);
 

@@ -7,6 +7,7 @@
 
 #ifdef XPANO_WITH_MULTIBLEND
 #include <mb/multiblend.h>
+#include <mb/threadpool.h>
 #endif
 #include <spdlog/fmt/fmt.h>
 
@@ -67,8 +68,9 @@ void MultiblendBlender::blend(cv::InputOutputArray dst,
                               cv::InputOutputArray dst_mask) {
 #ifdef XPANO_WITH_MULTIBLEND
   auto result = multiblend::Multiblend(
-      images_, {.output_type = multiblend::io::ImageType::MB_IN_MEMORY,
-                .output_bpp = 8});
+      images_,
+      {.output_type = multiblend::io::ImageType::MB_IN_MEMORY, .output_bpp = 8},
+      multiblend::mt::ThreadpoolPtr{threadpool_});
 
   if (result.width != dst_mask_.cols || result.height != dst_mask_.rows) {
     throw(std::runtime_error(fmt::format(
