@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <atomic>
 #include <filesystem>
 #include <future>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -131,7 +133,8 @@ class StitcherPipeline {
   ProgressMonitor progress_;
 
   std::atomic<bool> cancel_tasks_ = false;
-  utils::mt::Threadpool pool_;
+  utils::mt::Threadpool pool_ = {
+      std::max(2U, std::thread::hardware_concurrency())};
 };
 
 }  // namespace xpano::pipeline
