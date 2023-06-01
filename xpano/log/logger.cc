@@ -72,6 +72,12 @@ void BufferSinkMt::flush_() {}
 
 Logger::Logger() : sink_(std::make_shared<BufferSinkMt>()) {}
 
+Logger::~Logger() {
+#ifdef XPANO_WITH_MULTIBLEND
+  multiblend::utils::SetLogger(nullptr);
+#endif
+}
+
 void Logger::RedirectSpdlogToGui(
     std::optional<std::filesystem::path> app_data_path) {
   std::vector<spdlog::sink_ptr> sinks;

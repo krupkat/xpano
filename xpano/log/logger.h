@@ -31,6 +31,13 @@ class BufferSinkMt final : public spdlog::sinks::base_sink<std::mutex> {
 class Logger {
  public:
   Logger();
+  ~Logger();
+
+  Logger(const Logger &) = delete;
+  Logger &operator=(const Logger &) = delete;
+  Logger(Logger &&) = delete;
+  Logger &operator=(Logger &&) = delete;
+
   const std::vector<std::string> &Log();
   void RedirectSpdlogToGui(std::optional<std::filesystem::path> app_data_path);
 
