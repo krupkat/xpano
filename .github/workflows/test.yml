@@ -236,7 +236,8 @@ jobs:
     runs-on: ubuntu-20.04
 
     # Build OpenCV from source, as the one included in 20.04 repos doesn't have SIFT features
-    # Build SDL from source as it the one included in 20.04 doesn't export modern cmake targets
+    # Build SDL from source as the one included in 20.04 doesn't export modern cmake targets
+    # Build spdlog from source as the one included in 20.04 doesn't include fmt::format_string
     # Use gcc 10 instead of default gcc 9, because of required concepts library
 
     steps:
@@ -247,7 +248,7 @@ jobs:
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libspdlog-dev
+          sudo apt-get install -y libgtk-3-dev
 
     - name: Cache Catch
       uses: actions/cache@v3
@@ -311,6 +312,26 @@ jobs:
         cmake --build build --target install -j $(nproc)
         cd ..
 
+    - name: Cache spdlog
+      uses: actions/cache@v3
+      id: cache-spdlog
+      with:
+        path: spdlog/build/install
+        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}-20.04
+
+    - name: Install spdlog
+      if: steps.cache-spdlog.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+        cd spdlog
+        cmake -B build \
+          -DCMAKE_C_COMPILER=gcc-10 \
+          -DCMAKE_CXX_COMPILER=g++-10 \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=build/install
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
     - name: Cache exiv2
       uses: actions/cache@v3
       id: cache-exiv2
@@ -343,7 +364,8 @@ jobs:
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
           -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
           -DSDL2_DIR=SDL/install/lib/cmake/SDL2 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2 \
+          -Dspdlog_DIR=`pwd`/spdlog/build/install/lib/cmake/spdlog
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
