@@ -394,3 +394,39 @@ TEST_CASE("Malformed input") {
   REQUIRE(result.matches.empty());
   REQUIRE(result.panos.empty());
 }
+
+#ifdef XPANO_WITH_MULTIBLEND
+TEST_CASE("Stitcher pipeline Multiblend") {
+  xpano::pipeline::StitcherPipeline stitcher;
+
+  auto result = stitcher.RunLoading(kInputs, {}, {}).get();
+  auto progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  const float eps = 0.02;
+  auto stitch_algorithm = xpano::pipeline::StitchAlgorithmOptions{
+      .blending_method = xpano::algorithm::BlendingMethod::kMultiblend};
+
+  auto pano0 = stitcher
+                   .RunStitching(result, {.pano_id = 0,
+                                          .stitch_algorithm = stitch_algorithm})
+                   .get()
+                   .pano;
+  progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+  REQUIRE(pano0.has_value());
+  CHECK_THAT(pano0->rows, WithinRel(804, eps));
+  CHECK_THAT(pano0->cols, WithinRel(2145, eps));
+
+  auto pano1 = stitcher
+                   .RunStitching(result, {.pano_id = 1,
+                                          .stitch_algorithm = stitch_algorithm})
+                   .get()
+                   .pano;
+  progress = stitcher.Progress();
+  CHECK(progress.tasks_done == progress.num_tasks);
+  REQUIRE(pano1.has_value());
+  CHECK_THAT(pano1->rows, WithinRel(976, eps));
+  CHECK_THAT(pano1->cols, WithinRel(1335, eps));
+}
+#endif
