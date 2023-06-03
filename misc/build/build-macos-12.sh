@@ -9,7 +9,7 @@ export EXIV2_VERSION='v0.28.0'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
-brew install sdl2 spdlog catch2
+#brew install sdl2 spdlog catch2
 
 
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
