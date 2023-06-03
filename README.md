@@ -46,7 +46,7 @@ The project can be built by running a single script from the `misc/build` direct
 
 ### MacOS
 
-Preqreuisites: Homebrew.
+Prerequisites: Homebrew.
 
 Run the install script from the root of the repository:
 
