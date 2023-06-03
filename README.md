@@ -46,7 +46,10 @@ The project can be built by running a single script from the `misc/build` direct
 
 ### MacOS
 
-Prerequisites: Homebrew.
+Prerequisites: SDL2, spdlog, catch2
+
+Install with brew: `brew install sdl2 spdlog catch2`
+Install with macports: 
 
 Run the install script from the root of the repository:
 
