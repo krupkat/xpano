@@ -46,10 +46,11 @@ The project can be built by running a single script from the `misc/build` direct
 
 ### MacOS
 
-Prerequisites: SDL2, spdlog, catch2
+Library prerequisites: SDL2, spdlog, catch2
 
 Install with brew: `brew install sdl2 spdlog catch2`
-Install with macports: 
+
+Install with macports: `sudo port install libsdl2 spdlog catch2` (for details: [#96](https://github.com/krupkat/xpano/pull/96#issuecomment-1575589249))
 
 Run the install script from the root of the repository:
 
