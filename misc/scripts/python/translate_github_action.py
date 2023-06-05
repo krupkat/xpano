@@ -16,8 +16,10 @@ def ConvertStep(step):
         if step.get("with", {}).get("submodules", False) == True:
             return "git submodule update --init"
     # comment out sudo actions
-    command = step.get("run", "")
-    return command.replace("sudo", "#sudo")
+    command = step.get("run", "") \
+        .replace("sudo", "#sudo") \
+        .replace("brew", "#brew")
+    return command
 
 
 def ShellExtension(system):
