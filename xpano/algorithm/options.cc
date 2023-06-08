@@ -89,7 +89,7 @@ const char* Label(BlendingMethod blending_method) {
     case BlendingMethod::kMultiblend:
       return "Multiblend";
     case BlendingMethod::kMultiblendAlpha:
-      return "MultiblendAlpha";
+      return "Multiblend (with alpha)";
     default:
       return "Unknown";
   }

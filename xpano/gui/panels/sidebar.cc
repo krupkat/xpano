@@ -270,7 +270,7 @@ Action DrawBlendingOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
   utils::imgui::InfoMarker(
       "(?)",
       "OpenCV: better seam finding\nMultiblend: better "
-      "image detail and smoother image transitions\nMultiblendAlpha: "
+      "image detail and smoother image transitions\nMultiblend (with alpha): "
       "Multiblend + OpenCV seam finding");
   ImGui::Spacing();
   if (utils::imgui::ComboBox(&stitch_options->blending_method,
