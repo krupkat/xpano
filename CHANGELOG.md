@@ -1,3 +1,8 @@
+# Xpano 0.15.1
+
+- Multiblend with OpenCV seam optimization
+  - To use set "Multiblend (with alpha)" in "Options -> Panorama stitching"
+
 # Xpano 0.15.0
 
 - Multiblend integration

@@ -29,6 +29,13 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.15.1" date="2023-06-08">
+      <description>
+        <ul>
+          <li>Multiblend with OpenCV seam optimization</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.15.0" date="2023-06-01">
       <description>
         <ul>
