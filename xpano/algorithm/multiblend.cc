@@ -34,7 +34,8 @@ void SafeMemset(uint8_t *ptr, uint8_t value, size_t num, const uint8_t *end) {
 
 // Convert from Multiblend's Flex format to OpenCV's UMat.
 // Flex is a RLE format, leftmost bit is the mask flag, the rest is the length.
-cv::UMat ToUMat(multiblend::utils::Flex &flex) {
+template <typename TFlexType>
+cv::UMat ToUMat(TFlexType &flex) {
   auto mask = cv::Mat(flex.height_, flex.width_, CV_8U);
 
   flex.Start();
