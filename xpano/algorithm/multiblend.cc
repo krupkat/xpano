@@ -93,6 +93,7 @@ std::vector<uint8_t> ToVector(const cv::Mat &img) {
   return result;
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 cv::UMat Merge(cv::InputArray input_img, cv::InputArray input_mask) {
   cv::UMat input_img_8bit;
   input_img.getUMat().convertTo(input_img_8bit, CV_8UC3);
@@ -136,7 +137,7 @@ void MultiblendBlender::feed(cv::InputArray input_img,
     input_umat = Merge(input_img, input_mask);
   } else if (blending_method_ == BlendingMethod::kMultiblend) {
     input_img.getUMat().convertTo(input_umat, CV_8UC3);
-    feed_mask(input_mask, top_left);
+    FeedMask(input_mask, top_left);
   } else {
     throw(std::runtime_error("Multiblend: Invalid blending method"));
   }
@@ -154,7 +155,8 @@ void MultiblendBlender::feed(cv::InputArray input_img,
 #endif
 }
 
-void MultiblendBlender::feed_mask(cv::InputArray mask, cv::Point top_left) {
+void MultiblendBlender::FeedMask(cv::InputArray mask,
+                                 const cv::Point &top_left) {
   int start_x = top_left.x - dst_roi_.x;
   int start_y = top_left.y - dst_roi_.y;
 

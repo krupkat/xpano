@@ -32,7 +32,7 @@ class MultiblendBlender : public cv::detail::Blender {
   void blend(cv::InputOutputArray dst, cv::InputOutputArray dst_mask) override;
 
  private:
-  void feed_mask(cv::InputArray mask, cv::Point top_left);
+  void FeedMask(cv::InputArray mask, const cv::Point& top_left);
 
 #ifdef XPANO_WITH_MULTIBLEND
   std::vector<multiblend::io::Image> images_;
