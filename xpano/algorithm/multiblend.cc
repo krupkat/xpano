@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #ifdef XPANO_WITH_MULTIBLEND
+#include <mb/flex.h>
 #include <mb/multiblend.h>
 #include <mb/threadpool.h>
 #endif
@@ -43,7 +44,7 @@ cv::UMat ToUMat(multiblend::utils::Flex &flex) {
     auto *end = ptr + mask.cols;
 
     while (ptr < end) {
-      auto length_with_flag = flex.ReadForwards32();
+      auto length_with_flag = flex.SafeReadForwards32();
       if ((length_with_flag & kFlagBit) != 0u) {
         auto length = length_with_flag & kWithoutFlag;
         SafeMemset(ptr, kMaskOn, length, end);
