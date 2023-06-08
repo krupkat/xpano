@@ -126,9 +126,11 @@ cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method,
     case BlendingMethod::kOpenCV: {
       return cv::makePtr<cv::detail::MultiBandBlender>();
     }
+    case BlendingMethod::kMultiblendAlpha:
+      [[fallthrough]];
     case BlendingMethod::kMultiblend: {
       if constexpr (mb::Enabled()) {
-        return cv::makePtr<mb::MultiblendBlender>(threadpool);
+        return cv::makePtr<mb::MultiblendBlender>(threadpool, blending_method);
       }
       throw std::runtime_error(
           "Multiblend is not supported in this build of xpano");
