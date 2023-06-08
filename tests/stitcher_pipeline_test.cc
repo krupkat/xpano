@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
@@ -397,6 +398,10 @@ TEST_CASE("Malformed input") {
 
 #ifdef XPANO_WITH_MULTIBLEND
 TEST_CASE("Stitcher pipeline Multiblend") {
+  auto blending_method =
+      GENERATE(xpano::algorithm::BlendingMethod::kMultiblend,
+               xpano::algorithm::BlendingMethod::kMultiblendAlpha);
+
   xpano::pipeline::StitcherPipeline stitcher;
 
   auto result = stitcher.RunLoading(kInputs, {}, {}).get();
@@ -405,7 +410,7 @@ TEST_CASE("Stitcher pipeline Multiblend") {
 
   const float eps = 0.02;
   auto stitch_algorithm = xpano::pipeline::StitchAlgorithmOptions{
-      .blending_method = xpano::algorithm::BlendingMethod::kMultiblend};
+      .blending_method = blending_method};
 
   auto pano0 = stitcher
                    .RunStitching(result, {.pano_id = 0,

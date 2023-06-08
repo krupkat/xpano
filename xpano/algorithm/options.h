@@ -33,7 +33,7 @@ enum class InpaintingMethod {
   kTelea,
 };
 
-enum class BlendingMethod { kOpenCV, kMultiblend };
+enum class BlendingMethod { kOpenCV, kMultiblend, kMultiblendAlpha };
 
 const char* Label(ProjectionType projection_type);
 const char* Label(FeatureType feature_type);
@@ -63,7 +63,8 @@ const auto kInpaintingMethods =
     std::array{InpaintingMethod::kNavierStokes, InpaintingMethod::kTelea};
 
 const auto kBlendingMethods =
-    std::array{BlendingMethod::kOpenCV, BlendingMethod::kMultiblend};
+    std::array{BlendingMethod::kOpenCV, BlendingMethod::kMultiblend,
+               BlendingMethod::kMultiblendAlpha};
 
 /*****************************************************************************/
 
