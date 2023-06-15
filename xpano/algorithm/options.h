@@ -79,7 +79,7 @@ struct StitchOptions {
   FeatureType feature = FeatureType::kSift;
   WaveCorrectionType wave_correction = WaveCorrectionType::kAuto;
   float match_conf = kDefaultMatchConf;
-  BlendingMethod blending_method = BlendingMethod::kOpenCV;
+  BlendingMethod blending_method = BlendingMethod::kMultiblendAlpha;
 };
 
 struct InpaintingOptions {
