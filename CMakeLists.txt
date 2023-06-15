@@ -210,6 +210,11 @@ install(FILES
   RENAME "alpaca-license.txt"
 )
 install(FILES
+  "external/simde/COPYING"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "simde-license.txt"
+)
+install(FILES
   "misc/assets/OFL.txt"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "google-noto-license.txt"
