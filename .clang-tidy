@@ -11,6 +11,7 @@ Checks: >
   -modernize-use-trailing-return-type,
   performance-*,
   portability-*,
+  -portability-simd-intrinsics,
   readability-*
 
 HeaderFilterRegex: "xpano.*xpano.*"
