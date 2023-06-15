@@ -1,11 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 project(Xpano)
 
-cmake_host_system_information(RESULT has_sse QUERY HAS_SSE)
-
 OPTION(BUILD_TESTING "Build tests" OFF)
 OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
-OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ${has_sse})
+OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ON)
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -28,7 +26,8 @@ add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
 
 if(XPANO_WITH_MULTIBLEND)
   add_subdirectory("external/multiblend")
-  target_include_directories(MultiblendLib PRIVATE "external/thread-pool")
+  target_include_directories(MultiblendLib PUBLIC "external/simde")
+  target_include_directories(MultiblendLib PUBLIC "external/thread-pool")
 endif()
 
 set(IMGUI_SOURCES 
@@ -209,6 +208,11 @@ install(FILES
   "external/alpaca/LICENSE"
   DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
   RENAME "alpaca-license.txt"
+)
+install(FILES
+  "external/simde/COPYING"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  RENAME "simde-license.txt"
 )
 install(FILES
   "misc/assets/OFL.txt"
