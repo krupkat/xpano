@@ -16,3 +16,6 @@
 [submodule "external/multiblend"]
 	path = external/multiblend
 	url = ../multiblend.git
+[submodule "external/simde"]
+	path = external/simde
+	url = ../../simd-everywhere/simde.git
