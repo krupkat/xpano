@@ -58,6 +58,8 @@ Run the install script from the root of the repository:
 ./misc/build/build-macos-12.sh
 ```
 
+See https://github.com/krupkat/xpano/pull/99 for build instructions on the Apple silicon.
+
 ### Ubuntu 22.04
 
 Library prerequisites:
@@ -79,7 +81,7 @@ Build works with `g++-10` from the system repository. You will have to install a
 Library prerequisites:
 
 ```
-sudo apt install libgtk-3-dev libspdlog-dev
+sudo apt install libgtk-3-dev
 ```
 
 Run the install script from the root of the repository:
