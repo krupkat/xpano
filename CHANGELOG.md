@@ -1,3 +1,8 @@
+# Xpano 0.15.2
+
+- Multiblend availability on ARM cpus
+- Switch to Multiblend by default
+
 # Xpano 0.15.1
 
 - Multiblend with OpenCV seam optimization
