@@ -66,6 +66,12 @@ const auto kBlendingMethods =
     std::array{BlendingMethod::kOpenCV, BlendingMethod::kMultiblend,
                BlendingMethod::kMultiblendAlpha};
 
+#ifdef XPANO_WITH_MULTIBLEND
+const auto kDefaultBlendingMethod = BlendingMethod::kMultiblendAlpha;
+#else
+const auto kDefaultBlendingMethod = BlendingMethod::kOpenCV;
+#endif
+
 /*****************************************************************************/
 
 struct ProjectionOptions {
@@ -79,7 +85,7 @@ struct StitchOptions {
   FeatureType feature = FeatureType::kSift;
   WaveCorrectionType wave_correction = WaveCorrectionType::kAuto;
   float match_conf = kDefaultMatchConf;
-  BlendingMethod blending_method = BlendingMethod::kMultiblendAlpha;
+  BlendingMethod blending_method = kDefaultBlendingMethod;
 };
 
 struct InpaintingOptions {
