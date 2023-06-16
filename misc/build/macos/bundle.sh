@@ -65,7 +65,7 @@ install_name_tool -change /opt/local/lib/libSDL2-2.0.0.dylib @executable_path/..
   echo '  <key>CFBundleIconFile</key>' >>$plistfile
   echo '  <string>'$appfile.icns'</string>' >>$plistfile
   echo '  <key>CFBundleIdentifier</key>' >>$plistfile
-  echo '  <string>org.'$appname'</string>' >>$plistfile
+  echo '  <string>cz.krupkat.'$appname'</string>' >>$plistfile
   echo '  <key>CFBundleInfoDictionaryVersion</key>' >>$plistfile
   echo '  <string>6.0</string>' >>$plistfile
   echo '  <key>CFBundlePackageType</key>' >>$plistfile
