@@ -74,5 +74,7 @@ install_name_tool -change /opt/local/lib/libSDL2-2.0.0.dylib @executable_path/..
   echo '  <string>????</string>' >>$plistfile
   echo '  <key>CFBundleVersion</key>' >>$plistfile
   echo '  <string>1.0</string>' >>$plistfile
+  echo '  <key>NSHighResolutionCapable</key>' >>$plistfile
+  echo '  <string>True</string>' >>$plistfile
   echo '</dict>' >>$plistfile
   echo '</plist>' >>$plistfile
