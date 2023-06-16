@@ -1,5 +1,5 @@
 #!/bin/sh
-# macports based - adapt library path to libSDL when using brew
+# macports based - adapt library path to libSDL an libiconv when using brew
 
 appname=Xpano
 appfolder=$appname.app
@@ -27,6 +27,7 @@ cp ./install/bin/$appfile $macosfolder/$appfile
 cp -r ./install/share $appfolder/Contents/
 
 cp /opt/local/lib/libSDL2-2.0.0.dylib $libfolder
+cp /opt/local/lib/libiconv.2.dylib $libfolder
 cp ./exiv2/build/lib/libexiv2.28.dylib $libfolder
 cp ./opencv/build/lib/libopencv_imgcodecs.407.dylib $libfolder
 cp ./opencv/build/lib/libopencv_calib3d.407.dylib $libfolder
@@ -50,7 +51,7 @@ install_name_tool -change @rpath/libopencv_imgproc.407.dylib @executable_path/..
 install_name_tool -change @rpath/libopencv_photo.407.dylib @executable_path/../Resources/lib/libopencv_photo.407.dylib $macosfolder/$appfile
 install_name_tool -change @rpath/libopencv_stitching.407.dylib @executable_path/../Resources/lib/libopencv_stitching.407.dylib $macosfolder/$appfile
 install_name_tool -change /opt/local/lib/libSDL2-2.0.0.dylib @executable_path/../Resources/lib/libSDL2-2.0.0.dylib $macosfolder/$appfile
-
+install_name_tool -change /opt/local/lib/libiconv.2.dylib @rpath/libiconv.2.dylib $libfolder/libexiv2.28.dylib
 #
 # Create PkgInfo file.
   echo $PkgInfoContents >$appfolder/Contents/PkgInfo
