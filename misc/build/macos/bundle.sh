@@ -4,6 +4,7 @@
 appname=Xpano
 appfolder=$appname.app
 macosfolder=$appfolder/Contents/MacOS
+libfolder=$appfolder/Contents/Resources/lib
 plistfile=$appfolder/Contents/Info.plist
 appfile=Xpano
 
@@ -15,39 +16,40 @@ then
   echo "$appfolder already exists"
   rm -rf $appfolder
 fi
-  echo "Creating $appfolder..."
-mkdir -p $appfolder/Contents/Macos $appfolder/Contents/Resources/lib
+
+echo "Creating $appfolder..."
+mkdir -p $macosfolder $libfolder
 
 # Copy App
- cp ./install/bin/$appname $macosfolder/$appname
+cp ./install/bin/$appfile $macosfolder/$appfile
 
 # Copy the resource files to the correct place
 cp -r ./install/share $appfolder/Contents/
 
-cp /opt/local/lib/libSDL2-2.0.0.dylib $appfolder/Contents/Resources/lib/
-cp ./exiv2/build/lib/libexiv2.28.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_imgcodecs.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_calib3d.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_core.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_features2d.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_flann.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_imgproc.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_photo.407.dylib $appfolder/Contents/Resources/lib/
-cp ./opencv/build/lib/libopencv_stitching.407.dylib $appfolder/Contents/Resources/lib/
+cp /opt/local/lib/libSDL2-2.0.0.dylib $libfolder
+cp ./exiv2/build/lib/libexiv2.28.dylib $libfolder
+cp ./opencv/build/lib/libopencv_imgcodecs.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_calib3d.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_core.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_features2d.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_flann.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_imgproc.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_photo.407.dylib $libfolder
+cp ./opencv/build/lib/libopencv_stitching.407.dylib $libfolder
 
-cp ./misc/assets/$appfile.icns $appfolder/Contents/Resources/
+cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
 
 #inametool
-install_name_tool -change @rpath/libexiv2.28.dylib @executable_path/../Resources/lib/libexiv2.28.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_imgcodecs.407.dylib @executable_path/../Resources/lib/libopencv_imgcodecs.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_calib3d.407.dylib @executable_path/../Resources/lib/libopencv_calib3d.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_core.407.dylib @executable_path/../Resources/lib/libopencv_core.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_features2d.407.dylib @executable_path/../Resources/lib/libopencv_features2d.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_flann.407.dylib @executable_path/../Resources/lib/libopencv_flann.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_imgproc.407.dylib @executable_path/../Resources/lib/libopencv_imgproc.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_photo.407.dylib @executable_path/../Resources/lib/libopencv_photo.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change @rpath/libopencv_stitching.407.dylib @executable_path/../Resources/lib/libopencv_stitching.407.dylib $appfolder/Contents/MacOS/$appfile
-install_name_tool -change /opt/local/lib/libSDL2-2.0.0.dylib @executable_path/../Resources/lib/libSDL2-2.0.0.dylib $appfolder/Contents/MacOS/$appfile
+install_name_tool -change @rpath/libexiv2.28.dylib @executable_path/../Resources/lib/libexiv2.28.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_imgcodecs.407.dylib @executable_path/../Resources/lib/libopencv_imgcodecs.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_calib3d.407.dylib @executable_path/../Resources/lib/libopencv_calib3d.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_core.407.dylib @executable_path/../Resources/lib/libopencv_core.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_features2d.407.dylib @executable_path/../Resources/lib/libopencv_features2d.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_flann.407.dylib @executable_path/../Resources/lib/libopencv_flann.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_imgproc.407.dylib @executable_path/../Resources/lib/libopencv_imgproc.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_photo.407.dylib @executable_path/../Resources/lib/libopencv_photo.407.dylib $macosfolder/$appfile
+install_name_tool -change @rpath/libopencv_stitching.407.dylib @executable_path/../Resources/lib/libopencv_stitching.407.dylib $macosfolder/$appfile
+install_name_tool -change /opt/local/lib/libSDL2-2.0.0.dylib @executable_path/../Resources/lib/libSDL2-2.0.0.dylib $macosfolder/$appfile
 
 #
 # Create PkgInfo file.
