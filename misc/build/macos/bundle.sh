@@ -1,5 +1,5 @@
 #!/bin/sh
-#macports based - maybe adapt  library path for libSDL
+# macports based - adapt library path to libSDL when using brew
 
 appname=Xpano
 appfolder=$appname.app
