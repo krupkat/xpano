@@ -13,7 +13,7 @@ PkgInfoContents="APPL????"
 #
 if [ -e $appfolder ]
 then
-  echo "$appfolder already exists"
+  echo "$appfolder already exists, deleting"
   rm -rf $appfolder
 fi
 
@@ -22,37 +22,56 @@ mkdir -p $macosfolder $libfolder
 
 # Copy App
 cp ./install/bin/$appfile $macosfolder/$appfile
-
+echo "App copied..."
 # Copy the resource files to the correct place
 cp -r ./install/share $appfolder/Contents/
+echo "share copied..."
 
-cp /opt/local/lib/libSDL2-2.0.0.dylib $libfolder
-cp /opt/local/lib/libiconv.2.dylib $libfolder
-cp ./exiv2/build/lib/libexiv2.28.dylib $libfolder
-cp ./opencv/build/lib/libopencv_imgcodecs.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_calib3d.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_core.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_features2d.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_flann.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_imgproc.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_photo.407.dylib $libfolder
-cp ./opencv/build/lib/libopencv_stitching.407.dylib $libfolder
+#get local dependencies
+rpathdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep @rpath | sed 's/@rpath\///')
 
+echo "rpath dependencies..."
+
+for dep in $rpathdependencies; do 
+  case ${dep:0:5} in 
+   'libop' ) 
+   libfile='./opencv/build/lib/'$dep;;
+   'libex' ) 
+   libfile='./exiv2/build/lib/'$dep;;
+  esac
+ echo "handling dep" $dep
+  
+  #copy lib
+  cp $libfile $libfolder
+  #inametool
+  install_name_tool -change @rpath/$dep @executable_path/../Resources/lib/$dep $macosfolder/$appfile
+  
+  #detect and copy second level macports dependencies
+  submacportsdependencies=$(otool -L $libfile | awk 'NR>1{print $1}' | grep opt)
+  for subdep in $submacportsdependencies; do 
+   echo "handlingsubdep " $subdep
+   #copy lib
+   cp $subdep $libfolder
+   #inametool
+   install_name_tool -change $subdep @rpath/$(basename $subdep) $libfolder/$(basename $dep)  
+  done 
+  
+done 
+
+#get macports dependencies
+macportsdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep opt)
+
+for dep in $macportsdependencies; do 
+ echo "handling dep" $dep
+ #copy lib
+ cp $dep $libfolder
+ #inametool
+ install_name_tool -change $dep @executable_path/../Resources/lib/$(basename $dep) $macosfolder/$appfile
+done 
+
+#handle icon
 cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
 
-#inametool
-install_name_tool -change @rpath/libexiv2.28.dylib @executable_path/../Resources/lib/libexiv2.28.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_imgcodecs.407.dylib @executable_path/../Resources/lib/libopencv_imgcodecs.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_calib3d.407.dylib @executable_path/../Resources/lib/libopencv_calib3d.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_core.407.dylib @executable_path/../Resources/lib/libopencv_core.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_features2d.407.dylib @executable_path/../Resources/lib/libopencv_features2d.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_flann.407.dylib @executable_path/../Resources/lib/libopencv_flann.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_imgproc.407.dylib @executable_path/../Resources/lib/libopencv_imgproc.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_photo.407.dylib @executable_path/../Resources/lib/libopencv_photo.407.dylib $macosfolder/$appfile
-install_name_tool -change @rpath/libopencv_stitching.407.dylib @executable_path/../Resources/lib/libopencv_stitching.407.dylib $macosfolder/$appfile
-install_name_tool -change /opt/local/lib/libSDL2-2.0.0.dylib @executable_path/../Resources/lib/libSDL2-2.0.0.dylib $macosfolder/$appfile
-install_name_tool -change /opt/local/lib/libiconv.2.dylib @rpath/libiconv.2.dylib $libfolder/libexiv2.28.dylib
-#
 # Create PkgInfo file.
   echo $PkgInfoContents >$appfolder/Contents/PkgInfo
 #
