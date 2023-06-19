@@ -42,3 +42,6 @@ cmake --build build -j $(nproc) --target install
 cd build
 ctest --output-on-failure
 cd ..
+
+./misc/build/macos/bundle.sh
+ls -R Xpano.app

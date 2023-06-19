@@ -444,3 +444,8 @@ jobs:
         cd build
         ctest --output-on-failure
         cd ..
+
+    - name: Bundle
+      run: |
+        ./misc/build/macos/bundle.sh
+        ls -R Xpano.app
