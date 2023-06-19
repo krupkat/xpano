@@ -32,6 +32,9 @@ rpathdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep @r
 
 echo "rpath dependencies..."
 
+# for debugging
+otool -L ./install/bin/Xpano
+
 for dep in $rpathdependencies; do 
   case ${dep:0:5} in 
    'libop' ) 
@@ -46,6 +49,9 @@ for dep in $rpathdependencies; do
   #inametool
   install_name_tool -change @rpath/$dep @executable_path/../Resources/lib/$dep $macosfolder/$appfile
   
+  # for debugging
+  otool -L $libfile
+
   #detect and copy second level macports dependencies
   submacportsdependencies=$(otool -L $libfile | awk 'NR>1{print $1}' | grep opt)
   for subdep in $submacportsdependencies; do 
