@@ -35,9 +35,9 @@ echo "rpath dependencies..."
 for dep in $rpathdependencies; do 
   case ${dep:0:5} in 
    'libop' ) 
-   libfile='./opencv/build/lib/'$dep;;
+   libfile='./opencv/install/lib/'$dep;;
    'libex' ) 
-   libfile='./exiv2/build/lib/'$dep;;
+   libfile='./exiv2/install/lib/'$dep;;
   esac
  echo "handling dep" $dep
   
