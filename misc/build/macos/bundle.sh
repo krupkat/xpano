@@ -1,8 +1,6 @@
 #!/bin/sh
 # macports based - adapt library path to libSDL an libiconv when using brew
 
-set -e
-
 appname=Xpano
 appfolder=$appname.app
 macosfolder=$appfolder/Contents/MacOS
