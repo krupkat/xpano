@@ -35,7 +35,7 @@ void SafeMemset(uint8_t *ptr, uint8_t value, size_t num, const uint8_t *end) {
 // Convert from Multiblend's Flex format to OpenCV's UMat.
 // Flex is a RLE format, leftmost bit is the mask flag, the rest is the length.
 template <typename TFlexType>
-cv::UMat ToUMat(TFlexType &flex) {
+cv::Mat ToMat(TFlexType &flex) {
   auto mask = cv::Mat(flex.height_, flex.width_, CV_8U);
 
   flex.Start();
@@ -57,7 +57,7 @@ cv::UMat ToUMat(TFlexType &flex) {
     }
   }
 
-  return mask.getUMat(cv::ACCESS_READ);
+  return mask;
 }
 
 template <typename TChannelType>
@@ -202,7 +202,7 @@ void MultiblendBlender::blend(cv::InputOutputArray dst,
   auto pano = Merge(result.output_channels, result.width, result.height);
 
   if (blending_method_ == BlendingMethod::kMultiblendAlpha) {
-    dst_mask_ = ToUMat(result.full_mask);
+    ToMat(result.full_mask).copyTo(dst_mask_);
   }
 
   cv::UMat zeroes;
