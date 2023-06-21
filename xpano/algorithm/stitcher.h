@@ -138,10 +138,12 @@ class Stitcher {
     estimator_ = estimator;
   }
 
-  cv::Ptr<cv::WarperCreator> Warper() { return warper_; }
-  [[nodiscard]] cv::Ptr<cv::WarperCreator> Warper() const { return warper_; }
+  cv::Ptr<cv::WarperCreator> Warper() { return warper_creater_; }
+  [[nodiscard]] cv::Ptr<cv::WarperCreator> Warper() const {
+    return warper_creater_;
+  }
   void SetWarper(const cv::Ptr<cv::WarperCreator>& creator) {
-    warper_ = creator;
+    warper_creater_ = creator;
   }
 
   cv::Ptr<cv::detail::ExposureCompensator> ExposureCompensator() {
@@ -168,7 +170,9 @@ class Stitcher {
   [[nodiscard]] cv::Ptr<cv::detail::Blender> Blender() const {
     return blender_;
   }
-  void SetBlender(const cv::Ptr<cv::detail::Blender>& b) { blender_ = b; }
+  void SetBlender(const cv::Ptr<cv::detail::Blender>& blender) {
+    blender_ = blender;
+  }
 
   Status EstimateTransform(cv::InputArrayOfArrays images,
                            cv::InputArrayOfArrays masks = cv::noArray());
@@ -212,7 +216,7 @@ class Stitcher {
   cv::Ptr<cv::detail::Estimator> estimator_;
   bool do_wave_correct_;
   cv::detail::WaveCorrectKind wave_correct_kind_;
-  cv::Ptr<cv::WarperCreator> warper_;
+  cv::Ptr<cv::WarperCreator> warper_creater_;
   cv::Ptr<cv::detail::ExposureCompensator> exposure_comp_;
   cv::Ptr<cv::detail::SeamFinder> seam_finder_;
   cv::Ptr<cv::detail::Blender> blender_;
