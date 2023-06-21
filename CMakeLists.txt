@@ -48,6 +48,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/image.cc"
   "xpano/algorithm/multiblend.cc"
   "xpano/algorithm/options.cc"
+  "xpano/algorithm/stitcher.cc"
   "xpano/cli/args.cc"
   "xpano/cli/pano_cli.cc"
   "xpano/cli/signal.cc"

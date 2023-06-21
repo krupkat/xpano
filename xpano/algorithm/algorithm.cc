@@ -26,6 +26,7 @@
 #include "xpano/algorithm/bundle_adjuster.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/multiblend.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
@@ -233,7 +234,7 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 
 StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
                     bool return_pano_mask, utils::mt::Threadpool* threadpool) {
-  auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
+  auto stitcher = stitcher::Stitcher::create(cv::Stitcher::PANORAMA);
   stitcher->setWarper(PickWarper(options.projection));
   stitcher->setFeaturesFinder(PickFeaturesFinder(options.feature));
   stitcher->setFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(

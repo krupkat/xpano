@@ -28,6 +28,7 @@ add_executable(StitcherTest
   ../xpano/algorithm/image.cc
   ../xpano/algorithm/multiblend.cc
   ../xpano/algorithm/options.cc
+  ../xpano/algorithm/stitcher.cc
   ../xpano/pipeline/options.cc
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc
