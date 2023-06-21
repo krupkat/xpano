@@ -244,11 +244,6 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   if (stitcher->WaveCorrection()) {
     stitcher->SetWaveCorrectKind(PickWaveCorrectKind(options.wave_correction));
   }
-
-  // Using a modified BundleAdjuster to save detected WaveCorrectionKind, since
-  // it isn't available otherwise.
-  auto bundle_adjuster = cv::makePtr<BundleAdjusterRayCustom>();
-  stitcher->SetBundleAdjuster(bundle_adjuster);
   stitcher->SetBlender(PickBlender(options.blending_method, threadpool));
 
   cv::Mat pano;
@@ -264,7 +259,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   }
 
   if (auto rotate = GetRotationFlags(options.wave_correction,
-                                     bundle_adjuster->WaveCorrectionKind());
+                                     stitcher->WaveCorrectKind());
       rotate) {
     cv::rotate(pano, pano, *rotate);
     if (return_pano_mask) {

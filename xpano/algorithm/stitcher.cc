@@ -54,6 +54,8 @@
 
 namespace xpano::algorithm::stitcher {
 
+namespace {
+
 constexpr unsigned char kMaskValueOn = 0xFF;
 
 class Timer {
@@ -87,6 +89,8 @@ class Timer {
 
   int64 start_count_;
 };
+
+}  // namespace
 
 cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
   cv::Ptr<Stitcher> stitcher = cv::makePtr<Stitcher>();
@@ -539,6 +543,9 @@ Stitcher::Status Stitcher::EstimateCameraParams() {
     std::vector<cv::Mat> rmats;
     for (auto &camera : cameras_) {
       rmats.push_back(camera.R.clone());
+    }
+    if (wave_correct_kind_ == cv::detail::WAVE_CORRECT_AUTO) {
+      wave_correct_kind_ = cv::detail::autoDetectWaveCorrectKind(rmats);
     }
     cv::detail::waveCorrect(rmats, wave_correct_kind_);
     for (size_t i = 0; i < cameras_.size(); ++i) {
