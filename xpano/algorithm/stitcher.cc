@@ -52,18 +52,18 @@
 
 namespace xpano::algorithm::stitcher {
 
-cv::Ptr<Stitcher> Stitcher::create(Mode mode) {
+cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
   cv::Ptr<Stitcher> stitcher = cv::makePtr<Stitcher>();
 
-  stitcher->setRegistrationResol(0.6);
-  stitcher->setSeamEstimationResol(0.1);
-  stitcher->setCompositingResol(ORIG_RESOL);
-  stitcher->setPanoConfidenceThresh(1);
-  stitcher->setSeamFinder(cv::makePtr<cv::detail::GraphCutSeamFinder>(
+  stitcher->SetRegistrationResol(0.6);
+  stitcher->SetSeamEstimationResol(0.1);
+  stitcher->SetCompositingResol(kOrigResol);
+  stitcher->SetPanoConfidenceThresh(1);
+  stitcher->SetSeamFinder(cv::makePtr<cv::detail::GraphCutSeamFinder>(
       cv::detail::GraphCutSeamFinderBase::COST_COLOR));
-  stitcher->setBlender(cv::makePtr<cv::detail::MultiBandBlender>(false));
-  stitcher->setFeaturesFinder(cv::ORB::create());
-  stitcher->setInterpolationFlags(cv::INTER_LINEAR);
+  stitcher->SetBlender(cv::makePtr<cv::detail::MultiBandBlender>(false));
+  stitcher->SetFeaturesFinder(cv::ORB::create());
+  stitcher->SetInterpolationFlags(cv::INTER_LINEAR);
 
   stitcher->work_scale_ = 1;
   stitcher->seam_scale_ = 1;
@@ -73,27 +73,27 @@ cv::Ptr<Stitcher> Stitcher::create(Mode mode) {
   switch (mode) {
     case Mode::PANORAMA:  // PANORAMA is the default
       // mostly already setup
-      stitcher->setEstimator(
+      stitcher->SetEstimator(
           cv::makePtr<cv::detail::HomographyBasedEstimator>());
-      stitcher->setWaveCorrection(true);
-      stitcher->setWaveCorrectKind(cv::detail::WAVE_CORRECT_HORIZ);
-      stitcher->setFeaturesMatcher(
+      stitcher->SetWaveCorrection(true);
+      stitcher->SetWaveCorrectKind(cv::detail::WAVE_CORRECT_HORIZ);
+      stitcher->SetFeaturesMatcher(
           cv::makePtr<cv::detail::BestOf2NearestMatcher>(false));
-      stitcher->setBundleAdjuster(cv::makePtr<cv::detail::BundleAdjusterRay>());
-      stitcher->setWarper(cv::makePtr<cv::SphericalWarper>());
-      stitcher->setExposureCompensator(
+      stitcher->SetBundleAdjuster(cv::makePtr<cv::detail::BundleAdjusterRay>());
+      stitcher->SetWarper(cv::makePtr<cv::SphericalWarper>());
+      stitcher->SetExposureCompensator(
           cv::makePtr<cv::detail::BlocksGainCompensator>());
       break;
 
     case Mode::SCANS:
-      stitcher->setEstimator(cv::makePtr<cv::detail::AffineBasedEstimator>());
-      stitcher->setWaveCorrection(false);
-      stitcher->setFeaturesMatcher(
+      stitcher->SetEstimator(cv::makePtr<cv::detail::AffineBasedEstimator>());
+      stitcher->SetWaveCorrection(false);
+      stitcher->SetFeaturesMatcher(
           cv::makePtr<cv::detail::AffineBestOf2NearestMatcher>(false, false));
-      stitcher->setBundleAdjuster(
+      stitcher->SetBundleAdjuster(
           cv::makePtr<cv::detail::BundleAdjusterAffinePartial>());
-      stitcher->setWarper(cv::makePtr<cv::AffineWarper>());
-      stitcher->setExposureCompensator(
+      stitcher->SetWarper(cv::makePtr<cv::AffineWarper>());
+      stitcher->SetExposureCompensator(
           cv::makePtr<cv::detail::NoExposureCompensator>());
       break;
 
@@ -106,25 +106,29 @@ cv::Ptr<Stitcher> Stitcher::create(Mode mode) {
   return stitcher;
 }
 
-Stitcher::Status Stitcher::estimateTransform(cv::InputArrayOfArrays images,
+Stitcher::Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
                                              cv::InputArrayOfArrays masks) {
   images.getUMatVector(imgs_);
   masks.getUMatVector(masks_);
 
   Status status;
 
-  if ((status = matchImages()) != Status::OK) return status;
+  if ((status = MatchImages()) != Status::OK) {
+    return status;
+  }
 
-  if ((status = estimateCameraParams()) != Status::OK) return status;
+  if ((status = EstimateCameraParams()) != Status::OK) {
+    return status;
+  }
 
   return Status::OK;
 }
 
-Stitcher::Status Stitcher::composePanorama(cv::OutputArray pano) {
-  return composePanorama(std::vector<cv::UMat>(), pano);
+Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
+  return ComposePanorama(std::vector<cv::UMat>(), pano);
 }
 
-Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
+Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
                                            cv::OutputArray pano) {
   spdlog::info("Warping images (auxiliary)... ");
 
@@ -146,16 +150,14 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
     std::vector<cv::UMat> seam_est_imgs_subset;
     std::vector<cv::UMat> imgs_subset;
 
-    for (size_t i = 0; i < indices_.size(); ++i) {
-      imgs_subset.push_back(imgs_[indices_[i]]);
-      seam_est_imgs_subset.push_back(seam_est_imgs_[indices_[i]]);
+    for (int indice : indices_) {
+      imgs_subset.push_back(imgs_[indice]);
+      seam_est_imgs_subset.push_back(seam_est_imgs_[indice]);
     }
 
     seam_est_imgs_ = seam_est_imgs_subset;
     imgs_ = imgs_subset;
   }
-
-  cv::UMat pano_;
 
   int64 t = cv::getTickCount();
 
@@ -172,21 +174,21 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
   }
 
   // Warp images and their masks
-  cv::Ptr<cv::detail::RotationWarper> w =
-      warper_->create(float(warped_image_scale_ * seam_work_aspect_));
+  cv::Ptr<cv::detail::RotationWarper> w = warper_->create(
+      static_cast<float>(warped_image_scale_ * seam_work_aspect_));
   for (size_t i = 0; i < imgs_.size(); ++i) {
-    cv::Mat_<float> K;
-    cameras_[i].K().convertTo(K, CV_32F);
-    K(0, 0) *= (float)seam_work_aspect_;
-    K(0, 2) *= (float)seam_work_aspect_;
-    K(1, 1) *= (float)seam_work_aspect_;
-    K(1, 2) *= (float)seam_work_aspect_;
+    cv::Mat_<float> k;
+    cameras_[i].K().convertTo(k, CV_32F);
+    k(0, 0) *= static_cast<float>(seam_work_aspect_);
+    k(0, 2) *= static_cast<float>(seam_work_aspect_);
+    k(1, 1) *= static_cast<float>(seam_work_aspect_);
+    k(1, 2) *= static_cast<float>(seam_work_aspect_);
 
-    corners[i] = w->warp(seam_est_imgs_[i], K, cameras_[i].R, interp_flags_,
+    corners[i] = w->warp(seam_est_imgs_[i], k, cameras_[i].R, interp_flags_,
                          cv::BORDER_REFLECT, images_warped[i]);
     sizes[i] = images_warped[i].size();
 
-    w->warp(masks[i], K, cameras_[i].R, cv::INTER_NEAREST, cv::BORDER_CONSTANT,
+    w->warp(masks[i], k, cameras_[i].R, cv::INTER_NEAREST, cv::BORDER_CONSTANT,
             masks_warped[i]);
   }
 
@@ -195,14 +197,16 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
 
   // Compensate exposure before finding seams
   exposure_comp_->feed(corners, images_warped, masks_warped);
-  for (size_t i = 0; i < imgs_.size(); ++i)
-    exposure_comp_->apply(int(i), corners[i], images_warped[i],
+  for (size_t i = 0; i < imgs_.size(); ++i) {
+    exposure_comp_->apply(static_cast<int>(i), corners[i], images_warped[i],
                           masks_warped[i]);
+  }
 
   // Find seams
   std::vector<cv::UMat> images_warped_f(imgs_.size());
-  for (size_t i = 0; i < imgs_.size(); ++i)
+  for (size_t i = 0; i < imgs_.size(); ++i) {
     images_warped[i].convertTo(images_warped_f[i], CV_32F);
+  }
   seam_finder_->find(images_warped_f, corners, masks_warped);
 
   // Release unused memory
@@ -214,8 +218,12 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
   spdlog::info("Compositing...");
   t = cv::getTickCount();
 
-  cv::UMat img_warped, img_warped_s;
-  cv::UMat dilated_mask, seam_mask, mask, mask_warped;
+  cv::UMat img_warped;
+  cv::UMat img_warped_s;
+  cv::UMat dilated_mask;
+  cv::UMat seam_mask;
+  cv::UMat mask;
+  cv::UMat mask_warped;
 
   // double compose_seam_aspect = 1;
   double compose_work_aspect = 1;
@@ -226,7 +234,8 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
 
   std::vector<cv::detail::CameraParams> cameras_scaled(cameras_);
 
-  cv::UMat full_img, img;
+  cv::UMat full_img;
+  cv::UMat img;
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     spdlog::trace("Compositing image #{}", indices_[img_idx] + 1);
     int64 compositing_t = cv::getTickCount();
@@ -234,9 +243,10 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
     // Read image and resize it if necessary
     full_img = imgs_[img_idx];
     if (!is_compose_scale_set) {
-      if (compose_resol_ > 0)
+      if (compose_resol_ > 0) {
         compose_scale = std::min(
             1.0, std::sqrt(compose_resol_ * 1e6 / full_img.size().area()));
+      }
       is_compose_scale_set = true;
 
       // Compute relative scales
@@ -244,7 +254,7 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
       compose_work_aspect = compose_scale / work_scale_;
 
       // Update warped image scale
-      float warp_scale =
+      auto warp_scale =
           static_cast<float>(warped_image_scale_ * compose_work_aspect);
       w = warper_->create(warp_scale);
 
@@ -262,9 +272,9 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
           sz.height = cvRound(full_img_sizes_[i].height * compose_scale);
         }
 
-        cv::Mat K;
-        cameras_scaled[i].K().convertTo(K, CV_32F);
-        cv::Rect roi = w->warpRoi(sz, K, cameras_scaled[i].R);
+        cv::Mat k;
+        cameras_scaled[i].K().convertTo(k, CV_32F);
+        cv::Rect roi = w->warpRoi(sz, k, cameras_scaled[i].R);
         corners[i] = roi.tl();
         sizes[i] = roi.size();
       }
@@ -276,8 +286,9 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
              cv::INTER_LINEAR_EXACT);
       spdlog::trace("  resize time: {} sec",
                     (cv::getTickCount() - resize_t) / cv::getTickFrequency());
-    } else
+    } else {
       img = full_img;
+    }
     full_img.release();
     cv::Size img_size = img.size();
 
@@ -285,13 +296,13 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
         " after resize time: {} sec",
         (cv::getTickCount() - compositing_t) / cv::getTickFrequency());
 
-    cv::Mat K;
-    cameras_scaled[img_idx].K().convertTo(K, CV_32F);
+    cv::Mat k;
+    cameras_scaled[img_idx].K().convertTo(k, CV_32F);
 
     int64 pt = cv::getTickCount();
 
     // Warp the current image
-    w->warp(img, K, cameras_[img_idx].R, interp_flags_, cv::BORDER_REFLECT,
+    w->warp(img, k, cameras_[img_idx].R, interp_flags_, cv::BORDER_REFLECT,
             img_warped);
     spdlog::trace(" warp the current image: {} sec",
                   (cv::getTickCount() - pt) / cv::getTickFrequency());
@@ -301,7 +312,7 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
     // Warp the current image mask
     mask.create(img_size, CV_8U);
     mask.setTo(cv::Scalar::all(255));
-    w->warp(mask, K, cameras_[img_idx].R, cv::INTER_NEAREST,
+    w->warp(mask, k, cameras_[img_idx].R, cv::INTER_NEAREST,
             cv::BORDER_CONSTANT, mask_warped);
     spdlog::trace(" warp the current image mask: {} sec",
                   (cv::getTickCount() - pt) / cv::getTickFrequency());
@@ -309,8 +320,8 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
     pt = cv::getTickCount();
 
     // Compensate exposure
-    exposure_comp_->apply((int)img_idx, corners[img_idx], img_warped,
-                          mask_warped);
+    exposure_comp_->apply(static_cast<int>(img_idx), corners[img_idx],
+                          img_warped, mask_warped);
     spdlog::trace(" compensate exposure: {} sec",
                   (cv::getTickCount() - pt) / cv::getTickFrequency());
 
@@ -371,23 +382,23 @@ Stitcher::Status Stitcher::composePanorama(cv::InputArrayOfArrays images,
   return Status::OK;
 }
 
-Stitcher::Status Stitcher::stitch(cv::InputArrayOfArrays images,
+Stitcher::Status Stitcher::Stitch(cv::InputArrayOfArrays images,
                                   cv::OutputArray pano) {
-  return stitch(images, cv::noArray(), pano);
+  return Stitch(images, cv::noArray(), pano);
 }
 
-Stitcher::Status Stitcher::stitch(cv::InputArrayOfArrays images,
+Stitcher::Status Stitcher::Stitch(cv::InputArrayOfArrays images,
                                   cv::InputArrayOfArrays masks,
                                   cv::OutputArray pano) {
-  Status status = estimateTransform(images, masks);
+  Status status = EstimateTransform(images, masks);
   if (status != Status::OK) {
     return status;
   }
-  return composePanorama(pano);
+  return ComposePanorama(pano);
 }
 
-Stitcher::Status Stitcher::matchImages() {
-  if ((int)imgs_.size() < 2) {
+Stitcher::Status Stitcher::MatchImages() {
+  if (static_cast<int>(imgs_.size()) < 2) {
     spdlog::error("Need more images");
     return Status::ERR_NEED_MORE_IMGS;
   }
@@ -433,7 +444,7 @@ Stitcher::Status Stitcher::matchImages() {
       resize(masks_[i], feature_find_masks[i], cv::Size(), work_scale_,
              work_scale_, cv::INTER_NEAREST);
     }
-    features_[i].img_idx = (int)i;
+    features_[i].img_idx = static_cast<int>(i);
     spdlog::debug("Features in image #{}: {}", i + 1,
                   features_[i].keypoints.size());
 
@@ -462,21 +473,21 @@ Stitcher::Status Stitcher::matchImages() {
                 (cv::getTickCount() - t) / cv::getTickFrequency());
 
   // Leave only images we are sure are from the same panorama
-  indices_ = cv::detail::leaveBiggestComponent(features_, pairwise_matches_,
-                                               (float)conf_thresh_);
+  indices_ = cv::detail::leaveBiggestComponent(
+      features_, pairwise_matches_, static_cast<float>(conf_thresh_));
   std::vector<cv::UMat> seam_est_imgs_subset;
   std::vector<cv::UMat> imgs_subset;
   std::vector<cv::Size> full_img_sizes_subset;
-  for (size_t i = 0; i < indices_.size(); ++i) {
-    imgs_subset.push_back(imgs_[indices_[i]]);
-    seam_est_imgs_subset.push_back(seam_est_imgs_[indices_[i]]);
-    full_img_sizes_subset.push_back(full_img_sizes_[indices_[i]]);
+  for (int indice : indices_) {
+    imgs_subset.push_back(imgs_[indice]);
+    seam_est_imgs_subset.push_back(seam_est_imgs_[indice]);
+    full_img_sizes_subset.push_back(full_img_sizes_[indice]);
   }
   seam_est_imgs_ = seam_est_imgs_subset;
   imgs_ = imgs_subset;
   full_img_sizes_ = full_img_sizes_subset;
 
-  if ((int)imgs_.size() < 2) {
+  if (static_cast<int>(imgs_.size()) < 2) {
     spdlog::error("Need more images");
     return Status::ERR_NEED_MORE_IMGS;
   }
@@ -484,16 +495,16 @@ Stitcher::Status Stitcher::matchImages() {
   return Status::OK;
 }
 
-Stitcher::Status Stitcher::estimateCameraParams() {
+Stitcher::Status Stitcher::EstimateCameraParams() {
   // estimate homography in global frame
   if (!(*estimator_)(features_, pairwise_matches_, cameras_)) {
     return Status::ERR_HOMOGRAPHY_EST_FAIL;
   }
 
-  for (size_t i = 0; i < cameras_.size(); ++i) {
-    cv::Mat R;
-    cameras_[i].R.convertTo(R, CV_32F);
-    cameras_[i].R = R;
+  for (auto &camera : cameras_) {
+    cv::Mat r;
+    camera.R.convertTo(r, CV_32F);
+    camera.R = r;
     // LOGLN("Initial intrinsic parameters #" << indices_[i] + 1 << ":\n " <<
     // cameras_[i].K());
   }
@@ -505,40 +516,46 @@ Stitcher::Status Stitcher::estimateCameraParams() {
 
   // Find median focal length and use it as final image scale
   std::vector<double> focals;
-  for (size_t i = 0; i < cameras_.size(); ++i) {
+  for (auto &camera : cameras_) {
     // LOGLN("Camera #" << indices_[i] + 1 << ":\n" << cameras_[i].K());
-    focals.push_back(cameras_[i].focal);
+    focals.push_back(camera.focal);
   }
 
   std::sort(focals.begin(), focals.end());
-  if (focals.size() % 2 == 1)
+  if (focals.size() % 2 == 1) {
     warped_image_scale_ = static_cast<float>(focals[focals.size() / 2]);
-  else
+  } else {
     warped_image_scale_ = static_cast<float>(focals[focals.size() / 2 - 1] +
                                              focals[focals.size() / 2]) *
                           0.5f;
+  }
 
   if (do_wave_correct_) {
     std::vector<cv::Mat> rmats;
-    for (size_t i = 0; i < cameras_.size(); ++i)
-      rmats.push_back(cameras_[i].R.clone());
+    for (auto &camera : cameras_) {
+      rmats.push_back(camera.R.clone());
+    }
     cv::detail::waveCorrect(rmats, wave_correct_kind_);
-    for (size_t i = 0; i < cameras_.size(); ++i) cameras_[i].R = rmats[i];
+    for (size_t i = 0; i < cameras_.size(); ++i) {
+      cameras_[i].R = rmats[i];
+    }
   }
 
   return Status::OK;
 }
 
-Stitcher::Status Stitcher::setTransform(
+Stitcher::Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams> &cameras) {
   std::vector<int> component;
-  for (int i = 0; i < (int)images.total(); i++) component.push_back(i);
+  for (int i = 0; i < static_cast<int>(images.total()); i++) {
+    component.push_back(i);
+  }
 
-  return setTransform(images, cameras, component);
+  return SetTransform(images, cameras, component);
 }
 
-Stitcher::Status Stitcher::setTransform(
+Stitcher::Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams> &cameras,
     const std::vector<int> &component) {
@@ -547,7 +564,7 @@ Stitcher::Status Stitcher::setTransform(
   images.getUMatVector(imgs_);
   masks_.clear();
 
-  if ((int)imgs_.size() < 2) {
+  if (static_cast<int>(imgs_.size()) < 2) {
     spdlog::error("Need more images");
     return Status::ERR_NEED_MORE_IMGS;
   }
@@ -590,16 +607,16 @@ Stitcher::Status Stitcher::setTransform(
   std::vector<cv::UMat> seam_est_imgs_subset;
   std::vector<cv::UMat> imgs_subset;
   std::vector<cv::Size> full_img_sizes_subset;
-  for (size_t i = 0; i < indices_.size(); ++i) {
-    imgs_subset.push_back(imgs_[indices_[i]]);
-    seam_est_imgs_subset.push_back(seam_est_imgs_[indices_[i]]);
-    full_img_sizes_subset.push_back(full_img_sizes_[indices_[i]]);
+  for (int indice : indices_) {
+    imgs_subset.push_back(imgs_[indice]);
+    seam_est_imgs_subset.push_back(seam_est_imgs_[indice]);
+    full_img_sizes_subset.push_back(full_img_sizes_[indice]);
   }
   seam_est_imgs_ = seam_est_imgs_subset;
   imgs_ = imgs_subset;
   full_img_sizes_ = full_img_sizes_subset;
 
-  if ((int)imgs_.size() < 2) {
+  if (static_cast<int>(imgs_.size()) < 2) {
     spdlog::error("Need more images");
     return Status::ERR_NEED_MORE_IMGS;
   }
@@ -607,16 +624,18 @@ Stitcher::Status Stitcher::setTransform(
   cameras_ = cameras;
 
   std::vector<double> focals;
-  for (size_t i = 0; i < cameras.size(); ++i)
+  for (size_t i = 0; i < cameras.size(); ++i) {
     focals.push_back(cameras_[i].focal);
+  }
 
   std::sort(focals.begin(), focals.end());
-  if (focals.size() % 2 == 1)
+  if (focals.size() % 2 == 1) {
     warped_image_scale_ = static_cast<float>(focals[focals.size() / 2]);
-  else
+  } else {
     warped_image_scale_ = static_cast<float>(focals[focals.size() / 2 - 1] +
                                              focals[focals.size() / 2]) *
                           0.5f;
+  }
 
   return Status::OK;
 }

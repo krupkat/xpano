@@ -56,136 +56,149 @@ namespace xpano::algorithm::stitcher {
 
 class Stitcher {
  public:
-  static constexpr double ORIG_RESOL = -1.0;
+  static constexpr double kOrigResol = -1.0;
 
   using Status = cv::Stitcher::Status;
   using Mode = cv::Stitcher::Mode;
 
-  static cv::Ptr<Stitcher> create(Mode mode = Stitcher::Mode::PANORAMA);
+  static cv::Ptr<Stitcher> Create(Mode mode = Stitcher::Mode::PANORAMA);
 
-  double registrationResol() const { return registr_resol_; }
-  void setRegistrationResol(double resol_mpx) { registr_resol_ = resol_mpx; }
+  [[nodiscard]] double RegistrationResol() const { return registr_resol_; }
+  void SetRegistrationResol(double resol_mpx) { registr_resol_ = resol_mpx; }
 
-  double seamEstimationResol() const { return seam_est_resol_; }
-  void setSeamEstimationResol(double resol_mpx) { seam_est_resol_ = resol_mpx; }
+  [[nodiscard]] double SeamEstimationResol() const { return seam_est_resol_; }
+  void SetSeamEstimationResol(double resol_mpx) { seam_est_resol_ = resol_mpx; }
 
-  double compositingResol() const { return compose_resol_; }
-  void setCompositingResol(double resol_mpx) { compose_resol_ = resol_mpx; }
+  [[nodiscard]] double CompositingResol() const { return compose_resol_; }
+  void SetCompositingResol(double resol_mpx) { compose_resol_ = resol_mpx; }
 
-  double panoConfidenceThresh() const { return conf_thresh_; }
-  void setPanoConfidenceThresh(double conf_thresh) {
+  [[nodiscard]] double PanoConfidenceThresh() const { return conf_thresh_; }
+  void SetPanoConfidenceThresh(double conf_thresh) {
     conf_thresh_ = conf_thresh;
   }
 
-  bool waveCorrection() const { return do_wave_correct_; }
-  void setWaveCorrection(bool flag) { do_wave_correct_ = flag; }
+  [[nodiscard]] bool WaveCorrection() const { return do_wave_correct_; }
+  void SetWaveCorrection(bool flag) { do_wave_correct_ = flag; }
 
-  cv::InterpolationFlags InterpolationFlags() const { return interp_flags_; }
-  void setInterpolationFlags(cv::InterpolationFlags interp_flags) {
+  [[nodiscard]] cv::InterpolationFlags InterpolationFlags() const {
+    return interp_flags_;
+  }
+  void SetInterpolationFlags(cv::InterpolationFlags interp_flags) {
     interp_flags_ = interp_flags;
   }
 
-  cv::detail::WaveCorrectKind waveCorrectKind() const {
+  [[nodiscard]] cv::detail::WaveCorrectKind WaveCorrectKind() const {
     return wave_correct_kind_;
   }
-  void setWaveCorrectKind(cv::detail::WaveCorrectKind kind) {
+  void SetWaveCorrectKind(cv::detail::WaveCorrectKind kind) {
     wave_correct_kind_ = kind;
   }
 
-  cv::Ptr<cv::Feature2D> featuresFinder() { return features_finder_; }
-  cv::Ptr<cv::Feature2D> featuresFinder() const { return features_finder_; }
-  void setFeaturesFinder(cv::Ptr<cv::Feature2D> features_finder) {
+  cv::Ptr<cv::Feature2D> FeaturesFinder() { return features_finder_; }
+  [[nodiscard]] cv::Ptr<cv::Feature2D> FeaturesFinder() const {
+    return features_finder_;
+  }
+  void SetFeaturesFinder(const cv::Ptr<cv::Feature2D>& features_finder) {
     features_finder_ = features_finder;
   }
 
-  cv::Ptr<cv::detail::FeaturesMatcher> featuresMatcher() {
+  cv::Ptr<cv::detail::FeaturesMatcher> FeaturesMatcher() {
     return features_matcher_;
   }
-  cv::Ptr<cv::detail::FeaturesMatcher> featuresMatcher() const {
+  [[nodiscard]] cv::Ptr<cv::detail::FeaturesMatcher> FeaturesMatcher() const {
     return features_matcher_;
   }
-  void setFeaturesMatcher(
-      cv::Ptr<cv::detail::FeaturesMatcher> features_matcher) {
+  void SetFeaturesMatcher(
+      const cv::Ptr<cv::detail::FeaturesMatcher>& features_matcher) {
     features_matcher_ = features_matcher;
   }
 
-  const cv::UMat &matchingMask() const { return matching_mask_; }
-  void setMatchingMask(const cv::UMat &mask) {
+  [[nodiscard]] const cv::UMat& MatchingMask() const { return matching_mask_; }
+  void SetMatchingMask(const cv::UMat& mask) {
     CV_Assert(mask.type() == CV_8U && mask.cols == mask.rows);
     matching_mask_ = mask.clone();
   }
 
-  cv::Ptr<cv::detail::BundleAdjusterBase> bundleAdjuster() {
+  cv::Ptr<cv::detail::BundleAdjusterBase> BundleAdjuster() {
     return bundle_adjuster_;
   }
-  const cv::Ptr<cv::detail::BundleAdjusterBase> bundleAdjuster() const {
+  [[nodiscard]] cv::Ptr<cv::detail::BundleAdjusterBase> BundleAdjuster() const {
     return bundle_adjuster_;
   }
-  void setBundleAdjuster(
-      cv::Ptr<cv::detail::BundleAdjusterBase> bundle_adjuster) {
+  void SetBundleAdjuster(
+      const cv::Ptr<cv::detail::BundleAdjusterBase>& bundle_adjuster) {
     bundle_adjuster_ = bundle_adjuster;
   }
 
-  cv::Ptr<cv::detail::Estimator> estimator() { return estimator_; }
-  const cv::Ptr<cv::detail::Estimator> estimator() const { return estimator_; }
-  void setEstimator(cv::Ptr<cv::detail::Estimator> estimator) {
+  cv::Ptr<cv::detail::Estimator> Estimator() { return estimator_; }
+  [[nodiscard]] cv::Ptr<cv::detail::Estimator> Estimator() const {
+    return estimator_;
+  }
+  void SetEstimator(const cv::Ptr<cv::detail::Estimator>& estimator) {
     estimator_ = estimator;
   }
 
-  cv::Ptr<cv::WarperCreator> warper() { return warper_; }
-  const cv::Ptr<cv::WarperCreator> warper() const { return warper_; }
-  void setWarper(cv::Ptr<cv::WarperCreator> creator) { warper_ = creator; }
+  cv::Ptr<cv::WarperCreator> Warper() { return warper_; }
+  [[nodiscard]] cv::Ptr<cv::WarperCreator> Warper() const { return warper_; }
+  void SetWarper(const cv::Ptr<cv::WarperCreator>& creator) {
+    warper_ = creator;
+  }
 
-  cv::Ptr<cv::detail::ExposureCompensator> exposureCompensator() {
+  cv::Ptr<cv::detail::ExposureCompensator> ExposureCompensator() {
     return exposure_comp_;
   }
-  const cv::Ptr<cv::detail::ExposureCompensator> exposureCompensator() const {
+  [[nodiscard]] cv::Ptr<cv::detail::ExposureCompensator> ExposureCompensator()
+      const {
     return exposure_comp_;
   }
-  void setExposureCompensator(
-      cv::Ptr<cv::detail::ExposureCompensator> exposure_comp) {
+  void SetExposureCompensator(
+      const cv::Ptr<cv::detail::ExposureCompensator>& exposure_comp) {
     exposure_comp_ = exposure_comp;
   }
 
-  cv::Ptr<cv::detail::SeamFinder> seamFinder() { return seam_finder_; }
-  const cv::Ptr<cv::detail::SeamFinder> seamFinder() const {
+  cv::Ptr<cv::detail::SeamFinder> SeamFinder() { return seam_finder_; }
+  [[nodiscard]] cv::Ptr<cv::detail::SeamFinder> SeamFinder() const {
     return seam_finder_;
   }
-  void setSeamFinder(cv::Ptr<cv::detail::SeamFinder> seam_finder) {
+  void SetSeamFinder(const cv::Ptr<cv::detail::SeamFinder>& seam_finder) {
     seam_finder_ = seam_finder;
   }
 
-  cv::Ptr<cv::detail::Blender> blender() { return blender_; }
-  const cv::Ptr<cv::detail::Blender> blender() const { return blender_; }
-  void setBlender(cv::Ptr<cv::detail::Blender> b) { blender_ = b; }
+  cv::Ptr<cv::detail::Blender> Blender() { return blender_; }
+  [[nodiscard]] cv::Ptr<cv::detail::Blender> Blender() const {
+    return blender_;
+  }
+  void SetBlender(const cv::Ptr<cv::detail::Blender>& b) { blender_ = b; }
 
-  Status estimateTransform(cv::InputArrayOfArrays images,
+  Status EstimateTransform(cv::InputArrayOfArrays images,
                            cv::InputArrayOfArrays masks = cv::noArray());
 
-  Status setTransform(cv::InputArrayOfArrays images,
-                      const std::vector<cv::detail::CameraParams> &cameras,
-                      const std::vector<int> &component);
-  Status setTransform(cv::InputArrayOfArrays images,
-                      const std::vector<cv::detail::CameraParams> &cameras);
+  Status SetTransform(cv::InputArrayOfArrays images,
+                      const std::vector<cv::detail::CameraParams>& cameras,
+                      const std::vector<int>& component);
+  Status SetTransform(cv::InputArrayOfArrays images,
+                      const std::vector<cv::detail::CameraParams>& cameras);
 
-  Status composePanorama(cv::OutputArray pano);
+  Status ComposePanorama(cv::OutputArray pano);
 
-  Status composePanorama(cv::InputArrayOfArrays images, cv::OutputArray pano);
+  Status ComposePanorama(cv::InputArrayOfArrays images, cv::OutputArray pano);
 
-  Status stitch(cv::InputArrayOfArrays images, cv::OutputArray pano);
+  Status Stitch(cv::InputArrayOfArrays images, cv::OutputArray pano);
 
-  Status stitch(cv::InputArrayOfArrays images, cv::InputArrayOfArrays masks,
+  Status Stitch(cv::InputArrayOfArrays images, cv::InputArrayOfArrays masks,
                 cv::OutputArray pano);
 
-  std::vector<int> component() const { return indices_; }
-  std::vector<cv::detail::CameraParams> cameras() const { return cameras_; }
-  double workScale() const { return work_scale_; }
+  [[nodiscard]] std::vector<int> Component() const { return indices_; }
+  [[nodiscard]] std::vector<cv::detail::CameraParams> Cameras() const {
+    return cameras_;
+  }
+  [[nodiscard]] double WorkScale() const { return work_scale_; }
 
-  cv::UMat resultMask() const { return result_mask_; }
+  [[nodiscard]] cv::UMat ResultMask() const { return result_mask_; }
 
  private:
-  Status matchImages();
-  Status estimateCameraParams();
+  Status MatchImages();
+  Status EstimateCameraParams();
 
   double registr_resol_;
   double seam_est_resol_;

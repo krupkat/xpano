@@ -234,25 +234,25 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 
 StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
                     bool return_pano_mask, utils::mt::Threadpool* threadpool) {
-  auto stitcher = stitcher::Stitcher::create(cv::Stitcher::PANORAMA);
-  stitcher->setWarper(PickWarper(options.projection));
-  stitcher->setFeaturesFinder(PickFeaturesFinder(options.feature));
-  stitcher->setFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
+  auto stitcher = stitcher::Stitcher::Create(cv::Stitcher::PANORAMA);
+  stitcher->SetWarper(PickWarper(options.projection));
+  stitcher->SetFeaturesFinder(PickFeaturesFinder(options.feature));
+  stitcher->SetFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
       false, options.match_conf));
-  stitcher->setWaveCorrection(options.wave_correction !=
+  stitcher->SetWaveCorrection(options.wave_correction !=
                               WaveCorrectionType::kOff);
-  if (stitcher->waveCorrection()) {
-    stitcher->setWaveCorrectKind(PickWaveCorrectKind(options.wave_correction));
+  if (stitcher->WaveCorrection()) {
+    stitcher->SetWaveCorrectKind(PickWaveCorrectKind(options.wave_correction));
   }
 
   // Using a modified BundleAdjuster to save detected WaveCorrectionKind, since
   // it isn't available otherwise.
   auto bundle_adjuster = cv::makePtr<BundleAdjusterRayCustom>();
-  stitcher->setBundleAdjuster(bundle_adjuster);
-  stitcher->setBlender(PickBlender(options.blending_method, threadpool));
+  stitcher->SetBundleAdjuster(bundle_adjuster);
+  stitcher->SetBlender(PickBlender(options.blending_method, threadpool));
 
   cv::Mat pano;
-  auto status = stitcher->stitch(images, pano);
+  auto status = stitcher->Stitch(images, pano);
 
   if (status != cv::Stitcher::OK) {
     return {status, {}, {}};
@@ -260,7 +260,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
 
   cv::Mat mask;
   if (return_pano_mask) {
-    stitcher->resultMask().copyTo(mask);
+    stitcher->ResultMask().copyTo(mask);
   }
 
   if (auto rotate = GetRotationFlags(options.wave_correction,
