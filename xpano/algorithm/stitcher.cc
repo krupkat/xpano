@@ -260,7 +260,6 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
   auto compositing_total_timer = Timer();
 
   cv::UMat img_warped;
-  cv::UMat img_warped_s;
   cv::UMat dilated_mask;
   cv::UMat seam_mask;
   cv::UMat mask;
@@ -356,8 +355,6 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
                           img_warped, mask_warped);
     timer.Report(" compensate exposure");
 
-    img_warped.convertTo(img_warped_s, CV_16S);
-    img_warped.release();
     img.release();
     mask.release();
 
@@ -376,7 +373,7 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
     timer.Report(" other2");
 
     // Blend the current image
-    blender_->feed(img_warped_s, mask_warped, corners[img_idx]);
+    blender_->feed(img_warped, mask_warped, corners[img_idx]);
     timer.Report(" feed time");
 
     compositing_timer.Report("Compositing ## time");
@@ -390,9 +387,7 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
 
   compositing_total_timer.Report("Compositing");
 
-  // Preliminary result is in CV_16SC3 format, but all values are in [0,255]
-  // range, so convert it to avoid user confusing
-  result.convertTo(pano, CV_8U);
+  pano.assign(result);
 
   return Status::OK;
 }

@@ -96,12 +96,8 @@ std::vector<uint8_t> ToVector(const cv::Mat &img) {
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 cv::UMat Merge(cv::InputArray input_img, cv::InputArray input_mask) {
-  cv::UMat input_img_8bit;
-  input_img.getUMat().convertTo(input_img_8bit, CV_8UC3);
-
   std::vector<cv::UMat> channels;
-  cv::split(input_img_8bit, channels);
-  input_img_8bit.release();
+  cv::split(input_img.getUMat(), channels);
 
   cv::UMat mask;
   // Multiblend only works with the mask as binary, this conversion prevents
@@ -129,7 +125,7 @@ void MultiblendBlender::prepare(cv::Rect dst_roi) {
 void MultiblendBlender::feed(cv::InputArray input_img,
                              cv::InputArray input_mask, cv::Point top_left) {
 #ifdef XPANO_WITH_MULTIBLEND
-  CV_Assert(input_img.type() == CV_16SC3);
+  CV_Assert(input_img.type() == CV_8UC3);
   CV_Assert(input_mask.type() == CV_8U);
 
   auto input_umat = Merge(input_img, input_mask);
