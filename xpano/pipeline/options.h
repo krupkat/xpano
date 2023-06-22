@@ -15,7 +15,7 @@ namespace xpano::pipeline {
 //  - Major changes can be auto detected by alpaca reflection, but e.g.
 //    modifying the enums cannot, so bump the version number in this case.
 //  - Will result in reloading the default values when loading the config.
-constexpr int kOptionsVersion = 3;
+constexpr int kOptionsVersion = 4;
 
 enum class ChromaSubsampling {
   k444,

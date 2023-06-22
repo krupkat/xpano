@@ -286,10 +286,10 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
   if (ImGui::BeginMenu("Panorama stitching")) {
     action |= DrawProjectionOptions(stitch_options);
     action |= DrawWaveCorrectionOptions(stitch_options);
-    action |= DrawBlendingOptions(stitch_options);
 
     if (debug_enabled) {
       ImGui::SeparatorText("Debug");
+      action |= DrawBlendingOptions(stitch_options);
       action |= DrawFeatureMatchingOptions(stitch_options);
 
       if (DrawMatchConf(&stitch_options->match_conf)) {
