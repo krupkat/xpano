@@ -112,6 +112,32 @@ cv::Mat ToFloat(const cv::Mat &image) {
   return float_image;
 }
 
+double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
+  std::vector<double> focals;
+  for (const auto &camera : cameras) {
+    focals.push_back(camera.focal);
+  }
+
+  std::sort(focals.begin(), focals.end());
+  if (focals.size() % 2 == 1) {
+    return focals[focals.size() / 2];
+  } else {
+    return (focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5;
+  }
+}
+
+double ComputeWorkScale(const cv::Size &img_size, double registr_resol) {
+  if (registr_resol < 0) {
+    return 1.0;
+  } else {
+    return std::min(1.0, std::sqrt(registr_resol * 1e6 / img_size.area()));
+  }
+}
+
+double ComputeSeamScale(const cv::Size &img_size, double seam_est_resol) {
+  return std::min(1.0, std::sqrt(seam_est_resol * 1e6 / img_size.area()));
+}
+
 }  // namespace
 
 cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
@@ -360,11 +386,10 @@ Stitcher::Status Stitcher::MatchImages() {
     return Status::ERR_NEED_MORE_IMGS;
   }
 
-  work_scale_ = 1;
-  seam_work_aspect_ = 1;
-  seam_scale_ = 1;
-  bool is_work_scale_set = false;
-  bool is_seam_scale_set = false;
+  work_scale_ = ComputeWorkScale(imgs_[0].size(), registr_resol_);
+  seam_scale_ = ComputeSeamScale(imgs_[0].size(), seam_est_resol_);
+  seam_work_aspect_ = seam_scale_ / work_scale_;
+
   features_.resize(imgs_.size());
   seam_est_imgs_.resize(imgs_.size());
   full_img_sizes_.resize(imgs_.size());
@@ -379,22 +404,9 @@ Stitcher::Status Stitcher::MatchImages() {
     full_img_sizes_[i] = imgs_[i].size();
     if (registr_resol_ < 0) {
       feature_find_imgs[i] = imgs_[i];
-      work_scale_ = 1;
-      is_work_scale_set = true;
     } else {
-      if (!is_work_scale_set) {
-        work_scale_ = std::min(
-            1.0, std::sqrt(registr_resol_ * 1e6 / full_img_sizes_[i].area()));
-        is_work_scale_set = true;
-      }
       resize(imgs_[i], feature_find_imgs[i], cv::Size(), work_scale_,
              work_scale_, cv::INTER_LINEAR_EXACT);
-    }
-    if (!is_seam_scale_set) {
-      seam_scale_ = std::min(
-          1.0, std::sqrt(seam_est_resol_ * 1e6 / full_img_sizes_[i].area()));
-      seam_work_aspect_ = seam_scale_ / work_scale_;
-      is_seam_scale_set = true;
     }
 
     if (!masks_.empty()) {
@@ -446,20 +458,6 @@ Stitcher::Status Stitcher::MatchImages() {
   return Status::OK;
 }
 
-double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
-  std::vector<double> focals;
-  for (const auto &camera : cameras) {
-    focals.push_back(camera.focal);
-  }
-
-  std::sort(focals.begin(), focals.end());
-  if (focals.size() % 2 == 1) {
-    return focals[focals.size() / 2];
-  } else {
-    return (focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5;
-  }
-}
-
 Stitcher::Status Stitcher::EstimateCameraParams() {
   // estimate homography in global frame
   if (!(*estimator_)(features_, pairwise_matches_, cameras_)) {
@@ -509,8 +507,6 @@ Stitcher::Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams> &cameras,
     const std::vector<int> &component) {
-  //    CV_Assert(images.size() == cameras.size());
-
   images.getUMatVector(imgs_);
   masks_.clear();
 
@@ -519,32 +515,15 @@ Stitcher::Status Stitcher::SetTransform(
     return Status::ERR_NEED_MORE_IMGS;
   }
 
-  work_scale_ = 1;
-  seam_work_aspect_ = 1;
-  seam_scale_ = 1;
-  bool is_work_scale_set = false;
-  bool is_seam_scale_set = false;
+  work_scale_ = ComputeWorkScale(imgs_[0].size(), registr_resol_);
+  seam_scale_ = ComputeSeamScale(imgs_[0].size(), seam_est_resol_);
+  seam_work_aspect_ = seam_scale_ / work_scale_;
+
   seam_est_imgs_.resize(imgs_.size());
   full_img_sizes_.resize(imgs_.size());
 
   for (size_t i = 0; i < imgs_.size(); ++i) {
     full_img_sizes_[i] = imgs_[i].size();
-    if (registr_resol_ < 0) {
-      work_scale_ = 1;
-      is_work_scale_set = true;
-    } else {
-      if (!is_work_scale_set) {
-        work_scale_ = std::min(
-            1.0, std::sqrt(registr_resol_ * 1e6 / full_img_sizes_[i].area()));
-        is_work_scale_set = true;
-      }
-    }
-    if (!is_seam_scale_set) {
-      seam_scale_ = std::min(
-          1.0, std::sqrt(seam_est_resol_ * 1e6 / full_img_sizes_[i].area()));
-      seam_work_aspect_ = seam_scale_ / work_scale_;
-      is_seam_scale_set = true;
-    }
 
     resize(imgs_[i], seam_est_imgs_[i], cv::Size(), seam_scale_, seam_scale_,
            cv::INTER_LINEAR_EXACT);
