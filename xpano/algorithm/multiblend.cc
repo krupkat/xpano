@@ -61,8 +61,8 @@ cv::Mat ToMat(TFlexType &flex) {
 }
 
 template <typename TChannelType>
-cv::UMat Merge(const std::array<TChannelType, 3> &mb_channels, int width,
-               int height) {
+cv::UMat ToUMat(const std::array<TChannelType, 3> &mb_channels, int width,
+                int height) {
   auto blue = cv::Mat(height, width, CV_8UC1, mb_channels[0].get());
   auto green = cv::Mat(height, width, CV_8UC1, mb_channels[1].get());
   auto red = cv::Mat(height, width, CV_8UC1, mb_channels[2].get());
@@ -132,16 +132,7 @@ void MultiblendBlender::feed(cv::InputArray input_img,
   CV_Assert(input_img.type() == CV_16SC3);
   CV_Assert(input_mask.type() == CV_8U);
 
-  cv::UMat input_umat;
-
-  if (blending_method_ == BlendingMethod::kMultiblendAlpha) {
-    input_umat = Merge(input_img, input_mask);
-  } else if (blending_method_ == BlendingMethod::kMultiblend) {
-    input_img.getUMat().convertTo(input_umat, CV_8UC3);
-    FeedMask(input_mask, top_left);
-  } else {
-    throw(std::runtime_error("Multiblend: Invalid blending method"));
-  }
+  auto input_umat = Merge(input_img, input_mask);
 
   images_.emplace_back(multiblend::io::InMemoryImage{
       .tiff_width = input_umat.cols,
@@ -156,32 +147,6 @@ void MultiblendBlender::feed(cv::InputArray input_img,
 #endif
 }
 
-void MultiblendBlender::FeedMask(cv::InputArray mask,
-                                 const cv::Point &top_left) {
-  int start_x = top_left.x - dst_roi_.x;
-  int start_y = top_left.y - dst_roi_.y;
-
-  cv::Mat src_mask = mask.getMat();
-  cv::Mat dst_mask = dst_mask_.getMat(cv::ACCESS_RW);
-
-  for (int y = 0; y < src_mask.rows; ++y) {
-    if (start_y + y < 0 || start_y + y >= dst_mask.rows) {
-      throw(std::runtime_error("Multiblend: Invalid mask size"));
-    }
-
-    const auto *src_mask_row = src_mask.ptr<uint8_t>(y);
-    auto *dst_mask_row = dst_mask.ptr<uint8_t>(start_y + y);
-
-    if (start_x < 0 || start_x + src_mask.cols > dst_mask.cols) {
-      throw(std::runtime_error("Multiblend: Invalid mask size"));
-    }
-
-    for (int x = 0; x < src_mask.cols; ++x) {
-      dst_mask_row[start_x + x] |= src_mask_row[x];
-    }
-  }
-}
-
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): OpenCV API
 void MultiblendBlender::blend(cv::InputOutputArray dst,
                               cv::InputOutputArray dst_mask) {
@@ -192,26 +157,10 @@ void MultiblendBlender::blend(cv::InputOutputArray dst,
        .output_bpp = kChannelDepth},
       multiblend::mt::ThreadpoolPtr{threadpool_});
 
-  if (blending_method_ == BlendingMethod::kMultiblend &&
-      (result.width != dst_mask_.cols || result.height != dst_mask_.rows)) {
-    throw(std::runtime_error(fmt::format(
-        "Multiblend: Returned an image of size {}x{}, expected {}x{}",
-        result.width, result.height, dst_mask_.cols, dst_mask_.rows)));
-  }
+  dst_ = ToUMat(result.output_channels, result.width, result.height);
+  ToMat(result.full_mask).copyTo(dst_mask_);
 
-  auto pano = Merge(result.output_channels, result.width, result.height);
-
-  if (blending_method_ == BlendingMethod::kMultiblendAlpha) {
-    ToMat(result.full_mask).copyTo(dst_mask_);
-  }
-
-  cv::UMat zeroes;
-  cv::compare(dst_mask_, 0, zeroes, cv::CMP_EQ);
-  pano.setTo(cv::Scalar::all(0), zeroes);
-
-  dst.assign(pano);
-  dst_mask.assign(dst_mask_);
-  dst_mask_.release();
+  Blender::blend(dst, dst_mask);
 #else
   throw(std::runtime_error("Multiblend support not compiled in"));
 #endif

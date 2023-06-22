@@ -397,10 +397,8 @@ TEST_CASE("Malformed input") {
 }
 
 #ifdef XPANO_WITH_MULTIBLEND
-TEST_CASE("Stitcher pipeline Multiblend") {
-  auto blending_method =
-      GENERATE(xpano::algorithm::BlendingMethod::kMultiblend,
-               xpano::algorithm::BlendingMethod::kMultiblendAlpha);
+TEST_CASE("Stitcher pipeline OpenCV blender") {
+  auto blending_method = xpano::algorithm::BlendingMethod::kOpenCV;
 
   xpano::pipeline::StitcherPipeline stitcher;
 

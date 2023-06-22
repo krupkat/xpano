@@ -126,8 +126,6 @@ cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method,
     case BlendingMethod::kOpenCV: {
       return cv::makePtr<cv::detail::MultiBandBlender>();
     }
-    case BlendingMethod::kMultiblendAlpha:
-      [[fallthrough]];
     case BlendingMethod::kMultiblend: {
       if constexpr (mb::Enabled()) {
         return cv::makePtr<mb::MultiblendBlender>(threadpool, blending_method);
