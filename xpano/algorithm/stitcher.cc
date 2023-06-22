@@ -446,6 +446,20 @@ Stitcher::Status Stitcher::MatchImages() {
   return Status::OK;
 }
 
+double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
+  std::vector<double> focals;
+  for (const auto &camera : cameras) {
+    focals.push_back(camera.focal);
+  }
+
+  std::sort(focals.begin(), focals.end());
+  if (focals.size() % 2 == 1) {
+    return focals[focals.size() / 2];
+  } else {
+    return (focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5;
+  }
+}
+
 Stitcher::Status Stitcher::EstimateCameraParams() {
   // estimate homography in global frame
   if (!(*estimator_)(features_, pairwise_matches_, cameras_)) {
@@ -461,20 +475,7 @@ Stitcher::Status Stitcher::EstimateCameraParams() {
     return Status::ERR_CAMERA_PARAMS_ADJUST_FAIL;
   }
 
-  // Find median focal length and use it as final image scale
-  std::vector<double> focals;
-  for (auto &camera : cameras_) {
-    focals.push_back(camera.focal);
-  }
-
-  std::sort(focals.begin(), focals.end());
-  if (focals.size() % 2 == 1) {
-    warped_image_scale_ = static_cast<float>(focals[focals.size() / 2]);
-  } else {
-    warped_image_scale_ = static_cast<float>(focals[focals.size() / 2 - 1] +
-                                             focals[focals.size() / 2]) *
-                          0.5f;
-  }
+  warped_image_scale_ = ComputeWarpScale(cameras_);
 
   if (do_wave_correct_) {
     std::vector<cv::Mat> rmats;
@@ -571,20 +572,7 @@ Stitcher::Status Stitcher::SetTransform(
   }
 
   cameras_ = cameras;
-
-  std::vector<double> focals;
-  for (size_t i = 0; i < cameras.size(); ++i) {
-    focals.push_back(cameras_[i].focal);
-  }
-
-  std::sort(focals.begin(), focals.end());
-  if (focals.size() % 2 == 1) {
-    warped_image_scale_ = static_cast<float>(focals[focals.size() / 2]);
-  } else {
-    warped_image_scale_ = static_cast<float>(focals[focals.size() / 2 - 1] +
-                                             focals[focals.size() / 2]) *
-                          0.5f;
-  }
+  warped_image_scale_ = ComputeWarpScale(cameras_);
 
   return Status::OK;
 }
