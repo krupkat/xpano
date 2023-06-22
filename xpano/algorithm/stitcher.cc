@@ -138,6 +138,16 @@ double ComputeSeamScale(const cv::Size &img_size, double seam_est_resol) {
   return std::min(1.0, std::sqrt(seam_est_resol * 1e6 / img_size.area()));
 }
 
+template <typename TType>
+std::vector<TType> Index(const std::vector<TType> &vec,
+                         const std::vector<int> &indices) {
+  std::vector<TType> subset;
+  for (int index : indices) {
+    subset.push_back(vec[index]);
+  }
+  return subset;
+}
+
 }  // namespace
 
 cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
@@ -438,22 +448,15 @@ Stitcher::Status Stitcher::MatchImages() {
   // Leave only images we are sure are from the same panorama
   indices_ = cv::detail::leaveBiggestComponent(
       features_, pairwise_matches_, static_cast<float>(conf_thresh_));
-  std::vector<cv::UMat> seam_est_imgs_subset;
-  std::vector<cv::UMat> imgs_subset;
-  std::vector<cv::Size> full_img_sizes_subset;
-  for (int indice : indices_) {
-    imgs_subset.push_back(imgs_[indice]);
-    seam_est_imgs_subset.push_back(seam_est_imgs_[indice]);
-    full_img_sizes_subset.push_back(full_img_sizes_[indice]);
-  }
-  seam_est_imgs_ = seam_est_imgs_subset;
-  imgs_ = imgs_subset;
-  full_img_sizes_ = full_img_sizes_subset;
 
-  if (static_cast<int>(imgs_.size()) < 2) {
+  if (indices_.size() < 2) {
     spdlog::error("Need more images");
     return Status::ERR_NEED_MORE_IMGS;
   }
+
+  seam_est_imgs_ = Index(seam_est_imgs_, indices_);
+  imgs_ = Index(imgs_, indices_);
+  full_img_sizes_ = Index(full_img_sizes_, indices_);
 
   return Status::OK;
 }
@@ -510,7 +513,7 @@ Stitcher::Status Stitcher::SetTransform(
   images.getUMatVector(imgs_);
   masks_.clear();
 
-  if (static_cast<int>(imgs_.size()) < 2) {
+  if (imgs_.size() < 2 || component.size() < 2) {
     spdlog::error("Need more images");
     return Status::ERR_NEED_MORE_IMGS;
   }
@@ -533,22 +536,9 @@ Stitcher::Status Stitcher::SetTransform(
   pairwise_matches_.clear();
 
   indices_ = component;
-  std::vector<cv::UMat> seam_est_imgs_subset;
-  std::vector<cv::UMat> imgs_subset;
-  std::vector<cv::Size> full_img_sizes_subset;
-  for (int indice : indices_) {
-    imgs_subset.push_back(imgs_[indice]);
-    seam_est_imgs_subset.push_back(seam_est_imgs_[indice]);
-    full_img_sizes_subset.push_back(full_img_sizes_[indice]);
-  }
-  seam_est_imgs_ = seam_est_imgs_subset;
-  imgs_ = imgs_subset;
-  full_img_sizes_ = full_img_sizes_subset;
-
-  if (static_cast<int>(imgs_.size()) < 2) {
-    spdlog::error("Need more images");
-    return Status::ERR_NEED_MORE_IMGS;
-  }
+  seam_est_imgs_ = Index(seam_est_imgs_, indices_);
+  imgs_ = Index(imgs_, indices_);
+  full_img_sizes_ = Index(full_img_sizes_, indices_);
 
   cameras_ = cameras;
   warped_image_scale_ = ComputeWarpScale(cameras_);
