@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Tomas Krupka
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "xpano/algorithm/multiblend.h"
+#include "xpano/algorithm/blenders.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -13,7 +13,7 @@
 #endif
 #include <spdlog/fmt/fmt.h>
 
-namespace xpano::algorithm::mb {
+namespace xpano::algorithm::blenders {
 
 namespace {
 constexpr int kChannelDepth = 8;
@@ -112,13 +112,7 @@ cv::UMat Merge(cv::InputArray input_img, cv::InputArray input_mask) {
 
 }  // namespace
 
-void MultiblendBlender::prepare(cv::Rect dst_roi) {
-  if (blending_method_ == BlendingMethod::kMultiblend) {
-    dst_mask_.create(dst_roi.size(), CV_8U);
-    dst_mask_.setTo(cv::Scalar::all(0));
-  }
-  dst_roi_ = dst_roi;
-}
+void MultiblendBlender::prepare(cv::Rect dst_roi) { dst_roi_ = dst_roi; }
 
 // Note: better work with UMat whenever possible to get a speedup from OpenCL,
 // the inputs and outputs are already expected to be UMats in the Stitcher code.
@@ -162,4 +156,4 @@ void MultiblendBlender::blend(cv::InputOutputArray dst,
 #endif
 }
 
-}  // namespace xpano::algorithm::mb
+}  // namespace xpano::algorithm::blenders

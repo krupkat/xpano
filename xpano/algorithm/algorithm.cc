@@ -23,8 +23,8 @@
 #include <opencv2/stitching/detail/matchers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
+#include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/multiblend.h"
 #include "xpano/algorithm/stitcher.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
@@ -127,8 +127,8 @@ cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method,
       return cv::makePtr<cv::detail::MultiBandBlender>();
     }
     case BlendingMethod::kMultiblend: {
-      if constexpr (mb::Enabled()) {
-        return cv::makePtr<mb::MultiblendBlender>(threadpool, blending_method);
+      if constexpr (blenders::MultiblendEnabled()) {
+        return cv::makePtr<blenders::MultiblendBlender>(threadpool);
       }
       throw std::runtime_error(
           "Multiblend is not supported in this build of xpano");
