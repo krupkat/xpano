@@ -221,17 +221,15 @@ Stitcher::Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
   return Status::OK;
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity):
-Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
-  spdlog::info("Warping images (auxiliary)... ");
+std::vector<cv::UMat> Stitcher::EstimateSeams() {
+  auto seam_timer = Timer();
 
-  auto warp_timer = Timer();
-
+  std::vector<cv::UMat> masks(imgs_.size());
   std::vector<cv::Point> corners(imgs_.size());
+  std::vector<cv::Size> sizes(imgs_.size());
+
   std::vector<cv::UMat> masks_warped(imgs_.size());
   std::vector<cv::UMat> images_warped(imgs_.size());
-  std::vector<cv::Size> sizes(imgs_.size());
-  std::vector<cv::UMat> masks(imgs_.size());
 
   // Prepare image masks
   for (size_t i = 0; i < imgs_.size(); ++i) {
@@ -255,8 +253,6 @@ Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
                  cv::BORDER_CONSTANT, masks_warped[i]);
   }
 
-  warp_timer.Report("Warping images");
-
   // Compensate exposure before finding seams
   exposure_comp_->feed(corners, images_warped, masks_warped);
   for (size_t i = 0; i < imgs_.size(); ++i) {
@@ -271,11 +267,17 @@ Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   }
   seam_finder_->find(images_warped_f, corners, masks_warped);
 
-  // Release unused memory
+  seam_timer.Report("Finding seams");
+
+  return masks_warped;
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity):
+Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
+  spdlog::info("Estimating seams... ");
+
+  auto masks_warped = EstimateSeams();
   seam_est_imgs_.clear();
-  images_warped.clear();
-  images_warped_f.clear();
-  masks.clear();
 
   spdlog::info("Compositing...");
   auto compositing_total_timer = Timer();
@@ -289,6 +291,10 @@ Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   auto compose_work_aspect = 1.0 / work_scale_;
   auto cameras_scaled = Scale(cameras_, compose_work_aspect);
 
+  std::vector<cv::Point> corners(imgs_.size());
+  std::vector<cv::Size> sizes(imgs_.size());
+
+  cv::Ptr<cv::detail::RotationWarper> warper;
   {
     auto compute_roi_timer = Timer();
 

@@ -196,6 +196,7 @@ class Stitcher {
  private:
   Status MatchImages();
   Status EstimateCameraParams();
+  std::vector<cv::UMat> EstimateSeams();
 
   double registr_resol_;
   double seam_est_resol_;
