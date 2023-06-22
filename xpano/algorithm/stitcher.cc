@@ -121,17 +121,15 @@ double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
   std::sort(focals.begin(), focals.end());
   if (focals.size() % 2 == 1) {
     return focals[focals.size() / 2];
-  } else {
-    return (focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5;
   }
+  return (focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5;
 }
 
 double ComputeWorkScale(const cv::Size &img_size, double registr_resol) {
   if (registr_resol < 0) {
     return 1.0;
-  } else {
-    return std::min(1.0, std::sqrt(registr_resol * 1e6 / img_size.area()));
   }
+  return std::min(1.0, std::sqrt(registr_resol * 1e6 / img_size.area()));
 }
 
 double ComputeSeamScale(const cv::Size &img_size, double seam_est_resol) {
