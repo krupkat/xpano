@@ -185,41 +185,9 @@ Stitcher::Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
   return Status::OK;
 }
 
-Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
-  return ComposePanorama(std::vector<cv::UMat>(), pano);
-}
-
 // NOLINTNEXTLINE(readability-function-cognitive-complexity):
-Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
-                                           cv::OutputArray pano) {
+Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   spdlog::info("Warping images (auxiliary)... ");
-
-  std::vector<cv::UMat> imgs;
-  images.getUMatVector(imgs);
-  if (!imgs.empty()) {
-    CV_Assert(imgs.size() == imgs_.size());
-
-    cv::UMat img;
-    seam_est_imgs_.resize(imgs.size());
-
-    for (size_t i = 0; i < imgs.size(); ++i) {
-      imgs_[i] = imgs[i];
-      resize(imgs[i], img, cv::Size(), seam_scale_, seam_scale_,
-             cv::INTER_LINEAR_EXACT);
-      seam_est_imgs_[i] = img.clone();
-    }
-
-    std::vector<cv::UMat> seam_est_imgs_subset;
-    std::vector<cv::UMat> imgs_subset;
-
-    for (int indice : indices_) {
-      imgs_subset.push_back(imgs_[indice]);
-      seam_est_imgs_subset.push_back(seam_est_imgs_[indice]);
-    }
-
-    seam_est_imgs_ = seam_est_imgs_subset;
-    imgs_ = imgs_subset;
-  }
 
   auto warp_timer = Timer();
 

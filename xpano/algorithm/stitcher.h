@@ -180,8 +180,6 @@ class Stitcher {
 
   Status ComposePanorama(cv::OutputArray pano);
 
-  Status ComposePanorama(cv::InputArrayOfArrays images, cv::OutputArray pano);
-
   Status Stitch(cv::InputArrayOfArrays images, cv::OutputArray pano);
 
   Status Stitch(cv::InputArrayOfArrays images, cv::InputArrayOfArrays masks,
