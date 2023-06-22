@@ -48,6 +48,7 @@
 
 #include "xpano/algorithm/stitcher.h"
 
+#include <algorithm>
 #include <string_view>
 
 #include <spdlog/spdlog.h>
@@ -91,15 +92,17 @@ class Timer {
 };
 
 std::vector<cv::detail::CameraParams> Scale(
-    const std::vector<cv::detail::CameraParams> &cameras, float scale) {
+    const std::vector<cv::detail::CameraParams> &cameras, double scale) {
   std::vector<cv::detail::CameraParams> scaled_cameras;
-  for (const auto &camera : cameras) {
-    cv::detail::CameraParams scaled_camera = camera;
-    scaled_camera.focal *= scale;
-    scaled_camera.ppx *= scale;
-    scaled_camera.ppy *= scale;
-    scaled_cameras.push_back(scaled_camera);
-  }
+  std::transform(cameras.begin(), cameras.end(),
+                 std::back_inserter(scaled_cameras),
+                 [scale](const auto &camera) {
+                   cv::detail::CameraParams scaled_camera = camera;
+                   scaled_camera.focal *= scale;
+                   scaled_camera.ppx *= scale;
+                   scaled_camera.ppy *= scale;
+                   return scaled_camera;
+                 });
   return scaled_cameras;
 }
 
@@ -310,8 +313,7 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
     cv::UMat img = imgs_[img_idx];
     cv::Size img_size = img.size();
 
-    cv::Mat k_float;
-    cameras_scaled[img_idx].K().convertTo(k_float, CV_32F);
+    cv::Mat k_float = ToFloat(cameras_scaled[img_idx].K());
 
     auto timer = Timer();
 
@@ -483,11 +485,7 @@ Stitcher::Status Stitcher::EstimateCameraParams() {
   }
 
   for (auto &camera : cameras_) {
-    cv::Mat r_float;
-    camera.R.convertTo(r_float, CV_32F);
-    camera.R = r_float;
-    // LOGLN("Initial intrinsic parameters #" << indices_[i] + 1 << ":\n " <<
-    // cameras_[i].K());
+    camera.R = ToFloat(camera.R);
   }
 
   bundle_adjuster_->setConfThresh(conf_thresh_);
@@ -498,7 +496,6 @@ Stitcher::Status Stitcher::EstimateCameraParams() {
   // Find median focal length and use it as final image scale
   std::vector<double> focals;
   for (auto &camera : cameras_) {
-    // LOGLN("Camera #" << indices_[i] + 1 << ":\n" << cameras_[i].K());
     focals.push_back(camera.focal);
   }
 
