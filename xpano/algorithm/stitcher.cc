@@ -269,59 +269,44 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
   bool is_blender_prepared = false;
 
   double compose_scale = 1;
-  bool is_compose_scale_set = false;
 
   std::vector<cv::detail::CameraParams> cameras_scaled(cameras_);
+  {
+    auto compose_scale_timer = Timer();
 
-  cv::UMat full_img;
-  cv::UMat img;
+    // Compute relative scales
+    // compose_seam_aspect = compose_scale / seam_scale_;
+    compose_work_aspect = compose_scale / work_scale_;
+
+    // Update warped image scale
+    auto warp_scale =
+        static_cast<float>(warped_image_scale_ * compose_work_aspect);
+    warper = warper_creater_->create(warp_scale);
+
+    // Update corners and sizes
+    for (size_t i = 0; i < imgs_.size(); ++i) {
+      // Update intrinsics
+      cameras_scaled[i].ppx *= compose_work_aspect;
+      cameras_scaled[i].ppy *= compose_work_aspect;
+      cameras_scaled[i].focal *= compose_work_aspect;
+
+      // Update corner and size
+      cv::Size full_size = full_img_sizes_[i];
+
+      cv::Mat k_float;
+      cameras_scaled[i].K().convertTo(k_float, CV_32F);
+      cv::Rect roi = warper->warpRoi(full_size, k_float, cameras_scaled[i].R);
+      corners[i] = roi.tl();
+      sizes[i] = roi.size();
+    }
+    compose_scale_timer.Report(" compose scale time");
+  }
+
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     spdlog::trace("Compositing image #{}", indices_[img_idx] + 1);
     auto compositing_timer = Timer();
 
-    // Read image and resize it if necessary
-    full_img = imgs_[img_idx];
-    if (!is_compose_scale_set) {
-      auto compose_scale_timer = Timer();
-      is_compose_scale_set = true;
-
-      // Compute relative scales
-      // compose_seam_aspect = compose_scale / seam_scale_;
-      compose_work_aspect = compose_scale / work_scale_;
-
-      // Update warped image scale
-      auto warp_scale =
-          static_cast<float>(warped_image_scale_ * compose_work_aspect);
-      warper = warper_creater_->create(warp_scale);
-
-      // Update corners and sizes
-      for (size_t i = 0; i < imgs_.size(); ++i) {
-        // Update intrinsics
-        cameras_scaled[i].ppx *= compose_work_aspect;
-        cameras_scaled[i].ppy *= compose_work_aspect;
-        cameras_scaled[i].focal *= compose_work_aspect;
-
-        // Update corner and size
-        cv::Size full_size = full_img_sizes_[i];
-
-        cv::Mat k_float;
-        cameras_scaled[i].K().convertTo(k_float, CV_32F);
-        cv::Rect roi = warper->warpRoi(full_size, k_float, cameras_scaled[i].R);
-        corners[i] = roi.tl();
-        sizes[i] = roi.size();
-      }
-      compose_scale_timer.Report(" compose scale time");
-    }
-    if (std::abs(compose_scale - 1) > 1e-1) {
-      auto resize_timer = Timer();
-
-      resize(full_img, img, cv::Size(), compose_scale, compose_scale,
-             cv::INTER_LINEAR_EXACT);
-      resize_timer.Report(" resize time");
-    } else {
-      img = full_img;
-    }
-    full_img.release();
+    cv::UMat img = imgs_[img_idx];
     cv::Size img_size = img.size();
 
     cv::Mat k_float;
