@@ -56,8 +56,6 @@ namespace xpano::algorithm::stitcher {
 
 class Stitcher {
  public:
-  static constexpr double kOrigResol = -1.0;
-
   using Status = cv::Stitcher::Status;
   using Mode = cv::Stitcher::Mode;
 
@@ -68,9 +66,6 @@ class Stitcher {
 
   [[nodiscard]] double SeamEstimationResol() const { return seam_est_resol_; }
   void SetSeamEstimationResol(double resol_mpx) { seam_est_resol_ = resol_mpx; }
-
-  [[nodiscard]] double CompositingResol() const { return compose_resol_; }
-  void SetCompositingResol(double resol_mpx) { compose_resol_ = resol_mpx; }
 
   [[nodiscard]] double PanoConfidenceThresh() const { return conf_thresh_; }
   void SetPanoConfidenceThresh(double conf_thresh) {
@@ -206,7 +201,6 @@ class Stitcher {
 
   double registr_resol_;
   double seam_est_resol_;
-  double compose_resol_;
   double conf_thresh_;
   cv::InterpolationFlags interp_flags_;
   cv::Ptr<cv::Feature2D> features_finder_;

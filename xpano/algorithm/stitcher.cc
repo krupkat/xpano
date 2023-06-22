@@ -97,7 +97,6 @@ cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
 
   stitcher->SetRegistrationResol(0.6);
   stitcher->SetSeamEstimationResol(0.1);
-  stitcher->SetCompositingResol(kOrigResol);
   stitcher->SetPanoConfidenceThresh(1);
   stitcher->SetSeamFinder(cv::makePtr<cv::detail::GraphCutSeamFinder>(
       cv::detail::GraphCutSeamFinderBase::COST_COLOR));
@@ -284,10 +283,6 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
     full_img = imgs_[img_idx];
     if (!is_compose_scale_set) {
       auto compose_scale_timer = Timer();
-      if (compose_resol_ > 0) {
-        compose_scale = std::min(
-            1.0, std::sqrt(compose_resol_ * 1e6 / full_img.size().area()));
-      }
       is_compose_scale_set = true;
 
       // Compute relative scales
@@ -308,10 +303,6 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
 
         // Update corner and size
         cv::Size full_size = full_img_sizes_[i];
-        if (std::abs(compose_scale - 1) > 1e-1) {
-          full_size.width = cvRound(full_img_sizes_[i].width * compose_scale);
-          full_size.height = cvRound(full_img_sizes_[i].height * compose_scale);
-        }
 
         cv::Mat k_float;
         cameras_scaled[i].K().convertTo(k_float, CV_32F);
