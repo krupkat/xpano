@@ -23,7 +23,6 @@
 #include <opencv2/stitching/detail/matchers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
-#include "xpano/algorithm/bundle_adjuster.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/multiblend.h"
 #include "xpano/algorithm/stitcher.h"
