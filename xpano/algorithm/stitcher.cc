@@ -90,6 +90,25 @@ class Timer {
   int64 start_count_;
 };
 
+std::vector<cv::detail::CameraParams> Scale(
+    const std::vector<cv::detail::CameraParams> &cameras, float scale) {
+  std::vector<cv::detail::CameraParams> scaled_cameras;
+  for (const auto &camera : cameras) {
+    cv::detail::CameraParams scaled_camera = camera;
+    scaled_camera.focal *= scale;
+    scaled_camera.ppx *= scale;
+    scaled_camera.ppy *= scale;
+    scaled_cameras.push_back(scaled_camera);
+  }
+  return scaled_cameras;
+}
+
+cv::Mat ToFloat(const cv::Mat &image) {
+  cv::Mat float_image;
+  image.convertTo(float_image, CV_32F);
+  return float_image;
+}
+
 }  // namespace
 
 cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
@@ -216,13 +235,9 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
   // Warp images and their masks
   cv::Ptr<cv::detail::RotationWarper> warper = warper_creater_->create(
       static_cast<float>(warped_image_scale_ * seam_work_aspect_));
+  auto seam_cameras = Scale(cameras_, seam_work_aspect_);
   for (size_t i = 0; i < imgs_.size(); ++i) {
-    cv::Mat_<float> k_float;
-    cameras_[i].K().convertTo(k_float, CV_32F);
-    k_float(0, 0) *= static_cast<float>(seam_work_aspect_);
-    k_float(0, 2) *= static_cast<float>(seam_work_aspect_);
-    k_float(1, 1) *= static_cast<float>(seam_work_aspect_);
-    k_float(1, 2) *= static_cast<float>(seam_work_aspect_);
+    auto k_float = ToFloat(seam_cameras[i].K());
 
     corners[i] =
         warper->warp(seam_est_imgs_[i], k_float, cameras_[i].R, interp_flags_,
@@ -264,19 +279,11 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
   cv::UMat mask;
   cv::UMat mask_warped;
 
-  // double compose_seam_aspect = 1;
-  double compose_work_aspect = 1;
-  bool is_blender_prepared = false;
+  auto compose_work_aspect = 1.0 / work_scale_;
+  auto cameras_scaled = Scale(cameras_, compose_work_aspect);
 
-  double compose_scale = 1;
-
-  std::vector<cv::detail::CameraParams> cameras_scaled(cameras_);
   {
-    auto compose_scale_timer = Timer();
-
-    // Compute relative scales
-    // compose_seam_aspect = compose_scale / seam_scale_;
-    compose_work_aspect = compose_scale / work_scale_;
+    auto compute_roi_timer = Timer();
 
     // Update warped image scale
     auto warp_scale =
@@ -285,22 +292,16 @@ Stitcher::Status Stitcher::ComposePanorama(cv::InputArrayOfArrays images,
 
     // Update corners and sizes
     for (size_t i = 0; i < imgs_.size(); ++i) {
-      // Update intrinsics
-      cameras_scaled[i].ppx *= compose_work_aspect;
-      cameras_scaled[i].ppy *= compose_work_aspect;
-      cameras_scaled[i].focal *= compose_work_aspect;
-
-      // Update corner and size
-      cv::Size full_size = full_img_sizes_[i];
-
-      cv::Mat k_float;
-      cameras_scaled[i].K().convertTo(k_float, CV_32F);
-      cv::Rect roi = warper->warpRoi(full_size, k_float, cameras_scaled[i].R);
+      auto k_float = ToFloat(cameras_scaled[i].K());
+      cv::Rect roi =
+          warper->warpRoi(full_img_sizes_[i], k_float, cameras_scaled[i].R);
       corners[i] = roi.tl();
       sizes[i] = roi.size();
     }
-    compose_scale_timer.Report(" compose scale time");
+    compute_roi_timer.Report(" compute roi time");
   }
+
+  bool is_blender_prepared = false;
 
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     spdlog::trace("Compositing image #{}", indices_[img_idx] + 1);
