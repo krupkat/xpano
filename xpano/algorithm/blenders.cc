@@ -112,12 +112,12 @@ cv::UMat Merge(cv::InputArray input_img, cv::InputArray input_mask) {
 
 }  // namespace
 
-void MultiblendBlender::prepare(cv::Rect dst_roi) { dst_roi_ = dst_roi; }
+void Multiblend::prepare(cv::Rect dst_roi) { dst_roi_ = dst_roi; }
 
 // Note: better work with UMat whenever possible to get a speedup from OpenCL,
 // the inputs and outputs are already expected to be UMats in the Stitcher code.
-void MultiblendBlender::feed(cv::InputArray input_img,
-                             cv::InputArray input_mask, cv::Point top_left) {
+void Multiblend::feed(cv::InputArray input_img, cv::InputArray input_mask,
+                      cv::Point top_left) {
 #ifdef XPANO_WITH_MULTIBLEND
   CV_Assert(input_img.type() == CV_8UC3);
   CV_Assert(input_mask.type() == CV_8U);
@@ -138,8 +138,8 @@ void MultiblendBlender::feed(cv::InputArray input_img,
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): OpenCV API
-void MultiblendBlender::blend(cv::InputOutputArray dst,
-                              cv::InputOutputArray dst_mask) {
+void Multiblend::blend(cv::InputOutputArray dst,
+                       cv::InputOutputArray dst_mask) {
 #ifdef XPANO_WITH_MULTIBLEND
   auto result = multiblend::Multiblend(
       images_,
@@ -154,6 +154,22 @@ void MultiblendBlender::blend(cv::InputOutputArray dst,
 #else
   throw(std::runtime_error("Multiblend support not compiled in"));
 #endif
+}
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters): OpenCV API
+void MultiBandOpenCV::feed(cv::InputArray img, cv::InputArray mask,
+                           cv::Point top_left) {
+  cv::UMat img_s;
+  img.getUMat().convertTo(img_s, CV_16S);
+  cv::detail::MultiBandBlender::feed(img_s, mask, top_left);
+}
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters): OpenCV API
+void MultiBandOpenCV::blend(cv::InputOutputArray dst,
+                            cv::InputOutputArray dst_mask) {
+  cv::UMat result;
+  cv::detail::MultiBandBlender::blend(result, dst_mask);
+  result.convertTo(dst, CV_8U);
 }
 
 }  // namespace xpano::algorithm::blenders

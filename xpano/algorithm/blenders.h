@@ -20,9 +20,9 @@ constexpr bool MultiblendEnabled() {
 #endif
 }
 
-class MultiblendBlender : public cv::detail::Blender {
+class Multiblend : public cv::detail::Blender {
  public:
-  explicit MultiblendBlender(utils::mt::Threadpool* threadpool)
+  explicit Multiblend(utils::mt::Threadpool* threadpool)
       : threadpool_(threadpool) {}
   void prepare(cv::Rect dst_roi) override;
   void feed(cv::InputArray img, cv::InputArray mask,
@@ -34,6 +34,17 @@ class MultiblendBlender : public cv::detail::Blender {
   std::vector<multiblend::io::Image> images_;
 #endif
   utils::mt::Threadpool* threadpool_;
+};
+
+class MultiBandOpenCV : public cv::detail::MultiBandBlender {
+ public:
+  using cv::detail::MultiBandBlender::MultiBandBlender;
+
+  void feed(cv::InputArray img, cv::InputArray mask,
+            cv::Point top_left) override;
+  void blend(cv::InputOutputArray dst, cv::InputOutputArray dst_mask) override;
+
+ private:
 };
 
 }  // namespace xpano::algorithm::blenders
