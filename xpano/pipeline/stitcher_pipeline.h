@@ -18,6 +18,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/progress.h"
 #include "xpano/constants.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/rect.h"
@@ -68,36 +69,9 @@ struct ExportResult {
   std::optional<std::filesystem::path> export_path;
 };
 
-enum class ProgressType {
-  kNone,
-  kLoadingImages,
-  kStitchingPano,
-  kAutoCrop,
-  kDetectingKeypoints,
-  kMatchingImages,
-  kExport,
-  kInpainting,
-};
-
-struct ProgressReport {
-  ProgressType type;
-  int tasks_done;
-  int num_tasks;
-};
-
-class ProgressMonitor {
- public:
-  void Reset(ProgressType type, int num_tasks);
-  void SetNumTasks(int num_tasks);
-  void SetTaskType(ProgressType type);
-  [[nodiscard]] ProgressReport Progress() const;
-  void NotifyTaskDone();
-
- private:
-  std::atomic<ProgressType> type_{ProgressType::kNone};
-  std::atomic<int> done_ = 0;
-  std::atomic<int> num_tasks_ = 0;
-};
+using ProgressMonitor = algorithm::ProgressMonitor;
+using ProgressReport = algorithm::ProgressReport;
+using ProgressType = algorithm::ProgressType;
 
 class StitcherPipeline {
  public:

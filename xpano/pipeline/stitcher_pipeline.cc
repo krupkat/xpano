@@ -61,21 +61,7 @@ std::vector<int> CompressionParameters(const CompressionOptions &options) {
 
 }  // namespace
 
-void ProgressMonitor::Reset(ProgressType type, int num_tasks) {
-  type_ = type;
-  done_ = 0;
-  num_tasks_ = num_tasks;
-}
-
-void ProgressMonitor::SetTaskType(ProgressType type) { type_ = type; }
-
-void ProgressMonitor::SetNumTasks(int num_tasks) { num_tasks_ = num_tasks; }
-
-ProgressReport ProgressMonitor::Progress() const {
-  return {type_, done_, num_tasks_};
-}
-
-void ProgressMonitor::NotifyTaskDone() { done_++; }
+using ProgressType = algorithm::ProgressType;
 
 StitcherPipeline::~StitcherPipeline() { Cancel(); }
 

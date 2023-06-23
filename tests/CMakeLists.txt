@@ -26,6 +26,7 @@ add_executable(StitcherTest
   ../xpano/algorithm/auto_crop.cc
   ../xpano/algorithm/blenders.cc
   ../xpano/algorithm/image.cc
+  ../xpano/algorithm/progress.cc
   ../xpano/algorithm/stitcher.cc
   ../xpano/pipeline/options.cc
   ../xpano/pipeline/stitcher_pipeline.cc

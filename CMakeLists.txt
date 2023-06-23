@@ -47,6 +47,7 @@ set(XPANO_SOURCES
   "xpano/algorithm/blenders.cc"
   "xpano/algorithm/image.cc"
   "xpano/algorithm/options.cc"
+  "xpano/algorithm/progress.cc"
   "xpano/algorithm/stitcher.cc"
   "xpano/cli/args.cc"
   "xpano/cli/pano_cli.cc"
