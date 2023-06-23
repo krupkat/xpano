@@ -79,7 +79,7 @@ struct ProjectionOptions {
   float b_param = kDefaultPaniniB;
 };
 
-struct StitchOptions {
+struct StitchUserOptions {
   ProjectionOptions projection;
   FeatureType feature = FeatureType::kSift;
   WaveCorrectionType wave_correction = WaveCorrectionType::kAuto;

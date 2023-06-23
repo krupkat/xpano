@@ -77,6 +77,13 @@ class StitcherPipeline {
  public:
   StitcherPipeline() = default;
   ~StitcherPipeline();
+
+  // reason: some tasks use pointers to members
+  StitcherPipeline(const StitcherPipeline &) = delete;
+  StitcherPipeline &operator=(const StitcherPipeline &) = delete;
+  StitcherPipeline(StitcherPipeline &&) = delete;
+  StitcherPipeline &operator=(StitcherPipeline &&) = delete;
+
   std::future<StitcherData> RunLoading(
       const std::vector<std::filesystem::path> &inputs,
       const LoadingOptions &loading_options,

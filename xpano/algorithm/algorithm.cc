@@ -229,19 +229,23 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
-                    bool return_pano_mask, utils::mt::Threadpool* threadpool) {
+StitchResult Stitch(const std::vector<cv::Mat>& images,
+                    StitchUserOptions user_options, StitchOptions options) {
   auto stitcher = stitcher::Stitcher::Create(cv::Stitcher::PANORAMA);
-  stitcher->SetWarper(PickWarper(options.projection));
-  stitcher->SetFeaturesFinder(PickFeaturesFinder(options.feature));
+  stitcher->SetWarper(PickWarper(user_options.projection));
+  stitcher->SetFeaturesFinder(PickFeaturesFinder(user_options.feature));
   stitcher->SetFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
-      false, options.match_conf));
-  stitcher->SetWaveCorrection(options.wave_correction !=
+      false, user_options.match_conf));
+  stitcher->SetWaveCorrection(user_options.wave_correction !=
                               WaveCorrectionType::kOff);
   if (stitcher->WaveCorrection()) {
-    stitcher->SetWaveCorrectKind(PickWaveCorrectKind(options.wave_correction));
+    stitcher->SetWaveCorrectKind(
+        PickWaveCorrectKind(user_options.wave_correction));
   }
-  stitcher->SetBlender(PickBlender(options.blending_method, threadpool));
+  stitcher->SetBlender(
+      PickBlender(user_options.blending_method, options.threadpool));
+  stitcher->SetProgressMonitor(options.progress_monitor);
+  stitcher->SetCancelFlag(options.cancel);
 
   cv::Mat pano;
   auto status = stitcher->Stitch(images, pano);
@@ -251,15 +255,15 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   }
 
   cv::Mat mask;
-  if (return_pano_mask) {
+  if (options.return_pano_mask) {
     stitcher->ResultMask().copyTo(mask);
   }
 
-  if (auto rotate = GetRotationFlags(options.wave_correction,
+  if (auto rotate = GetRotationFlags(user_options.wave_correction,
                                      stitcher->WaveCorrectKind());
       rotate) {
     cv::rotate(pano, pano, *rotate);
-    if (return_pano_mask) {
+    if (options.return_pano_mask) {
       cv::rotate(mask, mask, *rotate);
     }
   }

@@ -62,7 +62,7 @@ struct MatchingOptions {
   float match_conf = kDefaultMatchConf;
 };
 
-using StitchAlgorithmOptions = algorithm::StitchOptions;
+using StitchAlgorithmOptions = algorithm::StitchUserOptions;
 
 struct Options {
   MetadataOptions metadata;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <optional>
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@
 
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/options.h"
+#include "xpano/algorithm/progress.h"
 #include "xpano/constants.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
@@ -45,8 +47,15 @@ struct StitchResult {
   cv::Mat mask;
 };
 
-StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
-                    bool return_pano_mask, utils::mt::Threadpool* threadpool);
+struct StitchOptions {
+  bool return_pano_mask = false;
+  utils::mt::Threadpool* threadpool = nullptr;
+  ProgressMonitor* progress_monitor = nullptr;
+  std::atomic<bool>* cancel = nullptr;
+};
+
+StitchResult Stitch(const std::vector<cv::Mat>& images,
+                    StitchUserOptions user_options, StitchOptions options);
 
 std::string ToString(cv::Stitcher::Status& status);
 

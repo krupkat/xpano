@@ -48,9 +48,13 @@
 
 #pragma once
 
+#include <atomic>
+
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/stitching.hpp>
+
+#include "xpano/algorithm/progress.h"
 
 namespace xpano::algorithm::stitcher {
 
@@ -193,6 +197,9 @@ class Stitcher {
 
   [[nodiscard]] cv::UMat ResultMask() const { return result_mask_; }
 
+  void SetProgressMonitor(ProgressMonitor* monitor) { monitor_ = monitor; }
+  void SetCancelFlag(std::atomic<bool>* flag) { cancel_flag_ = flag; }
+
  private:
   Status MatchImages();
   Status EstimateCameraParams();
@@ -227,6 +234,9 @@ class Stitcher {
   double seam_scale_;
   double seam_work_aspect_;
   double warped_image_scale_;
+
+  ProgressMonitor* monitor_ = nullptr;
+  std::atomic<bool>* cancel_flag_ = nullptr;
 };
 
 }  // namespace xpano::algorithm::stitcher
