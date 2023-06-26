@@ -19,6 +19,7 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/progress.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/rect.h"
@@ -57,7 +58,7 @@ struct InpaintingResult {
 struct StitchingResult {
   int pano_id = 0;
   bool full_res = false;
-  cv::Stitcher::Status status;
+  algorithm::stitcher::Status status;
   std::optional<cv::Mat> pano;
   std::optional<utils::RectRRf> auto_crop;
   std::optional<std::filesystem::path> export_path;

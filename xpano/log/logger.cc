@@ -95,6 +95,7 @@ void Logger::RedirectSpdlogToGui(
   auto logger =
       std::make_shared<spdlog::logger>("XPano", sinks.begin(), sinks.end());
   logger->flush_on(spdlog::level::err);
+  // logger->set_level(spdlog::level::trace);
   spdlog::set_default_logger(logger);
 
 #ifdef XPANO_WITH_MULTIBLEND

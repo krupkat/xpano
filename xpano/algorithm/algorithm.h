@@ -16,6 +16,7 @@
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/options.h"
 #include "xpano/algorithm/progress.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
@@ -42,7 +43,7 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
                             int match_threshold);
 
 struct StitchResult {
-  cv::Stitcher::Status status;
+  stitcher::Status status;
   cv::Mat pano;
   cv::Mat mask;
 };
@@ -57,7 +58,7 @@ struct StitchOptions {
 StitchResult Stitch(const std::vector<cv::Mat>& images,
                     StitchUserOptions user_options, StitchOptions options);
 
-std::string ToString(cv::Stitcher::Status& status);
+std::string ToString(stitcher::Status& status);
 
 std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 

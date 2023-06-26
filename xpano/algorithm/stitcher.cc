@@ -201,22 +201,22 @@ cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
   return stitcher;
 }
 
-Stitcher::Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
-                                             cv::InputArrayOfArrays masks) {
+Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
+                                   cv::InputArrayOfArrays masks) {
   images.getUMatVector(imgs_);
   masks.getUMatVector(masks_);
 
   Status status;
 
-  if ((status = MatchImages()) != Status::OK) {
+  if ((status = MatchImages()) != Status::kSuccess) {
     return status;
   }
 
-  if ((status = EstimateCameraParams()) != Status::OK) {
+  if ((status = EstimateCameraParams()) != Status::kSuccess) {
     return status;
   }
 
-  return Status::OK;
+  return Status::kSuccess;
 }
 
 std::vector<cv::UMat> Stitcher::EstimateSeams() {
@@ -271,7 +271,7 @@ std::vector<cv::UMat> Stitcher::EstimateSeams() {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity):
-Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
+Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   spdlog::info("Estimating seams... ");
 
   auto masks_warped = EstimateSeams();
@@ -376,28 +376,26 @@ Stitcher::Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   pano.assign(result);
 
-  return Status::OK;
+  return Status::kSuccess;
 }
 
-Stitcher::Status Stitcher::Stitch(cv::InputArrayOfArrays images,
-                                  cv::OutputArray pano) {
+Status Stitcher::Stitch(cv::InputArrayOfArrays images, cv::OutputArray pano) {
   return Stitch(images, cv::noArray(), pano);
 }
 
-Stitcher::Status Stitcher::Stitch(cv::InputArrayOfArrays images,
-                                  cv::InputArrayOfArrays masks,
-                                  cv::OutputArray pano) {
+Status Stitcher::Stitch(cv::InputArrayOfArrays images,
+                        cv::InputArrayOfArrays masks, cv::OutputArray pano) {
   Status status = EstimateTransform(images, masks);
-  if (status != Status::OK) {
+  if (status != Status::kSuccess) {
     return status;
   }
   return ComposePanorama(pano);
 }
 
-Stitcher::Status Stitcher::MatchImages() {
+Status Stitcher::MatchImages() {
   if (static_cast<int>(imgs_.size()) < 2) {
     spdlog::error("Need more images");
-    return Status::ERR_NEED_MORE_IMGS;
+    return Status::kErrNeedMoreImgs;
   }
 
   work_scale_ = ComputeWorkScale(imgs_[0].size(), registr_resol_);
@@ -455,20 +453,20 @@ Stitcher::Status Stitcher::MatchImages() {
 
   if (indices_.size() < 2) {
     spdlog::error("Need more images");
-    return Status::ERR_NEED_MORE_IMGS;
+    return Status::kErrNeedMoreImgs;
   }
 
   seam_est_imgs_ = Index(seam_est_imgs_, indices_);
   imgs_ = Index(imgs_, indices_);
   full_img_sizes_ = Index(full_img_sizes_, indices_);
 
-  return Status::OK;
+  return Status::kSuccess;
 }
 
-Stitcher::Status Stitcher::EstimateCameraParams() {
+Status Stitcher::EstimateCameraParams() {
   // estimate homography in global frame
   if (!(*estimator_)(features_, pairwise_matches_, cameras_)) {
-    return Status::ERR_HOMOGRAPHY_EST_FAIL;
+    return Status::kErrHomographyEstFail;
   }
 
   for (auto &camera : cameras_) {
@@ -477,7 +475,7 @@ Stitcher::Status Stitcher::EstimateCameraParams() {
 
   bundle_adjuster_->setConfThresh(conf_thresh_);
   if (!(*bundle_adjuster_)(features_, pairwise_matches_, cameras_)) {
-    return Status::ERR_CAMERA_PARAMS_ADJUST_FAIL;
+    return Status::kErrCameraParamsAdjustFail;
   }
 
   warped_image_scale_ = ComputeWarpScale(cameras_);
@@ -496,10 +494,10 @@ Stitcher::Status Stitcher::EstimateCameraParams() {
     }
   }
 
-  return Status::OK;
+  return Status::kSuccess;
 }
 
-Stitcher::Status Stitcher::SetTransform(
+Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams> &cameras) {
   std::vector<int> component;
@@ -510,7 +508,7 @@ Stitcher::Status Stitcher::SetTransform(
   return SetTransform(images, cameras, component);
 }
 
-Stitcher::Status Stitcher::SetTransform(
+Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams> &cameras,
     const std::vector<int> &component) {
@@ -519,7 +517,7 @@ Stitcher::Status Stitcher::SetTransform(
 
   if (imgs_.size() < 2 || component.size() < 2) {
     spdlog::error("Need more images");
-    return Status::ERR_NEED_MORE_IMGS;
+    return Status::kErrNeedMoreImgs;
   }
 
   work_scale_ = ComputeWorkScale(imgs_[0].size(), registr_resol_);
@@ -547,7 +545,7 @@ Stitcher::Status Stitcher::SetTransform(
   cameras_ = cameras;
   warped_image_scale_ = ComputeWarpScale(cameras_);
 
-  return Status::OK;
+  return Status::kSuccess;
 }
 
 }  // namespace xpano::algorithm::stitcher

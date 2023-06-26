@@ -135,7 +135,7 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
                          .cancel = &cancel_tasks_});
   progress_.NotifyTaskDone();
 
-  if (status != cv::Stitcher::OK) {
+  if (status != algorithm::stitcher::Status::kSuccess) {
     return StitchingResult{
         .pano_id = options.pano_id,
         .full_res = options.full_res,

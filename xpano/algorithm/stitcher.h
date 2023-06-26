@@ -58,9 +58,16 @@
 
 namespace xpano::algorithm::stitcher {
 
+enum class Status {
+  kSuccess,
+  kCancelled,
+  kErrNeedMoreImgs,
+  kErrHomographyEstFail,
+  kErrCameraParamsAdjustFail
+};
+
 class Stitcher {
  public:
-  using Status = cv::Stitcher::Status;
   using Mode = cv::Stitcher::Mode;
 
   static cv::Ptr<Stitcher> Create(Mode mode = Stitcher::Mode::PANORAMA);
@@ -204,6 +211,10 @@ class Stitcher {
   Status MatchImages();
   Status EstimateCameraParams();
   std::vector<cv::UMat> EstimateSeams();
+
+  [[nodiscard]] bool Cancelled() const {
+    return cancel_flag_->load(std::memory_order_relaxed);
+  }
 
   double registr_resol_;
   double seam_est_resol_;

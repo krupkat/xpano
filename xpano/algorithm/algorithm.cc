@@ -250,7 +250,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   cv::Mat pano;
   auto status = stitcher->Stitch(images, pano);
 
-  if (status != cv::Stitcher::OK) {
+  if (status != stitcher::Status::kSuccess) {
     return {status, {}, {}};
   }
 
@@ -271,15 +271,15 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   return {status, pano, mask};
 }
 
-std::string ToString(cv::Stitcher::Status& status) {
+std::string ToString(stitcher::Status& status) {
   switch (status) {
-    case cv::Stitcher::OK:
+    case stitcher::Status::kSuccess:
       return "OK";
-    case cv::Stitcher::ERR_NEED_MORE_IMGS:
+    case stitcher::Status::kErrNeedMoreImgs:
       return "ERR_NEED_MORE_IMGS";
-    case cv::Stitcher::ERR_HOMOGRAPHY_EST_FAIL:
+    case stitcher::Status::kErrHomographyEstFail:
       return "ERR_HOMOGRAPHY_EST_FAIL";
-    case cv::Stitcher::ERR_CAMERA_PARAMS_ADJUST_FAIL:
+    case stitcher::Status::kErrCameraParamsAdjustFail:
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
     default:
       return "ERR_UNKNOWN";
