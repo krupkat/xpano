@@ -117,6 +117,9 @@ class StitcherPipeline {
   std::atomic<bool> cancel_tasks_ = false;
   utils::mt::Threadpool pool_ = {
       std::max(2U, std::thread::hardware_concurrency())};
+
+  utils::mt::Threadpool multiblend_pool_ = {
+      std::max(2U, std::thread::hardware_concurrency() - 1)};
 };
 
 }  // namespace xpano::pipeline

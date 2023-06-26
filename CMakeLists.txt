@@ -27,7 +27,7 @@ add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
 if(XPANO_WITH_MULTIBLEND)
   add_subdirectory("external/multiblend")
   target_include_directories(MultiblendLib PUBLIC "external/simde")
-  target_include_directories(MultiblendLib PUBLIC "external/thread-pool")
+  target_include_directories(MultiblendLib PUBLIC "external/thread-pool/include")
 endif()
 
 set(IMGUI_SOURCES 
@@ -105,7 +105,7 @@ add_executable(Xpano WIN32
 target_include_directories(Xpano PRIVATE
   "external/imgui" 
   "external/imgui/backends"
-  "external/thread-pool"
+  "external/thread-pool/include"
   "."
 )
 
