@@ -210,7 +210,7 @@ class Stitcher {
  private:
   Status MatchImages();
   Status EstimateCameraParams();
-  std::vector<cv::UMat> EstimateSeams();
+  Status EstimateSeams(std::vector<cv::UMat>* seams);
 
   [[nodiscard]] bool Cancelled() const {
     return cancel_flag_->load(std::memory_order_relaxed);

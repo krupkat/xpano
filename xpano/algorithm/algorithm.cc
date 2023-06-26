@@ -275,6 +275,8 @@ std::string ToString(stitcher::Status& status) {
   switch (status) {
     case stitcher::Status::kSuccess:
       return "OK";
+    case stitcher::Status::kCancelled:
+      return "Cancelled";
     case stitcher::Status::kErrNeedMoreImgs:
       return "ERR_NEED_MORE_IMGS";
     case stitcher::Status::kErrHomographyEstFail:

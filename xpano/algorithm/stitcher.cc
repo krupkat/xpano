@@ -219,7 +219,7 @@ Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
   return Status::kSuccess;
 }
 
-std::vector<cv::UMat> Stitcher::EstimateSeams() {
+Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
   auto seam_timer = Timer();
 
   std::vector<cv::UMat> masks(imgs_.size());
@@ -258,6 +258,10 @@ std::vector<cv::UMat> Stitcher::EstimateSeams() {
                           masks_warped[i]);
   }
 
+  if (Cancelled()) {
+    return Status::kCancelled;
+  }
+
   // Find seams
   std::vector<cv::UMat> images_warped_f(imgs_.size());
   for (size_t i = 0; i < imgs_.size(); ++i) {
@@ -267,15 +271,24 @@ std::vector<cv::UMat> Stitcher::EstimateSeams() {
 
   seam_timer.Report("Finding seams");
 
-  return masks_warped;
+  *seams = std::move(masks_warped);
+  return Status::kSuccess;
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity):
 Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   spdlog::info("Estimating seams... ");
 
-  auto masks_warped = EstimateSeams();
+  std::vector<cv::UMat> masks_warped;
+  if (auto status = EstimateSeams(&masks_warped); status != Status::kSuccess) {
+    return status;
+  }
+
   seam_est_imgs_.clear();
+
+  if (Cancelled()) {
+    return Status::kCancelled;
+  }
 
   spdlog::info("Compositing...");
   auto compositing_total_timer = Timer();
@@ -364,6 +377,10 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     timer.Report(" feed time");
 
     compositing_timer.Report("Compositing ## time");
+
+    if (Cancelled()) {
+      return Status::kCancelled;
+    }
   }
 
   auto blend_timer = Timer();
@@ -440,12 +457,19 @@ Status Stitcher::MatchImages() {
   feature_find_masks.clear();
 
   timer.Report("Finding features");
+  if (Cancelled()) {
+    return Status::kCancelled;
+  }
 
   spdlog::info("Pairwise matching");
 
   (*features_matcher_)(features_, pairwise_matches_, matching_mask_);
   features_matcher_->collectGarbage();
+
   timer.Report("Pairwise matching");
+  if (Cancelled()) {
+    return Status::kCancelled;
+  }
 
   // Leave only images we are sure are from the same panorama
   indices_ = cv::detail::leaveBiggestComponent(
@@ -469,6 +493,10 @@ Status Stitcher::EstimateCameraParams() {
     return Status::kErrHomographyEstFail;
   }
 
+  if (Cancelled()) {
+    return Status::kCancelled;
+  }
+
   for (auto &camera : cameras_) {
     camera.R = ToFloat(camera.R);
   }
@@ -476,6 +504,10 @@ Status Stitcher::EstimateCameraParams() {
   bundle_adjuster_->setConfThresh(conf_thresh_);
   if (!(*bundle_adjuster_)(features_, pairwise_matches_, cameras_)) {
     return Status::kErrCameraParamsAdjustFail;
+  }
+
+  if (Cancelled()) {
+    return Status::kCancelled;
   }
 
   warped_image_scale_ = ComputeWarpScale(cameras_);

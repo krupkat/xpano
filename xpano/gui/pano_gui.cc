@@ -163,8 +163,8 @@ auto ResolveStitchingResultFuture(
     return {};
   }
   if (!result.pano) {
-    *status_message = {fmt::format("Failed to stitch pano {}", result.pano_id),
-                       algorithm::ToString(result.status)};
+    *status_message = {fmt::format("Pano {} result: {}", result.pano_id,
+                                   algorithm::ToString(result.status))};
     spdlog::info(*status_message);
     if (!result.full_res) {
       plot_pane->Reset();
