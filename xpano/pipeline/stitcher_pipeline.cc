@@ -67,15 +67,13 @@ StitcherPipeline::~StitcherPipeline() { Cancel(); }
 
 void StitcherPipeline::Cancel() {
   if (pool_.get_tasks_total() > 0) {
-    pool_.pause();
+    pool_.purge();
 
     spdlog::info("Waiting for running tasks to finish");
     cancel_tasks_ = true;
     pool_.wait_for_tasks();
     cancel_tasks_ = false;
 
-    pool_.purge();
-    pool_.unpause();
     progress_.Reset(ProgressType::kNone, 0);
     spdlog::info("Done");
   }
@@ -130,7 +128,7 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   auto [status, result, mask] =
       algorithm::Stitch(imgs, options.stitch_algorithm,
                         {.return_pano_mask = options.full_res,
-                         .threadpool = &multiblend_pool_,
+                         .threads_for_multiblend = &multiblend_pool_,
                          .progress_monitor = &progress_,
                          .cancel = &cancel_tasks_});
   progress_.NotifyTaskDone();

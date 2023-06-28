@@ -242,8 +242,8 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
     stitcher->SetWaveCorrectKind(
         PickWaveCorrectKind(user_options.wave_correction));
   }
-  stitcher->SetBlender(
-      PickBlender(user_options.blending_method, options.threadpool));
+  stitcher->SetBlender(PickBlender(user_options.blending_method,
+                                   options.threads_for_multiblend));
   stitcher->SetProgressMonitor(options.progress_monitor);
   stitcher->SetCancelFlag(options.cancel);
 

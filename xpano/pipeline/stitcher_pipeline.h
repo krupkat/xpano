@@ -118,6 +118,10 @@ class StitcherPipeline {
   utils::mt::Threadpool pool_ = {
       std::max(2U, std::thread::hardware_concurrency())};
 
+  // Use a separate threadpool for multiblend.
+  // Reason: multiblend doesn't allow cancelling tasks (calling pool_.purge())
+  // without either a deadlock or undefined behavior. Primary reason is that it
+  // passes many arguments to its subtasks by reference.
   utils::mt::Threadpool multiblend_pool_ = {
       std::max(2U, std::thread::hardware_concurrency() - 1)};
 };
