@@ -31,6 +31,7 @@
 #include "xpano/gui/shortcut.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/path.h"
@@ -538,11 +539,6 @@ void PanoGui::PerformExportAction(int pano_id) {
   }
 }
 
-template <class... Ts>
-struct Overloaded : Ts... {
-  using Ts::operator()...;
-};
-
 MultiAction PanoGui::ResolveFutures() {
   MultiAction actions;
   auto handle_stitcher_data =
@@ -590,8 +586,8 @@ MultiAction PanoGui::ResolveFutures() {
                                       &status_message_);
       };
 
-  std::visit(Overloaded{handle_stitcher_data, handle_pano, handle_export,
-                        handle_inpaint, [](std::monostate) {}},
+  std::visit(utils::Overloaded{handle_stitcher_data, handle_pano, handle_export,
+                               handle_inpaint, [](std::monostate) {}},
              stitcher_pipeline_.GetReadyFuture());
 
   return actions;

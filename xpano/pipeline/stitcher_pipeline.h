@@ -145,10 +145,10 @@ class StitcherPipeline {
   utils::mt::Threadpool multiblend_pool_ = {
       std::max(2U, std::thread::hardware_concurrency() - 1)};
 
-  std::future<StitcherData> stitcher_data_future_;
-  std::future<StitchingResult> pano_future_;
-  std::future<ExportResult> export_future_;
-  std::future<InpaintingResult> inpaint_future_;
+  std::variant<std::monostate, std::future<StitcherData>,
+               std::future<StitchingResult>, std::future<ExportResult>,
+               std::future<InpaintingResult>>
+      task_future_;
 };
 
 }  // namespace xpano::pipeline

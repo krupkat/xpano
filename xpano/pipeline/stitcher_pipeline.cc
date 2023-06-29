@@ -21,6 +21,7 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
+#include "xpano/utils/common.h"
 #include "xpano/utils/exiv2.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/opencv.h"
@@ -99,7 +100,7 @@ auto StitcherPipeline::RunLoading(
     return stitcher_data_future;
   }
 
-  stitcher_data_future_ = std::move(stitcher_data_future);
+  task_future_ = std::move(stitcher_data_future);
 }
 
 template auto StitcherPipeline::RunLoading<RunTraits::kOwnFuture>(
@@ -127,7 +128,7 @@ auto StitcherPipeline::RunStitching(const StitcherData &data,
     return pano_future;
   }
 
-  pano_future_ = std::move(pano_future);
+  task_future_ = std::move(pano_future);
 }
 
 template auto StitcherPipeline::RunStitching<RunTraits::kOwnFuture>(
@@ -219,7 +220,7 @@ auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
     return export_future;
   }
 
-  export_future_ = std::move(export_future);
+  task_future_ = std::move(export_future);
 }
 
 template auto StitcherPipeline::RunExport<RunTraits::kOwnFuture>(
@@ -278,7 +279,7 @@ auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
     return inpaint_future;
   }
 
-  inpaint_future_ = std::move(inpaint_future);
+  task_future_ = std::move(inpaint_future);
 }
 
 template auto StitcherPipeline::RunInpainting<RunTraits::kOwnFuture>(
@@ -382,18 +383,14 @@ std::variant<std::monostate, std::future<StitcherData>,
              std::future<StitchingResult>, std::future<ExportResult>,
              std::future<InpaintingResult>>
 StitcherPipeline::GetReadyFuture() {
-  if (utils::future::IsReady(stitcher_data_future_)) {
-    return std::move(stitcher_data_future_);
+  auto check_ready = utils::Overloaded{
+      [](std::monostate) { return false; },
+      [](const auto &future) { return utils::future::IsReady(future); }};
+
+  if (std::visit(check_ready, task_future_)) {
+    return std::move(task_future_);
   }
-  if (utils::future::IsReady(pano_future_)) {
-    return std::move(pano_future_);
-  }
-  if (utils::future::IsReady(export_future_)) {
-    return std::move(export_future_);
-  }
-  if (utils::future::IsReady(inpaint_future_)) {
-    return std::move(inpaint_future_);
-  }
+
   return {};
 }
 
