@@ -81,10 +81,6 @@ class PanoGui {
 
   // Algorithm
   pipeline::StitcherPipeline stitcher_pipeline_;
-  std::future<pipeline::StitcherData> stitcher_data_future_;
-  std::future<pipeline::StitchingResult> pano_future_;
-  std::future<pipeline::ExportResult> export_future_;
-  std::future<pipeline::InpaintingResult> inpaint_future_;
 
   // Used for inpainting
   std::optional<cv::Mat> pano_mask_;

@@ -22,6 +22,7 @@
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
 #include "xpano/utils/exiv2.h"
+#include "xpano/utils/future.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/threadpool.h"
 #include "xpano/utils/vec_opencv.h"
@@ -79,25 +80,62 @@ void StitcherPipeline::Cancel() {
   }
 }
 
-std::future<StitcherData> StitcherPipeline::RunLoading(
+template <RunTraits run>
+auto StitcherPipeline::RunLoading(
     const std::vector<std::filesystem::path> &inputs,
     const LoadingOptions &loading_options,
-    const MatchingOptions &matching_options) {
-  return pool_.submit([this, loading_options, matching_options, inputs]() {
-    auto images = RunLoadingPipeline(
-        inputs, loading_options,
-        /*compute_keypoints=*/matching_options.type == MatchingType::kAuto);
-    return RunMatchingPipeline(images, matching_options);
-  });
+    const MatchingOptions &matching_options)
+    -> std::conditional_t<run == RunTraits::kReturnFuture,
+                          std::future<StitcherData>, void> {
+  auto stitcher_data_future =
+      pool_.submit([this, loading_options, matching_options, inputs]() {
+        auto images = RunLoadingPipeline(
+            inputs, loading_options,
+            /*compute_keypoints=*/matching_options.type == MatchingType::kAuto);
+        return RunMatchingPipeline(images, matching_options);
+      });
+
+  if constexpr (run == RunTraits::kReturnFuture) {
+    return stitcher_data_future;
+  }
+
+  stitcher_data_future_ = std::move(stitcher_data_future);
 }
 
-std::future<StitchingResult> StitcherPipeline::RunStitching(
-    const StitcherData &data, const StitchingOptions &options) {
+template auto StitcherPipeline::RunLoading<RunTraits::kOwnFuture>(
+    const std::vector<std::filesystem::path> &inputs,
+    const LoadingOptions &loading_options,
+    const MatchingOptions &matching_options) -> void;
+
+template auto StitcherPipeline::RunLoading<RunTraits::kReturnFuture>(
+    const std::vector<std::filesystem::path> &inputs,
+    const LoadingOptions &loading_options,
+    const MatchingOptions &matching_options) -> std::future<StitcherData>;
+
+template <RunTraits run>
+auto StitcherPipeline::RunStitching(const StitcherData &data,
+                                    const StitchingOptions &options)
+    -> std::conditional_t<run == RunTraits::kReturnFuture,
+                          std::future<StitchingResult>, void> {
   auto pano = data.panos[options.pano_id];
-  return pool_.submit([pano, &images = data.images, options, this]() {
-    return RunStitchingPipeline(pano, images, options);
-  });
+  auto pano_future =
+      pool_.submit([pano, &images = data.images, options, this]() {
+        return RunStitchingPipeline(pano, images, options);
+      });
+
+  if constexpr (run == RunTraits::kReturnFuture) {
+    return pano_future;
+  }
+
+  pano_future_ = std::move(pano_future);
 }
+
+template auto StitcherPipeline::RunStitching<RunTraits::kOwnFuture>(
+    const StitcherData &data, const StitchingOptions &options) -> void;
+
+template auto StitcherPipeline::RunStitching<RunTraits::kReturnFuture>(
+    const StitcherData &data, const StitchingOptions &options)
+    -> std::future<StitchingResult>;
 
 StitchingResult StitcherPipeline::RunStitchingPipeline(
     const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
@@ -169,12 +207,26 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
                          auto_crop,       export_path,      pano_mask};
 }
 
-std::future<ExportResult> StitcherPipeline::RunExport(
-    cv::Mat pano, const ExportOptions &options) {
-  return pool_.submit([pano = std::move(pano), options, this]() {
+template <RunTraits run>
+auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
+    -> std::conditional_t<run == RunTraits::kReturnFuture,
+                          std::future<ExportResult>, void> {
+  auto export_future = pool_.submit([pano = std::move(pano), options, this]() {
     return RunExportPipeline(pano, options);
   });
+
+  if constexpr (run == RunTraits::kReturnFuture) {
+    return export_future;
+  }
+
+  export_future_ = std::move(export_future);
 }
+
+template auto StitcherPipeline::RunExport<RunTraits::kOwnFuture>(
+    cv::Mat pano, const ExportOptions &options) -> void;
+
+template auto StitcherPipeline::RunExport<RunTraits::kReturnFuture>(
+    cv::Mat pano, const ExportOptions &options) -> std::future<ExportResult>;
 
 ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
                                                  const ExportOptions &options) {
@@ -200,24 +252,41 @@ ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
   return ExportResult{options.pano_id, export_path};
 }
 
-std::future<InpaintingResult> StitcherPipeline::RunInpainting(
-    cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options) {
-  return pool_.submit([pano = std::move(pano), pano_mask = std::move(pano_mask),
-                       options, this]() {
-    int num_tasks = 3;
-    progress_.Reset(ProgressType::kInpainting, num_tasks);
+template <RunTraits run>
+auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
+                                     const InpaintingOptions &options)
+    -> std::conditional_t<run == RunTraits::kReturnFuture,
+                          std::future<InpaintingResult>, void> {
+  auto inpaint_future =
+      pool_.submit([pano = std::move(pano), pano_mask = std::move(pano_mask),
+                    options, this]() {
+        int num_tasks = 3;
+        progress_.Reset(ProgressType::kInpainting, num_tasks);
 
-    cv::Mat inpaint_mask;
-    cv::bitwise_not(pano_mask, inpaint_mask);
-    progress_.NotifyTaskDone();
-    int pixels_filled = cv::countNonZero(inpaint_mask);
-    progress_.NotifyTaskDone();
-    auto result = algorithm::Inpaint(pano, inpaint_mask, options);
-    progress_.NotifyTaskDone();
+        cv::Mat inpaint_mask;
+        cv::bitwise_not(pano_mask, inpaint_mask);
+        progress_.NotifyTaskDone();
+        int pixels_filled = cv::countNonZero(inpaint_mask);
+        progress_.NotifyTaskDone();
+        auto result = algorithm::Inpaint(pano, inpaint_mask, options);
+        progress_.NotifyTaskDone();
 
-    return InpaintingResult{result, pixels_filled};
-  });
+        return InpaintingResult{result, pixels_filled};
+      });
+
+  if constexpr (run == RunTraits::kReturnFuture) {
+    return inpaint_future;
+  }
+
+  inpaint_future_ = std::move(inpaint_future);
 }
+
+template auto StitcherPipeline::RunInpainting<RunTraits::kOwnFuture>(
+    cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options) -> void;
+
+template auto StitcherPipeline::RunInpainting<RunTraits::kReturnFuture>(
+    cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options)
+    -> std::future<InpaintingResult>;
 
 ProgressReport StitcherPipeline::Progress() const {
   return progress_.Progress();
@@ -307,6 +376,25 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   auto panos = FindPanos(matches, options.match_threshold);
   progress_.NotifyTaskDone();
   return StitcherData{images, matches, panos};
+}
+
+std::variant<std::monostate, std::future<StitcherData>,
+             std::future<StitchingResult>, std::future<ExportResult>,
+             std::future<InpaintingResult>>
+StitcherPipeline::GetReadyFuture() {
+  if (utils::future::IsReady(stitcher_data_future_)) {
+    return std::move(stitcher_data_future_);
+  }
+  if (utils::future::IsReady(pano_future_)) {
+    return std::move(pano_future_);
+  }
+  if (utils::future::IsReady(export_future_)) {
+    return std::move(export_future_);
+  }
+  if (utils::future::IsReady(inpaint_future_)) {
+    return std::move(inpaint_future_);
+  }
+  return {};
 }
 
 }  // namespace xpano::pipeline

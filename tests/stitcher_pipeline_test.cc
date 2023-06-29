@@ -25,6 +25,8 @@ using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
 using Catch::Matchers::WithinRel;
 
+constexpr auto kReturnFuture = xpano::pipeline::RunTraits::kReturnFuture;
+
 const std::vector<std::filesystem::path> kInputs = {
     "data/image00.jpg", "data/image01.jpg", "data/image02.jpg",
     "data/image03.jpg", "data/image04.jpg", "data/image05.jpg",
@@ -41,7 +43,7 @@ int CountNonZero(const cv::Mat& image) {
 TEST_CASE("Stitcher pipeline defaults") {
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result = stitcher.RunLoading(kInputs, {}, {}).get();
+  auto result = stitcher.RunLoading<kReturnFuture>(kInputs, {}, {}).get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -54,7 +56,8 @@ TEST_CASE("Stitcher pipeline defaults") {
   const float eps = 0.02;
 
   // preview
-  auto pano0 = stitcher.RunStitching(result, {.pano_id = 0}).get().pano;
+  auto pano0 =
+      stitcher.RunStitching<kReturnFuture>(result, {.pano_id = 0}).get().pano;
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
   REQUIRE(pano0.has_value());
@@ -63,7 +66,9 @@ TEST_CASE("Stitcher pipeline defaults") {
 
   // full resolution
   auto stitch_result =
-      stitcher.RunStitching(result, {.pano_id = 1, .full_res = true}).get();
+      stitcher
+          .RunStitching<kReturnFuture>(result, {.pano_id = 1, .full_res = true})
+          .get();
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
   REQUIRE(stitch_result.pano.has_value());
@@ -74,9 +79,10 @@ TEST_CASE("Stitcher pipeline defaults") {
 
   // auto fill
   REQUIRE(stitch_result.mask.has_value());
-  auto inpaint_result =
-      stitcher.RunInpainting(*stitch_result.pano, *stitch_result.mask, {})
-          .get();
+  auto inpaint_result = stitcher
+                            .RunInpainting<kReturnFuture>(
+                                *stitch_result.pano, *stitch_result.mask, {})
+                            .get();
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -94,8 +100,8 @@ TEST_CASE("Stitcher pipeline single pano matching") {
   xpano::pipeline::StitcherPipeline stitcher;
   auto result =
       stitcher
-          .RunLoading(kInputs, {},
-                      {.type = xpano::pipeline::MatchingType::kSinglePano})
+          .RunLoading<kReturnFuture>(
+              kInputs, {}, {.type = xpano::pipeline::MatchingType::kSinglePano})
           .get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -114,10 +120,11 @@ TEST_CASE("Stitcher pipeline single pano matching") {
 
 TEST_CASE("Stitcher pipeline no matching") {
   xpano::pipeline::StitcherPipeline stitcher;
-  auto result = stitcher
-                    .RunLoading(kInputs, {},
-                                {.type = xpano::pipeline::MatchingType::kNone})
-                    .get();
+  auto result =
+      stitcher
+          .RunLoading<kReturnFuture>(
+              kInputs, {}, {.type = xpano::pipeline::MatchingType::kNone})
+          .get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -149,9 +156,10 @@ const std::vector<std::filesystem::path> kShuffledInputs = {
 TEST_CASE("Stitcher pipeline custom matching neighborhood") {
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result =
-      stitcher.RunLoading(kShuffledInputs, {}, {.neighborhood_search_size = 3})
-          .get();
+  auto result = stitcher
+                    .RunLoading<kReturnFuture>(kShuffledInputs, {},
+                                               {.neighborhood_search_size = 3})
+                    .get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -167,11 +175,12 @@ TEST_CASE("Stitcher pipeline custom matching neighborhood") {
 TEST_CASE("Stitcher pipeline larger neighborhood size") {
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result = stitcher
-                    .RunLoading({"data/image01.jpg", "data/image02.jpg",
-                                 "data/image03.jpg"},
-                                {}, {.neighborhood_search_size = 10})
-                    .get();
+  auto result =
+      stitcher
+          .RunLoading<kReturnFuture>(
+              {"data/image01.jpg", "data/image02.jpg", "data/image03.jpg"}, {},
+              {.neighborhood_search_size = 10})
+          .get();
 
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -185,7 +194,8 @@ TEST_CASE("Stitcher pipeline larger neighborhood size") {
 TEST_CASE("Stitcher pipeline single image") {
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result = stitcher.RunLoading({"data/image01.jpg"}, {}, {}).get();
+  auto result =
+      stitcher.RunLoading<kReturnFuture>({"data/image01.jpg"}, {}, {}).get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -196,7 +206,7 @@ TEST_CASE("Stitcher pipeline single image") {
 TEST_CASE("Stitcher pipeline no images") {
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result = stitcher.RunLoading({}, {}, {}).get();
+  auto result = stitcher.RunLoading<kReturnFuture>({}, {}, {}).get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -210,10 +220,11 @@ TEST_CASE("Stitcher pipeline loading options") {
   const int preview_size = 512;
   const int allowed_margin = 1.0;
 
-  auto result = stitcher
-                    .RunLoading({"data/image05.jpg", "data/image06.jpg"},
-                                {.preview_longer_side = preview_size}, {})
-                    .get();
+  auto result =
+      stitcher
+          .RunLoading<kReturnFuture>({"data/image05.jpg", "data/image06.jpg"},
+                                     {.preview_longer_side = preview_size}, {})
+          .get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -249,10 +260,10 @@ const std::vector<std::filesystem::path> kVerticalPanoInputs = {
 TEST_CASE("Stitcher pipeline vertical pano") {
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result =
-      stitcher
-          .RunLoading(kVerticalPanoInputs, {}, {.neighborhood_search_size = 1})
-          .get();
+  auto result = stitcher
+                    .RunLoading<kReturnFuture>(kVerticalPanoInputs, {},
+                                               {.neighborhood_search_size = 1})
+                    .get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -264,7 +275,8 @@ TEST_CASE("Stitcher pipeline vertical pano") {
   const float eps = 0.01;
 
   // preview
-  auto pano0 = stitcher.RunStitching(result, {.pano_id = 0}).get().pano;
+  auto pano0 =
+      stitcher.RunStitching<kReturnFuture>(result, {.pano_id = 0}).get().pano;
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
   REQUIRE(pano0.has_value());
@@ -283,9 +295,13 @@ TEST_CASE("ExportWithMetadata") {
       xpano::tests::TmpPath().replace_extension("jpg");
 
   xpano::pipeline::StitcherPipeline stitcher;
-  auto data = stitcher.RunLoading(kInputsWithExifMetadata, {}, {}).get();
+  auto data =
+      stitcher.RunLoading<kReturnFuture>(kInputsWithExifMetadata, {}, {}).get();
   REQUIRE(data.panos.size() == 1);
-  stitcher.RunStitching(data, {.pano_id = 0, .export_path = tmp_path}).get();
+  stitcher
+      .RunStitching<kReturnFuture>(data,
+                                   {.pano_id = 0, .export_path = tmp_path})
+      .get();
 
   const float eps = 0.01;
 
@@ -330,12 +346,14 @@ TEST_CASE("ExportWithoutMetadata") {
       xpano::tests::TmpPath().replace_extension("jpg");
 
   xpano::pipeline::StitcherPipeline stitcher;
-  auto data = stitcher.RunLoading(kInputsWithExifMetadata, {}, {}).get();
+  auto data =
+      stitcher.RunLoading<kReturnFuture>(kInputsWithExifMetadata, {}, {}).get();
   REQUIRE(data.panos.size() == 1);
   stitcher
-      .RunStitching(data, {.pano_id = 0,
-                           .export_path = tmp_path,
-                           .metadata = {.copy_from_first_image = false}})
+      .RunStitching<kReturnFuture>(
+          data, {.pano_id = 0,
+                 .export_path = tmp_path,
+                 .metadata = {.copy_from_first_image = false}})
       .get();
 
   const float eps = 0.01;
@@ -369,7 +387,7 @@ const std::vector<std::filesystem::path> kTiffInputs = {
 
 TEST_CASE("TIFF inputs") {
   xpano::pipeline::StitcherPipeline stitcher;
-  auto result = stitcher.RunLoading(kTiffInputs, {}, {}).get();
+  auto result = stitcher.RunLoading<kReturnFuture>(kTiffInputs, {}, {}).get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -387,7 +405,8 @@ const std::filesystem::path kMalformedInput = "data/malformed.jpg";
 
 TEST_CASE("Malformed input") {
   xpano::pipeline::StitcherPipeline stitcher;
-  auto result = stitcher.RunLoading({kMalformedInput}, {}, {}).get();
+  auto result =
+      stitcher.RunLoading<kReturnFuture>({kMalformedInput}, {}, {}).get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -402,7 +421,7 @@ TEST_CASE("Stitcher pipeline OpenCV blender") {
 
   xpano::pipeline::StitcherPipeline stitcher;
 
-  auto result = stitcher.RunLoading(kInputs, {}, {}).get();
+  auto result = stitcher.RunLoading<kReturnFuture>(kInputs, {}, {}).get();
   auto progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
 
@@ -410,22 +429,24 @@ TEST_CASE("Stitcher pipeline OpenCV blender") {
   auto stitch_algorithm = xpano::pipeline::StitchAlgorithmOptions{
       .blending_method = blending_method};
 
-  auto pano0 = stitcher
-                   .RunStitching(result, {.pano_id = 0,
-                                          .stitch_algorithm = stitch_algorithm})
-                   .get()
-                   .pano;
+  auto pano0 =
+      stitcher
+          .RunStitching<kReturnFuture>(
+              result, {.pano_id = 0, .stitch_algorithm = stitch_algorithm})
+          .get()
+          .pano;
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
   REQUIRE(pano0.has_value());
   CHECK_THAT(pano0->rows, WithinRel(804, eps));
   CHECK_THAT(pano0->cols, WithinRel(2145, eps));
 
-  auto pano1 = stitcher
-                   .RunStitching(result, {.pano_id = 1,
-                                          .stitch_algorithm = stitch_algorithm})
-                   .get()
-                   .pano;
+  auto pano1 =
+      stitcher
+          .RunStitching<kReturnFuture>(
+              result, {.pano_id = 1, .stitch_algorithm = stitch_algorithm})
+          .get()
+          .pano;
   progress = stitcher.Progress();
   CHECK(progress.tasks_done == progress.num_tasks);
   REQUIRE(pano1.has_value());

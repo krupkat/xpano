@@ -11,6 +11,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <variant>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -74,6 +75,8 @@ using ProgressMonitor = algorithm::ProgressMonitor;
 using ProgressReport = algorithm::ProgressReport;
 using ProgressType = algorithm::ProgressType;
 
+enum class RunTraits { kOwnFuture, kReturnFuture };
+
 class StitcherPipeline {
  public:
   StitcherPipeline() = default;
@@ -85,18 +88,35 @@ class StitcherPipeline {
   StitcherPipeline(StitcherPipeline &&) = delete;
   StitcherPipeline &operator=(StitcherPipeline &&) = delete;
 
-  std::future<StitcherData> RunLoading(
-      const std::vector<std::filesystem::path> &inputs,
-      const LoadingOptions &loading_options,
-      const MatchingOptions &matching_options);
-  std::future<StitchingResult> RunStitching(const StitcherData &data,
-                                            const StitchingOptions &options);
+  template <RunTraits run = RunTraits::kOwnFuture>
+  auto RunLoading(const std::vector<std::filesystem::path> &inputs,
+                  const LoadingOptions &loading_options,
+                  const MatchingOptions &matching_options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            std::future<StitcherData>, void>;
 
-  std::future<ExportResult> RunExport(cv::Mat pano,
-                                      const ExportOptions &options);
-  std::future<InpaintingResult> RunInpainting(cv::Mat pano, cv::Mat mask,
-                                              const InpaintingOptions &options);
+  template <RunTraits run = RunTraits::kOwnFuture>
+  auto RunStitching(const StitcherData &data, const StitchingOptions &options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            std::future<StitchingResult>, void>;
+
+  template <RunTraits run = RunTraits::kOwnFuture>
+  auto RunExport(cv::Mat pano, const ExportOptions &options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            std::future<ExportResult>, void>;
+
+  template <RunTraits run = RunTraits::kOwnFuture>
+  auto RunInpainting(cv::Mat pano, cv::Mat mask,
+                     const InpaintingOptions &options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            std::future<InpaintingResult>, void>;
+
   ProgressReport Progress() const;
+
+  std::variant<std::monostate, std::future<StitcherData>,
+               std::future<StitchingResult>, std::future<ExportResult>,
+               std::future<InpaintingResult>>
+  GetReadyFuture();
 
   void Cancel();
 
@@ -124,6 +144,11 @@ class StitcherPipeline {
   // passes many arguments to its subtasks by reference.
   utils::mt::Threadpool multiblend_pool_ = {
       std::max(2U, std::thread::hardware_concurrency() - 1)};
+
+  std::future<StitcherData> stitcher_data_future_;
+  std::future<StitchingResult> pano_future_;
+  std::future<ExportResult> export_future_;
+  std::future<InpaintingResult> inpaint_future_;
 };
 
 }  // namespace xpano::pipeline
