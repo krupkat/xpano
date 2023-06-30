@@ -587,7 +587,9 @@ MultiAction PanoGui::ResolveFutures() {
       };
 
   if (auto task = stitcher_pipeline_.GetReadyTask();
-      task && !task->progress->IsCancelled()) {
+      task && task->progress->IsCancelled()) {
+    spdlog::info("Task cancelled");
+  } else if (task && !task->progress->IsCancelled()) {
     std::visit(utils::Overloaded{handle_stitcher_data, handle_pano,
                                  handle_export, handle_inpaint},
                std::move(task->future));

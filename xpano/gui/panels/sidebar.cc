@@ -379,17 +379,17 @@ Action DrawHelpMenu() {
 }  // namespace
 
 void DrawProgressBar(pipeline::ProgressReport progress) {
-  if (progress.num_tasks == 0) {
-    return;
-  }
   const int max_percent = 100;
-  float progress_ratio = static_cast<float>(progress.tasks_done) /
-                         static_cast<float>(progress.num_tasks);
-  std::string label =
-      progress.tasks_done == progress.num_tasks
-          ? "100%"
-          : fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
+  float progress_ratio = 0.0;
+  std::string label;
+  if (progress.num_tasks != 0) {
+    progress_ratio = static_cast<float>(progress.tasks_done) /
+                     static_cast<float>(progress.num_tasks);
+  }
+  if (progress.tasks_done != progress.num_tasks) {
+    label = fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
                         progress_ratio * max_percent);
+  }
   ImGui::ProgressBar(progress_ratio, ImVec2(-1.0f, 0.f), label.c_str());
 }
 

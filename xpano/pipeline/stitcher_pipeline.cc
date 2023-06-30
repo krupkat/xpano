@@ -193,15 +193,21 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
   return StitcherData{images, matches, panos};
 }
 
+int StitchTaskCount(const StitchingOptions &options, int num_images) {
+  return 1 +                                        // Stitching
+         algorithm::StitchTasksCount(num_images) +  // Stitching subtasks
+         (options.export_path ? 1 : 0) +            // Export
+         (options.full_res ? 1 : 0) +               // Auto crop
+         (options.full_res ? num_images : 1);  // Load full res / load previews
+}
+
 StitchingResult RunStitchingPipeline(
     const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
     const StitchingOptions &options, ProgressMonitor *progress,
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
     utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
   int num_images = static_cast<int>(pano.ids.size());
-  int num_tasks = algorithm::StitchTasksCount(num_images) + num_images + 1 +
-                  static_cast<int>(options.export_path.has_value()) +
-                  static_cast<int>(options.full_res);
+  int num_tasks = StitchTaskCount(options, num_images);
   progress->Reset(ProgressType::kLoadingImages, num_tasks);
   std::vector<cv::Mat> imgs;
   if (options.full_res) {
@@ -217,8 +223,8 @@ StitchingResult RunStitchingPipeline(
   } else {
     for (int img_id : pano.ids) {
       imgs.push_back(images[img_id].GetPreview());
-      progress->NotifyTaskDone();
     }
+    progress->NotifyTaskDone();
   }
 
   progress->SetTaskType(ProgressType::kStitchingPano);
@@ -286,8 +292,9 @@ void StitcherPipeline<run>::Cancel() {
 template <RunTraits run>
 void StitcherPipeline<run>::CancelAndWait() {
   Cancel();
-  spdlog::info("Waiting for running tasks to finish");
+  spdlog::info("Waiting for running tasks to finish...");
   pool_.wait_for_tasks();
+  spdlog::info("Finished");
 }
 
 template <RunTraits run>
