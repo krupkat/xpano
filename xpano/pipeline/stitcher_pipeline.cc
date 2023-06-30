@@ -89,6 +89,182 @@ WaitStatus WaitWithCancellation(TFutureType *future,
   return WaitStatus::kReady;
 }
 
+ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options,
+                               ProgressMonitor *progress) {
+  int num_tasks = 2;
+  progress->Reset(ProgressType::kExport, num_tasks);
+
+  if (options.crop) {
+    auto crop_rect = utils::GetCvRect(pano, *options.crop);
+    pano = pano(crop_rect);
+  }
+
+  std::optional<std::filesystem::path> export_path;
+  if (cv::imwrite(options.export_path.string(), pano,
+                  CompressionParameters(options.compression))) {
+    export_path = options.export_path;
+  }
+  progress->NotifyTaskDone();
+  if (export_path && utils::exiv2::Enabled()) {
+    auto pano_size = utils::ToIntVec(pano.size);
+    utils::exiv2::CreateExif(options.metadata_path, *export_path, pano_size);
+  }
+  progress->NotifyTaskDone();
+  return ExportResult{options.pano_id, export_path};
+}
+
+std::vector<algorithm::Image> RunLoadingPipeline(
+    const std::vector<std::filesystem::path> &inputs,
+    const LoadingOptions &options, bool compute_keypoints,
+    ProgressMonitor *progress, utils::mt::Threadpool *pool) {
+  int num_tasks = static_cast<int>(inputs.size());
+  progress->Reset(ProgressType::kDetectingKeypoints, num_tasks);
+  utils::mt::MultiFuture<algorithm::Image> loading_future;
+  for (const auto &input : inputs) {
+    loading_future.push_back(
+        pool->submit([options, input, compute_keypoints, progress]() {
+          algorithm::Image image(input);
+          image.Load({.preview_longer_side = options.preview_longer_side,
+                      .compute_keypoints = compute_keypoints});
+          progress->NotifyTaskDone();
+          return image;
+        }));
+  }
+  if (auto status = WaitWithCancellation(&loading_future, progress);
+      status == WaitStatus::kCancelled) {
+    return {};
+  }
+  auto images = loading_future.get();
+
+  auto num_erased =
+      std::erase_if(images, [](const auto &img) { return !img.IsLoaded(); });
+  if (num_erased > 0) {
+    spdlog::warn("Failed to load {} images", num_erased);
+  }
+  return images;
+}
+
+StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
+                                 const MatchingOptions &options,
+                                 ProgressMonitor *progress,
+                                 utils::mt::Threadpool *pool) {
+  if (images.empty()) {
+    return {};
+  }
+
+  if (options.type == MatchingType::kNone) {
+    return StitcherData{std::move(images)};
+  }
+
+  if (options.type == MatchingType::kSinglePano) {
+    auto pano = algorithm::SinglePano(static_cast<int>(images.size()));
+    return StitcherData{std::move(images), {}, {pano}};
+  }
+
+  int num_images = static_cast<int>(images.size());
+  int num_neighbors =
+      std::min(options.neighborhood_search_size, num_images - 1);
+  int num_tasks =
+      1 +                                             // FindPanos
+      (num_images - num_neighbors) * num_neighbors +  // full n-tuples
+      ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
+
+  progress->Reset(ProgressType::kMatchingImages, num_tasks);
+  utils::mt::MultiFuture<algorithm::Match> matches_future;
+  for (int j = 0; j < images.size(); j++) {
+    for (int i = std::max(0, j - num_neighbors); i < j; i++) {
+      matches_future.push_back(
+          pool->submit([i, j, left = images[i], right = images[j],
+                        match_conf = options.match_conf, progress]() {
+            auto match =
+                algorithm::Match{i, j, MatchImages(left, right, match_conf)};
+            progress->NotifyTaskDone();
+            return match;
+          }));
+    }
+  }
+  if (auto status = WaitWithCancellation(&matches_future, progress);
+      status == WaitStatus::kCancelled) {
+    return {};
+  }
+  auto matches = matches_future.get();
+
+  auto panos = FindPanos(matches, options.match_threshold);
+  progress->NotifyTaskDone();
+  return StitcherData{images, matches, panos};
+}
+
+StitchingResult RunStitchingPipeline(
+    const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
+    const StitchingOptions &options, ProgressMonitor *progress,
+    utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
+  int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
+                  static_cast<int>(options.export_path.has_value()) +
+                  static_cast<int>(options.full_res);
+  progress->Reset(ProgressType::kLoadingImages, num_tasks);
+  std::vector<cv::Mat> imgs;
+  if (options.full_res) {
+    utils::mt::MultiFuture<cv::Mat> imgs_future;
+    for (const auto &img_id : pano.ids) {
+      imgs_future.push_back(pool->submit([&image = images[img_id], progress]() {
+        auto full_res_image = image.GetFullRes();
+        progress->NotifyTaskDone();
+        return full_res_image;
+      }));
+    }
+    imgs = imgs_future.get();
+  } else {
+    for (int img_id : pano.ids) {
+      imgs.push_back(images[img_id].GetPreview());
+      progress->NotifyTaskDone();
+    }
+  }
+
+  progress->SetTaskType(ProgressType::kStitchingPano);
+  auto [status, result, mask] =
+      algorithm::Stitch(imgs, options.stitch_algorithm,
+                        {.return_pano_mask = options.full_res,
+                         .threads_for_multiblend = multiblend_pool,
+                         .progress_monitor = progress});
+  progress->NotifyTaskDone();
+
+  if (status != algorithm::stitcher::Status::kSuccess) {
+    return StitchingResult{
+        .pano_id = options.pano_id,
+        .full_res = options.full_res,
+        .status = status,
+    };
+  }
+
+  std::optional<utils::RectRRf> auto_crop;
+  std::optional<cv::Mat> pano_mask;
+  if (options.full_res) {
+    pano_mask = mask;
+    progress->SetTaskType(ProgressType::kAutoCrop);
+    auto_crop = algorithm::FindLargestCrop(mask);
+    progress->NotifyTaskDone();
+  }
+
+  std::optional<std::filesystem::path> export_path;
+  if (options.export_path) {
+    std::optional<std::filesystem::path> metadata_path;
+    if (options.metadata.copy_from_first_image) {
+      const auto &first_image = images[pano.ids[0]];
+      metadata_path = first_image.GetPath();
+    }
+
+    export_path = RunExportPipeline(result,
+                                    {.export_path = *options.export_path,
+                                     .metadata_path = metadata_path,
+                                     .compression = options.compression},
+                                    progress)
+                      .export_path;
+  }
+
+  return StitchingResult{options.pano_id, options.full_res, status,   result,
+                         auto_crop,       export_path,      pano_mask};
+}
+
 }  // namespace
 
 using ProgressType = algorithm::ProgressType;
@@ -131,8 +307,8 @@ auto StitcherPipeline::RunLoading(
     auto images = RunLoadingPipeline(
         inputs, loading_options,
         /*compute_keypoints=*/matching_options.type == MatchingType::kAuto,
-        progress);
-    return RunMatchingPipeline(images, matching_options, progress);
+        progress, &pool_);
+    return RunMatchingPipeline(images, matching_options, progress, &pool_);
   });
 
   if constexpr (run == RunTraits::kReturnFuture) {
@@ -163,7 +339,8 @@ auto StitcherPipeline::RunStitching(const StitcherData &data,
   auto pano = data.panos[options.pano_id];
   task.future = pool_.submit([pano, &images = data.images, options,
                               progress = task.progress.get(), this]() {
-    return RunStitchingPipeline(pano, images, options, progress);
+    return RunStitchingPipeline(pano, images, options, progress, &pool_,
+                                &multiblend_pool_);
   });
 
   if constexpr (run == RunTraits::kReturnFuture) {
@@ -180,77 +357,6 @@ template auto StitcherPipeline::RunStitching<RunTraits::kReturnFuture>(
     const StitcherData &data, const StitchingOptions &options)
     -> Task<std::future<StitchingResult>>;
 
-StitchingResult StitcherPipeline::RunStitchingPipeline(
-    const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
-    const StitchingOptions &options, ProgressMonitor *progress) {
-  int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
-                  static_cast<int>(options.export_path.has_value()) +
-                  static_cast<int>(options.full_res);
-  progress->Reset(ProgressType::kLoadingImages, num_tasks);
-  std::vector<cv::Mat> imgs;
-  if (options.full_res) {
-    utils::mt::MultiFuture<cv::Mat> imgs_future;
-    for (const auto &img_id : pano.ids) {
-      imgs_future.push_back(
-          pool_.submit([this, &image = images[img_id], progress]() {
-            auto full_res_image = image.GetFullRes();
-            progress->NotifyTaskDone();
-            return full_res_image;
-          }));
-    }
-    imgs = imgs_future.get();
-  } else {
-    for (int img_id : pano.ids) {
-      imgs.push_back(images[img_id].GetPreview());
-      progress->NotifyTaskDone();
-    }
-  }
-
-  progress->SetTaskType(ProgressType::kStitchingPano);
-  auto [status, result, mask] =
-      algorithm::Stitch(imgs, options.stitch_algorithm,
-                        {.return_pano_mask = options.full_res,
-                         .threads_for_multiblend = &multiblend_pool_,
-                         .progress_monitor = progress});
-  progress->NotifyTaskDone();
-
-  if (status != algorithm::stitcher::Status::kSuccess) {
-    return StitchingResult{
-        .pano_id = options.pano_id,
-        .full_res = options.full_res,
-        .status = status,
-    };
-  }
-
-  std::optional<utils::RectRRf> auto_crop;
-  std::optional<cv::Mat> pano_mask;
-  if (options.full_res) {
-    pano_mask = mask;
-    progress->SetTaskType(ProgressType::kAutoCrop);
-    auto_crop = algorithm::FindLargestCrop(mask);
-    progress->NotifyTaskDone();
-  }
-
-  std::optional<std::filesystem::path> export_path;
-  if (options.export_path) {
-    std::optional<std::filesystem::path> metadata_path;
-    if (options.metadata.copy_from_first_image) {
-      const auto &first_image = images[pano.ids[0]];
-      metadata_path = first_image.GetPath();
-    }
-
-    export_path = RunExportPipeline(result,
-                                    {.export_path = *options.export_path,
-                                     .metadata_path = metadata_path,
-                                     .compression = options.compression},
-                                    progress)
-                      .export_path;
-  }
-
-  return StitchingResult{options.pano_id, options.full_res, status,   result,
-                         auto_crop,       export_path,      pano_mask};
-}
-
 template <RunTraits run>
 auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
@@ -259,8 +365,9 @@ auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
   auto task = MakeTask<std::future<ExportResult>, run>();
 
   task.future = pool_.submit(
-      [pano = std::move(pano), options, progress = task.progress.get(),
-       this]() { return RunExportPipeline(pano, options, progress); });
+      [pano = std::move(pano), options, progress = task.progress.get()]() {
+        return RunExportPipeline(pano, options, progress);
+      });
 
   if constexpr (run == RunTraits::kReturnFuture) {
     return task;
@@ -276,31 +383,6 @@ template auto StitcherPipeline::RunExport<RunTraits::kReturnFuture>(
     cv::Mat pano, const ExportOptions &options)
     -> Task<std::future<ExportResult>>;
 
-ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
-                                                 const ExportOptions &options,
-                                                 ProgressMonitor *progress) {
-  int num_tasks = 2;
-  progress->Reset(ProgressType::kExport, num_tasks);
-
-  if (options.crop) {
-    auto crop_rect = utils::GetCvRect(pano, *options.crop);
-    pano = pano(crop_rect);
-  }
-
-  std::optional<std::filesystem::path> export_path;
-  if (cv::imwrite(options.export_path.string(), pano,
-                  CompressionParameters(options.compression))) {
-    export_path = options.export_path;
-  }
-  progress->NotifyTaskDone();
-  if (export_path && utils::exiv2::Enabled()) {
-    auto pano_size = utils::ToIntVec(pano.size);
-    utils::exiv2::CreateExif(options.metadata_path, *export_path, pano_size);
-  }
-  progress->NotifyTaskDone();
-  return ExportResult{options.pano_id, export_path};
-}
-
 template <RunTraits run>
 auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
                                      const InpaintingOptions &options)
@@ -311,7 +393,7 @@ auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
 
   task.future =
       pool_.submit([pano = std::move(pano), pano_mask = std::move(pano_mask),
-                    options, progress = task.progress.get(), this]() {
+                    options, progress = task.progress.get()]() {
         int num_tasks = 3;
         progress->Reset(ProgressType::kInpainting, num_tasks);
 
@@ -347,97 +429,15 @@ ProgressReport StitcherPipeline::Progress() const {
   return queue_.back().progress->Report();
 }
 
-std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
-    const std::vector<std::filesystem::path> &inputs,
-    const LoadingOptions &options, bool compute_keypoints,
-    ProgressMonitor *progress) {
-  int num_tasks = static_cast<int>(inputs.size());
-  progress->Reset(ProgressType::kDetectingKeypoints, num_tasks);
-  utils::mt::MultiFuture<algorithm::Image> loading_future;
-  for (const auto &input : inputs) {
-    loading_future.push_back(
-        pool_.submit([this, options, input, compute_keypoints, progress]() {
-          algorithm::Image image(input);
-          image.Load({.preview_longer_side = options.preview_longer_side,
-                      .compute_keypoints = compute_keypoints});
-          progress->NotifyTaskDone();
-          return image;
-        }));
-  }
-  if (auto status = WaitWithCancellation(&loading_future, progress);
-      status == WaitStatus::kCancelled) {
-    return {};
-  }
-  auto images = loading_future.get();
-
-  auto num_erased =
-      std::erase_if(images, [](const auto &img) { return !img.IsLoaded(); });
-  if (num_erased > 0) {
-    spdlog::warn("Failed to load {} images", num_erased);
-  }
-  return images;
-}
-
-StitcherData StitcherPipeline::RunMatchingPipeline(
-    std::vector<algorithm::Image> images, const MatchingOptions &options,
-    ProgressMonitor *progress) {
-  if (images.empty()) {
-    return {};
-  }
-
-  if (options.type == MatchingType::kNone) {
-    return StitcherData{std::move(images)};
-  }
-
-  if (options.type == MatchingType::kSinglePano) {
-    auto pano = algorithm::SinglePano(static_cast<int>(images.size()));
-    return StitcherData{std::move(images), {}, {pano}};
-  }
-
-  int num_images = static_cast<int>(images.size());
-  int num_neighbors =
-      std::min(options.neighborhood_search_size, num_images - 1);
-  int num_tasks =
-      1 +                                             // FindPanos
-      (num_images - num_neighbors) * num_neighbors +  // full n-tuples
-      ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
-
-  progress->Reset(ProgressType::kMatchingImages, num_tasks);
-  utils::mt::MultiFuture<algorithm::Match> matches_future;
-  for (int j = 0; j < images.size(); j++) {
-    for (int i = std::max(0, j - num_neighbors); i < j; i++) {
-      matches_future.push_back(
-          pool_.submit([this, i, j, left = images[i], right = images[j],
-                        match_conf = options.match_conf, progress]() {
-            auto match =
-                algorithm::Match{i, j, MatchImages(left, right, match_conf)};
-            progress->NotifyTaskDone();
-            return match;
-          }));
-    }
-  }
-  if (auto status = WaitWithCancellation(&matches_future, progress);
-      status == WaitStatus::kCancelled) {
-    return {};
-  }
-  auto matches = matches_future.get();
-
-  auto panos = FindPanos(matches, options.match_threshold);
-  progress->NotifyTaskDone();
-  return StitcherData{images, matches, panos};
-}
-
 std::optional<Task<StitcherPipeline::GenericFuture>>
 StitcherPipeline::GetReadyTask() {
   if (queue_.empty()) {
     return {};
   }
 
-  auto check_ready = utils::Overloaded{
-      [](std::monostate) { return false; },
-      [](const auto &future) { return utils::future::IsReady(future); }};
-
-  if (std::visit(check_ready, queue_.front().future)) {
+  if (std::visit(
+          [](const auto &future) { return utils::future::IsReady(future); },
+          queue_.front().future)) {
     auto task = std::move(queue_.front());
     queue_.pop();
     return task;

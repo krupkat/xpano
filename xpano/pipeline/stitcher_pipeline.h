@@ -90,9 +90,8 @@ class StitcherPipeline {
   ~StitcherPipeline();
 
   using GenericFuture =
-      std::variant<std::monostate, std::future<StitcherData>,
-                   std::future<StitchingResult>, std::future<ExportResult>,
-                   std::future<InpaintingResult>>;
+      std::variant<std::future<StitcherData>, std::future<StitchingResult>,
+                   std::future<ExportResult>, std::future<InpaintingResult>>;
 
   // reason: some tasks use pointers to members
   StitcherPipeline(const StitcherPipeline &) = delete;
@@ -133,22 +132,6 @@ class StitcherPipeline {
   void WaitForTasks();
 
  private:
-  std::vector<algorithm::Image> RunLoadingPipeline(
-      const std::vector<std::filesystem::path> &inputs,
-      const LoadingOptions &loading_options, bool compute_keypoints,
-      ProgressMonitor *progress);
-  StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
-                                   const MatchingOptions &options,
-                                   ProgressMonitor *progress);
-  StitchingResult RunStitchingPipeline(
-      const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
-      const StitchingOptions &options, ProgressMonitor *progress);
-
-  ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options,
-                                 ProgressMonitor *progress);
-
-  void PushTask(Task<GenericFuture> task);
-
   utils::mt::Threadpool pool_ = {
       std::max(2U, std::thread::hardware_concurrency())};
 
