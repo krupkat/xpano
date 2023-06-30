@@ -47,19 +47,19 @@ void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
 ResultType RunPipeline(const Args &args) {
   pipeline::StitcherPipeline pipeline;
 
-  auto stitcher_data_future =
-      pipeline.RunLoading<pipeline::RunTraits::kReturnFuture>(
-          args.input_paths, {.preview_longer_side = kMaxImageSizeForCLI},
-          {.type = pipeline::MatchingType::kSinglePano});
+  auto loading_task = pipeline.RunLoading<pipeline::RunTraits::kReturnFuture>(
+      args.input_paths, {.preview_longer_side = kMaxImageSizeForCLI},
+      {.type = pipeline::MatchingType::kSinglePano});
 
   pipeline::StitcherData stitcher_data;
 
   try {
     stitcher_data = utils::future::GetWithCancellation(
-        std::move(stitcher_data_future), cancel);
+        std::move(loading_task.future), cancel);
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
-    pipeline.Cancel();
+    loading_task.progress->Cancel();
+    pipeline.WaitForTasks();
     return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to load images: {}", e.what());
@@ -76,7 +76,7 @@ ResultType RunPipeline(const Args &args) {
           ? *args.output_path
           : std::filesystem::path(stitcher_data.images[0].PanoName());
 
-  auto stitching_result_future =
+  auto stitching_task =
       pipeline.RunStitching<pipeline::RunTraits::kReturnFuture>(
           stitcher_data, {.pano_id = 0, .export_path = export_path});
 
@@ -84,10 +84,11 @@ ResultType RunPipeline(const Args &args) {
 
   try {
     stitching_result = utils::future::GetWithCancellation(
-        std::move(stitching_result_future), cancel);
+        std::move(stitching_task.future), cancel);
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
-    pipeline.Cancel();
+    stitching_task.progress->Cancel();
+    pipeline.WaitForTasks();
     return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to stitch panorama: {}", e.what());

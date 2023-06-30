@@ -75,12 +75,24 @@ using ProgressMonitor = algorithm::ProgressMonitor;
 using ProgressReport = algorithm::ProgressReport;
 using ProgressType = algorithm::ProgressType;
 
+enum class CancelTraits { kAsync, kSync };
 enum class RunTraits { kOwnFuture, kReturnFuture };
+
+template <typename Result>
+struct Task {
+  Result future;
+  std::unique_ptr<ProgressMonitor> progress;
+};
 
 class StitcherPipeline {
  public:
   StitcherPipeline() = default;
   ~StitcherPipeline();
+
+  using GenericFuture =
+      std::variant<std::monostate, std::future<StitcherData>,
+                   std::future<StitchingResult>, std::future<ExportResult>,
+                   std::future<InpaintingResult>>;
 
   // reason: some tasks use pointers to members
   StitcherPipeline(const StitcherPipeline &) = delete;
@@ -93,48 +105,50 @@ class StitcherPipeline {
                   const LoadingOptions &loading_options,
                   const MatchingOptions &matching_options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
-                            std::future<StitcherData>, void>;
+                            Task<std::future<StitcherData>>, void>;
 
   template <RunTraits run = RunTraits::kOwnFuture>
   auto RunStitching(const StitcherData &data, const StitchingOptions &options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
-                            std::future<StitchingResult>, void>;
+                            Task<std::future<StitchingResult>>, void>;
 
   template <RunTraits run = RunTraits::kOwnFuture>
   auto RunExport(cv::Mat pano, const ExportOptions &options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
-                            std::future<ExportResult>, void>;
+                            Task<std::future<ExportResult>>, void>;
 
   template <RunTraits run = RunTraits::kOwnFuture>
   auto RunInpainting(cv::Mat pano, cv::Mat mask,
                      const InpaintingOptions &options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
-                            std::future<InpaintingResult>, void>;
+                            Task<std::future<InpaintingResult>>, void>;
 
   ProgressReport Progress() const;
 
-  std::variant<std::monostate, std::future<StitcherData>,
-               std::future<StitchingResult>, std::future<ExportResult>,
-               std::future<InpaintingResult>>
-  GetReadyFuture();
+  std::optional<Task<GenericFuture>> GetReadyTask();
 
+  template <CancelTraits cancel = CancelTraits::kAsync>
   void Cancel();
+
+  void WaitForTasks();
 
  private:
   std::vector<algorithm::Image> RunLoadingPipeline(
       const std::vector<std::filesystem::path> &inputs,
-      const LoadingOptions &loading_options, bool compute_keypoints);
+      const LoadingOptions &loading_options, bool compute_keypoints,
+      ProgressMonitor *progress);
   StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
-                                   const MatchingOptions &options);
+                                   const MatchingOptions &options,
+                                   ProgressMonitor *progress);
   StitchingResult RunStitchingPipeline(
       const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
-      const StitchingOptions &options);
+      const StitchingOptions &options, ProgressMonitor *progress);
 
-  ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options);
+  ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options,
+                                 ProgressMonitor *progress);
 
-  ProgressMonitor progress_;
+  void PushTask(Task<GenericFuture> task);
 
-  std::atomic<bool> cancel_tasks_ = false;
   utils::mt::Threadpool pool_ = {
       std::max(2U, std::thread::hardware_concurrency())};
 
@@ -145,10 +159,7 @@ class StitcherPipeline {
   utils::mt::Threadpool multiblend_pool_ = {
       std::max(2U, std::thread::hardware_concurrency() - 1)};
 
-  std::variant<std::monostate, std::future<StitcherData>,
-               std::future<StitchingResult>, std::future<ExportResult>,
-               std::future<InpaintingResult>>
-      task_future_;
+  std::queue<Task<GenericFuture>> queue_;
 };
 
 }  // namespace xpano::pipeline

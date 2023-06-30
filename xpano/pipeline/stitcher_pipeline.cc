@@ -61,25 +61,44 @@ std::vector<int> CompressionParameters(const CompressionOptions &options) {
   };
 }
 
+template <typename TFutureType, RunTraits run>
+auto MakeTask()
+    -> std::conditional_t<run == RunTraits::kReturnFuture, Task<TFutureType>,
+                          Task<StitcherPipeline::GenericFuture>> {
+  return {.progress = std::make_unique<ProgressMonitor>()};
+}
+
 }  // namespace
 
 using ProgressType = algorithm::ProgressType;
 
 StitcherPipeline::~StitcherPipeline() { Cancel(); }
 
+void StitcherPipeline::PushTask(Task<GenericFuture> task) {
+  Cancel();
+  queue_.push(std::move(task));
+}
+
+void StitcherPipeline::WaitForTasks() { pool_.wait_for_tasks(); }
+
+template <CancelTraits cancel>
 void StitcherPipeline::Cancel() {
-  if (pool_.get_tasks_total() > 0) {
-    pool_.purge();
+  if (queue_.empty()) {
+    return;
+  }
 
-    spdlog::info("Waiting for running tasks to finish");
-    cancel_tasks_ = true;
-    pool_.wait_for_tasks();
-    cancel_tasks_ = false;
+  queue_.back().progress->Cancel();
 
-    progress_.Reset(ProgressType::kNone, 0);
-    spdlog::info("Done");
+  pool_.purge();
+  spdlog::info("Waiting for running tasks to finish");
+
+  if constexpr (cancel == CancelTraits::kSync) {
+    WaitForTasks();
   }
 }
+
+template void StitcherPipeline::Cancel<CancelTraits::kAsync>();
+template void StitcherPipeline::Cancel<CancelTraits::kSync>();
 
 template <RunTraits run>
 auto StitcherPipeline::RunLoading(
@@ -87,20 +106,23 @@ auto StitcherPipeline::RunLoading(
     const LoadingOptions &loading_options,
     const MatchingOptions &matching_options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
-                          std::future<StitcherData>, void> {
-  auto stitcher_data_future =
-      pool_.submit([this, loading_options, matching_options, inputs]() {
-        auto images = RunLoadingPipeline(
-            inputs, loading_options,
-            /*compute_keypoints=*/matching_options.type == MatchingType::kAuto);
-        return RunMatchingPipeline(images, matching_options);
-      });
+                          Task<std::future<StitcherData>>, void> {
+  auto task = MakeTask<std::future<StitcherData>, run>();
+
+  task.future = pool_.submit([this, loading_options, matching_options, inputs,
+                              progress = task.progress.get()]() {
+    auto images = RunLoadingPipeline(
+        inputs, loading_options,
+        /*compute_keypoints=*/matching_options.type == MatchingType::kAuto,
+        progress);
+    return RunMatchingPipeline(images, matching_options, progress);
+  });
 
   if constexpr (run == RunTraits::kReturnFuture) {
-    return stitcher_data_future;
+    return task;
+  } else {
+    PushTask(std::move(task));
   }
-
-  task_future_ = std::move(stitcher_data_future);
 }
 
 template auto StitcherPipeline::RunLoading<RunTraits::kOwnFuture>(
@@ -111,24 +133,26 @@ template auto StitcherPipeline::RunLoading<RunTraits::kOwnFuture>(
 template auto StitcherPipeline::RunLoading<RunTraits::kReturnFuture>(
     const std::vector<std::filesystem::path> &inputs,
     const LoadingOptions &loading_options,
-    const MatchingOptions &matching_options) -> std::future<StitcherData>;
+    const MatchingOptions &matching_options) -> Task<std::future<StitcherData>>;
 
 template <RunTraits run>
 auto StitcherPipeline::RunStitching(const StitcherData &data,
                                     const StitchingOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
-                          std::future<StitchingResult>, void> {
+                          Task<std::future<StitchingResult>>, void> {
+  auto task = MakeTask<std::future<StitchingResult>, run>();
+
   auto pano = data.panos[options.pano_id];
-  auto pano_future =
-      pool_.submit([pano, &images = data.images, options, this]() {
-        return RunStitchingPipeline(pano, images, options);
-      });
+  task.future = pool_.submit([pano, &images = data.images, options,
+                              progress = task.progress.get(), this]() {
+    return RunStitchingPipeline(pano, images, options, progress);
+  });
 
   if constexpr (run == RunTraits::kReturnFuture) {
-    return pano_future;
+    return task;
+  } else {
+    PushTask(std::move(task));
   }
-
-  task_future_ = std::move(pano_future);
 }
 
 template auto StitcherPipeline::RunStitching<RunTraits::kOwnFuture>(
@@ -136,41 +160,41 @@ template auto StitcherPipeline::RunStitching<RunTraits::kOwnFuture>(
 
 template auto StitcherPipeline::RunStitching<RunTraits::kReturnFuture>(
     const StitcherData &data, const StitchingOptions &options)
-    -> std::future<StitchingResult>;
+    -> Task<std::future<StitchingResult>>;
 
 StitchingResult StitcherPipeline::RunStitchingPipeline(
     const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
-    const StitchingOptions &options) {
+    const StitchingOptions &options, ProgressMonitor *progress) {
   int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
                   static_cast<int>(options.export_path.has_value()) +
                   static_cast<int>(options.full_res);
-  progress_.Reset(ProgressType::kLoadingImages, num_tasks);
+  progress->Reset(ProgressType::kLoadingImages, num_tasks);
   std::vector<cv::Mat> imgs;
   if (options.full_res) {
     utils::mt::MultiFuture<cv::Mat> imgs_future;
     for (const auto &img_id : pano.ids) {
-      imgs_future.push_back(pool_.submit([this, &image = images[img_id]]() {
-        auto full_res_image = image.GetFullRes();
-        progress_.NotifyTaskDone();
-        return full_res_image;
-      }));
+      imgs_future.push_back(
+          pool_.submit([this, &image = images[img_id], progress]() {
+            auto full_res_image = image.GetFullRes();
+            progress->NotifyTaskDone();
+            return full_res_image;
+          }));
     }
     imgs = imgs_future.get();
   } else {
     for (int img_id : pano.ids) {
       imgs.push_back(images[img_id].GetPreview());
-      progress_.NotifyTaskDone();
+      progress->NotifyTaskDone();
     }
   }
 
-  progress_.SetTaskType(ProgressType::kStitchingPano);
+  progress->SetTaskType(ProgressType::kStitchingPano);
   auto [status, result, mask] =
       algorithm::Stitch(imgs, options.stitch_algorithm,
                         {.return_pano_mask = options.full_res,
                          .threads_for_multiblend = &multiblend_pool_,
-                         .progress_monitor = &progress_,
-                         .cancel = &cancel_tasks_});
-  progress_.NotifyTaskDone();
+                         .progress_monitor = progress});
+  progress->NotifyTaskDone();
 
   if (status != algorithm::stitcher::Status::kSuccess) {
     return StitchingResult{
@@ -184,9 +208,9 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
   std::optional<cv::Mat> pano_mask;
   if (options.full_res) {
     pano_mask = mask;
-    progress_.SetTaskType(ProgressType::kAutoCrop);
+    progress->SetTaskType(ProgressType::kAutoCrop);
     auto_crop = algorithm::FindLargestCrop(mask);
-    progress_.NotifyTaskDone();
+    progress->NotifyTaskDone();
   }
 
   std::optional<std::filesystem::path> export_path;
@@ -197,11 +221,12 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
       metadata_path = first_image.GetPath();
     }
 
-    export_path =
-        RunExportPipeline(result, {.export_path = *options.export_path,
-                                   .metadata_path = metadata_path,
-                                   .compression = options.compression})
-            .export_path;
+    export_path = RunExportPipeline(result,
+                                    {.export_path = *options.export_path,
+                                     .metadata_path = metadata_path,
+                                     .compression = options.compression},
+                                    progress)
+                      .export_path;
   }
 
   return StitchingResult{options.pano_id, options.full_res, status,   result,
@@ -211,28 +236,32 @@ StitchingResult StitcherPipeline::RunStitchingPipeline(
 template <RunTraits run>
 auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
-                          std::future<ExportResult>, void> {
-  auto export_future = pool_.submit([pano = std::move(pano), options, this]() {
-    return RunExportPipeline(pano, options);
-  });
+                          Task<std::future<ExportResult>>, void> {
+  auto task = MakeTask<std::future<ExportResult>, run>();
+
+  task.future = pool_.submit(
+      [pano = std::move(pano), options, progress = task.progress.get(),
+       this]() { return RunExportPipeline(pano, options, progress); });
 
   if constexpr (run == RunTraits::kReturnFuture) {
-    return export_future;
+    return task;
+  } else {
+    PushTask(std::move(task));
   }
-
-  task_future_ = std::move(export_future);
 }
 
 template auto StitcherPipeline::RunExport<RunTraits::kOwnFuture>(
     cv::Mat pano, const ExportOptions &options) -> void;
 
 template auto StitcherPipeline::RunExport<RunTraits::kReturnFuture>(
-    cv::Mat pano, const ExportOptions &options) -> std::future<ExportResult>;
+    cv::Mat pano, const ExportOptions &options)
+    -> Task<std::future<ExportResult>>;
 
 ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
-                                                 const ExportOptions &options) {
+                                                 const ExportOptions &options,
+                                                 ProgressMonitor *progress) {
   int num_tasks = 2;
-  progress_.Reset(ProgressType::kExport, num_tasks);
+  progress->Reset(ProgressType::kExport, num_tasks);
 
   if (options.crop) {
     auto crop_rect = utils::GetCvRect(pano, *options.crop);
@@ -244,12 +273,12 @@ ExportResult StitcherPipeline::RunExportPipeline(cv::Mat pano,
                   CompressionParameters(options.compression))) {
     export_path = options.export_path;
   }
-  progress_.NotifyTaskDone();
+  progress->NotifyTaskDone();
   if (export_path && utils::exiv2::Enabled()) {
     auto pano_size = utils::ToIntVec(pano.size);
     utils::exiv2::CreateExif(options.metadata_path, *export_path, pano_size);
   }
-  progress_.NotifyTaskDone();
+  progress->NotifyTaskDone();
   return ExportResult{options.pano_id, export_path};
 }
 
@@ -257,29 +286,31 @@ template <RunTraits run>
 auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
                                      const InpaintingOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
-                          std::future<InpaintingResult>, void> {
-  auto inpaint_future =
+                          Task<std::future<InpaintingResult>>, void> {
+  auto task = MakeTask<std::future<InpaintingResult>, run>();
+
+  task.future =
       pool_.submit([pano = std::move(pano), pano_mask = std::move(pano_mask),
-                    options, this]() {
+                    options, progress = task.progress.get(), this]() {
         int num_tasks = 3;
-        progress_.Reset(ProgressType::kInpainting, num_tasks);
+        progress->Reset(ProgressType::kInpainting, num_tasks);
 
         cv::Mat inpaint_mask;
         cv::bitwise_not(pano_mask, inpaint_mask);
-        progress_.NotifyTaskDone();
+        progress->NotifyTaskDone();
         int pixels_filled = cv::countNonZero(inpaint_mask);
-        progress_.NotifyTaskDone();
+        progress->NotifyTaskDone();
         auto result = algorithm::Inpaint(pano, inpaint_mask, options);
-        progress_.NotifyTaskDone();
+        progress->NotifyTaskDone();
 
         return InpaintingResult{result, pixels_filled};
       });
 
   if constexpr (run == RunTraits::kReturnFuture) {
-    return inpaint_future;
+    return task;
+  } else {
+    PushTask(std::move(task));
   }
-
-  task_future_ = std::move(inpaint_future);
 }
 
 template auto StitcherPipeline::RunInpainting<RunTraits::kOwnFuture>(
@@ -287,25 +318,29 @@ template auto StitcherPipeline::RunInpainting<RunTraits::kOwnFuture>(
 
 template auto StitcherPipeline::RunInpainting<RunTraits::kReturnFuture>(
     cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options)
-    -> std::future<InpaintingResult>;
+    -> Task<std::future<InpaintingResult>>;
 
 ProgressReport StitcherPipeline::Progress() const {
-  return progress_.Progress();
+  if (queue_.empty()) {
+    return {};
+  }
+  return queue_.back().progress->Report();
 }
 
 std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
     const std::vector<std::filesystem::path> &inputs,
-    const LoadingOptions &options, bool compute_keypoints) {
+    const LoadingOptions &options, bool compute_keypoints,
+    ProgressMonitor *progress) {
   int num_tasks = static_cast<int>(inputs.size());
-  progress_.Reset(ProgressType::kDetectingKeypoints, num_tasks);
+  progress->Reset(ProgressType::kDetectingKeypoints, num_tasks);
   utils::mt::MultiFuture<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
     loading_future.push_back(
-        pool_.submit([this, options, input, compute_keypoints]() {
+        pool_.submit([this, options, input, compute_keypoints, progress]() {
           algorithm::Image image(input);
           image.Load({.preview_longer_side = options.preview_longer_side,
                       .compute_keypoints = compute_keypoints});
-          progress_.NotifyTaskDone();
+          progress->NotifyTaskDone();
           return image;
         }));
   }
@@ -313,7 +348,7 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
   std::future_status status;
   while ((status = loading_future.wait_for(kTaskCancellationTimeout)) !=
          std::future_status::ready) {
-    if (cancel_tasks_) {
+    if (progress->IsCancelled()) {
       return {};
     }
   }
@@ -328,7 +363,8 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
 }
 
 StitcherData StitcherPipeline::RunMatchingPipeline(
-    std::vector<algorithm::Image> images, const MatchingOptions &options) {
+    std::vector<algorithm::Image> images, const MatchingOptions &options,
+    ProgressMonitor *progress) {
   if (images.empty()) {
     return {};
   }
@@ -350,16 +386,16 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
       (num_images - num_neighbors) * num_neighbors +  // full n-tuples
       ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
 
-  progress_.Reset(ProgressType::kMatchingImages, num_tasks);
+  progress->Reset(ProgressType::kMatchingImages, num_tasks);
   utils::mt::MultiFuture<algorithm::Match> matches_future;
   for (int j = 0; j < images.size(); j++) {
     for (int i = std::max(0, j - num_neighbors); i < j; i++) {
       matches_future.push_back(
           pool_.submit([this, i, j, left = images[i], right = images[j],
-                        match_conf = options.match_conf]() {
+                        match_conf = options.match_conf, progress]() {
             auto match =
                 algorithm::Match{i, j, MatchImages(left, right, match_conf)};
-            progress_.NotifyTaskDone();
+            progress->NotifyTaskDone();
             return match;
           }));
     }
@@ -368,27 +404,31 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
   std::future_status status;
   while ((status = matches_future.wait_for(kTaskCancellationTimeout)) !=
          std::future_status::ready) {
-    if (cancel_tasks_) {
+    if (progress->IsCancelled()) {
       return {};
     }
   }
   auto matches = matches_future.get();
 
   auto panos = FindPanos(matches, options.match_threshold);
-  progress_.NotifyTaskDone();
+  progress->NotifyTaskDone();
   return StitcherData{images, matches, panos};
 }
 
-std::variant<std::monostate, std::future<StitcherData>,
-             std::future<StitchingResult>, std::future<ExportResult>,
-             std::future<InpaintingResult>>
-StitcherPipeline::GetReadyFuture() {
+std::optional<Task<StitcherPipeline::GenericFuture>>
+StitcherPipeline::GetReadyTask() {
+  if (queue_.empty()) {
+    return {};
+  }
+
   auto check_ready = utils::Overloaded{
       [](std::monostate) { return false; },
       [](const auto &future) { return utils::future::IsReady(future); }};
 
-  if (std::visit(check_ready, task_future_)) {
-    return std::move(task_future_);
+  if (std::visit(check_ready, queue_.front().future)) {
+    auto task = std::move(queue_.front());
+    queue_.pop();
+    return task;
   }
 
   return {};

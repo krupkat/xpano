@@ -205,16 +205,13 @@ class Stitcher {
   [[nodiscard]] cv::UMat ResultMask() const { return result_mask_; }
 
   void SetProgressMonitor(ProgressMonitor* monitor) { monitor_ = monitor; }
-  void SetCancelFlag(std::atomic<bool>* flag) { cancel_flag_ = flag; }
 
  private:
   Status MatchImages();
   Status EstimateCameraParams();
   Status EstimateSeams(std::vector<cv::UMat>* seams);
 
-  [[nodiscard]] bool Cancelled() const {
-    return cancel_flag_->load(std::memory_order_relaxed);
-  }
+  [[nodiscard]] bool Cancelled() const { return monitor_->IsCancelled(); }
 
   double registr_resol_;
   double seam_est_resol_;
@@ -247,7 +244,6 @@ class Stitcher {
   double warped_image_scale_;
 
   ProgressMonitor* monitor_ = nullptr;
-  std::atomic<bool>* cancel_flag_ = nullptr;
 };
 
 }  // namespace xpano::algorithm::stitcher

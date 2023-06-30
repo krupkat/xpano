@@ -245,7 +245,6 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   stitcher->SetBlender(PickBlender(user_options.blending_method,
                                    options.threads_for_multiblend));
   stitcher->SetProgressMonitor(options.progress_monitor);
-  stitcher->SetCancelFlag(options.cancel);
 
   cv::Mat pano;
   auto status = stitcher->Stitch(images, pano);

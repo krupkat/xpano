@@ -370,7 +370,7 @@ void PanoGui::Reset() {
   status_message_ = {};
   pano_mask_ = cv::Mat{};
   // Order of the following two lines is important
-  stitcher_pipeline_.Cancel();
+  stitcher_pipeline_.Cancel<pipeline::CancelTraits::kSync>();
   stitcher_data_.reset();
 }
 
@@ -586,9 +586,13 @@ MultiAction PanoGui::ResolveFutures() {
                                       &status_message_);
       };
 
-  std::visit(utils::Overloaded{handle_stitcher_data, handle_pano, handle_export,
-                               handle_inpaint, [](std::monostate) {}},
-             stitcher_pipeline_.GetReadyFuture());
+  if (auto task = stitcher_pipeline_.GetReadyTask();
+      task && !task->progress->IsCancelled()) {
+    std::visit(
+        utils::Overloaded{handle_stitcher_data, handle_pano, handle_export,
+                          handle_inpaint, [](std::monostate) {}},
+        std::move(task->future));
+  }
 
   return actions;
 }

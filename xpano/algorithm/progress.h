@@ -19,9 +19,9 @@ enum class ProgressType {
 };
 
 struct ProgressReport {
-  ProgressType type;
-  int tasks_done;
-  int num_tasks;
+  ProgressType type = ProgressType::kNone;
+  int tasks_done = 0;
+  int num_tasks = 0;
 };
 
 class ProgressMonitor {
@@ -29,13 +29,16 @@ class ProgressMonitor {
   void Reset(ProgressType type, int num_tasks);
   void SetNumTasks(int num_tasks);
   void SetTaskType(ProgressType type);
-  [[nodiscard]] ProgressReport Progress() const;
+  [[nodiscard]] ProgressReport Report() const;
   void NotifyTaskDone();
+  void Cancel();
+  bool IsCancelled() const;
 
  private:
   std::atomic<ProgressType> type_{ProgressType::kNone};
   std::atomic<int> done_ = 0;
   std::atomic<int> num_tasks_ = 0;
+  std::atomic<bool> cancel_ = false;
 };
 
 }  // namespace xpano::algorithm

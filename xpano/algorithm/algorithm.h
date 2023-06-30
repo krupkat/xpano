@@ -52,7 +52,6 @@ struct StitchOptions {
   bool return_pano_mask = false;
   utils::mt::Threadpool* threads_for_multiblend = nullptr;
   ProgressMonitor* progress_monitor = nullptr;
-  std::atomic<bool>* cancel = nullptr;
 };
 
 StitchResult Stitch(const std::vector<cv::Mat>& images,

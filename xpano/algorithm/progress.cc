@@ -15,10 +15,14 @@ void ProgressMonitor::SetTaskType(ProgressType type) { type_ = type; }
 
 void ProgressMonitor::SetNumTasks(int num_tasks) { num_tasks_ = num_tasks; }
 
-ProgressReport ProgressMonitor::Progress() const {
+ProgressReport ProgressMonitor::Report() const {
   return {type_, done_, num_tasks_};
 }
 
 void ProgressMonitor::NotifyTaskDone() { done_++; }
+
+void ProgressMonitor::Cancel() { cancel_ = true; }
+
+bool ProgressMonitor::IsCancelled() const { return cancel_; }
 
 }  // namespace xpano::algorithm
