@@ -68,6 +68,27 @@ auto MakeTask()
   return {.progress = std::make_unique<ProgressMonitor>()};
 }
 
+enum class WaitStatus {
+  kReady,
+  kCancelled,
+};
+
+template <typename TFutureType>
+WaitStatus WaitWithCancellation(TFutureType *future,
+                                ProgressMonitor *progress) {
+  std::future_status status;
+  while ((status = future->wait_for(kTaskCancellationTimeout)) !=
+         std::future_status::ready) {
+    if (progress->IsCancelled()) {
+      return WaitStatus::kCancelled;
+    }
+  }
+  if (progress->IsCancelled()) {
+    return WaitStatus::kCancelled;
+  }
+  return WaitStatus::kReady;
+}
+
 }  // namespace
 
 using ProgressType = algorithm::ProgressType;
@@ -343,13 +364,9 @@ std::vector<algorithm::Image> StitcherPipeline::RunLoadingPipeline(
           return image;
         }));
   }
-
-  std::future_status status;
-  while ((status = loading_future.wait_for(kTaskCancellationTimeout)) !=
-         std::future_status::ready) {
-    if (progress->IsCancelled()) {
-      return {};
-    }
+  if (auto status = WaitWithCancellation(&loading_future, progress);
+      status == WaitStatus::kCancelled) {
+    return {};
   }
   auto images = loading_future.get();
 
@@ -399,13 +416,9 @@ StitcherData StitcherPipeline::RunMatchingPipeline(
           }));
     }
   }
-
-  std::future_status status;
-  while ((status = matches_future.wait_for(kTaskCancellationTimeout)) !=
-         std::future_status::ready) {
-    if (progress->IsCancelled()) {
-      return {};
-    }
+  if (auto status = WaitWithCancellation(&matches_future, progress);
+      status == WaitStatus::kCancelled) {
+    return {};
   }
   auto matches = matches_future.get();
 
