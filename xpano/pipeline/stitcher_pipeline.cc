@@ -62,9 +62,8 @@ std::vector<int> CompressionParameters(const CompressionOptions &options) {
 }
 
 template <typename TFutureType, RunTraits run>
-auto MakeTask()
-    -> std::conditional_t<run == RunTraits::kReturnFuture, Task<TFutureType>,
-                          Task<StitcherPipeline::GenericFuture>> {
+auto MakeTask() -> std::conditional_t<run == RunTraits::kReturnFuture,
+                                      Task<TFutureType>, Task<GenericFuture>> {
   return {.progress = std::make_unique<ProgressMonitor>()};
 }
 
@@ -269,31 +268,28 @@ StitchingResult RunStitchingPipeline(
 
 using ProgressType = algorithm::ProgressType;
 
-StitcherPipeline::~StitcherPipeline() { Cancel(); }
+template <RunTraits run>
+StitcherPipeline<run>::~StitcherPipeline() {
+  Cancel();
+}
 
-void StitcherPipeline::WaitForTasks() { pool_.wait_for_tasks(); }
+template <RunTraits run>
+void StitcherPipeline<run>::WaitForTasks() {
+  pool_.wait_for_tasks();
+}
 
-template <CancelTraits cancel>
-void StitcherPipeline::Cancel() {
+template <RunTraits run>
+void StitcherPipeline<run>::Cancel() {
   if (queue_.empty()) {
     return;
   }
-
   queue_.back().progress->Cancel();
-
   pool_.purge();
   spdlog::info("Waiting for running tasks to finish");
-
-  if constexpr (cancel == CancelTraits::kSync) {
-    WaitForTasks();
-  }
 }
 
-template void StitcherPipeline::Cancel<CancelTraits::kAsync>();
-template void StitcherPipeline::Cancel<CancelTraits::kSync>();
-
 template <RunTraits run>
-auto StitcherPipeline::RunLoading(
+auto StitcherPipeline<run>::RunLoading(
     const std::vector<std::filesystem::path> &inputs,
     const LoadingOptions &loading_options,
     const MatchingOptions &matching_options)
@@ -318,19 +314,9 @@ auto StitcherPipeline::RunLoading(
   }
 }
 
-template auto StitcherPipeline::RunLoading<RunTraits::kOwnFuture>(
-    const std::vector<std::filesystem::path> &inputs,
-    const LoadingOptions &loading_options,
-    const MatchingOptions &matching_options) -> void;
-
-template auto StitcherPipeline::RunLoading<RunTraits::kReturnFuture>(
-    const std::vector<std::filesystem::path> &inputs,
-    const LoadingOptions &loading_options,
-    const MatchingOptions &matching_options) -> Task<std::future<StitcherData>>;
-
 template <RunTraits run>
-auto StitcherPipeline::RunStitching(const StitcherData &data,
-                                    const StitchingOptions &options)
+auto StitcherPipeline<run>::RunStitching(const StitcherData &data,
+                                         const StitchingOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<StitchingResult>>, void> {
   Cancel();
@@ -350,15 +336,9 @@ auto StitcherPipeline::RunStitching(const StitcherData &data,
   }
 }
 
-template auto StitcherPipeline::RunStitching<RunTraits::kOwnFuture>(
-    const StitcherData &data, const StitchingOptions &options) -> void;
-
-template auto StitcherPipeline::RunStitching<RunTraits::kReturnFuture>(
-    const StitcherData &data, const StitchingOptions &options)
-    -> Task<std::future<StitchingResult>>;
-
 template <RunTraits run>
-auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
+auto StitcherPipeline<run>::RunExport(cv::Mat pano,
+                                      const ExportOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<ExportResult>>, void> {
   Cancel();
@@ -376,16 +356,9 @@ auto StitcherPipeline::RunExport(cv::Mat pano, const ExportOptions &options)
   }
 }
 
-template auto StitcherPipeline::RunExport<RunTraits::kOwnFuture>(
-    cv::Mat pano, const ExportOptions &options) -> void;
-
-template auto StitcherPipeline::RunExport<RunTraits::kReturnFuture>(
-    cv::Mat pano, const ExportOptions &options)
-    -> Task<std::future<ExportResult>>;
-
 template <RunTraits run>
-auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
-                                     const InpaintingOptions &options)
+auto StitcherPipeline<run>::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
+                                          const InpaintingOptions &options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<InpaintingResult>>, void> {
   Cancel();
@@ -415,22 +388,17 @@ auto StitcherPipeline::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
   }
 }
 
-template auto StitcherPipeline::RunInpainting<RunTraits::kOwnFuture>(
-    cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options) -> void;
-
-template auto StitcherPipeline::RunInpainting<RunTraits::kReturnFuture>(
-    cv::Mat pano, cv::Mat pano_mask, const InpaintingOptions &options)
-    -> Task<std::future<InpaintingResult>>;
-
-ProgressReport StitcherPipeline::Progress() const {
+template <RunTraits run>
+ProgressReport StitcherPipeline<run>::Progress() const {
   if (queue_.empty()) {
     return {};
   }
   return queue_.back().progress->Report();
 }
 
-std::optional<Task<StitcherPipeline::GenericFuture>>
-StitcherPipeline::GetReadyTask() {
+template <RunTraits run>
+auto StitcherPipeline<run>::GetReadyTask()
+    -> std::optional<Task<GenericFuture>> {
   if (queue_.empty()) {
     return {};
   }
@@ -445,5 +413,8 @@ StitcherPipeline::GetReadyTask() {
 
   return {};
 }
+
+template class StitcherPipeline<RunTraits::kOwnFuture>;
+template class StitcherPipeline<RunTraits::kReturnFuture>;
 
 }  // namespace xpano::pipeline

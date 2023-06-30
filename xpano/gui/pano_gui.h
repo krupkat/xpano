@@ -80,7 +80,7 @@ class PanoGui {
   WarningPane warning_pane_;
 
   // Algorithm
-  pipeline::StitcherPipeline stitcher_pipeline_;
+  pipeline::StitcherPipeline<> stitcher_pipeline_;
 
   // Used for inpainting
   std::optional<cv::Mat> pano_mask_;

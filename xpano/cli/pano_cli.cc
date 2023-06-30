@@ -45,9 +45,9 @@ void CancelHandler(int /*signal*/) { cancel.fetch_add(1); }
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
 
 ResultType RunPipeline(const Args &args) {
-  pipeline::StitcherPipeline pipeline;
+  pipeline::StitcherPipeline<pipeline::RunTraits::kReturnFuture> pipeline;
 
-  auto loading_task = pipeline.RunLoading<pipeline::RunTraits::kReturnFuture>(
+  auto loading_task = pipeline.RunLoading(
       args.input_paths, {.preview_longer_side = kMaxImageSizeForCLI},
       {.type = pipeline::MatchingType::kSinglePano});
 
@@ -76,9 +76,8 @@ ResultType RunPipeline(const Args &args) {
           ? *args.output_path
           : std::filesystem::path(stitcher_data.images[0].PanoName());
 
-  auto stitching_task =
-      pipeline.RunStitching<pipeline::RunTraits::kReturnFuture>(
-          stitcher_data, {.pano_id = 0, .export_path = export_path});
+  auto stitching_task = pipeline.RunStitching(
+      stitcher_data, {.pano_id = 0, .export_path = export_path});
 
   pipeline::StitchingResult stitching_result;
 

@@ -75,7 +75,6 @@ using ProgressMonitor = algorithm::ProgressMonitor;
 using ProgressReport = algorithm::ProgressReport;
 using ProgressType = algorithm::ProgressType;
 
-enum class CancelTraits { kAsync, kSync };
 enum class RunTraits { kOwnFuture, kReturnFuture };
 
 template <typename Result>
@@ -84,14 +83,15 @@ struct Task {
   std::unique_ptr<ProgressMonitor> progress;
 };
 
+using GenericFuture =
+    std::variant<std::future<StitcherData>, std::future<StitchingResult>,
+                 std::future<ExportResult>, std::future<InpaintingResult>>;
+
+template <RunTraits run = RunTraits::kOwnFuture>
 class StitcherPipeline {
  public:
   StitcherPipeline() = default;
   ~StitcherPipeline();
-
-  using GenericFuture =
-      std::variant<std::future<StitcherData>, std::future<StitchingResult>,
-                   std::future<ExportResult>, std::future<InpaintingResult>>;
 
   // reason: some tasks use pointers to members
   StitcherPipeline(const StitcherPipeline &) = delete;
@@ -99,24 +99,20 @@ class StitcherPipeline {
   StitcherPipeline(StitcherPipeline &&) = delete;
   StitcherPipeline &operator=(StitcherPipeline &&) = delete;
 
-  template <RunTraits run = RunTraits::kOwnFuture>
   auto RunLoading(const std::vector<std::filesystem::path> &inputs,
                   const LoadingOptions &loading_options,
                   const MatchingOptions &matching_options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<StitcherData>>, void>;
 
-  template <RunTraits run = RunTraits::kOwnFuture>
   auto RunStitching(const StitcherData &data, const StitchingOptions &options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<StitchingResult>>, void>;
 
-  template <RunTraits run = RunTraits::kOwnFuture>
   auto RunExport(cv::Mat pano, const ExportOptions &options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<ExportResult>>, void>;
 
-  template <RunTraits run = RunTraits::kOwnFuture>
   auto RunInpainting(cv::Mat pano, cv::Mat mask,
                      const InpaintingOptions &options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
@@ -124,9 +120,8 @@ class StitcherPipeline {
 
   ProgressReport Progress() const;
 
-  std::optional<Task<GenericFuture>> GetReadyTask();
+  auto GetReadyTask() -> std::optional<Task<GenericFuture>>;
 
-  template <CancelTraits cancel = CancelTraits::kAsync>
   void Cancel();
 
   void WaitForTasks();

@@ -369,8 +369,9 @@ void PanoGui::Reset() {
   selection_ = {};
   status_message_ = {};
   pano_mask_ = cv::Mat{};
-  // Order of the following two lines is important
-  stitcher_pipeline_.Cancel<pipeline::CancelTraits::kSync>();
+  // Order of the following lines is important
+  stitcher_pipeline_.Cancel();
+  stitcher_pipeline_.WaitForTasks();
   stitcher_data_.reset();
 }
 
