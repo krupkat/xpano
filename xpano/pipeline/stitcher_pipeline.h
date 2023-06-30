@@ -124,7 +124,7 @@ class StitcherPipeline {
 
   void Cancel();
 
-  void WaitForTasks();
+  void CancelAndWait();
 
  private:
   utils::mt::Threadpool pool_ = {

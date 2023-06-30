@@ -370,8 +370,7 @@ void PanoGui::Reset() {
   status_message_ = {};
   pano_mask_ = cv::Mat{};
   // Order of the following lines is important
-  stitcher_pipeline_.Cancel();
-  stitcher_pipeline_.WaitForTasks();
+  stitcher_pipeline_.CancelAndWait();
   stitcher_data_.reset();
 }
 

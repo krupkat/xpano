@@ -440,14 +440,17 @@ TEST_CASE("Stitcher pipeline OpenCV blender") {
 }
 #endif
 
+constexpr int kMaxIterations = 1000;
+constexpr auto kIterationDelay = std::chrono::milliseconds(10);
+
 auto WaitForTask(xpano::pipeline::StitcherPipeline<>* stitcher,
-                 int max_iterations)
+                 int max_iterations = kMaxIterations)
     -> std::optional<xpano::pipeline::Task<xpano::pipeline::GenericFuture>> {
   for (int i = 0; i < max_iterations; ++i) {
     if (auto task = stitcher->GetReadyTask(); task) {
       return task;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(kIterationDelay);
   }
   return {};
 }
@@ -457,7 +460,7 @@ TEST_CASE("Stitcher pipeline polling") {
 
   stitcher.RunLoading(kInputs, {}, {});
 
-  auto loading_task = WaitForTask(&stitcher, 1000);
+  auto loading_task = WaitForTask(&stitcher);
   REQUIRE(loading_task.has_value());
   REQUIRE(std::holds_alternative<std::future<xpano::pipeline::StitcherData>>(
       loading_task->future));
@@ -476,10 +479,10 @@ TEST_CASE("Stitcher pipeline polling") {
   stitcher.RunStitching(result,
                         {.pano_id = 1, .stitch_algorithm = stitch_algorithm});
 
-  auto stitching_task0 = WaitForTask(&stitcher, 1000);
+  auto stitching_task0 = WaitForTask(&stitcher);
   REQUIRE(stitching_task0.has_value());
 
-  auto stitching_task1 = WaitForTask(&stitcher, 1000);
+  auto stitching_task1 = WaitForTask(&stitcher);
   REQUIRE(stitching_task1.has_value());
 
   CHECK(stitching_task0->progress->IsCancelled());

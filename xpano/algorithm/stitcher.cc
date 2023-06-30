@@ -49,6 +49,7 @@
 #include "xpano/algorithm/stitcher.h"
 
 #include <algorithm>
+#include <numeric>
 #include <string_view>
 
 #include <spdlog/spdlog.h>
@@ -115,10 +116,9 @@ cv::Mat ToFloat(const cv::Mat &image) {
 }
 
 double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
-  std::vector<double> focals;
-  for (const auto &camera : cameras) {
-    focals.push_back(camera.focal);
-  }
+  std::vector<double> focals(cameras.size());
+  std::transform(cameras.begin(), cameras.end(), focals.begin(),
+                 [](const auto &camera) { return camera.focal; });
 
   std::sort(focals.begin(), focals.end());
   if (focals.size() % 2 == 1) {
@@ -141,10 +141,9 @@ double ComputeSeamScale(const cv::Size &img_size, double seam_est_resol) {
 template <typename TType>
 std::vector<TType> Index(const std::vector<TType> &vec,
                          const std::vector<int> &indices) {
-  std::vector<TType> subset;
-  for (int index : indices) {
-    subset.push_back(vec[index]);
-  }
+  std::vector<TType> subset(indices.size());
+  std::transform(indices.begin(), indices.end(), subset.begin(),
+                 [&vec](int index) { return vec[index]; });
   return subset;
 }
 
@@ -542,10 +541,8 @@ Status Stitcher::EstimateCameraParams() {
 Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams> &cameras) {
-  std::vector<int> component;
-  for (int i = 0; i < static_cast<int>(images.total()); i++) {
-    component.push_back(i);
-  }
+  std::vector<int> component(images.total());
+  std::iota(component.begin(), component.end(), 0);
 
   return SetTransform(images, cameras, component);
 }

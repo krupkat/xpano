@@ -59,7 +59,7 @@ ResultType RunPipeline(const Args &args) {
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
     loading_task.progress->Cancel();
-    pipeline.WaitForTasks();
+    pipeline.CancelAndWait();
     return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to load images: {}", e.what());
@@ -87,7 +87,7 @@ ResultType RunPipeline(const Args &args) {
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
     stitching_task.progress->Cancel();
-    pipeline.WaitForTasks();
+    pipeline.CancelAndWait();
     return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to stitch panorama: {}", e.what());

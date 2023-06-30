@@ -196,6 +196,7 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
 StitchingResult RunStitchingPipeline(
     const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
     const StitchingOptions &options, ProgressMonitor *progress,
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
     utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
   int num_images = static_cast<int>(pano.ids.size());
   int num_tasks = algorithm::StitchTasksCount(num_images) + num_images + 1 +
@@ -275,18 +276,18 @@ StitcherPipeline<run>::~StitcherPipeline() {
 }
 
 template <RunTraits run>
-void StitcherPipeline<run>::WaitForTasks() {
-  pool_.wait_for_tasks();
+void StitcherPipeline<run>::Cancel() {
+  if (!queue_.empty()) {
+    queue_.back().progress->Cancel();
+  }
+  pool_.purge();
 }
 
 template <RunTraits run>
-void StitcherPipeline<run>::Cancel() {
-  if (queue_.empty()) {
-    return;
-  }
-  queue_.back().progress->Cancel();
-  pool_.purge();
+void StitcherPipeline<run>::CancelAndWait() {
+  Cancel();
   spdlog::info("Waiting for running tasks to finish");
+  pool_.wait_for_tasks();
 }
 
 template <RunTraits run>

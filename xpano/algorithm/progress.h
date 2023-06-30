@@ -40,7 +40,7 @@ class ProgressMonitor {
   [[nodiscard]] ProgressReport Report() const;
   void NotifyTaskDone();
   void Cancel();
-  bool IsCancelled() const;
+  [[nodiscard]] bool IsCancelled() const;
 
  private:
   std::atomic<ProgressType> type_{ProgressType::kNone};
