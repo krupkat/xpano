@@ -197,7 +197,8 @@ StitchingResult RunStitchingPipeline(
     const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
     const StitchingOptions &options, ProgressMonitor *progress,
     utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
-  int num_tasks = static_cast<int>(pano.ids.size()) + 1 +
+  int num_images = static_cast<int>(pano.ids.size());
+  int num_tasks = algorithm::StitchTasksCount(num_images) + num_images + 1 +
                   static_cast<int>(options.export_path.has_value()) +
                   static_cast<int>(options.full_res);
   progress->Reset(ProgressType::kLoadingImages, num_tasks);

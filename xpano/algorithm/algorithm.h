@@ -57,6 +57,8 @@ struct StitchOptions {
 StitchResult Stitch(const std::vector<cv::Mat>& images,
                     StitchUserOptions user_options, StitchOptions options);
 
+int StitchTasksCount(int num_images);
+
 std::string ToString(stitcher::Status& status);
 
 std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);

@@ -16,6 +16,14 @@ enum class ProgressType {
   kMatchingImages,
   kExport,
   kInpainting,
+  kStitchFindFeatures,
+  kStitchMatchFeatures,
+  kStitchEstimateHomography,
+  kStitchBundleAdjustment,
+  kStitchSeamsPrepare,
+  kStitchSeamsFind,
+  kStitchCompose,
+  kStitchBlend
 };
 
 struct ProgressReport {

@@ -211,7 +211,9 @@ class Stitcher {
   Status EstimateCameraParams();
   Status EstimateSeams(std::vector<cv::UMat>* seams);
 
-  [[nodiscard]] bool Cancelled() const { return monitor_->IsCancelled(); }
+  [[nodiscard]] bool Cancelled() const;
+  void NextTask(algorithm::ProgressType task);
+  void EndMonitoring();
 
   double registr_resol_;
   double seam_est_resol_;

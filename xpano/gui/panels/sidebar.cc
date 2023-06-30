@@ -48,6 +48,22 @@ std::string ProgressLabel(pipeline::ProgressType type) {
       return "Exporting pano";
     case pipeline::ProgressType::kInpainting:
       return "Auto fill";
+    case pipeline::ProgressType::kStitchFindFeatures:
+      return "Finding features";
+    case pipeline::ProgressType::kStitchMatchFeatures:
+      return "Matching features";
+    case pipeline::ProgressType::kStitchEstimateHomography:
+      return "Estimating homography";
+    case pipeline::ProgressType::kStitchBundleAdjustment:
+      return "Bundle adjustment";
+    case pipeline::ProgressType::kStitchSeamsPrepare:
+      return "Preparing seams";
+    case pipeline::ProgressType::kStitchSeamsFind:
+      return "Finding seams";
+    case pipeline::ProgressType::kStitchCompose:
+      return "Composing pano";
+    case pipeline::ProgressType::kStitchBlend:
+      return "Blending";
   }
 }
 

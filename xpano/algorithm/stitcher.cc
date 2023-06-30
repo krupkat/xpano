@@ -59,6 +59,8 @@ namespace {
 
 constexpr unsigned char kMaskValueOn = 0xFF;
 
+using ProgressType = algorithm::ProgressType;
+
 class Timer {
  public:
   Timer() {
@@ -261,6 +263,7 @@ Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
   if (Cancelled()) {
     return Status::kCancelled;
   }
+  NextTask(ProgressType::kStitchSeamsFind);
 
   // Find seams
   std::vector<cv::UMat> images_warped_f(imgs_.size());
@@ -278,6 +281,7 @@ Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
 // NOLINTNEXTLINE(readability-function-cognitive-complexity):
 Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   spdlog::info("Estimating seams... ");
+  NextTask(ProgressType::kStitchSeamsPrepare);
 
   std::vector<cv::UMat> masks_warped;
   if (auto status = EstimateSeams(&masks_warped); status != Status::kSuccess) {
@@ -289,7 +293,6 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   if (Cancelled()) {
     return Status::kCancelled;
   }
-
   spdlog::info("Compositing...");
   auto compositing_total_timer = Timer();
 
@@ -328,6 +331,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   bool is_blender_prepared = false;
 
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
+    NextTask(ProgressType::kStitchCompose);
     spdlog::trace("Compositing image #{}", indices_[img_idx] + 1);
     auto compositing_timer = Timer();
 
@@ -383,6 +387,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     }
   }
 
+  NextTask(ProgressType::kStitchBlend);
   auto blend_timer = Timer();
 
   cv::UMat result;
@@ -393,6 +398,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   pano.assign(result);
 
+  EndMonitoring();
   return Status::kSuccess;
 }
 
@@ -424,6 +430,7 @@ Status Stitcher::MatchImages() {
   full_img_sizes_.resize(imgs_.size());
 
   spdlog::info("Finding features...");
+  NextTask(ProgressType::kStitchFindFeatures);
   auto timer = Timer();
 
   std::vector<cv::UMat> feature_find_imgs(imgs_.size());
@@ -462,6 +469,7 @@ Status Stitcher::MatchImages() {
   }
 
   spdlog::info("Pairwise matching");
+  NextTask(ProgressType::kStitchMatchFeatures);
 
   (*features_matcher_)(features_, pairwise_matches_, matching_mask_);
   features_matcher_->collectGarbage();
@@ -488,6 +496,7 @@ Status Stitcher::MatchImages() {
 }
 
 Status Stitcher::EstimateCameraParams() {
+  NextTask(ProgressType::kStitchEstimateHomography);
   // estimate homography in global frame
   if (!(*estimator_)(features_, pairwise_matches_, cameras_)) {
     return Status::kErrHomographyEstFail;
@@ -496,6 +505,7 @@ Status Stitcher::EstimateCameraParams() {
   if (Cancelled()) {
     return Status::kCancelled;
   }
+  NextTask(ProgressType::kStitchBundleAdjustment);
 
   for (auto &camera : cameras_) {
     camera.R = ToFloat(camera.R);
@@ -578,6 +588,23 @@ Status Stitcher::SetTransform(
   warped_image_scale_ = ComputeWarpScale(cameras_);
 
   return Status::kSuccess;
+}
+
+bool Stitcher::Cancelled() const {
+  return (monitor_ != nullptr) ? monitor_->IsCancelled() : false;
+}
+
+void Stitcher::NextTask(algorithm::ProgressType task) {
+  if (monitor_ != nullptr) {
+    monitor_->NotifyTaskDone();
+    monitor_->SetTaskType(task);
+  }
+}
+
+void Stitcher::EndMonitoring() {
+  if (monitor_ != nullptr) {
+    monitor_->NotifyTaskDone();
+  }
 }
 
 }  // namespace xpano::algorithm::stitcher

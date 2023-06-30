@@ -270,6 +270,18 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   return {status, pano, mask};
 }
 
+int StitchTasksCount(int num_images) {
+  return 1 +           // find features
+         1 +           // match features
+         1 +           // estimate homography
+         1 +           // bundle adjustment
+         1 +           // prepare seams
+         1 +           // find seams
+         num_images +  // compose
+         1 +           // blend
+         1;            // end
+}
+
 std::string ToString(stitcher::Status& status) {
   switch (status) {
     case stitcher::Status::kSuccess:
