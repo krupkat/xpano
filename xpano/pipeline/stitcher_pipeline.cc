@@ -219,6 +219,10 @@ StitchingResult RunStitchingPipeline(
         return full_res_image;
       }));
     }
+    if (auto status = WaitWithCancellation(&imgs_future, progress);
+        status == WaitStatus::kCancelled) {
+      return {};
+    }
     imgs = imgs_future.get();
   } else {
     for (int img_id : pano.ids) {

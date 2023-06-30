@@ -441,7 +441,7 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kShowPano: {
       selection_ = {SelectionType::kPano, action.target_id};
-      spdlog::info("Calculating pano preview {}", selection_.target_id);
+      spdlog::info("Calculating pano {}", selection_.target_id);
       status_message_ = {};
       auto extra = ValueOrDefault<ShowPanoExtra>(action);
       stitcher_pipeline_.RunStitching(*stitcher_data_,
