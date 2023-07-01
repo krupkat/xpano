@@ -161,14 +161,8 @@ cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
   stitcher->SetFeaturesFinder(cv::ORB::create());
   stitcher->SetInterpolationFlags(cv::INTER_LINEAR);
 
-  stitcher->work_scale_ = 1;
-  stitcher->seam_scale_ = 1;
-  stitcher->seam_work_aspect_ = 1;
-  stitcher->warped_image_scale_ = 1;
-
   switch (mode) {
     case Mode::PANORAMA:  // PANORAMA is the default
-      // mostly already setup
       stitcher->SetEstimator(
           cv::makePtr<cv::detail::HomographyBasedEstimator>());
       stitcher->SetWaveCorrection(true);
@@ -327,7 +321,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     compute_roi_timer.Report(" compute roi time");
   }
 
-  bool is_blender_prepared = false;
+  blender_->prepare(corners, sizes);
 
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     NextTask(ProgressType::kStitchCompose);
@@ -368,12 +362,6 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
     bitwise_and(seam_mask, mask_warped, mask_warped);
     timer.Report(" other");
-
-    if (!is_blender_prepared) {
-      blender_->prepare(corners, sizes);
-      is_blender_prepared = true;
-    }
-    timer.Report(" other2");
 
     // Blend the current image
     blender_->feed(img_warped, mask_warped, corners[img_idx]);

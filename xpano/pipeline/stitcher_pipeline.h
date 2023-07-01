@@ -87,6 +87,10 @@ using GenericFuture =
     std::variant<std::future<StitcherData>, std::future<StitchingResult>,
                  std::future<ExportResult>, std::future<InpaintingResult>>;
 
+// By default: holds Task objects for the currently running tasks in a queue
+//  - this is used in the gui that is periodically checking GetReadyTask()
+// If run == RunTraits::kReturnFuture: returns the Task objects to the caller
+//  - this is used in the CLI and tests
 template <RunTraits run = RunTraits::kOwnFuture>
 class StitcherPipeline {
  public:

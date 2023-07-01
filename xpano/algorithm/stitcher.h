@@ -218,6 +218,7 @@ class Stitcher {
   double registr_resol_;
   double seam_est_resol_;
   double conf_thresh_;
+
   cv::InterpolationFlags interp_flags_;
   cv::Ptr<cv::Feature2D> features_finder_;
   cv::Ptr<cv::detail::FeaturesMatcher> features_matcher_;
@@ -240,10 +241,11 @@ class Stitcher {
   std::vector<int> indices_;
   std::vector<cv::detail::CameraParams> cameras_;
   cv::UMat result_mask_;
-  double work_scale_;
-  double seam_scale_;
-  double seam_work_aspect_;
-  double warped_image_scale_;
+
+  double work_scale_ = 1.0;
+  double seam_scale_ = 1.0;
+  double seam_work_aspect_ = 1.0;
+  double warped_image_scale_ = 1.0;
 
   ProgressMonitor* monitor_ = nullptr;
 };
