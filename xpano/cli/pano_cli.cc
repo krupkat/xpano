@@ -45,9 +45,9 @@ void CancelHandler(int /*signal*/) { cancel.fetch_add(1); }
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
 
 ResultType RunPipeline(const Args &args) {
-  pipeline::StitcherPipeline pipeline;
+  pipeline::StitcherPipeline<pipeline::RunTraits::kReturnFuture> pipeline;
 
-  auto stitcher_data_future = pipeline.RunLoading(
+  auto loading_task = pipeline.RunLoading(
       args.input_paths, {.preview_longer_side = kMaxImageSizeForCLI},
       {.type = pipeline::MatchingType::kSinglePano});
 
@@ -55,10 +55,11 @@ ResultType RunPipeline(const Args &args) {
 
   try {
     stitcher_data = utils::future::GetWithCancellation(
-        std::move(stitcher_data_future), cancel);
+        std::move(loading_task.future), cancel);
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
-    pipeline.Cancel();
+    loading_task.progress->Cancel();
+    pipeline.CancelAndWait();
     return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to load images: {}", e.what());
@@ -75,17 +76,18 @@ ResultType RunPipeline(const Args &args) {
           ? *args.output_path
           : std::filesystem::path(stitcher_data.images[0].PanoName());
 
-  auto stitching_result_future = pipeline.RunStitching(
+  auto stitching_task = pipeline.RunStitching(
       stitcher_data, {.pano_id = 0, .export_path = export_path});
 
   pipeline::StitchingResult stitching_result;
 
   try {
     stitching_result = utils::future::GetWithCancellation(
-        std::move(stitching_result_future), cancel);
+        std::move(stitching_task.future), cancel);
   } catch (const utils::future::Cancelled) {
     spdlog::info("Canceling, press CTRL+C again to force quit.");
-    pipeline.Cancel();
+    stitching_task.progress->Cancel();
+    pipeline.CancelAndWait();
     return ResultType::kError;
   } catch (const std::exception &e) {
     spdlog::error("Failed to stitch panorama: {}", e.what());

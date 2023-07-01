@@ -23,9 +23,9 @@
 #include <opencv2/stitching/detail/matchers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
-#include "xpano/algorithm/bundle_adjuster.h"
+#include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/multiblend.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
@@ -124,13 +124,11 @@ cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method,
                                          utils::mt::Threadpool* threadpool) {
   switch (blending_method) {
     case BlendingMethod::kOpenCV: {
-      return cv::makePtr<cv::detail::MultiBandBlender>();
+      return cv::makePtr<blenders::MultiBandOpenCV>();
     }
-    case BlendingMethod::kMultiblendAlpha:
-      [[fallthrough]];
     case BlendingMethod::kMultiblend: {
-      if constexpr (mb::Enabled()) {
-        return cv::makePtr<mb::MultiblendBlender>(threadpool, blending_method);
+      if constexpr (blenders::MultiblendEnabled()) {
+        return cv::makePtr<blenders::Multiblend>(threadpool);
       }
       throw std::runtime_error(
           "Multiblend is not supported in this build of xpano");
@@ -231,42 +229,40 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   return result;
 }
 
-StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
-                    bool return_pano_mask, utils::mt::Threadpool* threadpool) {
-  auto stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
-  stitcher->setWarper(PickWarper(options.projection));
-  stitcher->setFeaturesFinder(PickFeaturesFinder(options.feature));
-  stitcher->setFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
-      false, options.match_conf));
-  stitcher->setWaveCorrection(options.wave_correction !=
+StitchResult Stitch(const std::vector<cv::Mat>& images,
+                    StitchUserOptions user_options, StitchOptions options) {
+  auto stitcher = stitcher::Stitcher::Create(cv::Stitcher::PANORAMA);
+  stitcher->SetWarper(PickWarper(user_options.projection));
+  stitcher->SetFeaturesFinder(PickFeaturesFinder(user_options.feature));
+  stitcher->SetFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
+      false, user_options.match_conf));
+  stitcher->SetWaveCorrection(user_options.wave_correction !=
                               WaveCorrectionType::kOff);
-  if (stitcher->waveCorrection()) {
-    stitcher->setWaveCorrectKind(PickWaveCorrectKind(options.wave_correction));
+  if (stitcher->WaveCorrection()) {
+    stitcher->SetWaveCorrectKind(
+        PickWaveCorrectKind(user_options.wave_correction));
   }
-
-  // Using a modified BundleAdjuster to save detected WaveCorrectionKind, since
-  // it isn't available otherwise.
-  auto bundle_adjuster = cv::makePtr<BundleAdjusterRayCustom>();
-  stitcher->setBundleAdjuster(bundle_adjuster);
-  stitcher->setBlender(PickBlender(options.blending_method, threadpool));
+  stitcher->SetBlender(PickBlender(user_options.blending_method,
+                                   options.threads_for_multiblend));
+  stitcher->SetProgressMonitor(options.progress_monitor);
 
   cv::Mat pano;
-  auto status = stitcher->stitch(images, pano);
+  auto status = stitcher->Stitch(images, pano);
 
-  if (status != cv::Stitcher::OK) {
+  if (status != stitcher::Status::kSuccess) {
     return {status, {}, {}};
   }
 
   cv::Mat mask;
-  if (return_pano_mask) {
-    stitcher->resultMask().copyTo(mask);
+  if (options.return_pano_mask) {
+    stitcher->ResultMask().copyTo(mask);
   }
 
-  if (auto rotate = GetRotationFlags(options.wave_correction,
-                                     bundle_adjuster->WaveCorrectionKind());
+  if (auto rotate = GetRotationFlags(user_options.wave_correction,
+                                     stitcher->WaveCorrectKind());
       rotate) {
     cv::rotate(pano, pano, *rotate);
-    if (return_pano_mask) {
+    if (options.return_pano_mask) {
       cv::rotate(mask, mask, *rotate);
     }
   }
@@ -274,15 +270,29 @@ StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
   return {status, pano, mask};
 }
 
-std::string ToString(cv::Stitcher::Status& status) {
+int StitchTasksCount(int num_images) {
+  return 1 +           // find features
+         1 +           // match features
+         1 +           // estimate homography
+         1 +           // bundle adjustment
+         1 +           // prepare seams
+         1 +           // find seams
+         num_images +  // compose
+         1 +           // blend
+         1;            // end
+}
+
+std::string ToString(stitcher::Status& status) {
   switch (status) {
-    case cv::Stitcher::OK:
+    case stitcher::Status::kSuccess:
       return "OK";
-    case cv::Stitcher::ERR_NEED_MORE_IMGS:
+    case stitcher::Status::kCancelled:
+      return "Cancelled";
+    case stitcher::Status::kErrNeedMoreImgs:
       return "ERR_NEED_MORE_IMGS";
-    case cv::Stitcher::ERR_HOMOGRAPHY_EST_FAIL:
+    case stitcher::Status::kErrHomographyEstFail:
       return "ERR_HOMOGRAPHY_EST_FAIL";
-    case cv::Stitcher::ERR_CAMERA_PARAMS_ADJUST_FAIL:
+    case stitcher::Status::kErrCameraParamsAdjustFail:
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
     default:
       return "ERR_UNKNOWN";

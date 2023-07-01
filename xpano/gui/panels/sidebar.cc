@@ -14,8 +14,8 @@
 #include <spdlog/fmt/fmt.h>
 
 #include "xpano/algorithm/algorithm.h"
+#include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/multiblend.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/preview_pane.h"
@@ -48,6 +48,22 @@ std::string ProgressLabel(pipeline::ProgressType type) {
       return "Exporting pano";
     case pipeline::ProgressType::kInpainting:
       return "Auto fill";
+    case pipeline::ProgressType::kStitchFindFeatures:
+      return "Finding features";
+    case pipeline::ProgressType::kStitchMatchFeatures:
+      return "Matching features";
+    case pipeline::ProgressType::kStitchEstimateHomography:
+      return "Estimating homography";
+    case pipeline::ProgressType::kStitchBundleAdjustment:
+      return "Bundle adjustment";
+    case pipeline::ProgressType::kStitchSeamsPrepare:
+      return "Preparing seams";
+    case pipeline::ProgressType::kStitchSeamsFind:
+      return "Finding seams";
+    case pipeline::ProgressType::kStitchCompose:
+      return "Composing pano";
+    case pipeline::ProgressType::kStitchBlend:
+      return "Blending";
   }
 }
 
@@ -262,7 +278,7 @@ Action DrawWaveCorrectionOptions(
 
 Action DrawBlendingOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
   Action action{};
-  if constexpr (!algorithm::mb::Enabled()) {
+  if constexpr (!algorithm::blenders::MultiblendEnabled()) {
     return action;
   }
   ImGui::Text("Blending:");
@@ -286,10 +302,10 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
   if (ImGui::BeginMenu("Panorama stitching")) {
     action |= DrawProjectionOptions(stitch_options);
     action |= DrawWaveCorrectionOptions(stitch_options);
-    action |= DrawBlendingOptions(stitch_options);
 
     if (debug_enabled) {
       ImGui::SeparatorText("Debug");
+      action |= DrawBlendingOptions(stitch_options);
       action |= DrawFeatureMatchingOptions(stitch_options);
 
       if (DrawMatchConf(&stitch_options->match_conf)) {
@@ -363,17 +379,17 @@ Action DrawHelpMenu() {
 }  // namespace
 
 void DrawProgressBar(pipeline::ProgressReport progress) {
-  if (progress.num_tasks == 0) {
-    return;
-  }
   const int max_percent = 100;
-  float progress_ratio = static_cast<float>(progress.tasks_done) /
-                         static_cast<float>(progress.num_tasks);
-  std::string label =
-      progress.tasks_done == progress.num_tasks
-          ? "100%"
-          : fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
+  float progress_ratio = 0.0;
+  std::string label;
+  if (progress.num_tasks != 0) {
+    progress_ratio = static_cast<float>(progress.tasks_done) /
+                     static_cast<float>(progress.num_tasks);
+  }
+  if (progress.tasks_done != progress.num_tasks) {
+    label = fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
                         progress_ratio * max_percent);
+  }
   ImGui::ProgressBar(progress_ratio, ImVec2(-1.0f, 0.f), label.c_str());
 }
 

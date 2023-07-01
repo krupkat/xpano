@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <optional>
 #include <string>
 #include <vector>
@@ -14,6 +15,8 @@
 
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/options.h"
+#include "xpano/algorithm/progress.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
@@ -40,15 +43,23 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
                             int match_threshold);
 
 struct StitchResult {
-  cv::Stitcher::Status status;
+  stitcher::Status status;
   cv::Mat pano;
   cv::Mat mask;
 };
 
-StitchResult Stitch(const std::vector<cv::Mat>& images, StitchOptions options,
-                    bool return_pano_mask, utils::mt::Threadpool* threadpool);
+struct StitchOptions {
+  bool return_pano_mask = false;
+  utils::mt::Threadpool* threads_for_multiblend = nullptr;
+  ProgressMonitor* progress_monitor = nullptr;
+};
 
-std::string ToString(cv::Stitcher::Status& status);
+StitchResult Stitch(const std::vector<cv::Mat>& images,
+                    StitchUserOptions user_options, StitchOptions options);
+
+int StitchTasksCount(int num_images);
+
+std::string ToString(stitcher::Status& status);
 
 std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 

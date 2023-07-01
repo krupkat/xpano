@@ -88,8 +88,6 @@ const char* Label(BlendingMethod blending_method) {
       return "OpenCV";
     case BlendingMethod::kMultiblend:
       return "Multiblend";
-    case BlendingMethod::kMultiblendAlpha:
-      return "Multiblend (with alpha)";
     default:
       return "Unknown";
   }

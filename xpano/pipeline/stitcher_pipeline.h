@@ -11,6 +11,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <variant>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -18,6 +19,8 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/progress.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/rect.h"
@@ -56,7 +59,7 @@ struct InpaintingResult {
 struct StitchingResult {
   int pano_id = 0;
   bool full_res = false;
-  cv::Stitcher::Status status;
+  algorithm::stitcher::Status status;
   std::optional<cv::Mat> pano;
   std::optional<utils::RectRRf> auto_crop;
   std::optional<std::filesystem::path> export_path;
@@ -68,73 +71,77 @@ struct ExportResult {
   std::optional<std::filesystem::path> export_path;
 };
 
-enum class ProgressType {
-  kNone,
-  kLoadingImages,
-  kStitchingPano,
-  kAutoCrop,
-  kDetectingKeypoints,
-  kMatchingImages,
-  kExport,
-  kInpainting,
+using ProgressMonitor = algorithm::ProgressMonitor;
+using ProgressReport = algorithm::ProgressReport;
+using ProgressType = algorithm::ProgressType;
+
+enum class RunTraits { kOwnFuture, kReturnFuture };
+
+template <typename Result>
+struct Task {
+  Result future;
+  std::unique_ptr<ProgressMonitor> progress;
 };
 
-struct ProgressReport {
-  ProgressType type;
-  int tasks_done;
-  int num_tasks;
-};
+using GenericFuture =
+    std::variant<std::future<StitcherData>, std::future<StitchingResult>,
+                 std::future<ExportResult>, std::future<InpaintingResult>>;
 
-class ProgressMonitor {
- public:
-  void Reset(ProgressType type, int num_tasks);
-  void SetNumTasks(int num_tasks);
-  void SetTaskType(ProgressType type);
-  [[nodiscard]] ProgressReport Progress() const;
-  void NotifyTaskDone();
-
- private:
-  std::atomic<ProgressType> type_{ProgressType::kNone};
-  std::atomic<int> done_ = 0;
-  std::atomic<int> num_tasks_ = 0;
-};
-
+// By default: holds Task objects for the currently running tasks in a queue
+//  - this is used in the gui that is periodically checking GetReadyTask()
+// If run == RunTraits::kReturnFuture: returns the Task objects to the caller
+//  - this is used in the CLI and tests
+template <RunTraits run = RunTraits::kOwnFuture>
 class StitcherPipeline {
  public:
   StitcherPipeline() = default;
   ~StitcherPipeline();
-  std::future<StitcherData> RunLoading(
-      const std::vector<std::filesystem::path> &inputs,
-      const LoadingOptions &loading_options,
-      const MatchingOptions &matching_options);
-  std::future<StitchingResult> RunStitching(const StitcherData &data,
-                                            const StitchingOptions &options);
 
-  std::future<ExportResult> RunExport(cv::Mat pano,
-                                      const ExportOptions &options);
-  std::future<InpaintingResult> RunInpainting(cv::Mat pano, cv::Mat mask,
-                                              const InpaintingOptions &options);
+  // reason: some tasks use pointers to members
+  StitcherPipeline(const StitcherPipeline &) = delete;
+  StitcherPipeline &operator=(const StitcherPipeline &) = delete;
+  StitcherPipeline(StitcherPipeline &&) = delete;
+  StitcherPipeline &operator=(StitcherPipeline &&) = delete;
+
+  auto RunLoading(const std::vector<std::filesystem::path> &inputs,
+                  const LoadingOptions &loading_options,
+                  const MatchingOptions &matching_options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            Task<std::future<StitcherData>>, void>;
+
+  auto RunStitching(const StitcherData &data, const StitchingOptions &options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            Task<std::future<StitchingResult>>, void>;
+
+  auto RunExport(cv::Mat pano, const ExportOptions &options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            Task<std::future<ExportResult>>, void>;
+
+  auto RunInpainting(cv::Mat pano, cv::Mat mask,
+                     const InpaintingOptions &options)
+      -> std::conditional_t<run == RunTraits::kReturnFuture,
+                            Task<std::future<InpaintingResult>>, void>;
+
   ProgressReport Progress() const;
+
+  auto GetReadyTask() -> std::optional<Task<GenericFuture>>;
 
   void Cancel();
 
+  void CancelAndWait();
+
  private:
-  std::vector<algorithm::Image> RunLoadingPipeline(
-      const std::vector<std::filesystem::path> &inputs,
-      const LoadingOptions &loading_options, bool compute_keypoints);
-  StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
-                                   const MatchingOptions &options);
-  StitchingResult RunStitchingPipeline(
-      const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
-      const StitchingOptions &options);
-
-  ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options);
-
-  ProgressMonitor progress_;
-
-  std::atomic<bool> cancel_tasks_ = false;
   utils::mt::Threadpool pool_ = {
       std::max(2U, std::thread::hardware_concurrency())};
+
+  // Use a separate threadpool for multiblend.
+  // Reason: multiblend doesn't allow cancelling tasks (calling pool_.purge())
+  // without either a deadlock or undefined behavior. Primary reason is that it
+  // passes many arguments to its subtasks by reference.
+  utils::mt::Threadpool multiblend_pool_ = {
+      std::max(2U, std::thread::hardware_concurrency() - 1)};
+
+  std::queue<Task<GenericFuture>> queue_;
 };
 
 }  // namespace xpano::pipeline

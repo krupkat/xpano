@@ -33,7 +33,7 @@ enum class InpaintingMethod {
   kTelea,
 };
 
-enum class BlendingMethod { kOpenCV, kMultiblend, kMultiblendAlpha };
+enum class BlendingMethod { kOpenCV, kMultiblend };
 
 const char* Label(ProjectionType projection_type);
 const char* Label(FeatureType feature_type);
@@ -63,11 +63,10 @@ const auto kInpaintingMethods =
     std::array{InpaintingMethod::kNavierStokes, InpaintingMethod::kTelea};
 
 const auto kBlendingMethods =
-    std::array{BlendingMethod::kOpenCV, BlendingMethod::kMultiblend,
-               BlendingMethod::kMultiblendAlpha};
+    std::array{BlendingMethod::kOpenCV, BlendingMethod::kMultiblend};
 
 #ifdef XPANO_WITH_MULTIBLEND
-const auto kDefaultBlendingMethod = BlendingMethod::kMultiblendAlpha;
+const auto kDefaultBlendingMethod = BlendingMethod::kMultiblend;
 #else
 const auto kDefaultBlendingMethod = BlendingMethod::kOpenCV;
 #endif
@@ -80,7 +79,7 @@ struct ProjectionOptions {
   float b_param = kDefaultPaniniB;
 };
 
-struct StitchOptions {
+struct StitchUserOptions {
   ProjectionOptions projection;
   FeatureType feature = FeatureType::kSift;
   WaveCorrectionType wave_correction = WaveCorrectionType::kAuto;

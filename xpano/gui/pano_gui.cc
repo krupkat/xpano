@@ -10,6 +10,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <imgui.h>
@@ -30,8 +31,8 @@
 #include "xpano/gui/shortcut.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
-#include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/path.h"
 #include "xpano/version.h"
@@ -368,8 +369,8 @@ void PanoGui::Reset() {
   selection_ = {};
   status_message_ = {};
   pano_mask_ = cv::Mat{};
-  // Order of the following two lines is important
-  stitcher_pipeline_.Cancel();
+  // Order of the following lines is important
+  stitcher_pipeline_.CancelAndWait();
   stitcher_data_.reset();
 }
 
@@ -400,8 +401,8 @@ Action PanoGui::PerformAction(const Action& action) {
       if (plot_pane_.Type() == ImageType::kPanoFullRes && pano_mask_) {
         spdlog::info("Auto fill pano {}", selection_.target_id);
         status_message_ = {};
-        inpaint_future_ = stitcher_pipeline_.RunInpainting(
-            plot_pane_.Image(), *pano_mask_, options_.inpaint);
+        stitcher_pipeline_.RunInpainting(plot_pane_.Image(), *pano_mask_,
+                                         options_.inpaint);
       } else {
         status_message_ = {"Full-resolution panorama not available",
                            "Please rerun full-resolution stitching"};
@@ -423,8 +424,8 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kLoadFiles: {
       if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {
         Reset();
-        stitcher_data_future_ = stitcher_pipeline_.RunLoading(
-            files, options_.loading, options_.matching);
+        stitcher_pipeline_.RunLoading(files, options_.loading,
+                                      options_.matching);
       }
       break;
     }
@@ -440,13 +441,13 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kShowPano: {
       selection_ = {SelectionType::kPano, action.target_id};
-      spdlog::info("Calculating pano preview {}", selection_.target_id);
+      spdlog::info("Calculating pano {}", selection_.target_id);
       status_message_ = {};
       auto extra = ValueOrDefault<ShowPanoExtra>(action);
-      pano_future_ = stitcher_pipeline_.RunStitching(
-          *stitcher_data_, {.pano_id = selection_.target_id,
-                            .full_res = extra.full_res,
-                            .stitch_algorithm = options_.stitch});
+      stitcher_pipeline_.RunStitching(*stitcher_data_,
+                                      {.pano_id = selection_.target_id,
+                                       .full_res = extra.full_res,
+                                       .stitch_algorithm = options_.stitch});
       const auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.Highlight(pano.ids);
       if (extra.scroll_thumbnails) {
@@ -521,63 +522,79 @@ void PanoGui::PerformExportAction(int pano_id) {
     if (options_.metadata.copy_from_first_image) {
       metadata_path = first_image->GetPath();
     }
-    export_future_ = stitcher_pipeline_.RunExport(
-        plot_pane_.Image(), {.pano_id = pano_id,
-                             .export_path = *export_path,
-                             .metadata_path = metadata_path,
-                             .compression = options_.compression,
-                             .crop = plot_pane_.CropRect()});
+    stitcher_pipeline_.RunExport(plot_pane_.Image(),
+                                 {.pano_id = pano_id,
+                                  .export_path = *export_path,
+                                  .metadata_path = metadata_path,
+                                  .compression = options_.compression,
+                                  .crop = plot_pane_.CropRect()});
   } else {
-    pano_future_ = stitcher_pipeline_.RunStitching(
-        *stitcher_data_, {.pano_id = pano_id,
-                          .full_res = true,
-                          .export_path = *export_path,
-                          .metadata = options_.metadata,
-                          .compression = options_.compression,
-                          .stitch_algorithm = options_.stitch});
+    stitcher_pipeline_.RunStitching(*stitcher_data_,
+                                    {.pano_id = pano_id,
+                                     .full_res = true,
+                                     .export_path = *export_path,
+                                     .metadata = options_.metadata,
+                                     .compression = options_.compression,
+                                     .stitch_algorithm = options_.stitch});
   }
 }
 
 MultiAction PanoGui::ResolveFutures() {
   MultiAction actions;
-  if (utils::future::IsReady(stitcher_data_future_)) {
-    stitcher_data_ = ResolveStitcherDataFuture(
-        std::move(stitcher_data_future_), &thumbnail_pane_, &status_message_);
+  auto handle_stitcher_data =
+      [this,
+       &actions](std::future<pipeline::StitcherData> stitcher_data_future) {
+        stitcher_data_ =
+            ResolveStitcherDataFuture(std::move(stitcher_data_future),
+                                      &thumbnail_pane_, &status_message_);
 
-    if (stitcher_data_ && AnyRawImage(stitcher_data_->images)) {
-      actions |= {.type = ActionType::kWarnInputConversion};
-    }
-    if (stitcher_data_ && !stitcher_data_->panos.empty()) {
-      // keep delayed == true to wait for the thumbnails to be drawn at leaset
-      // once before scrolling
-      actions |= {.type = ActionType::kShowPano,
-                  .target_id = 0,
-                  .delayed = true,
-                  .extra = ShowPanoExtra{.scroll_thumbnails = true}};
-    }
+        if (stitcher_data_ && AnyRawImage(stitcher_data_->images)) {
+          actions |= {.type = ActionType::kWarnInputConversion};
+        }
+        if (stitcher_data_ && !stitcher_data_->panos.empty()) {
+          // keep delayed == true to wait for the thumbnails to be drawn at
+          // leaset once before scrolling
+          actions |= {.type = ActionType::kShowPano,
+                      .target_id = 0,
+                      .delayed = true,
+                      .extra = ShowPanoExtra{.scroll_thumbnails = true}};
+        }
+      };
+
+  auto handle_pano =
+      [this](std::future<pipeline::StitchingResult> pano_future) {
+        auto [export_pano_id, export_mask] = ResolveStitchingResultFuture(
+            std::move(pano_future), &plot_pane_, &status_message_);
+        if (export_pano_id) {
+          stitcher_data_->panos[*export_pano_id].exported = true;
+        }
+        pano_mask_ = export_mask;
+      };
+
+  auto handle_export =
+      [this](std::future<pipeline::ExportResult> export_future) {
+        auto exported_pano_id = ResolveExportFuture(
+            std::move(export_future), &plot_pane_, &status_message_);
+        if (exported_pano_id) {
+          stitcher_data_->panos[*exported_pano_id].exported = true;
+        }
+      };
+
+  auto handle_inpaint =
+      [this](std::future<pipeline::InpaintingResult> inpaint_future) {
+        ResolveInpaintingResultFuture(std::move(inpaint_future), &plot_pane_,
+                                      &status_message_);
+      };
+
+  if (auto task = stitcher_pipeline_.GetReadyTask();
+      task && task->progress->IsCancelled()) {
+    spdlog::info("Task cancelled");
+  } else if (task && !task->progress->IsCancelled()) {
+    std::visit(utils::Overloaded{handle_stitcher_data, handle_pano,
+                                 handle_export, handle_inpaint},
+               std::move(task->future));
   }
 
-  if (utils::future::IsReady(pano_future_)) {
-    auto [export_pano_id, export_mask] = ResolveStitchingResultFuture(
-        std::move(pano_future_), &plot_pane_, &status_message_);
-    if (export_pano_id) {
-      stitcher_data_->panos[*export_pano_id].exported = true;
-    }
-    pano_mask_ = export_mask;
-  }
-
-  if (utils::future::IsReady(export_future_)) {
-    auto exported_pano_id = ResolveExportFuture(std::move(export_future_),
-                                                &plot_pane_, &status_message_);
-    if (exported_pano_id) {
-      stitcher_data_->panos[*exported_pano_id].exported = true;
-    }
-  }
-
-  if (utils::future::IsReady(inpaint_future_)) {
-    ResolveInpaintingResultFuture(std::move(inpaint_future_), &plot_pane_,
-                                  &status_message_);
-  }
   return actions;
 }
 
