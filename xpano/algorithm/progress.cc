@@ -16,7 +16,10 @@ void ProgressMonitor::SetTaskType(ProgressType type) { type_ = type; }
 void ProgressMonitor::SetNumTasks(int num_tasks) { num_tasks_ = num_tasks; }
 
 ProgressReport ProgressMonitor::Report() const {
-  return {type_, done_, num_tasks_};
+  if (IsCancelled()) {
+    return {.type = ProgressType::kCancelling, .tasks_done = 0, .num_tasks = 0};
+  }
+  return {.type = type_, .tasks_done = done_, .num_tasks = num_tasks_};
 }
 
 void ProgressMonitor::NotifyTaskDone() { done_++; }

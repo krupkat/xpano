@@ -323,7 +323,7 @@ auto StitcherPipeline<run>::RunLoading(
   if constexpr (run == RunTraits::kReturnFuture) {
     return task;
   } else {
-    queue_.push(std::move(task));
+    queue_.push_back(std::move(task));
   }
 }
 
@@ -345,7 +345,7 @@ auto StitcherPipeline<run>::RunStitching(const StitcherData &data,
   if constexpr (run == RunTraits::kReturnFuture) {
     return task;
   } else {
-    queue_.push(std::move(task));
+    queue_.push_back(std::move(task));
   }
 }
 
@@ -365,7 +365,7 @@ auto StitcherPipeline<run>::RunExport(cv::Mat pano,
   if constexpr (run == RunTraits::kReturnFuture) {
     return task;
   } else {
-    queue_.push(std::move(task));
+    queue_.push_back(std::move(task));
   }
 }
 
@@ -397,7 +397,7 @@ auto StitcherPipeline<run>::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
   if constexpr (run == RunTraits::kReturnFuture) {
     return task;
   } else {
-    queue_.push(std::move(task));
+    queue_.push_back(std::move(task));
   }
 }
 
@@ -416,11 +416,17 @@ auto StitcherPipeline<run>::GetReadyTask()
     return {};
   }
 
-  if (std::visit(
-          [](const auto &future) { return utils::future::IsReady(future); },
-          queue_.front().future)) {
-    auto task = std::move(queue_.front());
-    queue_.pop();
+  // This logic doesn't keep fifo behavior, modify if needed.
+  auto ready_task =
+      std::find_if(queue_.begin(), queue_.end(), [](const auto &task) {
+        return std::visit(
+            [](const auto &future) { return utils::future::IsReady(future); },
+            task.future);
+      });
+
+  if (ready_task != queue_.end()) {
+    auto task = std::move(*ready_task);
+    queue_.erase(ready_task);
     return task;
   }
 

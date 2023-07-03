@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <deque>
 #include <filesystem>
 #include <future>
 #include <optional>
@@ -91,6 +92,10 @@ using GenericFuture =
 //  - this is used in the gui that is periodically checking GetReadyTask()
 // If run == RunTraits::kReturnFuture: returns the Task objects to the caller
 //  - this is used in the CLI and tests
+//
+// Whenever a new task is queued, the previous task is cancelled. The queue
+// serves the purpose of holding on to the resources of the cancelled tasks
+// until they are finished and can be safely deleted.
 template <RunTraits run = RunTraits::kOwnFuture>
 class StitcherPipeline {
  public:
@@ -141,7 +146,7 @@ class StitcherPipeline {
   utils::mt::Threadpool multiblend_pool_ = {
       std::max(2U, std::thread::hardware_concurrency() - 1)};
 
-  std::queue<Task<GenericFuture>> queue_;
+  std::deque<Task<GenericFuture>> queue_;
 };
 
 }  // namespace xpano::pipeline

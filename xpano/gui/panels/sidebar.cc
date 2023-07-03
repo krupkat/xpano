@@ -64,6 +64,8 @@ std::string ProgressLabel(pipeline::ProgressType type) {
       return "Composing pano";
     case pipeline::ProgressType::kStitchBlend:
       return "Blending";
+    case pipeline::ProgressType::kCancelling:
+      return "Cancelling";
   }
 }
 
@@ -389,6 +391,12 @@ void DrawProgressBar(pipeline::ProgressReport progress) {
   if (progress.tasks_done != progress.num_tasks) {
     label = fmt::format("{}: {:.0f}%", ProgressLabel(progress.type),
                         progress_ratio * max_percent);
+  }
+  if (progress.type == pipeline::ProgressType::kCancelling) {
+    static int iter = 0;
+    iter = (iter + 1) % kCancelAnimationFrameDuration;
+    const int num_dots = iter / 16;
+    label = ProgressLabel(progress.type) + std::string(num_dots, '.');
   }
   ImGui::ProgressBar(progress_ratio, ImVec2(-1.0f, 0.f), label.c_str());
 }
