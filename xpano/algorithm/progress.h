@@ -23,7 +23,8 @@ enum class ProgressType {
   kStitchSeamsPrepare,
   kStitchSeamsFind,
   kStitchCompose,
-  kStitchBlend
+  kStitchBlend,
+  kCancelling
 };
 
 struct ProgressReport {

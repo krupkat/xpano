@@ -94,4 +94,6 @@ constexpr int kMaxImageSizeForCLI = 8192;
 
 constexpr int kExifDefaultOrientation = 1;
 
+constexpr int kCancelAnimationFrameDuration = 128;
+
 }  // namespace xpano
