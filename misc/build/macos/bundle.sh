@@ -1,5 +1,7 @@
 #!/bin/sh
-# macports based - adapt library path to libSDL an libiconv when using brew
+# macports based, should work with brew as well
+
+set -e
 
 appname=Xpano
 appfolder=$appname.app
@@ -28,7 +30,7 @@ cp -r ./install/share $appfolder/Contents/
 echo "share copied..."
 
 #get local dependencies
-rpathdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep @rpath | sed 's/@rpath\///')
+rpathdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep @rpath | sed 's/@rpath\///') || true
 
 echo "rpath dependencies..."
 
@@ -53,7 +55,7 @@ for dep in $rpathdependencies; do
   otool -L $libfile
 
   #detect and copy second level macports dependencies
-  submacportsdependencies=$(otool -L $libfile | awk 'NR>1{print $1}' | grep opt)
+  submacportsdependencies=$(otool -L $libfile | awk 'NR>1{print $1}' | grep opt) || true
   for subdep in $submacportsdependencies; do 
    echo "handlingsubdep " $subdep
    #copy lib
@@ -65,7 +67,7 @@ for dep in $rpathdependencies; do
 done 
 
 #get macports dependencies
-macportsdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep opt)
+macportsdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep opt) || true
 
 for dep in $macportsdependencies; do 
  echo "handling dep" $dep
