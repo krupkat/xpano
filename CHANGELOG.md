@@ -1,3 +1,9 @@
+# Xpano 0.16.0
+
+- Improved progress monitoring for stitching
+- More responsive cancellation of operations
+  - This allows improved interactive editing of panoramas by CTRL clicking
+
 # Xpano 0.15.2
 
 - Multiblend availability on ARM cpus

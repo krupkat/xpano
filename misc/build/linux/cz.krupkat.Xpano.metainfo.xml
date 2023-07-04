@@ -29,6 +29,14 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.16.0" date="2023-07-04">
+      <description>
+        <ul>
+          <li>Improved progress monitoring for stitching</li>
+          <li>More responsive cancellation of operations</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.15.2" date="2023-06-15">
       <description>
         <ul>
