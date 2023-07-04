@@ -1,3 +1,9 @@
+xpano (0.16.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.16.0, Improving progress reporting and cancellation
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Tue, 04 Jul 2023 14:16:42 +0200
+
 xpano (0.15.1-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.15.1, Multiblend with OpenCV seaming
