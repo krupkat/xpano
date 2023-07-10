@@ -52,6 +52,8 @@ Run the build script from the root of the repository:
 ./misc/build/build-nixos.sh
 ```
 
+Possible issues when running - [troubleshooting](https://gist.github.com/krupkat/cd0adbd584e2bfe154accdb393076fc3).
+
 ### MacOS
 
 Library prerequisites: SDL2, spdlog, catch2
