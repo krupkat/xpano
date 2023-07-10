@@ -2,9 +2,9 @@
 
 $env:BUILD_TYPE = 'Release'
 $env:SDL_VERSION = 'release-2.26.5'
-$env:OPENCV_VERSION = '4.7.0'
+$env:OPENCV_VERSION = '4.8.0'
 $env:CATCH_VERSION = 'v3.3.2'
-$env:SPDLOG_VERSION = 'v1.11.0'
+$env:SPDLOG_VERSION = 'v1.12.0'
 $env:EXIV2_VERSION = 'v0.28.0'
 $env:GENERATOR = 'Ninja Multi-Config'
 
