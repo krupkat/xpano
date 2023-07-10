@@ -10,7 +10,7 @@
 
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
-#include <imgui_impl_sdlrenderer.h>
+#include <imgui_impl_sdlrenderer2.h>
 #include <nfd.h>
 #include <SDL.h>
 #include <spdlog/spdlog.h>
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
 
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-  ImGui_ImplSDLRenderer_Init(renderer);
+  ImGui_ImplSDLRenderer2_Init(renderer);
 
   const SDL_Color clear_color{114, 140, 165, 255};
 
@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
     }
 
     // Start the Dear ImGui frame
-    ImGui_ImplSDLRenderer_NewFrame();
+    ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
                            clear_color.b, clear_color.a);
     SDL_RenderClear(renderer);
     ImGui::Render();
-    ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
     SDL_RenderPresent(renderer);
   }
 
@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
   xpano::utils::config::Save(app_data_path, size, gui.GetOptions());
 
   // Cleanup
-  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
 

@@ -37,7 +37,7 @@ set(IMGUI_SOURCES
   "external/imgui/imgui_tables.cpp"
   "external/imgui/imgui_widgets.cpp"
   "external/imgui/backends/imgui_impl_sdl2.cpp"
-  "external/imgui/backends/imgui_impl_sdlrenderer.cpp"
+  "external/imgui/backends/imgui_impl_sdlrenderer2.cpp"
 )
 
 set(XPANO_SOURCES
