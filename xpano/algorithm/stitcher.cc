@@ -325,6 +325,12 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     NextTask(ProgressType::kStitchCompose);
+    if (auto non_zero = cv::countNonZero(masks_warped[img_idx]);
+        non_zero == 0) {
+      spdlog::warn("Skipping fully obscured image");
+      continue;
+    }
+
     spdlog::trace("Compositing image #{}", indices_[img_idx] + 1);
     auto compositing_timer = Timer();
 
