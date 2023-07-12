@@ -1,3 +1,7 @@
+# Xpano 0.16.1
+
+- Fix for panoramas with fully obscured images
+
 # Xpano 0.16.0
 
 - Improved progress monitoring for stitching

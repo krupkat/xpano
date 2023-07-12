@@ -29,6 +29,13 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.16.1" date="2023-07-12">
+      <description>
+        <ul>
+          <li>Fix for panoramas with fully obscured images</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.16.0" date="2023-07-04">
       <description>
         <ul>
