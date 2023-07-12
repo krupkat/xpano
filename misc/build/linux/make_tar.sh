@@ -17,7 +17,7 @@ git archive --prefix "${PACKAGE}/" -o "${PACKAGE}.tar" HEAD
 
 # add submodules
 git submodule foreach --recursive \
-  "git archive --prefix=${PACKAGE}/\$path/ --output=\$sha1.tar HEAD && 
+  "git archive --worktree-attributes --prefix=${PACKAGE}/\$path/ --output=\$sha1.tar HEAD &&
    tar --concatenate --file=$(pwd)/${PACKAGE}.tar \$sha1.tar && 
    rm \$sha1.tar"
 
