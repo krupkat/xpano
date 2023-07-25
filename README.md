@@ -30,7 +30,11 @@ Install directly from Flathub or the Microsoft Store:
 
 <a href='https://flathub.org/apps/details/cz.krupkat.Xpano'><img height='70' alt='Download from Flathub' src='https://flathub.org/assets/badges/flathub-badge-en.png'/></a>&nbsp;&nbsp;<a href='https://apps.microsoft.com/store/detail/9PGQ5X33L0SC?launch=true&mode=full'><img height='70' alt='Download from the Microsoft Store' src='https://get.microsoft.com/images/en-US%20dark.svg'/></a>
 
-Additionally you can download Windows and MacOS executables from [GitHub](https://github.com/krupkat/xpano/releases) and Ubuntu packages from a [Launchpad PPA](https://launchpad.net/~krupkat/+archive/ubuntu/code).
+Get additional packages:
+
+- Windows and MacOS executables from [GitHub](https://github.com/krupkat/xpano/releases)
+- Ubuntu packages from my [Launchpad PPA](https://launchpad.net/~krupkat/+archive/ubuntu/code)
+- Nix packages from [nixpkgs](https://search.nixos.org/packages?channel=unstable&show=xpano)
 
 ## Command line
 
