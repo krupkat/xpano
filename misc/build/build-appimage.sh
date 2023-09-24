@@ -15,4 +15,6 @@ cmake -B build \
 
 DESTDIR=AppDir cmake --build build -j $(nproc) --target install
 
+export LD_LIBRARY_PATH=SDL/install/lib:exiv2/install/lib:/opencv/install/lib
+
 linuxdeploy-x86_64.AppImage --appdir build/AppDir --output appimage
