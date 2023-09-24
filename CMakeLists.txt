@@ -4,6 +4,7 @@ project(Xpano)
 OPTION(BUILD_TESTING "Build tests" OFF)
 OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
 OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ON)
+OPTION(XPANO_INSTALL_DEPENDENCIES "Install all dependencies" OFF)
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -159,8 +160,13 @@ else()
 endif()
 
 install(TARGETS
-  Xpano RUNTIME
+  Xpano RUNTIME_DEPENDENCY_SET XpanoDeps RUNTIME
 )
+
+if(XPANO_INSTALL_DEPENDENCIES)
+  set_target_properties(Xpano PROPERTIES INSTALL_RPATH "\${ORIGIN}/../lib")
+  install(RUNTIME_DEPENDENCY_SET XpanoDeps DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
 
 install(FILES 
   "$<TARGET_RUNTIME_DLLS:Xpano>" 
