@@ -17,7 +17,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  CATCH_VERSION: "v3.3.2"
+  CATCH_VERSION: "v3.4.0"
   EXIV2_VERSION: "v0.28.0"
 
 jobs:
@@ -79,7 +79,7 @@ jobs:
 
     - name: Run clang-tidy
       run: |
-        run-clang-tidy `pwd`/xpano `pwd`/tests \
+        run-clang-tidy-15 `pwd`/xpano `pwd`/tests \
           -p=build \
           -quiet \
           -header-filter=xpano/xpano.*xpano \

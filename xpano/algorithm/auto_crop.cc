@@ -119,7 +119,7 @@ std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
   if (mask.empty()) {
     return {};
   }
-  Line invalid_line = {mask.rows, 0};
+  const Line invalid_line = {mask.rows, 0};
   std::vector<Line> lines(mask.cols);
   for (int i = 0; i < mask.cols; i++) {
     auto longest_line = FindLongestLineInColumn(mask.col(i));
@@ -128,9 +128,9 @@ std::optional<utils::RectPPi> FindLargestCrop(const cv::Mat& mask) {
 
   std::optional<utils::RectPPi> largest_rect;
 
-  int num_samples = 1 + mask.cols / kAutoCropSamplingDistance;
+  const int num_samples = 1 + mask.cols / kAutoCropSamplingDistance;
   for (int i = 0; i < num_samples; i++) {
-    int start = (i + 1) * mask.cols / (num_samples + 1);
+    const int start = (i + 1) * mask.cols / (num_samples + 1);
     auto current_rect = FindLargestCrop(lines, invalid_line, start);
 
     if (current_rect && (!largest_rect || utils::Area(*current_rect) >=

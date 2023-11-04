@@ -67,9 +67,9 @@ cv::UMat ToUMat(const std::array<TChannelType, 3> &mb_channels, int width,
   auto green = cv::Mat(height, width, CV_8UC1, mb_channels[1].get());
   auto red = cv::Mat(height, width, CV_8UC1, mb_channels[2].get());
 
-  std::vector<cv::UMat> channels{blue.getUMat(cv::ACCESS_READ),
-                                 green.getUMat(cv::ACCESS_READ),
-                                 red.getUMat(cv::ACCESS_READ)};
+  const std::vector<cv::UMat> channels{blue.getUMat(cv::ACCESS_READ),
+                                       green.getUMat(cv::ACCESS_READ),
+                                       red.getUMat(cv::ACCESS_READ)};
   cv::UMat pano;
   cv::merge(channels, pano);
   return pano;

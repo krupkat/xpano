@@ -1,1 +1,1 @@
-run-clang-tidy `pwd`/xpano `pwd`/tests -p=build -quiet
+run-clang-tidy-15 `pwd`/xpano `pwd`/tests -p=build -quiet

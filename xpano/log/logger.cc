@@ -56,7 +56,7 @@ void CustomLog(void * /*userdata*/, int /*category*/, SDL_LogPriority priority,
 }  // namespace
 
 std::vector<std::string> BufferSinkMt::LastFormatted() {
-  std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
+  const std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
   std::vector<std::string> new_messages;
   std::swap(new_messages, messages_);
   return new_messages;

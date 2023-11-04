@@ -96,9 +96,9 @@ void AboutPane::Draw() {
     WaitForLicenseLoading();
   }
 
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking |
-                                  ImGuiWindowFlags_NoCollapse |
-                                  ImGuiWindowFlags_NoSavedSettings;
+  const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking |
+                                        ImGuiWindowFlags_NoCollapse |
+                                        ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::SetNextWindowSize(
       utils::imgui::DpiAwareSize(kAboutBoxWidth, kAboutBoxHeight),

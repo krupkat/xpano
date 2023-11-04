@@ -72,7 +72,7 @@ class Timer {
 
   void Report(std::string_view message) {
     if (Enabled()) {
-      int64 end_count = cv::getTickCount();
+      const int64 end_count = cv::getTickCount();
       auto elapsed =
           static_cast<double>(end_count - start_count_) / TickFrequency();
       spdlog::trace("{}: {} sec", message, elapsed);
@@ -82,13 +82,13 @@ class Timer {
 
  private:
   static bool Enabled() {
-    static bool enabled = spdlog::get_level() <= spdlog::level::trace;
-    return enabled;
+    static const bool kEnabled = spdlog::get_level() <= spdlog::level::trace;
+    return kEnabled;
   }
 
   static double TickFrequency() {
-    static double tick_frequency = cv::getTickFrequency();
-    return tick_frequency;
+    static const double kTickFrequency = cv::getTickFrequency();
+    return kTickFrequency;
   }
 
   int64 start_count_;
@@ -201,13 +201,11 @@ Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
   images.getUMatVector(imgs_);
   masks.getUMatVector(masks_);
 
-  Status status;
-
-  if ((status = MatchImages()) != Status::kSuccess) {
+  if (auto status = MatchImages(); status != Status::kSuccess) {
     return status;
   }
 
-  if ((status = EstimateCameraParams()) != Status::kSuccess) {
+  if (auto status = EstimateCameraParams(); status != Status::kSuccess) {
     return status;
   }
 
@@ -231,7 +229,7 @@ Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
   }
 
   // Warp images and their masks
-  cv::Ptr<cv::detail::RotationWarper> warper = warper_creater_->create(
+  const cv::Ptr<cv::detail::RotationWarper> warper = warper_creater_->create(
       static_cast<float>(warped_image_scale_ * seam_work_aspect_));
   auto seam_cameras = Scale(cameras_, seam_work_aspect_);
   for (size_t i = 0; i < imgs_.size(); ++i) {
@@ -313,7 +311,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     // Update corners and sizes
     for (size_t i = 0; i < imgs_.size(); ++i) {
       auto k_float = ToFloat(cameras_scaled[i].K());
-      cv::Rect roi =
+      const cv::Rect roi =
           warper->warpRoi(full_img_sizes_[i], k_float, cameras_scaled[i].R);
       corners[i] = roi.tl();
       sizes[i] = roi.size();
@@ -335,9 +333,9 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     auto compositing_timer = Timer();
 
     cv::UMat img = imgs_[img_idx];
-    cv::Size img_size = img.size();
+    const cv::Size img_size = img.size();
 
-    cv::Mat k_float = ToFloat(cameras_scaled[img_idx].K());
+    const cv::Mat k_float = ToFloat(cameras_scaled[img_idx].K());
 
     auto timer = Timer();
 
@@ -401,7 +399,7 @@ Status Stitcher::Stitch(cv::InputArrayOfArrays images, cv::OutputArray pano) {
 
 Status Stitcher::Stitch(cv::InputArrayOfArrays images,
                         cv::InputArrayOfArrays masks, cv::OutputArray pano) {
-  Status status = EstimateTransform(images, masks);
+  const Status status = EstimateTransform(images, masks);
   if (status != Status::kSuccess) {
     return status;
   }
@@ -517,6 +515,8 @@ Status Stitcher::EstimateCameraParams() {
 
   if (do_wave_correct_) {
     std::vector<cv::Mat> rmats;
+    rmats.reserve(cameras_.size());
+
     for (auto &camera : cameras_) {
       rmats.push_back(camera.R.clone());
     }

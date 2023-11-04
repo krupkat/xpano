@@ -16,12 +16,12 @@ void InitDockSpaceFirstTime(ImGuiID dockspace_id, ImVec2 viewport_size) {
   const auto sidebar_width = utils::imgui::DpiAwareSize(kSidebarWidth, 0).x;
 
   ImGuiID dock_main_id = dockspace_id;
-  ImGuiID dock_id_thumbnails = ImGui::DockBuilderSplitNode(
+  const ImGuiID dock_id_thumbnails = ImGui::DockBuilderSplitNode(
       dock_main_id, ImGuiDir_Down, 0.20f, nullptr, &dock_main_id);
-  ImGuiID dock_id_sidebar = ImGui::DockBuilderSplitNode(
+  const ImGuiID dock_id_sidebar = ImGui::DockBuilderSplitNode(
       dock_main_id, ImGuiDir_Left, sidebar_width / viewport_size.x, nullptr,
       &dock_main_id);
-  ImGuiID dock_id_logger = ImGui::DockBuilderSplitNode(
+  const ImGuiID dock_id_logger = ImGui::DockBuilderSplitNode(
       dock_main_id, ImGuiDir_Right, 0.25f, nullptr, &dock_main_id);
 
   ImGui::DockBuilderDockWindow("PanoSweep", dock_id_sidebar);
@@ -38,7 +38,7 @@ void InitDockSpace() {
   ImGui::SetNextWindowSize(viewport->WorkSize);
   ImGui::SetNextWindowViewport(viewport->ID);
 
-  ImGuiWindowFlags window_flags =
+  const ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
       ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
@@ -51,7 +51,8 @@ void InitDockSpace() {
   ImGui::PopStyleVar(3);
 
   ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-  bool init_dockspace = ImGui::DockBuilderGetNode(dockspace_id) == nullptr;
+  const bool init_dockspace =
+      ImGui::DockBuilderGetNode(dockspace_id) == nullptr;
   dockspace_id = ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),
                                   ImGuiDockNodeFlags_NoTabBar);
   ImGui::End();

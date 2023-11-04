@@ -13,9 +13,10 @@ struct StartEnd;
 struct StartSize;
 
 template <typename TTypeLeft, typename TTypeRight>
-requires std::same_as<typename TTypeLeft::NameTag,
-                      typename TTypeRight::NameTag> &&
-    std::same_as<typename TTypeLeft::ValueType, typename TTypeRight::ValueType>
+  requires std::same_as<typename TTypeLeft::NameTag,
+                        typename TTypeRight::NameTag> &&
+           std::same_as<typename TTypeLeft::ValueType,
+                        typename TTypeRight::ValueType>
 struct RectStartEnd {
   using RectType = StartEnd;
   TTypeLeft start;
@@ -23,9 +24,10 @@ struct RectStartEnd {
 };
 
 template <typename TTypeLeft, typename TTypeRight>
-requires std::same_as<typename TTypeLeft::NameTag, utils::Point> &&
-    std::same_as<typename TTypeRight::NameTag, utils::Vector> &&
-    std::same_as<typename TTypeLeft::ValueType, typename TTypeRight::ValueType>
+  requires std::same_as<typename TTypeLeft::NameTag, utils::Point> &&
+           std::same_as<typename TTypeRight::NameTag, utils::Vector> &&
+           std::same_as<typename TTypeLeft::ValueType,
+                        typename TTypeRight::ValueType>
 struct RectStartSize {
   using RectType = StartSize;
   TTypeLeft start;
