@@ -50,7 +50,7 @@ DpiHandler::DpiHandler(SDL_Window* window, WindowManager window_manager)
     : window_(window), window_manager_(window_manager) {}
 
 bool DpiHandler::DpiChanged() {
-  if (float dpi_scale = QueryDpiScale(); dpi_scale != dpi_scale_) {
+  if (const float dpi_scale = QueryDpiScale(); dpi_scale != dpi_scale_) {
     dpi_scale_ = dpi_scale;
     spdlog::info("Loading fonts at {}x scale", dpi_scale);
     return true;

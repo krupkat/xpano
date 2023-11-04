@@ -147,7 +147,7 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
   }
 
   // KNN MATCH, K = 2
-  cv::FlannBasedMatcher matcher;
+  const cv::FlannBasedMatcher matcher;
   std::vector<std::vector<cv::DMatch>> matches;
   matcher.knnMatch(img1.GetDescriptors(), img2.GetDescriptors(), matches, 2);
 
@@ -164,17 +164,18 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
   }
 
   // ESTIMATE HOMOGRAPHY
-  int num_good_matches = static_cast<int>(good_matches.size());
+  const int num_good_matches = static_cast<int>(good_matches.size());
   cv::Mat src_points(1, num_good_matches, CV_32FC2);
   cv::Mat dst_points(1, num_good_matches, CV_32FC2);
   cv::Mat dst_points_proj;
   int idx = 0;
-  for (cv::DMatch& match : good_matches) {
+  for (const cv::DMatch& match : good_matches) {
     src_points.at<cv::Vec2f>(0, idx) = img1.GetKeypoints()[match.queryIdx].pt;
     dst_points.at<cv::Vec2f>(0, idx) = img2.GetKeypoints()[match.trainIdx].pt;
     idx++;
   }
-  cv::Mat h_mat = cv::findHomography(src_points, dst_points, cv::RANSAC, 3);
+  const cv::Mat h_mat =
+      cv::findHomography(src_points, dst_points, cv::RANSAC, 3);
   if (h_mat.empty()) {
     return {};
   }
@@ -183,7 +184,7 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
   // FILTER OUTLIERS
   std::vector<cv::DMatch> inliers;
   for (int i = 0; i < good_matches.size(); i++) {
-    cv::Vec2f diff =
+    const cv::Vec2f diff =
         dst_points.at<cv::Vec2f>(0, i) - dst_points_proj.at<cv::Vec2f>(0, i);
     if (norm(diff) < 3) {
       inliers.push_back(good_matches[i]);
@@ -212,7 +213,7 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 
   std::unordered_map<int, Pano> pano_map;
   for (auto image_id : images_in_panos) {
-    int root = pano_ds.Find(image_id);
+    const int root = pano_ds.Find(image_id);
     if (auto pano = pano_map.find(root); pano != pano_map.end()) {
       InsertInOrder(image_id, &pano->second.ids);
     } else {

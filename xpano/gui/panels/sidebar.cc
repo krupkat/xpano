@@ -440,7 +440,7 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
       ImGui::PopID();
 
       if (i == highlight_id || ImGui::IsItemHovered()) {
-        ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+        const ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
         ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
       }
 
@@ -488,7 +488,7 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
       ImGui::PopID();
 
       if (i == highlight_id || ImGui::IsItemHovered()) {
-        ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+        const ImU32 row_bg_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
         ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, row_bg_color);
       }
 

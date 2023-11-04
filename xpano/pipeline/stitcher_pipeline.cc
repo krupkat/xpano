@@ -90,7 +90,7 @@ WaitStatus WaitWithCancellation(TFutureType *future,
 
 ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options,
                                ProgressMonitor *progress) {
-  int num_tasks = 2;
+  const int num_tasks = 2;
   progress->Reset(ProgressType::kExport, num_tasks);
 
   if (options.crop) {
@@ -116,7 +116,7 @@ std::vector<algorithm::Image> RunLoadingPipeline(
     const std::vector<std::filesystem::path> &inputs,
     const LoadingOptions &options, bool compute_keypoints,
     ProgressMonitor *progress, utils::mt::Threadpool *pool) {
-  int num_tasks = static_cast<int>(inputs.size());
+  const int num_tasks = static_cast<int>(inputs.size());
   progress->Reset(ProgressType::kDetectingKeypoints, num_tasks);
   utils::mt::MultiFuture<algorithm::Image> loading_future;
   for (const auto &input : inputs) {
@@ -160,10 +160,10 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
     return StitcherData{std::move(images), {}, {pano}};
   }
 
-  int num_images = static_cast<int>(images.size());
-  int num_neighbors =
+  const int num_images = static_cast<int>(images.size());
+  const int num_neighbors =
       std::min(options.neighborhood_search_size, num_images - 1);
-  int num_tasks =
+  const int num_tasks =
       1 +                                             // FindPanos
       (num_images - num_neighbors) * num_neighbors +  // full n-tuples
       ((num_neighbors - 1) * num_neighbors) / 2;      // non-full (j - i < 0)
@@ -206,8 +206,8 @@ StitchingResult RunStitchingPipeline(
     const StitchingOptions &options, ProgressMonitor *progress,
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
     utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
-  int num_images = static_cast<int>(pano.ids.size());
-  int num_tasks = StitchTaskCount(options, num_images);
+  const int num_images = static_cast<int>(pano.ids.size());
+  const int num_tasks = StitchTaskCount(options, num_images);
   progress->Reset(ProgressType::kLoadingImages, num_tasks);
   std::vector<cv::Mat> imgs;
   if (options.full_res) {
@@ -225,7 +225,7 @@ StitchingResult RunStitchingPipeline(
     }
     imgs = imgs_future.get();
   } else {
-    for (int img_id : pano.ids) {
+    for (const int img_id : pano.ids) {
       imgs.push_back(images[img_id].GetPreview());
     }
     progress->NotifyTaskDone();
@@ -380,13 +380,13 @@ auto StitcherPipeline<run>::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
   task.future =
       pool_.submit([pano = std::move(pano), pano_mask = std::move(pano_mask),
                     options, progress = task.progress.get()]() {
-        int num_tasks = 3;
+        const int num_tasks = 3;
         progress->Reset(ProgressType::kInpainting, num_tasks);
 
         cv::Mat inpaint_mask;
         cv::bitwise_not(pano_mask, inpaint_mask);
         progress->NotifyTaskDone();
-        int pixels_filled = cv::countNonZero(inpaint_mask);
+        const int pixels_filled = cv::countNonZero(inpaint_mask);
         progress->NotifyTaskDone();
         auto result = algorithm::Inpaint(pano, inpaint_mask, options);
         progress->NotifyTaskDone();

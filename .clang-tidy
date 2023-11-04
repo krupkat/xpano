@@ -1,10 +1,12 @@
 # Disabled bugprone-exception-escape because of a bug in clang-tidy:
 # https://github.com/llvm/llvm-project/issues/54668
+# Dangerous: bugprone-unchecked-optional-access
 
 Checks: >
   -*,
   bugprone-*,
   -bugprone-exception-escape,
+  -bugprone-unchecked-optional-access,
   google-*,
   misc-*,
   modernize-*,

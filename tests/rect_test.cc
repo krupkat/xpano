@@ -15,19 +15,13 @@ using xpano::utils::Rect;
 using xpano::utils::Vec2f;
 
 template <typename TRectType>
-concept HasStart = requires(TRectType rect) {
-  rect.start;
-};
+concept HasStart = requires(TRectType rect) { rect.start; };
 
 template <typename TRectType>
-concept HasSize = requires(TRectType rect) {
-  rect.size;
-};
+concept HasSize = requires(TRectType rect) { rect.size; };
 
 template <typename TRectType>
-concept HasEnd = requires(TRectType rect) {
-  rect.end;
-};
+concept HasEnd = requires(TRectType rect) { rect.end; };
 
 TEST_CASE("Rect from Point and Vec") {
   auto rect = Rect(Point2f{1.0f, 2.0f}, Vec2f{1.0f, 2.0f});

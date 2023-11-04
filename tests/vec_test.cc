@@ -45,26 +45,26 @@ TEST_CASE("Vec constructor") {
 }
 
 TEST_CASE("Vec aspect (float)") {
-  Vec2f vec{1.0f, 2.0f};
+  const Vec2f vec{1.0f, 2.0f};
   REQUIRE(vec.Aspect() == Approx(0.5f));
 }
 
 TEST_CASE("Vec aspect (int)") {
-  Vec2i vec{1, 2};
+  const Vec2i vec{1, 2};
   REQUIRE(vec.Aspect() == Approx(0.5f));
 }
 
 TEST_CASE("ToIntVec") {
-  Vec2f vec{1.1f, 2.3f};
+  const Vec2f vec{1.1f, 2.3f};
   auto result = ToIntVec(vec);
   REQUIRE(result[0] == 1);
   REQUIRE(result[1] == 2);
 }
 
 TEST_CASE("Add") {
-  Vec2f vec1 = {1.0f, 2.0f};
-  Vec2f vec2 = {0.2f, 1.5f};
-  Point2f point1 = {3.0f, 4.0f};
+  const Vec2f vec1 = {1.0f, 2.0f};
+  const Vec2f vec2 = {0.2f, 1.5f};
+  const Point2f point1 = {3.0f, 4.0f};
 
   SECTION("Vec + Vec") {
     auto result = vec1 + vec2;
@@ -87,8 +87,8 @@ TEST_CASE("Add") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Addable = requires(TLeft lhs, TRight rhs, TResult result) {
-  { lhs + rhs } -> std::same_as<TResult>;
-};
+                    { lhs + rhs } -> std::same_as<TResult>;
+                  };
 
 TEST_CASE("Add type checks") {
   REQUIRE(Addable<Vec2f, Vec2f, Vec2f>);
@@ -98,10 +98,10 @@ TEST_CASE("Add type checks") {
 }
 
 TEST_CASE("Subtract") {
-  Vec2f vec1 = {1.0f, 2.0f};
-  Vec2f vec2 = {0.2f, 1.5f};
-  Point2f point1 = {3.0f, 4.0f};
-  Point2f point2 = {2.0f, 3.0f};
+  const Vec2f vec1 = {1.0f, 2.0f};
+  const Vec2f vec2 = {0.2f, 1.5f};
+  const Point2f point1 = {3.0f, 4.0f};
+  const Point2f point2 = {2.0f, 3.0f};
 
   SECTION("Vec - Vec") {
     auto result = vec1 - vec2;
@@ -124,8 +124,8 @@ TEST_CASE("Subtract") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Subtractable = requires(TLeft lhs, TRight rhs, TResult result) {
-  { lhs - rhs } -> std::same_as<TResult>;
-};
+                         { lhs - rhs } -> std::same_as<TResult>;
+                       };
 
 TEST_CASE("Subtract type checks") {
   REQUIRE(Subtractable<Vec2f, Vec2f, Vec2f>);
@@ -141,8 +141,8 @@ TEST_CASE("Subtract type checks") {
 }
 
 TEST_CASE("Divide by constant") {
-  Vec2f vec1 = {5.0f, 10.0f};
-  Vec2i vec2 = {5, 10};
+  const Vec2f vec1 = {5.0f, 10.0f};
+  const Vec2i vec2 = {5, 10};
 
   SECTION("Vec2f / float") {
     auto result = vec1 / 2.0f;
@@ -170,11 +170,11 @@ TEST_CASE("Divide by constant") {
 }
 
 TEST_CASE("Divide by Vec") {
-  Vec2f vec1 = {5.0f, 10.0f};
-  Vec2f vec2 = {2.0f, 5.0f};
+  const Vec2f vec1 = {5.0f, 10.0f};
+  const Vec2f vec2 = {2.0f, 5.0f};
 
-  Vec2i vec1i = {5, 10};
-  Vec2i vec2i = {2, 5};
+  const Vec2i vec1i = {5, 10};
+  const Vec2i vec2i = {2, 5};
 
   SECTION("Vec2f / Vec2f") {
     auto result = vec1 / vec2;
@@ -191,8 +191,8 @@ TEST_CASE("Divide by Vec") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Divisible = requires(TLeft lhs, TRight rhs, TResult result) {
-  { lhs / rhs } -> std::same_as<TResult>;
-};
+                      { lhs / rhs } -> std::same_as<TResult>;
+                    };
 
 TEST_CASE("Divide type checks") {
   SECTION("Divide by constant") {
@@ -218,8 +218,8 @@ TEST_CASE("Divide type checks") {
 }
 
 TEST_CASE("Multiply by constant") {
-  Vec2f vec1 = {1.0f, 2.0f};
-  Vec2i vec2 = {1, 2};
+  const Vec2f vec1 = {1.0f, 2.0f};
+  const Vec2i vec2 = {1, 2};
 
   SECTION("Vec2f * float") {
     auto result = vec1 * 1.5f;
@@ -247,11 +247,11 @@ TEST_CASE("Multiply by constant") {
 }
 
 TEST_CASE("Multiply by Ratio") {
-  Vec2f vec1 = {5.0f, 10.0f};
-  Vec2i vec2 = {5, 10};
+  const Vec2f vec1 = {5.0f, 10.0f};
+  const Vec2i vec2 = {5, 10};
 
-  Ratio2f ratio1 = {2.5f, 5.0f};
-  Ratio2i ratio2 = {2, 5};
+  const Ratio2f ratio1 = {2.5f, 5.0f};
+  const Ratio2i ratio2 = {2, 5};
 
   SECTION("Vec2f * Ratio2f") {
     auto result = vec1 * ratio1;
@@ -280,8 +280,8 @@ TEST_CASE("Multiply by Ratio") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Multiplicable = requires(TLeft lhs, TRight rhs, TResult result) {
-  { lhs* rhs } -> std::same_as<TResult>;
-};
+                          { lhs* rhs } -> std::same_as<TResult>;
+                        };
 
 TEST_CASE("Multiply type checks") {
   SECTION("Multiply by constant") {
@@ -305,8 +305,8 @@ TEST_CASE("Multiply type checks") {
 }
 
 TEST_CASE("Multiply elements") {
-  Vec2f vec1 = {2.0f, 2.5f};
-  Vec2i vec2 = {4, 8};
+  const Vec2f vec1 = {2.0f, 2.5f};
+  const Vec2i vec2 = {4, 8};
 
   REQUIRE(xpano::utils::MultiplyElements(vec1) == Approx(5.0f));
   REQUIRE(xpano::utils::MultiplyElements(vec2) == 32);

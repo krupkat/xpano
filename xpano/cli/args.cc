@@ -41,9 +41,9 @@ void ParseArg(Args* result, const std::string& arg) {
 
 Args ParseArgsRaw(int argc, char** argv) {
   Args result;
-  std::vector<std::filesystem::path> input_paths;
+  const std::vector<std::filesystem::path> input_paths;
   for (int i = 1; i < argc; ++i) {
-    std::string arg = argv[i];
+    const std::string arg = argv[i];
     ParseArg(&result, arg);
   }
   return result;

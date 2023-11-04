@@ -91,7 +91,7 @@ void DrawScrollableText(const char* label,
   ImGui::BeginChild(label, size);
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
   ImGuiListClipper clipper;
-  int num_lines = static_cast<int>(lines.size());
+  const int num_lines = static_cast<int>(lines.size());
   clipper.Begin(num_lines);
   while (clipper.Step()) {
     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {

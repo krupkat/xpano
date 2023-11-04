@@ -32,7 +32,7 @@
 #endif
 
 int main(int argc, char** argv) {
-  std::string locale = std::setlocale(LC_ALL, "en_US.UTF-8");
+  const char* locale = std::setlocale(LC_ALL, "en_US.UTF-8");
   auto [cli_status, args] = xpano::cli::Run(argc, argv);
 
   if (cli_status != xpano::cli::ResultType::kForwardToGui) {
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   // SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
 #endif
 
-  bool has_wayland_support = (SDL_VideoInit("wayland") == 0);
+  const bool has_wayland_support = (SDL_VideoInit("wayland") == 0);
 
 #if SDL_VERSION_ATLEAST(2, 0, 22)
   // Prefer Wayland as it provides non-blurry fractional scaling
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
   xpano::logger::Logger logger{};
   logger.RedirectSpdlogToGui(app_data_path);
   xpano::logger::RedirectSDLOutput();
-  spdlog::info("Current locale: {}", locale);
+  // spdlog::info("Current locale: {}", locale);
 
   if (!app_data_path) {
     spdlog::warn(

@@ -29,9 +29,9 @@ void BugReportPane::Draw() {
     return;
   }
 
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking |
-                                  ImGuiWindowFlags_NoCollapse |
-                                  ImGuiWindowFlags_NoSavedSettings;
+  const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking |
+                                        ImGuiWindowFlags_NoCollapse |
+                                        ImGuiWindowFlags_NoSavedSettings;
 
   ImGui::Begin("Support", &show_, window_flags);
 

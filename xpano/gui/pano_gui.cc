@@ -257,7 +257,7 @@ WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
   }
 }
 
-algorithm::Image const* FirstImage(const pipeline::StitcherData& stitcher_data,
+const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
                                    int pano_id) {
   const auto& pano = stitcher_data.panos.at(pano_id);
   return &stitcher_data.images.at(pano.ids.at(0));

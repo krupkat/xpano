@@ -23,8 +23,9 @@
 namespace xpano::gui {
 
 void HoverChecker::SetColor(int img_id) {
-  bool highlighted = std::find(highlighted_ids_.begin(), highlighted_ids_.end(),
-                               img_id) != highlighted_ids_.end();
+  const bool highlighted =
+      std::find(highlighted_ids_.begin(), highlighted_ids_.end(), img_id) !=
+      highlighted_ids_.end();
 
   if (WasHovered(img_id)) {
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, highlighted
@@ -85,9 +86,9 @@ void AutoScroller::Rescroll() {
       break;
     }
     case ScrollType::kAbsolute: {
-      float current_scroll = ImGui::GetScrollX();
-      float scroll_diff = std::abs(current_scroll - scroll_target_);
-      float scroll_speed =
+      const float current_scroll = ImGui::GetScrollX();
+      const float scroll_diff = std::abs(current_scroll - scroll_target_);
+      const float scroll_speed =
           (1.0f + scroll_diff / kScrollingStep) * kScrollingStepPerFrame;
       if (scroll_diff > scroll_speed) {
         ImGui::SetScrollX(current_scroll +
@@ -124,7 +125,7 @@ ThumbnailPane::ThumbnailPane(backends::Base *backend) : backend_(backend) {}
 
 void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   spdlog::info("Loading {} thumbnails", images.size());
-  int num_images = static_cast<int>(images.size());
+  const int num_images = static_cast<int>(images.size());
   auto thumbnail_size = utils::Vec2i{kThumbnailSize};
   int side = 0;
   while (side * side < num_images) {
@@ -133,14 +134,14 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
   auto size = thumbnail_size * side;
   spdlog::info("Thumbnail texture size: {} x {}", size[0], size[1]);
   auto type = images[0].GetThumbnail().type();
-  cv::Mat atlas{utils::CvSize(size), type};
+  const cv::Mat atlas{utils::CvSize(size), type};
   for (int i = 0; i < images.size(); i++) {
     auto tex_coord = thumbnail_size * utils::Ratio2i{i % side, i / side};
     const auto preview = images[i].GetThumbnail();
     preview.copyTo(
         atlas(utils::CvRect(utils::Point2i{0} + tex_coord, thumbnail_size)));
-    Coord coord{tex_coord / size, (tex_coord + thumbnail_size) / size,
-                images[i].GetAspect()};
+    const Coord coord{tex_coord / size, (tex_coord + thumbnail_size) / size,
+                      images[i].GetAspect()};
     coords_.emplace_back(coord);
   }
   scroll_.resize(coords_.size());
@@ -172,7 +173,7 @@ Action ThumbnailPane::Draw() {
   for (int coord_id = 0; coord_id < coords_.size(); coord_id++) {
     ImGui::PushID(coord_id);
     hover_checker_.SetColor(coord_id);
-    float scroll_pre = ImGui::GetCursorPosX();
+    const float scroll_pre = ImGui::GetCursorPosX();
     if (ThumbnailButton(coord_id)) {
       if (io_.KeyCtrl) {
         action = {ActionType::kModifyPano, coord_id};
@@ -187,7 +188,7 @@ Action ThumbnailPane::Draw() {
   }
 
   if (ImGui::IsWindowHovered()) {
-    if (float mouse_wheel = io_.MouseWheel; mouse_wheel != 0) {
+    if (const float mouse_wheel = io_.MouseWheel; mouse_wheel != 0) {
       auto_scroller_.SetScrollTargetRelative(-1 * mouse_wheel * kScrollingStep);
     }
   }
@@ -201,7 +202,7 @@ void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
     return;
   }
   ImGui::BeginTooltip();
-  for (int img_id : images) {
+  for (const int img_id : images) {
     ThumbnailButton(img_id);
     ImGui::SameLine();
   }
@@ -222,7 +223,7 @@ void ThumbnailPane::SetScrollX(int id1, int id2) {
   SetScrollX(std::vector<int>({id1, id2}));
 }
 void ThumbnailPane::SetScrollX(const std::vector<int> &ids) {
-  float scroll =
+  const float scroll =
       std::transform_reduce(ids.begin(), ids.end(), 0.0f, std::plus<>(),
                             [this](int index) { return scroll_[index]; }) /
       static_cast<float>(ids.size());

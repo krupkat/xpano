@@ -24,19 +24,22 @@ struct Vec {
   constexpr Vec() = default;
 
   template <typename TFillType>
-  requires std::same_as<TType, TFillType>
-  explicit constexpr Vec(TFillType value) { data_.fill(value); }
+    requires std::same_as<TType, TFillType>
+  explicit constexpr Vec(TFillType value) {
+    data_.fill(value);
+  }
 
   template <typename... Args>
-  requires(std::same_as<TType, Args>&&...) && (sizeof...(Args) == N)
-      // NOLINTNEXTLINE(google-explicit-constructor)
-      constexpr Vec(Args... args)
-      : data_{args...} {};
+    requires(std::same_as<TType, Args> && ...) && (sizeof...(Args) == N)
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  constexpr Vec(Args... args) : data_{args...} {};
 
   constexpr TType& operator[](size_t index) { return data_[index]; }
   constexpr const TType& operator[](size_t index) const { return data_[index]; }
 
-  [[nodiscard]] constexpr float Aspect() const requires(N == 2) {
+  [[nodiscard]] constexpr float Aspect() const
+    requires(N == 2)
+  {
     return static_cast<float>(data_[0]) / static_cast<float>(data_[1]);
   }
 
@@ -92,9 +95,8 @@ constexpr auto MultiplyByRatio(const Vec<TType, N, Tag>& lhs,
 
 template <typename TagLeft, typename TagRight>
 concept Addable =
-    !(std::same_as<TagLeft, Point> &&
-      std::same_as<TagRight, Point>)&&!std::same_as<TagLeft, Ratio> &&
-    !std::same_as<TagRight, Ratio>;
+    !(std::same_as<TagLeft, Point> && std::same_as<TagRight, Point>) && !
+std::same_as<TagLeft, Ratio> && !std::same_as<TagRight, Ratio>;
 
 template <typename TagLeft, typename TagRight>
 using AddResultTag = std::conditional_t<std::is_same_v<TagLeft, Vector> &&
@@ -169,7 +171,7 @@ constexpr auto ToIntVec(const Vec<TType, N, NameTag>& vec) {
 // Vec + Point = Point
 // Point + Vec = Point
 template <typename TType, size_t N, typename TagLeft, typename TagRight>
-requires internal::Addable<TagLeft, TagRight>
+  requires internal::Addable<TagLeft, TagRight>
 constexpr auto operator+(const Vec<TType, N, TagLeft>& lhs,
                          const Vec<TType, N, TagRight>& rhs) {
   return internal::Add(lhs, rhs, std::make_index_sequence<N>{});
@@ -180,7 +182,7 @@ constexpr auto operator+(const Vec<TType, N, TagLeft>& lhs,
 // Point - Point = Vec
 // Ratio - Ratio = Ratio
 template <typename TType, size_t N, typename TagLeft, typename TagRight>
-requires internal::Subtractable<TagLeft, TagRight>
+  requires internal::Subtractable<TagLeft, TagRight>
 constexpr auto operator-(const Vec<TType, N, TagLeft>& lhs,
                          const Vec<TType, N, TagRight>& rhs) {
   return internal::Subtract(lhs, rhs, std::make_index_sequence<N>{});
@@ -188,7 +190,7 @@ constexpr auto operator-(const Vec<TType, N, TagLeft>& lhs,
 
 // T / constant = T<common_type<T, constant>>
 template <typename TType, size_t N, typename Tag, typename TRight>
-requires std::common_with<TType, TRight>
+  requires std::common_with<TType, TRight>
 constexpr auto operator/(const Vec<TType, N, Tag>& lhs, TRight rhs) {
   return internal::DivideByConstant(lhs, rhs, std::make_index_sequence<N>{});
 }
@@ -204,7 +206,7 @@ constexpr auto operator/(const Vec<TType, N, Tag>& lhs,
 
 // T * constant = T<common_type<T, constant>>
 template <typename TType, size_t N, typename Tag, typename TRight>
-requires std::common_with<TType, TRight>
+  requires std::common_with<TType, TRight>
 constexpr auto operator*(const Vec<TType, N, Tag>& lhs, TRight rhs) {
   return internal::MultiplyByConstant(lhs, rhs, std::make_index_sequence<N>{});
 }

@@ -24,7 +24,7 @@ void DrawMessage(utils::Point2f pos, const std::string& message) {
   if (message.empty()) {
     return;
   }
-  ImGuiWindowFlags window_flags =
+  const ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking |
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
       ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
@@ -161,7 +161,7 @@ constexpr int Select(TEdge... edges) {
 }
 
 void SelectMouseCursor(const DraggableWidget& crop) {
-  int mouse_cursor_selector = std::accumulate(
+  const int mouse_cursor_selector = std::accumulate(
       crop.edges.begin(), crop.edges.end(), 0, [](int sum, const Edge& edge) {
         return sum + (edge.mouse_close || edge.dragging
                           ? static_cast<int>(edge.type)
@@ -247,12 +247,13 @@ void PreviewPane::Reload(cv::Mat image, ImageType image_type) {
     tex_ = backend_->CreateTexture(texture_size);
   }
 
-  int larger_dim = image.size[0] > image.size[1] ? 0 : 1;
+  const int larger_dim = image.size[0] > image.size[1] ? 0 : 1;
 
   cv::Mat resized;
   utils::Ratio2f coord_uv;
   if (image.size[larger_dim] > kLoupeSize) {
-    if (float aspect = utils::ToIntVec(image.size).Aspect(); aspect >= 1.0f) {
+    if (const float aspect = utils::ToIntVec(image.size).Aspect();
+        aspect >= 1.0f) {
       coord_uv = {1.0f, 1.0f / aspect};
     } else {
       coord_uv = {1.0f * aspect, 1.0f};
@@ -332,8 +333,8 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
   if (crop_mode_ == CropMode::kEnabled) {
-    bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-    bool mouse_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+    const bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+    const bool mouse_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
 
     crop_widget_ =
@@ -347,9 +348,9 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
   }
 
   // Zoom + pan only when not cropping
-  bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-  bool mouse_dragging = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
-  float mouse_wheel = ImGui::GetIO().MouseWheel;
+  const bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  const bool mouse_dragging = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+  const float mouse_wheel = ImGui::GetIO().MouseWheel;
 
   if (mouse_clicked || mouse_dragging || mouse_wheel != 0) {
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
