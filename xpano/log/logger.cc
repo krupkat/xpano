@@ -84,8 +84,6 @@ void Logger::RedirectSpdlogToGui(
   sink_->set_pattern("[%l] %v");
   sinks.push_back(sink_);
 
-  sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
-
   if (app_data_path) {
     auto log_path = *app_data_path / kLogFilename;
     log_dir_path_ = app_data_path->string();
