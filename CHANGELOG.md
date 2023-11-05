@@ -1,3 +1,12 @@
+# Xpano 0.17.0
+
+- Image stack detection
+  - Useful to filter out groups of images that aren't supposed to be stitched
+
+# Xpano 0.16.3
+
+- AppImage support
+
 # Xpano 0.16.1
 
 - Fix for panoramas with fully obscured images

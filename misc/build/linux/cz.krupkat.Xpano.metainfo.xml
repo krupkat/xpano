@@ -29,6 +29,13 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.17.0" date="2023-11-05">
+      <description>
+        <ul>
+          <li>Image stack detection</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.16.1" date="2023-07-12">
       <description>
         <ul>
