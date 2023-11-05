@@ -4,6 +4,7 @@ project(Xpano)
 OPTION(BUILD_TESTING "Build tests" OFF)
 OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
 OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ON)
+OPTION(XPANO_INSTALL_DESKTOP_FILES "Install desktop files" OFF)
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -167,7 +168,7 @@ install(FILES
   TYPE BIN
 )
 
-if(CMAKE_INSTALL_PREFIX MATCHES "^/usr.*|^/app.*")
+if(XPANO_INSTALL_DESKTOP_FILES OR CMAKE_INSTALL_PREFIX MATCHES "^/usr.*|^/app.*")
   install(FILES
     "misc/build/linux/xpano.desktop"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
