@@ -40,6 +40,9 @@ int CountNonZero(const cv::Mat& image) {
   return cv::countNonZero(image_gray);
 }
 
+// Clang-tidy doesn't like the macros
+// NOLINTBEGIN(readability-function-cognitive-complexity)
+
 TEST_CASE("Stitcher pipeline defaults") {
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
 
@@ -93,9 +96,6 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK(total_pixels == non_zero_pixels);
 }
 
-// Clang-tidy doesn't like the macros
-// NOLINTBEGIN(readability-function-cognitive-complexity)
-
 TEST_CASE("Stitcher pipeline single pano matching") {
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
   auto loading_task = stitcher.RunLoading(
@@ -133,8 +133,6 @@ TEST_CASE("Stitcher pipeline no matching") {
     REQUIRE(image.GetDescriptors().empty());
   }
 }
-
-// NOLINTEND(readability-function-cognitive-complexity)
 
 const std::vector<std::filesystem::path> kShuffledInputs = {
     "data/image01.jpg",  // Pano 1
@@ -532,3 +530,5 @@ TEST_CASE("Stitcher pipeline stack detection") {
   REQUIRE(result.panos.size() == 1);
   CHECK_THAT(result.panos[0].ids, Equals<int>({2, 3}));
 }
+
+// NOLINTEND(readability-function-cognitive-complexity)
