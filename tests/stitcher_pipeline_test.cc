@@ -500,3 +500,35 @@ TEST_CASE("Stitcher pipeline polling") {
   CHECK_THAT(pano1->rows, WithinRel(976, eps));
   CHECK_THAT(pano1->cols, WithinRel(1335, eps));
 }
+
+const std::vector<std::filesystem::path> kInputsWithStack = {
+    "data/image01.jpg",  // Minimal shift
+    "data/image05.jpg",  // between images
+    "data/image06.jpg",
+    "data/image07.jpg",
+};
+
+TEST_CASE("Stitcher pipeline stack detection") {
+  const float min_shift = 0.2f;
+  xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
+  auto loading_task =
+      stitcher.RunLoading(kInputsWithStack, {}, {.min_shift = min_shift});
+  auto result = loading_task.future.get();
+  auto progress = loading_task.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  std::vector<xpano::algorithm::Match> good_matches;
+  std::copy_if(result.matches.begin(), result.matches.end(),
+               std::back_inserter(good_matches), [](const auto& match) {
+                 return match.matches.size() >= xpano::kDefaultMatchThreshold;
+               });
+
+  CHECK(result.images.size() == 4);
+
+  REQUIRE(good_matches.size() == 2);
+  CHECK(good_matches[0].avg_shift < min_shift);
+  CHECK(good_matches[1].avg_shift >= min_shift);
+
+  REQUIRE(result.panos.size() == 1);
+  CHECK_THAT(result.panos[0].ids, Equals<int>({2, 3}));
+}
