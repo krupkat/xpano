@@ -59,6 +59,7 @@ struct MatchingOptions {
   MatchingType type = MatchingType::kAuto;
   int neighborhood_search_size = kDefaultNeighborhoodSearchSize;
   int match_threshold = kDefaultMatchThreshold;
+  float min_shift = kDefaultShiftInPano;
   float match_conf = kDefaultMatchConf;
 };
 

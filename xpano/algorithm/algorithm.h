@@ -32,15 +32,16 @@ struct Match {
   int id1;
   int id2;
   std::vector<cv::DMatch> matches;
+  float avg_shift = 0.0f;
 };
 
 Pano SinglePano(int size);
 
-std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
-                                    float match_conf);
+Match MatchImages(int img1_id, int img2_id, const Image& img1,
+                  const Image& img2, float match_conf);
 
 std::vector<Pano> FindPanos(const std::vector<Match>& matches,
-                            int match_threshold);
+                            int match_threshold, float min_shift);
 
 struct StitchResult {
   stitcher::Status status;

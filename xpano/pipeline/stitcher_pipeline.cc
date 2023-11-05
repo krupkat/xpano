@@ -175,8 +175,7 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
       matches_future.push_back(
           pool->submit([i, j, left = images[i], right = images[j],
                         match_conf = options.match_conf, progress]() {
-            auto match =
-                algorithm::Match{i, j, MatchImages(left, right, match_conf)};
+            auto match = algorithm::MatchImages(i, j, left, right, match_conf);
             progress->NotifyTaskDone();
             return match;
           }));
@@ -188,7 +187,7 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
   }
   auto matches = matches_future.get();
 
-  auto panos = FindPanos(matches, options.match_threshold);
+  auto panos = FindPanos(matches, options.match_threshold, options.min_shift);
   progress->NotifyTaskDone();
   return StitcherData{images, matches, panos};
 }

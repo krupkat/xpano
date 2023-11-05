@@ -433,6 +433,7 @@ Action PanoGui::PerformAction(const Action& action) {
       selection_ = {SelectionType::kMatch, action.target_id};
       spdlog::info("Clicked match {}", action.target_id);
       const auto& match = stitcher_data_->matches[action.target_id];
+      spdlog::info("Match distance {}", match.avg_shift);
       auto img = DrawMatches(match, stitcher_data_->images);
       plot_pane_.Load(img, ImageType::kMatch);
       thumbnail_pane_.SetScrollX(match.id1, match.id2);

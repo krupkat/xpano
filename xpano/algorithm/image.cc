@@ -84,6 +84,10 @@ cv::Mat Image::GetFullRes() const { return cv::imread(path_.string()); }
 cv::Mat Image::GetThumbnail() const { return thumbnail_; }
 cv::Mat Image::GetPreview() const { return preview_; }
 
+int Image::GetPreviewLongerSide() const {
+  return std::max(preview_.size[1], preview_.size[0]);
+}
+
 float Image::GetAspect() const {
   auto width = static_cast<float>(preview_.size[1]);
   auto height = static_cast<float>(preview_.size[0]);

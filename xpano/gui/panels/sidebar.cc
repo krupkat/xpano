@@ -193,9 +193,9 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
       ImGui::Spacing();
       ImGui::Text(
           "Experiment with this if the app cannot find the panoramas you "
-          "want.");
+          "want.\nThese options are applied only after reloading images.");
       ImGui::Spacing();
-      ImGui::SliderInt("Matching distance",
+      ImGui::SliderInt("Matching neighbors",
                        &matching_options->neighborhood_search_size, 0,
                        kMaxNeighborhoodSearchSize);
       ImGui::SameLine();
@@ -210,6 +210,15 @@ void DrawMatchingOptionsMenu(pipeline::MatchingOptions* matching_options,
                                "Number of keypoints that need to match in "
                                "order to include the two "
                                "images in a panorama.");
+      ImGui::SliderFloat("Minimum shift", &matching_options->min_shift,
+                         kMinShiftInPano, kMaxShiftInPano, "%.2f");
+      ImGui::SameLine();
+      utils::imgui::InfoMarker(
+          "(?)",
+          "Minimum shift between images for it to be considered a part of a "
+          "panorama.\nUseful to filter out burst shots / focus stacks that "
+          "shouldn't be handled by Xpano.\nThe value is specified in relative "
+          "terms to the size of the image.");
       if (debug_enabled) {
         ImGui::SeparatorText("Debug");
         DrawMatchConf(&matching_options->match_conf);
