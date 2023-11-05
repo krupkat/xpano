@@ -17,6 +17,10 @@ constexpr int kMinMatchThreshold = 4;
 constexpr int kDefaultMatchThreshold = 70;
 constexpr int kMaxMatchThreshold = 250;
 
+constexpr float kMinShiftInPano = 0.0f;
+constexpr float kDefaultShiftInPano = 0.1f;
+constexpr float kMaxShiftInPano = 1.0f;
+
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
 constexpr int kMinWindowSize = 200;

@@ -140,8 +140,8 @@ cv::Ptr<cv::detail::Blender> PickBlender(BlendingMethod blending_method,
 
 }  // namespace
 
-std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
-                                    float match_conf) {
+Match MatchImages(int img1_id, int img2_id, const Image& img1,
+                  const Image& img2, float match_conf) {
   if (img1.GetKeypoints().empty() || img2.GetKeypoints().empty()) {
     return {};
   }
@@ -183,24 +183,35 @@ std::vector<cv::DMatch> MatchImages(const Image& img1, const Image& img2,
 
   // FILTER OUTLIERS
   std::vector<cv::DMatch> inliers;
+  double total_shift = 0.0f;
+
   for (int i = 0; i < good_matches.size(); i++) {
-    const cv::Vec2f diff =
+    const cv::Vec2f proj_diff =
         dst_points.at<cv::Vec2f>(0, i) - dst_points_proj.at<cv::Vec2f>(0, i);
-    if (norm(diff) < 3) {
+    if (norm(proj_diff) < 3) {
       inliers.push_back(good_matches[i]);
+
+      const cv::Vec2f diff =
+          dst_points.at<cv::Vec2f>(0, i) - src_points.at<cv::Vec2f>(0, i);
+      total_shift += norm(diff);
     }
   }
 
-  return inliers;
+  const int max_size =
+      std::max(img1.GetPreviewLongerSide(), img2.GetPreviewLongerSide());
+  const auto avg_shift = static_cast<float>(
+      total_shift / static_cast<double>(inliers.size()) / max_size);
+  return {img1_id, img2_id, inliers, avg_shift};
 }
 
 std::vector<Pano> FindPanos(const std::vector<Match>& matches,
-                            int match_threshold) {
+                            int match_threshold, float min_shift) {
   auto pano_ds = utils::DisjointSet();
 
   std::unordered_set<int> images_in_panos;
   for (const auto& match : matches) {
-    if (match.matches.size() > match_threshold) {
+    if (match.matches.size() >= match_threshold &&
+        match.avg_shift >= min_shift) {
       pano_ds.Union(match.id1, match.id2);
       images_in_panos.insert(match.id1);
       images_in_panos.insert(match.id2);

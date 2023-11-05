@@ -26,6 +26,7 @@ class Image {
   [[nodiscard]] cv::Mat GetFullRes() const;
   [[nodiscard]] cv::Mat GetThumbnail() const;
   [[nodiscard]] cv::Mat GetPreview() const;
+  [[nodiscard]] int GetPreviewLongerSide() const;
   [[nodiscard]] float GetAspect() const;
   [[nodiscard]] cv::Mat Draw(bool show_debug) const;
   [[nodiscard]] const std::vector<cv::KeyPoint>& GetKeypoints() const;
