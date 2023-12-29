@@ -8,6 +8,9 @@
 #define XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT \
   (CV_VERSION_MAJOR >= 4 && CV_VERSION_MINOR >= 7)
 
+#define XPANO_OPENCV_HAS_NEW_DRAW_MATCHES_API \
+  (CV_VERSION_MAJOR >= 4 && CV_VERSION_MINOR >= 5 && CV_VERSION_REVISION >= 3)
+
 namespace xpano::utils::opencv {
 
 constexpr bool HasJpegSubsamplingSupport() {
