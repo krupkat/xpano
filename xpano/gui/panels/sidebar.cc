@@ -420,7 +420,10 @@ cv::Mat DrawMatches(const algorithm::Match& match,
   const auto single_point_color = cv::Scalar::all(-1);
   const auto matches_mask = std::vector<char>();
   cv::drawMatches(img1.GetPreview(), img1.GetKeypoints(), img2.GetPreview(),
-                  img2.GetKeypoints(), match.matches, out, match_thickness,
+                  img2.GetKeypoints(), match.matches, out,
+#if XPANO_OPENCV_HAS_NEW_DRAW_MATCHES_API
+                  match_thickness,
+#endif
                   match_color, single_point_color, matches_mask,
                   cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
   return out;
