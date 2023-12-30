@@ -242,6 +242,7 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
 }
 
 StitchResult Stitch(const std::vector<cv::Mat>& images,
+                    const std::optional<Cameras>& cameras,
                     StitchUserOptions user_options, StitchOptions options) {
   auto stitcher = stitcher::Stitcher::Create(cv::Stitcher::PANORAMA);
   stitcher->SetWarper(PickWarper(user_options.projection));

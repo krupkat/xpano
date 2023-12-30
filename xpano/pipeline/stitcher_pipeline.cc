@@ -231,8 +231,8 @@ StitchingResult RunStitchingPipeline(
   }
 
   progress->SetTaskType(ProgressType::kStitchingPano);
-  auto [status, result, mask] =
-      algorithm::Stitch(imgs, options.stitch_algorithm,
+  auto [status, result, mask, cameras] =
+      algorithm::Stitch(imgs, pano.cameras, options.stitch_algorithm,
                         {.return_pano_mask = options.full_res,
                          .threads_for_multiblend = multiblend_pool,
                          .progress_monitor = progress});
@@ -271,8 +271,8 @@ StitchingResult RunStitchingPipeline(
                       .export_path;
   }
 
-  return StitchingResult{options.pano_id, options.full_res, status,   result,
-                         auto_crop,       export_path,      pano_mask};
+  return StitchingResult{options.pano_id, options.full_res, status,    result,
+                         auto_crop,       export_path,      pano_mask, cameras};
 }
 
 }  // namespace

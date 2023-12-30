@@ -57,6 +57,8 @@ struct InpaintingResult {
   int pixels_inpainted;
 };
 
+using Cameras = algorithm::Cameras;
+
 struct StitchingResult {
   int pano_id = 0;
   bool full_res = false;
@@ -65,6 +67,7 @@ struct StitchingResult {
   std::optional<utils::RectRRf> auto_crop;
   std::optional<std::filesystem::path> export_path;
   std::optional<cv::Mat> mask;
+  std::optional<Cameras> cameras;
 };
 
 struct ExportResult {

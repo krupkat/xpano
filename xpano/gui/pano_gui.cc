@@ -151,8 +151,7 @@ auto ResolveStitcherDataFuture(
 
 auto ResolveStitchingResultFuture(
     std::future<pipeline::StitchingResult> pano_future, PreviewPane* plot_pane,
-    StatusMessage* status_message)
-    -> std::pair<std::optional<int>, std::optional<cv::Mat>> {
+    StatusMessage* status_message) -> pipeline::StitchingResult {
   pipeline::StitchingResult result;
   try {
     result = pano_future.get();
@@ -183,16 +182,14 @@ auto ResolveStitchingResultFuture(
     plot_pane->SetSuggestedCrop(*result.auto_crop);
   }
 
-  std::optional<int> export_pano_id;
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
         result.export_path->string()};
     spdlog::info(*status_message);
-    export_pano_id = result.pano_id;
   }
 
-  return {export_pano_id, result.mask};
+  return std::move(result);
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
@@ -563,12 +560,15 @@ MultiAction PanoGui::ResolveFutures() {
 
   auto handle_pano =
       [this](std::future<pipeline::StitchingResult> pano_future) {
-        auto [export_pano_id, export_mask] = ResolveStitchingResultFuture(
+        auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
-        if (export_pano_id) {
-          stitcher_data_->panos[*export_pano_id].exported = true;
+        if (result.export_path) {
+          stitcher_data_->panos[result.pano_id].exported = true;
         }
-        pano_mask_ = export_mask;
+        if (result.cameras) {
+          stitcher_data_->panos[result.pano_id].cameras = result.cameras;
+        }
+        pano_mask_ = result.mask;
       };
 
   auto handle_export =
