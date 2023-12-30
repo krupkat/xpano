@@ -3,9 +3,9 @@
 $env:BUILD_TYPE = 'Release'
 $env:SDL_VERSION = 'release-2.28.5'
 $env:OPENCV_VERSION = '4.8.1'
-$env:CATCH_VERSION = 'v3.4.0'
+$env:CATCH_VERSION = 'v3.5.0'
 $env:SPDLOG_VERSION = 'v1.12.0'
-$env:EXIV2_VERSION = 'v0.28.0'
+$env:EXIV2_VERSION = 'v0.28.1'
 $env:GENERATOR = 'Ninja Multi-Config'
 
 git submodule update --init
@@ -74,12 +74,12 @@ cmake -B build -G "$env:GENERATOR" `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-  -DSDL2_DIR="${cwd}/sdl/install/cmake" `
+  -DSDL2_ROOT="${cwd}/sdl/install" `
   -DOpenCV_STATIC=ON `
-  -DOpenCV_DIR="${cwd}/opencv/install" `
-  -Dspdlog_DIR="${cwd}/spdlog/build/install/lib/cmake/spdlog" `
-  -DCatch2_DIR="${cwd}/catch/install/lib/cmake/Catch2" `
-  -Dexiv2_DIR="${cwd}/exiv2/install/lib/cmake/exiv2"
+  -DOpenCV_ROOT="${cwd}/opencv/install" `
+  -Dspdlog_ROOT="${cwd}/spdlog/build/install" `
+  -DCatch2_ROOT="${cwd}/catch/install" `
+  -Dexiv2_ROOT="${cwd}/exiv2/install"
 
 cmake --build build --config $env:BUILD_TYPE --target install
 cd build

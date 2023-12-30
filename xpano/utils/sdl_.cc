@@ -46,6 +46,32 @@ WindowManager DetermineWindowManager(bool wayland_supported) {
   return WindowManager::kGenericLinux;
 }
 
+struct RendererFlagInfo {
+  SDL_RendererFlags flag;
+  std::string label;
+};
+
+void PrintRenderDrivers() {
+  const int num_drivers = SDL_GetNumRenderDrivers();
+  for (int i = 0; i < num_drivers; i++) {
+    SDL_RendererInfo info;
+    SDL_GetRenderDriverInfo(i, &info);
+    spdlog::info("{}: {}", i, info.name);
+    const std::vector<RendererFlagInfo> caps = {
+        {SDL_RENDERER_SOFTWARE, "the renderer is a software fallback"},
+        {SDL_RENDERER_ACCELERATED, "the renderer uses hardware acceleration"},
+        {SDL_RENDERER_PRESENTVSYNC,
+         "present is synchronized with the refresh rate"},
+        {SDL_RENDERER_TARGETTEXTURE,
+         "the renderer supports rendering to texture"}};
+    for (const auto& [flag, label] : caps) {
+      if ((info.flags & flag) != 0u) {
+        spdlog::info("\t{}", label);
+      }
+    }
+  }
+}
+
 DpiHandler::DpiHandler(SDL_Window* window, WindowManager window_manager)
     : window_(window), window_manager_(window_manager) {}
 

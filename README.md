@@ -53,6 +53,7 @@ The project can be built by running a single script from the `misc/build` direct
 Run the build script from the root of the repository:
 
 ```
+nix-shell misc/build/nix/default.nix
 ./misc/build/build-nixos.sh
 ```
 

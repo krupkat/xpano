@@ -16,3 +16,4 @@ CMakeSettings.json
 _site
 exiv2/
 Xpano.app
+.cache

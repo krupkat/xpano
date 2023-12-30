@@ -14,9 +14,9 @@ env:
   BUILD_TYPE: Release
   SDL_VERSION: "release-2.28.5"
   OPENCV_VERSION: "4.8.1"
-  CATCH_VERSION: "v3.4.0"
+  CATCH_VERSION: "v3.5.0"
   SPDLOG_VERSION: "v1.12.0"
-  EXIV2_VERSION: "v0.28.0"
+  EXIV2_VERSION: "v0.28.1"
   GENERATOR: "Ninja Multi-Config"
 
 jobs:
@@ -150,12 +150,12 @@ jobs:
           -DXPANO_STATIC_VCRT=ON `
           -DCMAKE_INSTALL_PREFIX=install `
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-          -DSDL2_DIR="${cwd}/sdl/install/cmake" `
+          -DSDL2_ROOT="${cwd}/sdl/install" `
           -DOpenCV_STATIC=ON `
-          -DOpenCV_DIR="${cwd}/opencv/install" `
-          -Dspdlog_DIR="${cwd}/spdlog/build/install/lib/cmake/spdlog" `
-          -DCatch2_DIR="${cwd}/catch/install/lib/cmake/Catch2" `
-          -Dexiv2_DIR="${cwd}/exiv2/install/lib/cmake/exiv2"
+          -DOpenCV_ROOT="${cwd}/opencv/install" `
+          -Dspdlog_ROOT="${cwd}/spdlog/build/install" `
+          -DCatch2_ROOT="${cwd}/catch/install" `
+          -Dexiv2_ROOT="${cwd}/exiv2/install"
 
     - name: Build
       run: cmake --build build --config $env:BUILD_TYPE --target install
@@ -220,8 +220,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+          -DCatch2_ROOT=`pwd`/catch/install \
+          -Dexiv2_ROOT=`pwd`/exiv2/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -361,11 +361,11 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-          -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
-          -DSDL2_DIR=SDL/install/lib/cmake/SDL2 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2 \
-          -Dspdlog_DIR=`pwd`/spdlog/build/install/lib/cmake/spdlog
+          -DCatch2_ROOT=`pwd`/catch/install \
+          -DOpenCV_ROOT=`pwd`/opencv/install \
+          -DSDL2_ROOT=`pwd`/SDL/install \
+          -Dexiv2_ROOT=`pwd`/exiv2/install \
+          -Dspdlog_ROOT=`pwd`/spdlog/build/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -433,8 +433,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+          -DOpenCV_ROOT=opencv/install \
+          -Dexiv2_ROOT=exiv2/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install

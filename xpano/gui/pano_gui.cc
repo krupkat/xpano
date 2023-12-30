@@ -34,7 +34,6 @@
 #include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
 #include "xpano/utils/imgui_.h"
-#include "xpano/utils/path.h"
 #include "xpano/version.h"
 
 template <>

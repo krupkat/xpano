@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 
-find_package(Catch2 REQUIRED)
+find_package(Catch2 REQUIRED CONFIG)
 include(Catch)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 
@@ -40,9 +40,9 @@ target_link_libraries(StitcherTest
   spdlog::spdlog
 )
 
-if(exiv2_FOUND)
+if (exiv-library)
   target_compile_definitions(StitcherTest PRIVATE XPANO_WITH_EXIV2)
-  target_link_libraries(StitcherTest exiv2lib)
+  target_link_libraries(StitcherTest ${exiv-library})
 endif()
 
 if(XPANO_WITH_MULTIBLEND)

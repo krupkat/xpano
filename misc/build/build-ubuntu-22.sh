@@ -3,9 +3,9 @@
 export BUILD_TYPE='Release'
 export SDL_VERSION='release-2.28.5'
 export OPENCV_VERSION='4.8.1'
-export CATCH_VERSION='v3.4.0'
+export CATCH_VERSION='v3.5.0'
 export SPDLOG_VERSION='v1.12.0'
-export EXIV2_VERSION='v0.28.0'
+export EXIV2_VERSION='v0.28.1'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
@@ -33,8 +33,8 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-  -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+  -DCatch2_ROOT=`pwd`/catch/install \
+  -Dexiv2_ROOT=`pwd`/exiv2/install
 
 cmake --build build -j $(nproc) --target install
 cd build
