@@ -34,7 +34,7 @@ cmake -B build \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-  -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+  -Dexiv2_ROOT=exiv2/install
 
 cmake --build build -j $(nproc) --target install
 cd build

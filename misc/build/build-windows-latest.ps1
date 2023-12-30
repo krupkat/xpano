@@ -79,7 +79,7 @@ cmake -B build -G "$env:GENERATOR" `
   -DOpenCV_DIR="${cwd}/opencv/install" `
   -Dspdlog_DIR="${cwd}/spdlog/build/install/lib/cmake/spdlog" `
   -DCatch2_DIR="${cwd}/catch/install/lib/cmake/Catch2" `
-  -Dexiv2_DIR="${cwd}/exiv2/install/lib/cmake/exiv2"
+  -Dexiv2_ROOT="${cwd}/exiv2/install"
 
 cmake --build build --config $env:BUILD_TYPE --target install
 cd build

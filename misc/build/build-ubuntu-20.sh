@@ -79,7 +79,7 @@ cmake -B build \
   -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
   -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
   -DSDL2_DIR=SDL/install/lib/cmake/SDL2 \
-  -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2 \
+  -Dexiv2_ROOT=exiv2/install \
   -Dspdlog_DIR=`pwd`/spdlog/build/install/lib/cmake/spdlog
 
 cmake --build build -j $(nproc) --target install

@@ -155,7 +155,7 @@ jobs:
           -DOpenCV_DIR="${cwd}/opencv/install" `
           -Dspdlog_DIR="${cwd}/spdlog/build/install/lib/cmake/spdlog" `
           -DCatch2_DIR="${cwd}/catch/install/lib/cmake/Catch2" `
-          -Dexiv2_DIR="${cwd}/exiv2/install/lib/cmake/exiv2"
+          -Dexiv2_ROOT="${cwd}/exiv2/install"
 
     - name: Build
       run: cmake --build build --config $env:BUILD_TYPE --target install
@@ -221,7 +221,7 @@ jobs:
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+          -Dexiv2_ROOT=exiv2/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -364,7 +364,7 @@ jobs:
           -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
           -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
           -DSDL2_DIR=SDL/install/lib/cmake/SDL2 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2 \
+          -Dexiv2_ROOT=exiv2/install \
           -Dspdlog_DIR=`pwd`/spdlog/build/install/lib/cmake/spdlog
 
     - name: Build
@@ -434,7 +434,7 @@ jobs:
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
-          -Dexiv2_DIR=exiv2/install/lib/cmake/exiv2
+          -Dexiv2_ROOT=exiv2/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install

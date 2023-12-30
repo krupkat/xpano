@@ -86,9 +86,17 @@ endif()
 find_package(SDL2 REQUIRED)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching)
 find_package(spdlog REQUIRED)
-find_package(exiv2 0.28.0 QUIET)
+find_package(exiv2)
 
 if (exiv2_FOUND)
+  if (exiv2_VERSION VERSION_GREATER_EQUAL "0.28.1")
+    set(exiv-library Exiv2::exiv2lib)
+  elseif(exiv2_VERSION VERSION_GREATER_EQUAL "0.28.0")
+    set(exiv-library exiv2lib)
+  endif()
+endif()
+
+if (exiv-library)
   message(STATUS "Building with exiv2 version ${exiv2_VERSION}")
 else()
   message(STATUS "Building without exiv2 support")
@@ -136,9 +144,9 @@ target_link_libraries(Xpano
   spdlog::spdlog
 )
 
-if(exiv2_FOUND)
+if (exiv-library)
   target_compile_definitions(Xpano PRIVATE XPANO_WITH_EXIV2)
-  target_link_libraries(Xpano exiv2lib)
+  target_link_libraries(Xpano ${exiv-library})
 endif()
 
 if(XPANO_WITH_MULTIBLEND)
@@ -245,7 +253,7 @@ install(FILES
   RENAME "opencv-license.txt"
   OPTIONAL
 )
-if (exiv2_FOUND)
+if (exiv-library)
   install(FILES
     "misc/build/exiv2-notice.txt"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
