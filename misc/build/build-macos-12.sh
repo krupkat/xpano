@@ -3,7 +3,7 @@
 export BUILD_TYPE='Release'
 export SDL_VERSION='release-2.28.5'
 export OPENCV_VERSION='4.8.1'
-export CATCH_VERSION='v3.4.0'
+export CATCH_VERSION='v3.5.0'
 export SPDLOG_VERSION='v1.12.0'
 export EXIV2_VERSION='v0.28.1'
 export GENERATOR='Ninja Multi-Config'
