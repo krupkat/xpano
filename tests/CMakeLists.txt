@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 
-find_package(Catch2 REQUIRED)
+find_package(Catch2 REQUIRED CONFIG)
 include(Catch)
 include("${CMAKE_SOURCE_DIR}/misc/cmake/utils.cmake")
 

@@ -74,8 +74,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DBUILD_TESTING=ON \
-          -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-          -Dexiv2_ROOT=exiv2/install
+          -DCatch2_ROOT=`pwd`/catch/install \
+          -Dexiv2_ROOT=`pwd`/exiv2/install
 
     - name: Run clang-tidy
       run: |

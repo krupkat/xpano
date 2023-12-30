@@ -35,7 +35,7 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DOpenCV_DIR=opencv/install/lib/cmake/opencv4 \
+  -DOpenCV_ROOT=opencv/install \
   -Dexiv2_ROOT=exiv2/install
 
 cmake --build build -j $(nproc) --target install

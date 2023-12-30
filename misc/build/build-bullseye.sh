@@ -50,10 +50,10 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DCatch2_DIR=../catch/install/lib/cmake/Catch2 \
-  -Dexiv2_ROOT=exiv2/install \
-  -Dspdlog_DIR=`pwd`/spdlog/build/install/lib/cmake/spdlog \
-  -DSDL2_DIR=SDL/install/lib/cmake/SDL2
+  -DCatch2_ROOT=`pwd`/catch/install \
+  -Dexiv2_ROOT=`pwd`/exiv2/install \
+  -Dspdlog_ROOT=`pwd`/spdlog/build/install \
+  -DSDL2_ROOT=`pwd`/SDL/install
 
 cmake --build build -j $(nproc) --target install
 cd build

@@ -74,11 +74,11 @@ cmake -B build -G "$env:GENERATOR" `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-  -DSDL2_DIR="${cwd}/sdl/install/cmake" `
+  -DSDL2_ROOT="${cwd}/sdl/install" `
   -DOpenCV_STATIC=ON `
-  -DOpenCV_DIR="${cwd}/opencv/install" `
-  -Dspdlog_DIR="${cwd}/spdlog/build/install/lib/cmake/spdlog" `
-  -DCatch2_DIR="${cwd}/catch/install/lib/cmake/Catch2" `
+  -DOpenCV_ROOT="${cwd}/opencv/install" `
+  -Dspdlog_ROOT="${cwd}/spdlog/build/install" `
+  -DCatch2_ROOT="${cwd}/catch/install" `
   -Dexiv2_ROOT="${cwd}/exiv2/install"
 
 cmake --build build --config $env:BUILD_TYPE --target install
