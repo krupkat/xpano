@@ -18,7 +18,7 @@ permissions:
 env:
   BUILD_TYPE: Release
   CATCH_VERSION: "v3.4.0"
-  EXIV2_VERSION: "v0.28.0"
+  EXIV2_VERSION: "v0.28.1"
 
 jobs:
   clang-tidy-check:

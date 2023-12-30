@@ -16,7 +16,7 @@ env:
   OPENCV_VERSION: "4.8.1"
   CATCH_VERSION: "v3.4.0"
   SPDLOG_VERSION: "v1.12.0"
-  EXIV2_VERSION: "v0.28.0"
+  EXIV2_VERSION: "v0.28.1"
   GENERATOR: "Ninja Multi-Config"
 
 jobs:

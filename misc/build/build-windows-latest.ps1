@@ -5,7 +5,7 @@ $env:SDL_VERSION = 'release-2.28.5'
 $env:OPENCV_VERSION = '4.8.1'
 $env:CATCH_VERSION = 'v3.4.0'
 $env:SPDLOG_VERSION = 'v1.12.0'
-$env:EXIV2_VERSION = 'v0.28.0'
+$env:EXIV2_VERSION = 'v0.28.1'
 $env:GENERATOR = 'Ninja Multi-Config'
 
 git submodule update --init
