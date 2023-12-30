@@ -95,10 +95,15 @@ int main(int argc, char** argv) {
                        SDL_WINDOWPOS_CENTERED, config.app_state.window_width,
                        config.app_state.window_height, window_flags);
 
+  if (window == nullptr) {
+    spdlog::error("Error creating SDL_Window! {}", SDL_GetError());
+    return -1;
+  }
+
   SDL_Renderer* renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
   if (renderer == nullptr) {
-    spdlog::error("Error creating SDL_Renderer!");
+    spdlog::error("Error creating SDL_Renderer! {}", SDL_GetError());
     return -1;
   }
 
