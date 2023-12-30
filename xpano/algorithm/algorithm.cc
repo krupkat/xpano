@@ -260,7 +260,16 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   stitcher->SetProgressMonitor(options.progress_monitor);
 
   cv::Mat pano;
-  auto status = stitcher->Stitch(images, pano);
+  stitcher::Status status;
+
+  if (cameras &&
+      cameras->wave_correction_user == user_options.wave_correction) {
+    stitcher->SetWaveCorrectKind(cameras->wave_correction_auto);
+    stitcher->SetTransform(images, cameras->cameras);
+    status = stitcher->ComposePanorama(pano);
+  } else {
+    status = stitcher->Stitch(images, pano);
+  }
 
   if (status != stitcher::Status::kSuccess) {
     return {status, {}, {}};
@@ -279,8 +288,10 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
       cv::rotate(mask, mask, *rotate);
     }
   }
-
-  return {status, pano, mask};
+  auto result_cameras =
+      Cameras{stitcher->Cameras(), user_options.wave_correction,
+              stitcher->WaveCorrectKind()};
+  return {status, pano, mask, std::move(result_cameras)};
 }
 
 int StitchTasksCount(int num_images) {

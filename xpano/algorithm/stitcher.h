@@ -186,6 +186,7 @@ class Stitcher {
   Status SetTransform(cv::InputArrayOfArrays images,
                       const std::vector<cv::detail::CameraParams>& cameras,
                       const std::vector<int>& component);
+
   Status SetTransform(cv::InputArrayOfArrays images,
                       const std::vector<cv::detail::CameraParams>& cameras);
 

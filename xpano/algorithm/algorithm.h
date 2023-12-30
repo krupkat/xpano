@@ -25,6 +25,8 @@ namespace xpano::algorithm {
 
 struct Cameras {
   std::vector<cv::detail::CameraParams> cameras;
+  WaveCorrectionType wave_correction_user;           // set by user
+  cv::detail::WaveCorrectKind wave_correction_auto;  // computed by OpenCV
 };
 
 struct Pano {
