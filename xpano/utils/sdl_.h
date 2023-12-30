@@ -19,6 +19,8 @@ enum class WindowManager {
   kGenericLinux
 };
 
+void PrintRenderDrivers();
+
 WindowManager DetermineWindowManager(bool wayland_supported);
 
 class DpiHandler {
