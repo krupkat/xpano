@@ -350,4 +350,8 @@ Pano SinglePano(int size) {
   return pano;
 }
 
+Cameras Rotate(const Cameras& cameras, float angle) {
+  return {};
+}
+
 }  // namespace xpano::algorithm

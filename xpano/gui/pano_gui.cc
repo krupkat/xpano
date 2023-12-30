@@ -455,6 +455,17 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kModifyPano: {
       return ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
     }
+    case ActionType::kRotate: {
+      if (selection_.type == SelectionType::kPano) {
+        if (auto& cameras =
+                stitcher_data_->panos.at(selection_.target_id).cameras;
+            cameras) {
+          auto extra = ValueOrDefault<RotateExtra>(action);
+          cameras = algorithm::Rotate(*cameras, extra.angle);
+        }
+      }
+    }
+      [[fallthrough]];
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
