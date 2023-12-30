@@ -51,7 +51,7 @@ SdlSurface LoadIcon(const std::filesystem::path& executable_path,
   const int channel_depth = 8;
 
   // this call doesn't allocate memory
-  SdlSurface surface = {
+  const SdlSurface surface = {
       SDL_CreateRGBSurfaceFrom(
           icon.data, icon.cols, icon.rows, icon.channels() * channel_depth,
           static_cast<int>(icon.step1()), rmask, gmask, bmask, amask),

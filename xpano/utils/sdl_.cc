@@ -52,12 +52,12 @@ struct RendererFlagInfo {
 };
 
 void PrintRenderDrivers() {
-  int num_drivers = SDL_GetNumRenderDrivers();
+  const int num_drivers = SDL_GetNumRenderDrivers();
   for (int i = 0; i < num_drivers; i++) {
     SDL_RendererInfo info;
     SDL_GetRenderDriverInfo(i, &info);
     spdlog::info("{}: {}", i, info.name);
-    std::vector<RendererFlagInfo> caps = {
+    const std::vector<RendererFlagInfo> caps = {
         {SDL_RENDERER_SOFTWARE, "the renderer is a software fallback"},
         {SDL_RENDERER_ACCELERATED, "the renderer uses hardware acceleration"},
         {SDL_RENDERER_PRESENTVSYNC,
@@ -65,7 +65,7 @@ void PrintRenderDrivers() {
         {SDL_RENDERER_TARGETTEXTURE,
          "the renderer supports rendering to texture"}};
     for (const auto& [flag, label] : caps) {
-      if (info.flags & flag) {
+      if ((info.flags & flag) != 0u) {
         spdlog::info("\t{}", label);
       }
     }
