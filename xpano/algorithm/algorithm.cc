@@ -351,7 +351,16 @@ Pano SinglePano(int size) {
 }
 
 Cameras Rotate(const Cameras& cameras, float angle) {
-  return {};
+  cv::Mat rot_vec = angle * cv::Mat {0.0f, 0.0f, 1.0f};
+  cv::Mat rot_mat;
+  cv::Rodrigues(rot_vec, rot_mat);
+
+  Cameras rotated = cameras;
+  for (auto& camera : rotated.cameras) {
+    camera.R = rot_mat * camera.R;
+  }
+
+  return rotated;
 }
 
 }  // namespace xpano::algorithm
