@@ -99,16 +99,15 @@ void Overlay(const RotationWidget& widget, const utils::RectPVf& image) {
     Draw(border, camera, widget.warper, widget.scale, image);
   }
 
-  // {
-  //   const auto& camera = widget.cameras[widget.horizontal_handle.camera_id];
-  //   Draw(widget.horizontal_handle, camera, widget.warper, widget.scale,
-  //   image);
-  // }
+  {
+    const auto& camera = widget.cameras[widget.horizontal_handle.camera_id];
+    Draw(widget.horizontal_handle, camera, widget.warper, widget.scale, image);
+  }
 
-  // {
-  //   const auto& camera = widget.cameras[widget.vertical_handle.camera_id];
-  //   Draw(widget.vertical_handle, camera, widget.warper, widget.scale, image);
-  // }
+  {
+    const auto& camera = widget.cameras[widget.vertical_handle.camera_id];
+    Draw(widget.vertical_handle, camera, widget.warper, widget.scale, image);
+  }
 }
 
 bool IsMouseCloseToEdge(EdgeType edge_type, const utils::RectPPf& rect,
@@ -283,29 +282,48 @@ std::vector<cv::Point2f> Interpolate(const cv::Point& start,
   return points;
 }
 
-Projectable HorizontalHandle(int camera_id, cv::Point corner,
-                             cv::Rect dst_roi) {
-  auto top_left = dst_roi.tl() - corner;
-  auto bottom_right = dst_roi.br() - corner;
-
-  auto left = cv::Point{top_left.x, (top_left.y + bottom_right.y) / 2};
-  auto right = cv::Point{bottom_right.x, (top_left.y + bottom_right.y) / 2};
-
-  return {.camera_id = camera_id,
-          .points = Interpolate(left, right),
-          .translation = -1 * top_left};
+std::vector<cv::Point2f> WarpBackpward(
+    const std::vector<cv::Point2f>& points, const PreprocessedCamera& camera,
+    const cv::Ptr<cv::detail::RotationWarper>& warper) {
+  std::vector<cv::Point2f> warped(points.size());
+  std::transform(points.begin(), points.end(), warped.begin(),
+                 [&](const cv::Point2f& point) {
+                   return warper->warpPointBackward(point, camera.k_mat,
+                                                    camera.r_mat);
+                 });
+  return warped;
 }
 
-Projectable VerticalHandle(int camera_id, cv::Point corner, cv::Rect dst_roi) {
-  auto top_left = dst_roi.tl() - corner;
-  auto bottom_right = dst_roi.br() - corner;
+Projectable HorizontalHandle(
+    cv::Rect dst_roi, int camera_id, const PreprocessedCamera& camera,
+    const cv::Ptr<cv::detail::RotationWarper>& warper) {
+  int mid_y = (dst_roi.tl().y + dst_roi.br().y) / 2;
 
-  auto top = cv::Point{(top_left.x + bottom_right.x) / 2, top_left.y};
-  auto bottom = cv::Point{(top_left.x + bottom_right.x) / 2, bottom_right.y};
+  auto start = cv::Point{dst_roi.tl().x, mid_y};
+  auto end = cv::Point{dst_roi.br().x, mid_y};
+  auto diff = end - start;
+
+  auto points = Interpolate(start - diff, end + diff);
 
   return {.camera_id = camera_id,
-          .points = Interpolate(top, bottom),
-          .translation = -1 * top_left};
+          .points = WarpBackpward(points, camera, warper),
+          .translation = -dst_roi.tl()};
+}
+
+Projectable VerticalHandle(cv::Rect dst_roi, int camera_id,
+                           const PreprocessedCamera& camera,
+                           const cv::Ptr<cv::detail::RotationWarper>& warper) {
+  int mid_x = (dst_roi.tl().x + dst_roi.br().x) / 2;
+
+  auto start = cv::Point{mid_x, dst_roi.tl().y};
+  auto end = cv::Point{mid_x, dst_roi.br().y};
+  auto diff = end - start;
+
+  auto points = Interpolate(start - diff, end + diff);
+
+  return {.camera_id = camera_id,
+          .points = WarpBackpward(points, camera, warper),
+          .translation = -dst_roi.tl()};
 }
 
 Projectable RollHandle(int camera_id) { return {}; }
@@ -337,7 +355,6 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
 
   for (int i = 0; i < num_cameras; i++) {
     const auto& size = cameras.warp_helper.full_sizes[i];
-    const auto& corner = cameras.warp_helper.corners[i];
 
     projectables[i].camera_id = i;
     projectables[i].translation = -dst_roi.tl();
@@ -347,17 +364,24 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
                   projectables[i].translation.x, projectables[i].translation.y);
   }
 
-  int center_id = num_cameras / 2;
-  auto center_corner = cameras.warp_helper.corners[center_id];
+  auto preprocessed_cameras =
+      Preprocess(cameras.cameras, cameras.warp_helper.work_scale);
 
-  return {
-      .horizontal_handle = HorizontalHandle(center_id, center_corner, dst_roi),
-      .vertical_handle = VerticalHandle(center_id, center_corner, dst_roi),
-      .roll_handle = RollHandle(center_id),
-      .image_borders = std::move(projectables),
-      .scale = dst_roi.size(),
-      .cameras = Preprocess(cameras.cameras, cameras.warp_helper.work_scale),
-      .warper = cameras.warp_helper.warper};
+  int camera_id = num_cameras / 2;
+  auto& camera = preprocessed_cameras[camera_id];
+
+  auto vertical_handle =
+      VerticalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
+  auto horizontal_handle =
+      HorizontalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
+
+  return {.horizontal_handle = std::move(horizontal_handle),
+          .vertical_handle = std::move(vertical_handle),
+          .roll_handle = RollHandle(camera_id),
+          .image_borders = std::move(projectables),
+          .scale = dst_roi.size(),
+          .cameras = std::move(preprocessed_cameras),
+          .warper = cameras.warp_helper.warper};
 }
 
 }  // namespace
