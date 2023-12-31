@@ -319,7 +319,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     compute_roi_timer.Report(" compute roi time");
   }
 
-  blender_->prepare(corners, sizes);
+  auto dst_roi = cv::detail::resultRoi(corners, sizes);
+  blender_->prepare(dst_roi);
 
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     NextTask(ProgressType::kStitchCompose);
@@ -388,6 +389,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   compositing_total_timer.Report("Compositing");
 
   pano.assign(result);
+
+  warp_helper_ = {work_scale_, dst_roi, std::move(warper)};
 
   EndMonitoring();
   return Status::kSuccess;

@@ -66,6 +66,12 @@ enum class Status {
   kErrCameraParamsAdjustFail
 };
 
+struct WarpHelper {
+  double work_scale;
+  cv::Rect dst_roi;
+  cv::Ptr<cv::detail::RotationWarper> warper;
+};
+
 class Stitcher {
  public:
   using Mode = cv::Stitcher::Mode;
@@ -207,6 +213,8 @@ class Stitcher {
 
   void SetProgressMonitor(ProgressMonitor* monitor) { monitor_ = monitor; }
 
+  [[nodiscard]] WarpHelper GetWarpHelper() const { return warp_helper_; }
+
  private:
   Status MatchImages();
   Status EstimateCameraParams();
@@ -249,6 +257,7 @@ class Stitcher {
   double warped_image_scale_ = 1.0;
 
   ProgressMonitor* monitor_ = nullptr;
+  WarpHelper warp_helper_ = {};
 };
 
 }  // namespace xpano::algorithm::stitcher

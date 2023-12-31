@@ -27,6 +27,7 @@ struct Cameras {
   std::vector<cv::detail::CameraParams> cameras;
   WaveCorrectionType wave_correction_user;           // set by user
   cv::detail::WaveCorrectKind wave_correction_auto;  // computed by OpenCV
+  stitcher::WarpHelper warp_helper;
 };
 
 struct Pano {
