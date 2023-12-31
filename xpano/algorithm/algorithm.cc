@@ -263,7 +263,8 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   stitcher::Status status;
 
   if (cameras &&
-      cameras->wave_correction_user == user_options.wave_correction) {
+      cameras->wave_correction_user == user_options.wave_correction &&
+      cameras->cameras.size() == images.size()) {
     stitcher->SetWaveCorrectKind(cameras->wave_correction_auto);
     stitcher->SetTransform(images, cameras->cameras);
     status = stitcher->ComposePanorama(pano);
@@ -351,7 +352,7 @@ Pano SinglePano(int size) {
 }
 
 Cameras Rotate(const Cameras& cameras, float angle) {
-  cv::Mat rot_vec = angle * cv::Mat {0.0f, 0.0f, 1.0f};
+  cv::Mat rot_vec = angle * cv::Mat{0.0f, 0.0f, 1.0f};
   cv::Mat rot_mat;
   cv::Rodrigues(rot_vec, rot_mat);
 

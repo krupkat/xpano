@@ -73,6 +73,7 @@ set(XPANO_SOURCES
   "xpano/utils/disjoint_set.cc"
   "xpano/utils/exiv2.cc"
   "xpano/utils/imgui_.cc"
+  "xpano/utils/opencv.cc"
   "xpano/utils/path.cc"
   "xpano/utils/resource.cc"
   "xpano/utils/sdl_.cc"

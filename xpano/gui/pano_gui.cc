@@ -182,6 +182,10 @@ auto ResolveStitchingResultFuture(
     plot_pane->SetSuggestedCrop(*result.auto_crop);
   }
 
+  if (result.cameras) {
+    plot_pane->SetCameras(*result.cameras);
+  }
+
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),

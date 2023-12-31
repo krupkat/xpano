@@ -7,13 +7,17 @@
 #include <cmath>
 #include <numeric>
 #include <utility>
+#include <vector>
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/stitching/detail/camera.hpp>
+#include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
 #include "xpano/gui/backends/base.h"
+#include "xpano/utils/opencv.h"
 #include "xpano/utils/vec.h"
 #include "xpano/utils/vec_converters.h"
 
@@ -62,6 +66,49 @@ void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
   ImGui::GetWindowDrawList()->AddRect(utils::ImVec(rect.start),
                                       utils::ImVec(rect.end), crop_color, 0.0f,
                                       0, 2.0f);
+}
+
+void Draw(const Projectable& projectable, const PreprocessedCamera& camera,
+          const cv::Ptr<cv::detail::RotationWarper>& warper,
+          const cv::Size& scale, const utils::RectPVf& image) {
+  const auto color = ImColor(255, 255, 255, 255);
+
+  std::vector<ImVec2> projected(projectable.points.size());
+  std::transform(
+      projectable.points.begin(), projectable.points.end(), projected.begin(),
+      [&](const cv::Point2f& point) {
+        auto projected_point =
+            warper->warpPoint(point, camera.k_mat, camera.r_mat);
+
+        auto translated = projected_point + projectable.translation;
+
+        return ImVec2{
+            (translated.x / static_cast<float>(scale.width)) * image.size[0] +
+                image.start[0],
+            (translated.y / static_cast<float>(scale.height)) * image.size[1] +
+                image.start[1]};
+      });
+
+  ImGui::GetWindowDrawList()->AddPolyline(projected.data(), projected.size(),
+                                          color, ImDrawFlags_None, 2.0f);
+}
+
+void Overlay(const RotationWidget& widget, const utils::RectPVf& image) {
+  for (const auto& border : widget.image_borders) {
+    const auto& camera = widget.cameras[border.camera_id];
+    Draw(border, camera, widget.warper, widget.scale, image);
+  }
+
+  // {
+  //   const auto& camera = widget.cameras[widget.horizontal_handle.camera_id];
+  //   Draw(widget.horizontal_handle, camera, widget.warper, widget.scale,
+  //   image);
+  // }
+
+  // {
+  //   const auto& camera = widget.cameras[widget.vertical_handle.camera_id];
+  //   Draw(widget.vertical_handle, camera, widget.warper, widget.scale, image);
+  // }
 }
 
 bool IsMouseCloseToEdge(EdgeType edge_type, const utils::RectPPf& rect,
@@ -197,6 +244,122 @@ void SelectMouseCursor(const DraggableWidget& crop) {
   }
 }
 
+std::vector<cv::Point2f> PointsOnRectangle(cv::Size size,
+                                           int points_per_edge = 10) {
+  std::vector<cv::Point2f> points;
+  points.reserve(points_per_edge * 4 + 1);
+  for (int i = 0; i < points_per_edge; i++) {
+    points.emplace_back(i, 0);
+  }
+  for (int i = 0; i < points_per_edge; i++) {
+    points.emplace_back(points_per_edge, i);
+  }
+  for (int i = 0; i < points_per_edge; i++) {
+    points.emplace_back(points_per_edge - i, points_per_edge);
+  }
+  for (int i = 0; i < points_per_edge; i++) {
+    points.emplace_back(0, points_per_edge - i);
+  }
+  points.emplace_back(0, 0);
+
+  std::transform(points.begin(), points.end(), points.begin(),
+                 [&size, points_per_edge](const cv::Point& point) {
+                   auto rescaled =
+                       cv::Point{(point.x * size.width) / points_per_edge,
+                                 (point.y * size.height) / points_per_edge};
+                   return cv::Point2f{rescaled};
+                 });
+  return points;
+}
+
+std::vector<cv::Point2f> Interpolate(const cv::Point& start,
+                                     const cv::Point& end, int num_edges = 10) {
+  std::vector<cv::Point2f> points;
+  points.reserve(num_edges + 1);
+  for (int i = 0; i <= num_edges; i++) {
+    float alpha = static_cast<float>(i) / static_cast<float>(num_edges);
+    points.push_back(cv::Point2f{start} + alpha * cv::Point2f{end - start});
+  }
+  return points;
+}
+
+Projectable HorizontalHandle(int camera_id, cv::Point corner,
+                             cv::Rect dst_roi) {
+  auto top_left = dst_roi.tl() - corner;
+  auto bottom_right = dst_roi.br() - corner;
+
+  auto left = cv::Point{top_left.x, (top_left.y + bottom_right.y) / 2};
+  auto right = cv::Point{bottom_right.x, (top_left.y + bottom_right.y) / 2};
+
+  return {.camera_id = camera_id,
+          .points = Interpolate(left, right),
+          .translation = -1 * top_left};
+}
+
+Projectable VerticalHandle(int camera_id, cv::Point corner, cv::Rect dst_roi) {
+  auto top_left = dst_roi.tl() - corner;
+  auto bottom_right = dst_roi.br() - corner;
+
+  auto top = cv::Point{(top_left.x + bottom_right.x) / 2, top_left.y};
+  auto bottom = cv::Point{(top_left.x + bottom_right.x) / 2, bottom_right.y};
+
+  return {.camera_id = camera_id,
+          .points = Interpolate(top, bottom),
+          .translation = -1 * top_left};
+}
+
+Projectable RollHandle(int camera_id) { return {}; }
+
+std::vector<PreprocessedCamera> Preprocess(
+    const std::vector<cv::detail::CameraParams>& cameras, double work_scale) {
+  auto scaled_cameras = utils::opencv::Scale(cameras, 1.0 / work_scale);
+
+  std::vector<PreprocessedCamera> result(scaled_cameras.size());
+  std::transform(scaled_cameras.begin(), scaled_cameras.end(), result.begin(),
+                 [](const cv::detail::CameraParams& camera_params) {
+                   return PreprocessedCamera{
+                       .k_mat = utils::opencv::ToFloat(camera_params.K()),
+                       .r_mat = camera_params.R};
+                 });
+  return result;
+}
+
+RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
+  int num_cameras = static_cast<int>(cameras.cameras.size());
+
+  auto dst_roi = cv::detail::resultRoi(cameras.warp_helper.corners,
+                                       cameras.warp_helper.sizes);
+
+  spdlog::debug("ROT: dst_roi = x {}, y {}, width {}, height{}", dst_roi.tl().x,
+                dst_roi.tl().y, dst_roi.size().width, dst_roi.size().height);
+
+  std::vector<Projectable> projectables(num_cameras);
+
+  for (int i = 0; i < num_cameras; i++) {
+    const auto& size = cameras.warp_helper.full_sizes[i];
+    const auto& corner = cameras.warp_helper.corners[i];
+
+    projectables[i].camera_id = i;
+    projectables[i].translation = -dst_roi.tl();
+    projectables[i].points = PointsOnRectangle(size);
+
+    spdlog::debug("ROT: cam {}, translation x {}, y {}", i,
+                  projectables[i].translation.x, projectables[i].translation.y);
+  }
+
+  int center_id = num_cameras / 2;
+  auto center_corner = cameras.warp_helper.corners[center_id];
+
+  return {
+      .horizontal_handle = HorizontalHandle(center_id, center_corner, dst_roi),
+      .vertical_handle = VerticalHandle(center_id, center_corner, dst_roi),
+      .roll_handle = RollHandle(center_id),
+      .image_borders = std::move(projectables),
+      .scale = dst_roi.size(),
+      .cameras = Preprocess(cameras.cameras, cameras.warp_helper.work_scale),
+      .warper = cameras.warp_helper.warper};
+}
+
 }  // namespace
 
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
@@ -280,6 +443,8 @@ void PreviewPane::Reset() {
   image_type_ = ImageType::kNone;
   crop_mode_ = CropMode::kInitial;
   crop_widget_ = {};
+  rotate_mode_ = RotateMode::kDisabled;
+  rotate_widget_ = {};
   suggested_crop_ = DefaultCropRect();
   full_resolution_pano_ = cv::Mat{};
 }
@@ -326,6 +491,10 @@ void PreviewPane::Draw(const std::string& message) {
     if (crop_mode_ == CropMode::kEnabled) {
       Overlay(crop_widget_.rect, image);
     }
+
+    if (rotate_mode_ == RotateMode::kEnabled) {
+      Overlay(rotate_widget_, image);
+    }
   }
   ImGui::End();
 }
@@ -334,19 +503,23 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
                                const utils::RectPVf& image) {
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
-  if (crop_mode_ == CropMode::kEnabled) {
+
+  if (crop_mode_ == CropMode::kEnabled ||
+      rotate_mode_ == RotateMode::kEnabled) {
     const bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     const bool mouse_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
 
-    crop_widget_ =
-        Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
-    SelectMouseCursor(crop_widget_);
-    return;
-  }
+    if (crop_mode_ == CropMode::kEnabled) {
+      crop_widget_ =
+          Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
+      SelectMouseCursor(crop_widget_);
+      return;
+    }
 
-  if (rotate_mode_ == RotateMode::kEnabled) {
-    return;
+    if (rotate_mode_ == RotateMode::kEnabled) {
+      return;
+    }
   }
 
   if (!ImGui::IsWindowHovered()) {
@@ -407,9 +580,14 @@ void PreviewPane::ToggleRotate() {
       rotate_mode_ = RotateMode::kDisabled;
       break;
     case RotateMode::kDisabled:
-      ResetZoom(0);
-      EndCrop();
-      rotate_mode_ = RotateMode::kEnabled;
+      if (cameras_) {
+        ResetZoom(0);
+        EndCrop();
+        rotate_widget_ = SetupRotationWidget(*cameras_);
+        rotate_mode_ = RotateMode::kEnabled;
+      } else {
+        spdlog::warn("Cannot enable rotate mode, missing camera parameters.");
+      }
       break;
     default:
       break;
@@ -434,6 +612,10 @@ utils::RectRRf PreviewPane::CropRect() const { return crop_widget_.rect; }
 
 void PreviewPane::SetSuggestedCrop(const utils::RectRRf& rect) {
   suggested_crop_ = rect;
+}
+
+void PreviewPane::SetCameras(const algorithm::Cameras& cameras) {
+  cameras_ = cameras;
 }
 
 }  // namespace xpano::gui

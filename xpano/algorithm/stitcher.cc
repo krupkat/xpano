@@ -94,27 +94,6 @@ class Timer {
   int64 start_count_;
 };
 
-std::vector<cv::detail::CameraParams> Scale(
-    const std::vector<cv::detail::CameraParams> &cameras, double scale) {
-  std::vector<cv::detail::CameraParams> scaled_cameras;
-  std::transform(cameras.begin(), cameras.end(),
-                 std::back_inserter(scaled_cameras),
-                 [scale](const auto &camera) {
-                   cv::detail::CameraParams scaled_camera = camera;
-                   scaled_camera.focal *= scale;
-                   scaled_camera.ppx *= scale;
-                   scaled_camera.ppy *= scale;
-                   return scaled_camera;
-                 });
-  return scaled_cameras;
-}
-
-cv::Mat ToFloat(const cv::Mat &image) {
-  cv::Mat float_image;
-  image.convertTo(float_image, CV_32F);
-  return float_image;
-}
-
 double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
   std::vector<double> focals(cameras.size());
   std::transform(cameras.begin(), cameras.end(), focals.begin(),
@@ -231,9 +210,9 @@ Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
   // Warp images and their masks
   const cv::Ptr<cv::detail::RotationWarper> warper = warper_creater_->create(
       static_cast<float>(warped_image_scale_ * seam_work_aspect_));
-  auto seam_cameras = Scale(cameras_, seam_work_aspect_);
+  auto seam_cameras = utils::opencv::Scale(cameras_, seam_work_aspect_);
   for (size_t i = 0; i < imgs_.size(); ++i) {
-    auto k_float = ToFloat(seam_cameras[i].K());
+    auto k_float = utils::opencv::ToFloat(seam_cameras[i].K());
 
     corners[i] =
         warper->warp(seam_est_imgs_[i], k_float, cameras_[i].R, interp_flags_,
@@ -294,7 +273,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   cv::UMat mask_warped;
 
   auto compose_work_aspect = 1.0 / work_scale_;
-  auto cameras_scaled = Scale(cameras_, compose_work_aspect);
+  auto cameras_scaled = utils::opencv::Scale(cameras_, compose_work_aspect);
 
   std::vector<cv::Point> corners(imgs_.size());
   std::vector<cv::Size> sizes(imgs_.size());
@@ -310,7 +289,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
     // Update corners and sizes
     for (size_t i = 0; i < imgs_.size(); ++i) {
-      auto k_float = ToFloat(cameras_scaled[i].K());
+      auto k_float = utils::opencv::ToFloat(cameras_scaled[i].K());
       const cv::Rect roi =
           warper->warpRoi(full_img_sizes_[i], k_float, cameras_scaled[i].R);
       corners[i] = roi.tl();
@@ -336,7 +315,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     cv::UMat img = imgs_[img_idx];
     const cv::Size img_size = img.size();
 
-    const cv::Mat k_float = ToFloat(cameras_scaled[img_idx].K());
+    const cv::Mat k_float = utils::opencv::ToFloat(cameras_scaled[img_idx].K());
 
     auto timer = Timer();
 
@@ -390,7 +369,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   pano.assign(result);
 
-  warp_helper_ = {work_scale_, dst_roi, std::move(warper)};
+  warp_helper_ = {work_scale_, corners, sizes, full_img_sizes_, std::move(warper)};
 
   EndMonitoring();
   return Status::kSuccess;
@@ -502,7 +481,7 @@ Status Stitcher::EstimateCameraParams() {
   NextTask(ProgressType::kStitchBundleAdjustment);
 
   for (auto &camera : cameras_) {
-    camera.R = ToFloat(camera.R);
+    camera.R = utils::opencv::ToFloat(camera.R);
   }
 
   bundle_adjuster_->setConfThresh(conf_thresh_);

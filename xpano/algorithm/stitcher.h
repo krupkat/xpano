@@ -55,6 +55,7 @@
 #include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/progress.h"
+#include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {
 
@@ -68,7 +69,9 @@ enum class Status {
 
 struct WarpHelper {
   double work_scale;
-  cv::Rect dst_roi;
+  std::vector<cv::Point> corners;
+  std::vector<cv::Size> sizes;
+  std::vector<cv::Size> full_sizes;
   cv::Ptr<cv::detail::RotationWarper> warper;
 };
 

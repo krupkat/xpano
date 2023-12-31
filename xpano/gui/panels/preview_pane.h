@@ -4,10 +4,13 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <string>
 
 #include <opencv2/core.hpp>
+#include <opencv2/stitching/detail/warpers.hpp>
 
+#include "xpano/algorithm/algorithm.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/utils/rect.h"
@@ -49,6 +52,32 @@ struct DraggableWidget {
   std::array<Edge, 4> edges = DefaultEdges();
 };
 
+struct Projectable {
+  int camera_id;
+  std::vector<cv::Point2f> points;
+  cv::Point2f translation;
+};
+
+struct PreprocessedCamera {
+  cv::Mat k_mat;  // in CV_32F as expected by warper functions
+  cv::Mat r_mat;
+};
+
+struct RotationWidget {
+  Projectable horizontal_handle;
+  Projectable vertical_handle;
+  Projectable roll_handle;
+  std::vector<Projectable> image_borders;
+
+  cv::Size scale;
+  std::vector<PreprocessedCamera> cameras;
+  cv::Ptr<cv::detail::RotationWarper> warper;
+
+  float yaw = 0.0f;
+  float pitch = 0.0f;
+  float roll = 0.0f;
+};
+
 class PreviewPane {
  public:
   explicit PreviewPane(backends::Base* backend);
@@ -61,6 +90,7 @@ class PreviewPane {
   void EndCrop();
   void EndRotate();
   void SetSuggestedCrop(const utils::RectRRf& rect);
+  void SetCameras(const algorithm::Cameras& cameras);
 
   [[nodiscard]] ImageType Type() const;
   [[nodiscard]] cv::Mat Image() const;
@@ -80,7 +110,9 @@ class PreviewPane {
   CropMode crop_mode_ = CropMode::kInitial;
   RotateMode rotate_mode_ = RotateMode::kDisabled;
   DraggableWidget crop_widget_;
+  RotationWidget rotate_widget_;
   utils::RectRRf suggested_crop_ = DefaultCropRect();
+  std::optional<algorithm::Cameras> cameras_;
 
   int zoom_id_ = 1;
   float zoom_ = 1.0f;
