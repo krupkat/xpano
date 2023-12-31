@@ -26,7 +26,15 @@ enum class ImageType {
   kPanoFullRes
 };
 
-enum class EdgeType { kTop = 1, kBottom = 2, kLeft = 4, kRight = 8 };
+enum class EdgeType {
+  kTop = 1,
+  kBottom = 2,
+  kLeft = 4,
+  kRight = 8,
+  kHorizontal = 16,
+  kVertical = 32,
+  kRoll = 64
+};
 
 struct Edge {
   EdgeType type;
@@ -58,9 +66,33 @@ struct Projectable {
   cv::Point2f translation;
 };
 
+using Polyline = std::vector<ImVec2>;
+
 struct PreprocessedCamera {
   cv::Mat k_mat;  // in CV_32F as expected by warper functions
   cv::Mat r_mat;
+};
+
+constexpr auto DefaultEdgesRotation() {
+  return std::array{Edge{EdgeType::kHorizontal}, Edge{EdgeType::kVertical},
+                    Edge{EdgeType::kRoll}};
+}
+
+struct RotationState {
+  float yaw = 0.0f;
+  float pitch = 0.0f;
+  float roll = 0.0f;
+  cv::Mat cumulative_r = cv::Mat::eye(3, 3, CV_32F);
+
+  utils::Point2f mouse_start;
+
+  std::array<Edge, 3> edges = DefaultEdgesRotation();
+};
+
+struct StaticWarpData {
+  cv::Size scale;
+  std::vector<PreprocessedCamera> cameras;
+  cv::Ptr<cv::detail::RotationWarper> warper;
 };
 
 struct RotationWidget {
@@ -69,13 +101,8 @@ struct RotationWidget {
   Projectable roll_handle;
   std::vector<Projectable> image_borders;
 
-  cv::Size scale;
-  std::vector<PreprocessedCamera> cameras;
-  cv::Ptr<cv::detail::RotationWarper> warper;
-
-  float yaw = 0.0f;
-  float pitch = 0.0f;
-  float roll = 0.0f;
+  StaticWarpData warp;
+  RotationState rotation;
 };
 
 class PreviewPane {

@@ -68,45 +68,60 @@ void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
                                       0, 2.0f);
 }
 
-void Draw(const Projectable& projectable, const PreprocessedCamera& camera,
-          const cv::Ptr<cv::detail::RotationWarper>& warper,
-          const cv::Size& scale, const utils::RectPVf& image) {
+void Draw(const Polyline& poly) {
   const auto color = ImColor(255, 255, 255, 255);
+  ImGui::GetWindowDrawList()->AddPolyline(poly.data(), poly.size(), color,
+                                          ImDrawFlags_None, 2.0f);
+}
+
+cv::Mat TemporaryRotation(const RotationState& state) {
+  return cv::Mat::eye(3, 3, CV_32F);
+}
+
+cv::Mat FullRotation(const RotationState& state) {
+  return TemporaryRotation(state) * state.cumulative_r;
+}
+
+Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
+              const RotationState& state, const utils::RectPVf& image) {
+  int camera_id = projectable.camera_id;
+  const auto& camera = warp.cameras[camera_id];
+  cv::Mat extra_rotation = FullRotation(state);
 
   std::vector<ImVec2> projected(projectable.points.size());
-  std::transform(
-      projectable.points.begin(), projectable.points.end(), projected.begin(),
-      [&](const cv::Point2f& point) {
-        auto projected_point =
-            warper->warpPoint(point, camera.k_mat, camera.r_mat);
+  std::transform(projectable.points.begin(), projectable.points.end(),
+                 projected.begin(), [&](const cv::Point2f& point) {
+                   auto projected_point = warp.warper->warpPoint(
+                       point, camera.k_mat, extra_rotation * camera.r_mat);
 
-        auto translated = projected_point + projectable.translation;
+                   auto translated = projected_point + projectable.translation;
 
-        return ImVec2{
-            (translated.x / static_cast<float>(scale.width)) * image.size[0] +
-                image.start[0],
-            (translated.y / static_cast<float>(scale.height)) * image.size[1] +
-                image.start[1]};
-      });
-
-  ImGui::GetWindowDrawList()->AddPolyline(projected.data(), projected.size(),
-                                          color, ImDrawFlags_None, 2.0f);
+                   return ImVec2{
+                       (translated.x / static_cast<float>(warp.scale.width)) *
+                               image.size[0] +
+                           image.start[0],
+                       (translated.y / static_cast<float>(warp.scale.height)) *
+                               image.size[1] +
+                           image.start[1]};
+                 });
+  return projected;
 }
 
 void Overlay(const RotationWidget& widget, const utils::RectPVf& image) {
+  std::vector<Polyline> polys;
+  polys.reserve(widget.image_borders.size() + 2);
+
   for (const auto& border : widget.image_borders) {
-    const auto& camera = widget.cameras[border.camera_id];
-    Draw(border, camera, widget.warper, widget.scale, image);
+    polys.push_back(Warp(border, widget.warp, widget.rotation, image));
   }
 
-  {
-    const auto& camera = widget.cameras[widget.horizontal_handle.camera_id];
-    Draw(widget.horizontal_handle, camera, widget.warper, widget.scale, image);
-  }
+  polys.push_back(
+      Warp(widget.horizontal_handle, widget.warp, widget.rotation, image));
+  polys.push_back(
+      Warp(widget.vertical_handle, widget.warp, widget.rotation, image));
 
-  {
-    const auto& camera = widget.cameras[widget.vertical_handle.camera_id];
-    Draw(widget.vertical_handle, camera, widget.warper, widget.scale, image);
+  for (const auto& poly : polys) {
+    Draw(poly);
   }
 }
 
@@ -199,6 +214,103 @@ DraggableWidget Drag(const DraggableWidget& input_widget,
   }
 
   return widget;
+}
+
+bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
+  return false;
+}
+
+float ComputePitch(const utils::Point2f& mouse_start,
+                   const utils::Point2f& mouse_end) {
+  return 0.0f;
+}
+
+float ComputeYaw(const utils::Point2f& mouse_start,
+                 const utils::Point2f& mouse_end) {
+  return 0.0f;
+}
+
+float ComputeRoll(const utils::Point2f& mouse_start,
+                  const utils::Point2f& mouse_end,
+                  const utils::RectPVf& image) {
+  return 0.0f;
+}
+
+RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
+                   utils::Point2f mouse_pos, bool mouse_clicked,
+                   bool mouse_down) {
+  auto new_rotation = widget.rotation;
+  bool dragging = false;
+  bool mouse_close = false;
+  bool bake_in = false;
+  for (auto& edge : new_rotation.edges) {
+    switch (edge.type) {
+      case EdgeType::kHorizontal: {
+        auto horiz =
+            Warp(widget.horizontal_handle, widget.warp, widget.rotation, image);
+        edge.mouse_close = IsMouseCloseToPoly(horiz, mouse_pos);
+      }
+      case EdgeType::kVertical: {
+        auto vertical =
+            Warp(widget.vertical_handle, widget.warp, widget.rotation, image);
+        edge.mouse_close = IsMouseCloseToPoly(vertical, mouse_pos);
+      }
+      case EdgeType::kRoll: {
+        edge.mouse_close = !mouse_close;
+      }
+      default:
+        continue;
+    }
+
+    if (edge.mouse_close && mouse_clicked) {
+      edge.dragging = true;
+      new_rotation.mouse_start = mouse_pos;
+    }
+
+    if (!mouse_down) {
+      edge.dragging = false;
+      bake_in = true;  // bake current yaw, pitch, roll attributes into a
+                       // rotation matrix
+    }
+
+    dragging |= edge.dragging;
+    mouse_close |= edge.mouse_close;
+  }
+
+  if (!dragging) {
+    return new_rotation;
+  }
+
+  if (bake_in) {
+    new_rotation.cumulative_r =
+        TemporaryRotation(new_rotation) * new_rotation.cumulative_r;
+    new_rotation.pitch = 0.0f;
+    new_rotation.yaw = 0.0f;
+    new_rotation.roll = 0.0f;
+    return new_rotation;
+  }
+
+  for (const auto& edge : new_rotation.edges) {
+    if (edge.dragging) {
+      switch (edge.type) {
+        case EdgeType::kHorizontal: {
+          new_rotation.pitch =
+              ComputePitch(new_rotation.mouse_start, mouse_pos);
+        }
+        case EdgeType::kVertical: {
+          new_rotation.yaw = ComputeYaw(new_rotation.mouse_start, mouse_pos);
+        }
+        case EdgeType::kRoll: {
+          new_rotation.roll =
+              ComputeRoll(new_rotation.mouse_start, mouse_pos, image);
+        }
+        default:
+          continue;
+      }
+    }
+  }
+
+  return new_rotation;
 }
 
 template <typename... TEdge>
@@ -379,9 +491,9 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
           .vertical_handle = std::move(vertical_handle),
           .roll_handle = RollHandle(camera_id),
           .image_borders = std::move(projectables),
-          .scale = dst_roi.size(),
-          .cameras = std::move(preprocessed_cameras),
-          .warper = cameras.warp_helper.warper};
+          .warp = {.scale = dst_roi.size(),
+                   .cameras = std::move(preprocessed_cameras),
+                   .warper = cameras.warp_helper.warper}};
 }
 
 }  // namespace
@@ -542,6 +654,7 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
     }
 
     if (rotate_mode_ == RotateMode::kEnabled) {
+      Drag(rotate_widget_, image, mouse_pos, mouse_clicked, mouse_down);
       return;
     }
   }
