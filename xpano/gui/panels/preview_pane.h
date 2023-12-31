@@ -42,6 +42,8 @@ constexpr auto DefaultCropRect() {
 
 enum class CropMode { kInitial, kEnabled, kDisabled };
 
+enum class RotateMode { kEnabled, kDisabled };
+
 struct DraggableWidget {
   utils::RectRRf rect = DefaultCropRect();
   std::array<Edge, 4> edges = DefaultEdges();
@@ -55,7 +57,9 @@ class PreviewPane {
   void Draw(const std::string& message);
   void Reset();
   void ToggleCrop();
+  void ToggleRotate();
   void EndCrop();
+  void EndRotate();
   void SetSuggestedCrop(const utils::RectRRf& rect);
 
   [[nodiscard]] ImageType Type() const;
@@ -68,16 +72,17 @@ class PreviewPane {
   void ZoomIn();
   void ZoomOut();
   void AdvanceZoom();
-  void ResetZoom();
+  void ResetZoom(int target_level = 1);
   void HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
 
   utils::Ratio2f tex_coord_;
 
   CropMode crop_mode_ = CropMode::kInitial;
+  RotateMode rotate_mode_ = RotateMode::kDisabled;
   DraggableWidget crop_widget_;
   utils::RectRRf suggested_crop_ = DefaultCropRect();
 
-  int zoom_id_ = 0;
+  int zoom_id_ = 1;
   float zoom_ = 1.0f;
   std::array<float, kZoomLevels> zoom_levels_;
 

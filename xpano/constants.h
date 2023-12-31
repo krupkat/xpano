@@ -26,7 +26,7 @@ constexpr int kWindowHeight = 800;
 constexpr int kMinWindowSize = 200;
 
 constexpr float kZoomFactor = 1.4f;
-constexpr int kZoomLevels = 10;
+constexpr int kZoomLevels = 11;
 constexpr float kZoomSpeed = 0.1f;
 
 constexpr int kResizingDelayFrames = 30;

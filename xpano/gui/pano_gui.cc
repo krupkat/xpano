@@ -499,6 +499,10 @@ Action PanoGui::PerformAction(const Action& action) {
       plot_pane_.ToggleCrop();
       break;
     }
+    case ActionType::kToggleRotate: {
+      plot_pane_.ToggleRotate();
+      break;
+    }
     case ActionType::kWarnInputConversion: {
       warning_pane_.Queue(WarningType::kWarnInputConversion);
       break;

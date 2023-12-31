@@ -15,6 +15,7 @@ enum class ActionType {
   kNone,
   kCancelPipeline,
   kToggleCrop,
+  kToggleRotate,
   kDisableHighlight,
   kExport,
   kRotate,

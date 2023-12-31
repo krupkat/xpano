@@ -200,14 +200,14 @@ void SelectMouseCursor(const DraggableWidget& crop) {
 }  // namespace
 
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
-  std::iota(zoom_levels_.begin(), zoom_levels_.end(), 0.0f);
+  std::iota(zoom_levels_.begin(), zoom_levels_.end(), -1.0f);
   std::transform(zoom_levels_.begin(), zoom_levels_.end(), zoom_levels_.begin(),
                  [](float exp) { return std::pow(kZoomFactor, exp); });
 };
 
 float PreviewPane::Zoom() const { return zoom_; }
 
-bool PreviewPane::IsZoomed() const { return zoom_ != 1.0f; }
+bool PreviewPane::IsZoomed() const { return zoom_id_ != 1; }
 
 void PreviewPane::ZoomIn() {
   if (crop_mode_ != CropMode::kEnabled && zoom_id_ < kZoomLevels - 1) {
@@ -216,7 +216,7 @@ void PreviewPane::ZoomIn() {
 }
 
 void PreviewPane::ZoomOut() {
-  if (zoom_id_ > 0) {
+  if (zoom_id_ > 1) {
     zoom_id_--;
   }
 }
@@ -231,9 +231,11 @@ void PreviewPane::AdvanceZoom() {
   }
 }
 
-void PreviewPane::ResetZoom() {
-  zoom_id_ = 0;
-  zoom_ = 1.0f;
+void PreviewPane::ResetZoom(int target_level) {
+  zoom_id_ = target_level;
+  zoom_ = zoom_levels_[target_level];
+  screen_offset_ = utils::Ratio2f{0.5f, 0.5f};
+  image_offset_ = utils::Ratio2f{0.5f, 0.5f};
 }
 
 void PreviewPane::Load(cv::Mat image, ImageType image_type) {
@@ -343,6 +345,10 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
     return;
   }
 
+  if (rotate_mode_ == RotateMode::kEnabled) {
+    return;
+  }
+
   if (!ImGui::IsWindowHovered()) {
     return;
   }
@@ -377,6 +383,7 @@ void PreviewPane::ToggleCrop() {
   switch (crop_mode_) {
     case CropMode::kInitial:
       ResetZoom();
+      EndRotate();
       crop_widget_.rect = suggested_crop_;
       crop_mode_ = CropMode::kEnabled;
       break;
@@ -385,7 +392,24 @@ void PreviewPane::ToggleCrop() {
       break;
     case CropMode::kDisabled:
       ResetZoom();
+      EndRotate();
       crop_mode_ = CropMode::kEnabled;
+      break;
+    default:
+      break;
+  }
+}
+
+void PreviewPane::ToggleRotate() {
+  switch (rotate_mode_) {
+    case RotateMode::kEnabled:
+      ResetZoom(1);
+      rotate_mode_ = RotateMode::kDisabled;
+      break;
+    case RotateMode::kDisabled:
+      ResetZoom(0);
+      EndCrop();
+      rotate_mode_ = RotateMode::kEnabled;
       break;
     default:
       break;
@@ -395,6 +419,12 @@ void PreviewPane::ToggleCrop() {
 void PreviewPane::EndCrop() {
   if (crop_mode_ == CropMode::kEnabled) {
     crop_mode_ = CropMode::kDisabled;
+  }
+}
+
+void PreviewPane::EndRotate() {
+  if (rotate_mode_ == RotateMode::kEnabled) {
+    rotate_mode_ = RotateMode::kDisabled;
   }
 }
 
