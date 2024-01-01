@@ -79,6 +79,13 @@ void Draw(const Polyline& poly) {
 cv::Mat FullRotation(const RotationState& state) {
   auto rot = cv::Mat::eye(3, 3, CV_32F);
 
+  if (state.roll != 0.0f) {
+    cv::Mat rotation_vector = state.roll * cv::Mat{0.0f, 0.0f, 1.0f};
+    cv::Mat rotation_matrix;
+    cv::Rodrigues(rotation_vector, rotation_matrix);
+    rot = rotation_matrix * rot;
+  }
+
   if (state.pitch != 0.0f) {
     cv::Mat rotation_vector = state.pitch * cv::Mat{1.0f, 0.0f, 0.0f};
     cv::Mat rotation_matrix;
@@ -275,7 +282,14 @@ float ComputeYaw(const utils::Point2f& mouse_start,
 float ComputeRoll(const utils::Point2f& mouse_start,
                   const utils::Point2f& mouse_end, const utils::RectPVf& image,
                   float start) {
-  return 0.0f;
+  auto center = image.start + image.size / 2.0f;
+  auto x = mouse_start - center;
+  auto y = mouse_end - center;
+
+  auto angle =
+      std::atan2f(x[0] * y[1] - x[1] * y[0], x[0] * y[0] + y[1] * y[1]);
+
+  return start + angle;
 }
 
 RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
