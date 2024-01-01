@@ -217,15 +217,31 @@ DraggableWidget Drag(const DraggableWidget& input_widget,
   return widget;
 }
 
+float LineToSegmentDistance(const ImVec2& a, const ImVec2& b, const ImVec2& p) {
+  auto ap = ImVec2{p.x - a.x, p.y - a.y};
+  auto ab = ImVec2{b.x - a.x, b.y - a.y};
+  auto dot = [](const ImVec2& a, const ImVec2& b) {
+    return a.x * b.x + a.y * b.y;
+  };
+  float dot_ab = dot(ab, ab);
+  if (dot_ab < 1e-6f) {
+    return dot(ap, ap);
+  }
+  auto t = std::clamp(dot(ap, ab) / dot_ab, 0.0f, 1.0f);
+  auto projected = ImVec2{a.x + t * ab.x, a.y + t * ab.y};
+  auto diff = ImVec2{p.x - projected.x, p.y - projected.y};
+  return dot(diff, diff);
+}
+
 bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
-  for (const ImVec2& point : poly) {
-    auto diff = cv::Point2f{std::abs(point.x - mouse_pos[0]),
-                            std::abs(point.y - mouse_pos[1])};
-    auto dist = cv::norm(diff);
-    if (dist < kCropEdgeTolerance) {
+  for (int i = 0; i < poly.size() - 1; i++) {
+    auto dist = LineToSegmentDistance(poly[i], poly[i + 1],
+                                      ImVec2{mouse_pos[0], mouse_pos[1]});
+    if (dist < kCropEdgeTolerance * kCropEdgeTolerance) {
       return true;
     }
   }
+
   return false;
 }
 
