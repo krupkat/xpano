@@ -175,15 +175,22 @@ auto ResolveStitchingResultFuture(
       fmt::format("Stitched pano {} successfully", result.pano_id)};
   spdlog::info(*status_message);
 
-  plot_pane->Load(*result.pano, result.full_res ? ImageType::kPanoFullRes
-                                                : ImageType::kPanoPreview);
+  if (result.cameras) {
+    plot_pane->SetCameras(*result.cameras);
+  }
+
+  if (plot_pane->IsRotateEnabled()) {
+    plot_pane->ToggleRotate();
+    plot_pane->ToggleRotate();
+  } else {
+    plot_pane->Reset();
+  }
+
+  plot_pane->Reload(*result.pano, result.full_res ? ImageType::kPanoFullRes
+                                                  : ImageType::kPanoPreview);
 
   if (result.auto_crop) {
     plot_pane->SetSuggestedCrop(*result.auto_crop);
-  }
-
-  if (result.cameras) {
-    plot_pane->SetCameras(*result.cameras);
   }
 
   if (result.export_path) {
@@ -312,7 +319,7 @@ Action PanoGui::DrawGui() {
   layout::InitDockSpace();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
-  plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
+  action |= plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
@@ -578,7 +585,7 @@ MultiAction PanoGui::ResolveFutures() {
       };
 
   auto handle_pano =
-      [this](std::future<pipeline::StitchingResult> pano_future) {
+      [this, &actions](std::future<pipeline::StitchingResult> pano_future) {
         auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
         if (result.export_path) {

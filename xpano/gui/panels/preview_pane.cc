@@ -316,9 +316,15 @@ float ComputeRoll(const utils::Point2f& mouse_start,
   return start + angle;
 }
 
-RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
-                   utils::Point2f mouse_pos, bool mouse_clicked,
-                   bool mouse_down) {
+std::pair<RotationState, bool> Drag(const RotationWidget& widget,
+                                    const utils::RectPVf& image,
+                                    utils::Point2f mouse_pos,
+                                    bool mouse_clicked, bool mouse_down) {
+  auto within_image = [&image](const utils::Point2f& pos) {
+    return pos[0] >= image.start[0] &&
+           pos[0] <= image.start[0] + image.size[0] &&
+           pos[1] >= image.start[1] && pos[1] <= image.start[1] + image.size[1];
+  };
   auto new_rotation = widget.rotation;
   bool dragging = false;
   bool mouse_close = false;
@@ -338,7 +344,7 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
         break;
       }
       case EdgeType::kRoll: {
-        edge.mouse_close = !mouse_close;
+        edge.mouse_close = !mouse_close && within_image(mouse_pos);
         break;
       }
       default:
@@ -353,8 +359,9 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
       new_rotation.roll_start = new_rotation.roll;
     }
 
-    if (!mouse_down) {
+    if (edge.dragging && !mouse_down) {
       edge.dragging = false;
+      bake_in = true;
     }
 
     dragging |= edge.dragging;
@@ -362,7 +369,7 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
   }
 
   if (!dragging) {
-    return new_rotation;
+    return {new_rotation, bake_in};
   }
 
   for (const auto& edge : new_rotation.edges) {
@@ -389,7 +396,7 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
     }
   }
 
-  return new_rotation;
+  return {new_rotation, bake_in};
 }
 
 template <typename... TEdge>
@@ -735,7 +742,8 @@ void PreviewPane::Reset() {
   full_resolution_pano_ = cv::Mat{};
 }
 
-void PreviewPane::Draw(const std::string& message) {
+Action PreviewPane::Draw(const std::string& message) {
+  Action action{};
   ImGui::Begin("Preview");
   auto window = utils::Rect(utils::ToPoint(ImGui::GetCursorScreenPos()),
                             utils::ToVec(ImGui::GetContentRegionAvail()));
@@ -761,7 +769,7 @@ void PreviewPane::Draw(const std::string& message) {
                           image_size * Zoom());
     }
 
-    HandleInputs(window, image);
+    action |= HandleInputs(window, image);
 
     auto tex_coords =
         (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial)
@@ -783,10 +791,11 @@ void PreviewPane::Draw(const std::string& message) {
     }
   }
   ImGui::End();
+  return action;
 }
 
-void PreviewPane::HandleInputs(const utils::RectPVf& window,
-                               const utils::RectPVf& image) {
+Action PreviewPane::HandleInputs(const utils::RectPVf& window,
+                                 const utils::RectPVf& image) {
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
 
@@ -800,20 +809,26 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
       crop_widget_ =
           Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
       SelectMouseCursor(crop_widget_);
-      return;
+      return {};
     }
 
     if (rotate_mode_ == RotateMode::kEnabled) {
-      auto new_state =
+      auto [new_state, bake_in] =
           Drag(rotate_widget_, image, mouse_pos, mouse_clicked, mouse_down);
       rotate_widget_.rotation = new_state;
       SelectMouseCursor(rotate_widget_);
-      return;
+      if (bake_in) {
+        return Action{.type = ActionType::kRotate,
+                      .delayed = true,
+                      .extra = RotateExtra{.rotation_matrix = FullRotation(
+                                               rotate_widget_.rotation)}};
+      }
+      return {};
     }
   }
 
   if (!ImGui::IsWindowHovered()) {
-    return;
+    return {};
   }
 
   // Zoom + pan only when not cropping
@@ -834,6 +849,7 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
   if (mouse_wheel < 0) {
     ZoomOut();
   }
+  return {};
 }
 
 ImageType PreviewPane::Type() const { return image_type_; }
@@ -861,6 +877,10 @@ void PreviewPane::ToggleCrop() {
     default:
       break;
   }
+}
+
+bool PreviewPane::IsRotateEnabled() const {
+  return rotate_mode_ == RotateMode::kEnabled;
 }
 
 Action PreviewPane::ToggleRotate() {

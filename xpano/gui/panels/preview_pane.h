@@ -114,10 +114,11 @@ class PreviewPane {
   explicit PreviewPane(backends::Base* backend);
   void Load(cv::Mat image, ImageType image_type);
   void Reload(cv::Mat image, ImageType image_type);
-  void Draw(const std::string& message);
+  Action Draw(const std::string& message);
   void Reset();
   void ToggleCrop();
   Action ToggleRotate();
+  bool IsRotateEnabled() const;
   void EndCrop();
   void EndRotate();
   void SetSuggestedCrop(const utils::RectRRf& rect);
@@ -134,7 +135,7 @@ class PreviewPane {
   void ZoomOut();
   void AdvanceZoom();
   void ResetZoom(int target_level = 1);
-  void HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
+  Action HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
 
   utils::Ratio2f tex_coord_;
 
