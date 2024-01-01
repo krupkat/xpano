@@ -69,11 +69,33 @@ void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
                                       0, 2.0f);
 }
 
-void Draw(const Polyline& poly) {
+void Draw(const Polyline& poly, const utils::RectPVf& image) {
   const auto color = ImColor(255, 255, 255, 255);
-  ImGui::GetWindowDrawList()->AddPolyline(poly.data(),
-                                          static_cast<int>(poly.size()), color,
-                                          ImDrawFlags_None, 2.0f);
+
+  auto within_image = [&image](const ImVec2& point) {
+    return point.x >= image.start[0] &&
+           point.x <= image.start[0] + image.size[0] &&
+           point.y >= image.start[1] &&
+           point.y <= image.start[1] + image.size[1];
+  };
+
+  auto start = poly.begin();
+  auto end = poly.begin();
+
+  while (end != poly.end()) {
+    while (end != poly.end() && !within_image(*end)) {
+      end++;
+    }
+    if (end == poly.end()) {
+      break;
+    }
+    start = end;
+    while (end != poly.end() && within_image(*end)) {
+      end++;
+    }
+    ImGui::GetWindowDrawList()->AddPolyline(&(*start), end - start, color,
+                                            ImDrawFlags_None, 2.0f);
+  }
 }
 
 cv::Mat FullRotation(const RotationState& state) {
@@ -128,7 +150,8 @@ Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
   return projected;
 }
 
-void Overlay(const RotationWidget& widget, const utils::RectPVf& image) {
+void Overlay(const RotationWidget& widget, const utils::RectPVf& image,
+             const utils::RectPVf& window) {
   std::vector<Polyline> polys;
   polys.reserve(widget.image_borders.size() + 2);
 
@@ -142,7 +165,7 @@ void Overlay(const RotationWidget& widget, const utils::RectPVf& image) {
       Warp(widget.vertical_handle, widget.warp, widget.rotation, image));
 
   for (const auto& poly : polys) {
-    Draw(poly);
+    Draw(poly, window);
   }
 }
 
@@ -439,7 +462,7 @@ void SelectMouseCursor(const DraggableWidget& crop) {
 }
 
 std::vector<cv::Point2f> PointsOnRectangle(cv::Size size,
-                                           int points_per_edge = 10) {
+                                           int points_per_edge = 50) {
   std::vector<cv::Point2f> points;
   points.reserve(points_per_edge * 4 + 1);
   for (int i = 0; i < points_per_edge; i++) {
@@ -467,7 +490,7 @@ std::vector<cv::Point2f> PointsOnRectangle(cv::Size size,
 }
 
 std::vector<cv::Point2f> Interpolate(const cv::Point& start,
-                                     const cv::Point& end, int num_edges = 10) {
+                                     const cv::Point& end, int num_edges = 50) {
   std::vector<cv::Point2f> points;
   points.reserve(num_edges + 1);
   for (int i = 0; i <= num_edges; i++) {
@@ -502,7 +525,7 @@ Projectable HorizontalHandle(
   auto end = cv::Point{dst_roi.br().x, mid_y};
   auto diff = end - start;
 
-  auto points = Interpolate(start - diff, end + diff, 20);
+  auto points = Interpolate(start - diff, end + diff);
 
   return {.camera_id = camera_id,
           .points = WarpBackpward(points, camera, warper),
@@ -518,7 +541,7 @@ Projectable VerticalHandle(cv::Rect dst_roi, int camera_id,
   auto end = cv::Point{mid_x, dst_roi.br().y};
   auto diff = end - start;
 
-  auto points = Interpolate(start - diff, end + diff, 20);
+  auto points = Interpolate(start - diff, end + diff);
 
   return {.camera_id = camera_id,
           .points = WarpBackpward(points, camera, warper),
@@ -755,7 +778,7 @@ void PreviewPane::Draw(const std::string& message) {
     }
 
     if (rotate_mode_ == RotateMode::kEnabled) {
-      Overlay(rotate_widget_, image);
+      Overlay(rotate_widget_, image, window);
     }
   }
   ImGui::End();
