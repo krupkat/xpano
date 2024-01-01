@@ -517,6 +517,43 @@ std::vector<PreprocessedCamera> Preprocess(
   return result;
 }
 
+std::vector<cv::Point2f> Corners(cv::Size size) {
+  return {cv::Point2i{0, 0}, cv::Point2i{size.width, 0},
+          cv::Point2i{size.width, size.height}, cv::Point2i{0, size.height}};
+}
+
+ImVec2 Avg(const std::vector<ImVec2>& points) {
+  ImVec2 sum = std::accumulate(points.begin(), points.end(), ImVec2{0.0f, 0.0f},
+                               [](const ImVec2& a, const ImVec2& b) {
+                                 return ImVec2{a.x + b.x, a.y + b.y};
+                               });
+  return ImVec2{sum.x / points.size(), sum.y / points.size()};
+}
+
+int SelectMiddleCamera(const std::vector<cv::Size> image_sizes,
+                       const StaticWarpData& warp) {
+  std::vector<ImVec2> centers;
+  for (int i = 0; i < image_sizes.size(); i++) {
+    auto corners =
+        Projectable{.camera_id = i, .points = Corners(image_sizes[i])};
+    auto projected = Warp(corners, warp, {}, {});
+    auto center = Avg(projected);
+    centers.push_back(center);
+  }
+
+  auto dist = [](const ImVec2& a, const ImVec2& b) {
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  };
+
+  auto center = Avg(centers);
+  auto middle_image =
+      std::min_element(centers.begin(), centers.end(),
+                       [&center, &dist](const ImVec2& a, const ImVec2& b) {
+                         return dist(a, center) < dist(b, center);
+                       });
+  return static_cast<int>(std::distance(centers.begin(), middle_image));
+}
+
 RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   int num_cameras = static_cast<int>(cameras.cameras.size());
 
@@ -542,8 +579,12 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   auto preprocessed_cameras =
       Preprocess(cameras.cameras, cameras.warp_helper.work_scale);
 
-  int camera_id = num_cameras / 2;
-  auto& camera = preprocessed_cameras[camera_id];
+  auto warp = StaticWarpData{.scale = dst_roi.size(),
+                             .cameras = std::move(preprocessed_cameras),
+                             .warper = cameras.warp_helper.warper};
+
+  int camera_id = SelectMiddleCamera(cameras.warp_helper.full_sizes, warp);
+  auto& camera = warp.cameras[camera_id];
 
   auto vertical_handle =
       VerticalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
@@ -554,9 +595,7 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
           .vertical_handle = std::move(vertical_handle),
           .roll_handle = RollHandle(camera_id),
           .image_borders = std::move(projectables),
-          .warp = {.scale = dst_roi.size(),
-                   .cameras = std::move(preprocessed_cameras),
-                   .warper = cameras.warp_helper.warper}};
+          .warp = std::move(warp)};
 }
 
 }  // namespace
