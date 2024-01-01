@@ -77,6 +77,6 @@ std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
                 InpaintingOptions options);
 
-Cameras Rotate(const Cameras& cameras, float angle);
+Cameras Rotate(const Cameras& cameras, const cv::Mat rotation_matrix);
 
 }  // namespace xpano::algorithm

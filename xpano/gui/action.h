@@ -9,6 +9,8 @@
 #include <variant>
 #include <vector>
 
+#include <opencv2/core.hpp>
+
 namespace xpano::gui {
 
 enum class ActionType {
@@ -44,7 +46,7 @@ struct ShowPanoExtra {
 using LoadFilesExtra = std::vector<std::filesystem::path>;
 
 struct RotateExtra {
-  float angle;
+  cv::Mat rotation_matrix;
 };
 
 struct Action {

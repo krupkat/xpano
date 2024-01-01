@@ -614,30 +614,6 @@ Action DrawActionButtons(ImageType image_type, int target_id,
         }
       },
       "First select a panorama");
-  // ImGui::SameLine();
-  // utils::imgui::EnableIf(
-  //     image_type == ImageType::kPanoFullRes ||
-  //         image_type == ImageType::kPanoPreview,
-  //     [&] {
-  //       if (ImGui::Button("+")) {
-  //         action |= {.type = ActionType::kRotate,
-  //                    .target_id = target_id,
-  //                    .extra = RotateExtra{.angle = 0.1f}};
-  //       }
-  //     },
-  //     "First select a panorama");
-  // ImGui::SameLine();
-  // utils::imgui::EnableIf(
-  //     image_type == ImageType::kPanoFullRes ||
-  //         image_type == ImageType::kPanoPreview,
-  //     [&] {
-  //       if (ImGui::Button("-")) {
-  //         action |= {.type = ActionType::kRotate,
-  //                    .target_id = target_id,
-  //                    .extra = RotateExtra{.angle = -0.1f}};
-  //       }
-  //     },
-  //     "First select a panorama");
   ImGui::Spacing();
   return action;
 }

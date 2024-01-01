@@ -465,7 +465,7 @@ Action PanoGui::PerformAction(const Action& action) {
                 stitcher_data_->panos.at(selection_.target_id).cameras;
             cameras) {
           auto extra = ValueOrDefault<RotateExtra>(action);
-          cameras = algorithm::Rotate(*cameras, extra.angle);
+          cameras = algorithm::Rotate(*cameras, extra.rotation_matrix);
         }
       }
     }
@@ -504,7 +504,7 @@ Action PanoGui::PerformAction(const Action& action) {
       break;
     }
     case ActionType::kToggleRotate: {
-      plot_pane_.ToggleRotate();
+      return plot_pane_.ToggleRotate();
       break;
     }
     case ActionType::kWarnInputConversion: {

@@ -12,6 +12,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/constants.h"
+#include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
@@ -116,7 +117,7 @@ class PreviewPane {
   void Draw(const std::string& message);
   void Reset();
   void ToggleCrop();
-  void ToggleRotate();
+  Action ToggleRotate();
   void EndCrop();
   void EndRotate();
   void SetSuggestedCrop(const utils::RectRRf& rect);

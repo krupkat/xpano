@@ -17,6 +17,7 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/vec.h"
@@ -862,13 +863,18 @@ void PreviewPane::ToggleCrop() {
   }
 }
 
-void PreviewPane::ToggleRotate() {
+Action PreviewPane::ToggleRotate() {
   switch (rotate_mode_) {
-    case RotateMode::kEnabled:
+    case RotateMode::kEnabled: {
       ResetZoom(1);
       rotate_mode_ = RotateMode::kDisabled;
+      return Action{.type = ActionType::kRotate,
+                    .delayed = true,
+                    .extra = RotateExtra{.rotation_matrix = FullRotation(
+                                             rotate_widget_.rotation)}};
       break;
-    case RotateMode::kDisabled:
+    }
+    case RotateMode::kDisabled: {
       if (cameras_) {
         ResetZoom(0);
         EndCrop();
@@ -878,9 +884,12 @@ void PreviewPane::ToggleRotate() {
         spdlog::warn("Cannot enable rotate mode, missing camera parameters.");
       }
       break;
+    }
     default:
       break;
   }
+
+  return {};
 }
 
 void PreviewPane::EndCrop() {
