@@ -70,7 +70,8 @@ void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
 
 void Draw(const Polyline& poly) {
   const auto color = ImColor(255, 255, 255, 255);
-  ImGui::GetWindowDrawList()->AddPolyline(poly.data(), poly.size(), color,
+  ImGui::GetWindowDrawList()->AddPolyline(poly.data(),
+                                          static_cast<int>(poly.size()), color,
                                           ImDrawFlags_None, 2.0f);
 }
 
@@ -217,6 +218,14 @@ DraggableWidget Drag(const DraggableWidget& input_widget,
 }
 
 bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
+  for (const ImVec2& point : poly) {
+    auto diff = cv::Point2f{std::abs(point.x - mouse_pos[0]),
+                            std::abs(point.y - mouse_pos[1])};
+    auto dist = cv::norm(diff);
+    if (dist < kCropEdgeTolerance) {
+      return true;
+    }
+  }
   return false;
 }
 
@@ -249,14 +258,17 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
         auto horiz =
             Warp(widget.horizontal_handle, widget.warp, widget.rotation, image);
         edge.mouse_close = IsMouseCloseToPoly(horiz, mouse_pos);
+        break;
       }
       case EdgeType::kVertical: {
         auto vertical =
             Warp(widget.vertical_handle, widget.warp, widget.rotation, image);
         edge.mouse_close = IsMouseCloseToPoly(vertical, mouse_pos);
+        break;
       }
       case EdgeType::kRoll: {
         edge.mouse_close = !mouse_close;
+        break;
       }
       default:
         continue;
@@ -296,13 +308,16 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
         case EdgeType::kHorizontal: {
           new_rotation.pitch =
               ComputePitch(new_rotation.mouse_start, mouse_pos);
+          break;
         }
         case EdgeType::kVertical: {
           new_rotation.yaw = ComputeYaw(new_rotation.mouse_start, mouse_pos);
+          break;
         }
         case EdgeType::kRoll: {
           new_rotation.roll =
               ComputeRoll(new_rotation.mouse_start, mouse_pos, image);
+          break;
         }
         default:
           continue;
@@ -316,6 +331,34 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
 template <typename... TEdge>
 constexpr int Select(TEdge... edges) {
   return (static_cast<int>(edges) + ...);
+}
+
+void SelectMouseCursor(const RotationWidget& widget) {
+  const int mouse_cursor_selector = std::accumulate(
+      widget.rotation.edges.begin(), widget.rotation.edges.end(), 0,
+      [](int sum, const Edge& edge) {
+        return sum + (edge.mouse_close || edge.dragging
+                          ? static_cast<int>(edge.type)
+                          : 0);
+      });
+
+  switch (mouse_cursor_selector) {
+    case Select(EdgeType::kHorizontal):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+      break;
+    case Select(EdgeType::kVertical):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+      break;
+    case Select(EdgeType::kHorizontal, EdgeType::kVertical):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+      break;
+    case Select(EdgeType::kRoll):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+      break;
+    default:
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+      break;
+  }
 }
 
 void SelectMouseCursor(const DraggableWidget& crop) {
@@ -654,7 +697,10 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
     }
 
     if (rotate_mode_ == RotateMode::kEnabled) {
-      Drag(rotate_widget_, image, mouse_pos, mouse_clicked, mouse_down);
+      auto new_state =
+          Drag(rotate_widget_, image, mouse_pos, mouse_clicked, mouse_down);
+      rotate_widget_.rotation = new_state;
+      SelectMouseCursor(rotate_widget_);
       return;
     }
   }

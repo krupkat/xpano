@@ -26,7 +26,7 @@ enum class ImageType {
   kPanoFullRes
 };
 
-enum class EdgeType {
+enum class EdgeType : int {
   kTop = 1,
   kBottom = 2,
   kLeft = 4,
