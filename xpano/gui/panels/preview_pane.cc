@@ -462,6 +462,10 @@ std::vector<cv::Point2f> WarpBackpward(
                    return warper->warpPointBackward(point, camera.k_mat,
                                                     camera.r_mat);
                  });
+  std::erase_if(warped, [](const cv::Point2f& point) {
+    // this is how opencv reports points that cannot be warped back
+    return point.x == -1 && point.y == -1;
+  });
   return warped;
 }
 
