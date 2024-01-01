@@ -82,7 +82,10 @@ struct RotationState {
   float yaw = 0.0f;
   float pitch = 0.0f;
   float roll = 0.0f;
-  cv::Mat cumulative_r = cv::Mat::eye(3, 3, CV_32F);
+
+  float yaw_start = 0.0f;
+  float pitch_start = 0.0f;
+  float roll_start = 0.0f;
 
   utils::Point2f mouse_start;
 

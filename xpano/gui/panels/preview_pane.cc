@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <imgui.h>
+#include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/stitching/detail/camera.hpp>
@@ -75,12 +76,24 @@ void Draw(const Polyline& poly) {
                                           ImDrawFlags_None, 2.0f);
 }
 
-cv::Mat TemporaryRotation(const RotationState& state) {
-  return cv::Mat::eye(3, 3, CV_32F);
-}
-
 cv::Mat FullRotation(const RotationState& state) {
-  return TemporaryRotation(state) * state.cumulative_r;
+  auto rot = cv::Mat::eye(3, 3, CV_32F);
+
+  if (state.pitch != 0.0f) {
+    cv::Mat rotation_vector = state.pitch * cv::Mat{1.0f, 0.0f, 0.0f};
+    cv::Mat rotation_matrix;
+    cv::Rodrigues(rotation_vector, rotation_matrix);
+    rot = rotation_matrix * rot;
+  }
+
+  if (state.yaw != 0.0f) {
+    cv::Mat rotation_vector = state.yaw * cv::Mat{0.0f, 1.0f, 0.0f};
+    cv::Mat rotation_matrix;
+    cv::Rodrigues(rotation_vector, rotation_matrix);
+    rot = rotation_matrix * rot;
+  }
+
+  return rot;
 }
 
 Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
@@ -245,19 +258,23 @@ bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
   return false;
 }
 
+constexpr float kRotFactor = 150.0f;
+
 float ComputePitch(const utils::Point2f& mouse_start,
-                   const utils::Point2f& mouse_end) {
-  return 0.0f;
+                   const utils::Point2f& mouse_end, float start) {
+  auto vert_diff = mouse_start[1] - mouse_end[1];
+  return start + vert_diff / kRotFactor;
 }
 
 float ComputeYaw(const utils::Point2f& mouse_start,
-                 const utils::Point2f& mouse_end) {
-  return 0.0f;
+                 const utils::Point2f& mouse_end, float start) {
+  auto horiz_diff = mouse_end[0] - mouse_start[0];
+  return start + horiz_diff / kRotFactor;
 }
 
 float ComputeRoll(const utils::Point2f& mouse_start,
-                  const utils::Point2f& mouse_end,
-                  const utils::RectPVf& image) {
+                  const utils::Point2f& mouse_end, const utils::RectPVf& image,
+                  float start) {
   return 0.0f;
 }
 
@@ -293,12 +310,13 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
     if (edge.mouse_close && mouse_clicked) {
       edge.dragging = true;
       new_rotation.mouse_start = mouse_pos;
+      new_rotation.yaw_start = new_rotation.yaw;
+      new_rotation.pitch_start = new_rotation.pitch;
+      new_rotation.roll_start = new_rotation.roll;
     }
 
     if (!mouse_down) {
       edge.dragging = false;
-      bake_in = true;  // bake current yaw, pitch, roll attributes into a
-                       // rotation matrix
     }
 
     dragging |= edge.dragging;
@@ -309,30 +327,22 @@ RotationState Drag(const RotationWidget& widget, const utils::RectPVf& image,
     return new_rotation;
   }
 
-  if (bake_in) {
-    new_rotation.cumulative_r =
-        TemporaryRotation(new_rotation) * new_rotation.cumulative_r;
-    new_rotation.pitch = 0.0f;
-    new_rotation.yaw = 0.0f;
-    new_rotation.roll = 0.0f;
-    return new_rotation;
-  }
-
   for (const auto& edge : new_rotation.edges) {
     if (edge.dragging) {
       switch (edge.type) {
         case EdgeType::kHorizontal: {
-          new_rotation.pitch =
-              ComputePitch(new_rotation.mouse_start, mouse_pos);
+          new_rotation.pitch = ComputePitch(new_rotation.mouse_start, mouse_pos,
+                                            new_rotation.pitch_start);
           break;
         }
         case EdgeType::kVertical: {
-          new_rotation.yaw = ComputeYaw(new_rotation.mouse_start, mouse_pos);
+          new_rotation.yaw = ComputeYaw(new_rotation.mouse_start, mouse_pos,
+                                        new_rotation.yaw_start);
           break;
         }
         case EdgeType::kRoll: {
-          new_rotation.roll =
-              ComputeRoll(new_rotation.mouse_start, mouse_pos, image);
+          new_rotation.roll = ComputeRoll(new_rotation.mouse_start, mouse_pos,
+                                          image, new_rotation.roll_start);
           break;
         }
         default:
@@ -478,7 +488,7 @@ Projectable HorizontalHandle(
   auto end = cv::Point{dst_roi.br().x, mid_y};
   auto diff = end - start;
 
-  auto points = Interpolate(start - diff, end + diff);
+  auto points = Interpolate(start - diff, end + diff, 20);
 
   return {.camera_id = camera_id,
           .points = WarpBackpward(points, camera, warper),
@@ -494,7 +504,7 @@ Projectable VerticalHandle(cv::Rect dst_roi, int camera_id,
   auto end = cv::Point{mid_x, dst_roi.br().y};
   auto diff = end - start;
 
-  auto points = Interpolate(start - diff, end + diff);
+  auto points = Interpolate(start - diff, end + diff, 20);
 
   return {.camera_id = camera_id,
           .points = WarpBackpward(points, camera, warper),
