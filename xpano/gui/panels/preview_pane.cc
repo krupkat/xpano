@@ -311,7 +311,7 @@ float ComputeRoll(const utils::Point2f& mouse_start,
   auto y = mouse_end - center;
 
   auto angle =
-      std::atan2f(x[0] * y[1] - x[1] * y[0], x[0] * y[0] + y[1] * y[1]);
+      std::atan2(x[0] * y[1] - x[1] * y[0], x[0] * y[0] + y[1] * y[1]);
 
   return start + angle;
 }
