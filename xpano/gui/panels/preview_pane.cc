@@ -99,11 +99,11 @@ void Draw(const Polyline& poly, const utils::RectPVf& image) {
   }
 }
 
-cv::Mat FullRotation(const RotationState& state) {
+cv::Mat FullRotation(const RotationState& state, const StaticWarpData& warp) {
   auto rot = cv::Mat::eye(3, 3, CV_32F);
 
   if (state.roll != 0.0f) {
-    cv::Mat rotation_vector = state.roll * cv::Mat{0.0f, 0.0f, 1.0f};
+    cv::Mat rotation_vector = state.roll * warp.rollAxis;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
@@ -130,7 +130,7 @@ Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
               const RotationState& state, const utils::RectPVf& image) {
   int camera_id = projectable.camera_id;
   const auto& camera = warp.cameras[camera_id];
-  cv::Mat extra_rotation = FullRotation(state);
+  cv::Mat extra_rotation = FullRotation(state, warp);
 
   std::vector<ImVec2> projected(projectable.points.size());
   std::transform(projectable.points.begin(), projectable.points.end(),
@@ -310,8 +310,7 @@ float ComputeRoll(const utils::Point2f& mouse_start,
   auto x = mouse_start - center;
   auto y = mouse_end - center;
 
-  auto angle =
-      std::atan2(x[0] * y[1] - x[1] * y[0], x[0] * y[0] + y[1] * y[1]);
+  auto angle = std::atan2(x[0], x[1]) - std::atan2(y[0], y[1]);
 
   return start + angle;
 }
@@ -646,6 +645,12 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   auto horizontal_handle =
       HorizontalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
 
+  auto roll_center = cv::Point2f{(dst_roi.tl() + dst_roi.br()) / 2};
+  auto roll_center_scaled =
+      roll_center / cameras.warp_helper.warper->getScale();
+
+  warp.rollAxis = cv::Mat{roll_center_scaled.x, roll_center_scaled.y, 1.0f};
+
   return {.horizontal_handle = std::move(horizontal_handle),
           .vertical_handle = std::move(vertical_handle),
           .roll_handle = RollHandle(camera_id),
@@ -820,8 +825,9 @@ Action PreviewPane::HandleInputs(const utils::RectPVf& window,
       if (bake_in) {
         return Action{.type = ActionType::kRotate,
                       .delayed = true,
-                      .extra = RotateExtra{.rotation_matrix = FullRotation(
-                                               rotate_widget_.rotation)}};
+                      .extra = RotateExtra{
+                          .rotation_matrix = FullRotation(
+                              rotate_widget_.rotation, rotate_widget_.warp)}};
       }
       return {};
     }
@@ -890,8 +896,9 @@ Action PreviewPane::ToggleRotate() {
       rotate_mode_ = RotateMode::kDisabled;
       return Action{.type = ActionType::kRotate,
                     .delayed = true,
-                    .extra = RotateExtra{.rotation_matrix = FullRotation(
-                                             rotate_widget_.rotation)}};
+                    .extra = RotateExtra{
+                        .rotation_matrix = FullRotation(rotate_widget_.rotation,
+                                                        rotate_widget_.warp)}};
       break;
     }
     case RotateMode::kDisabled: {
