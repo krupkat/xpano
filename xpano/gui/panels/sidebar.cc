@@ -588,13 +588,14 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       "First select a panorama");
   ImGui::SameLine();
   utils::imgui::EnableIf(
-      image_type == ImageType::kPanoFullRes,
+      image_type == ImageType::kPanoFullRes ||
+          image_type == ImageType::kPanoPreview,
       [&] {
         if (ImGui::Button("Crop")) {
           action |= {ActionType::kToggleCrop};
         }
       },
-      "First compute a full resolution panorama");
+      "First select a panorama");
   ImGui::SameLine();
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes,

@@ -861,7 +861,8 @@ Action PreviewPane::HandleInputs(const utils::RectPVf& window,
 ImageType PreviewPane::Type() const { return image_type_; }
 
 void PreviewPane::ToggleCrop() {
-  if (image_type_ != ImageType::kPanoFullRes) {
+  if (image_type_ != ImageType::kPanoFullRes and
+      image_type_ != ImageType::kPanoPreview) {
     return;
   }
 
