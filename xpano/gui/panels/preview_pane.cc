@@ -618,6 +618,16 @@ int SelectMiddleCamera(const std::vector<cv::Size> image_sizes,
   return static_cast<int>(std::distance(centers.begin(), middle_image));
 }
 
+cv::Mat RollAxis(cv::Rect dst_roi, const PreprocessedCamera& camera,
+                 const cv::Ptr<cv::detail::RotationWarper>& warper) {
+  auto roll_center = cv::Point2f{(dst_roi.tl() + dst_roi.br()) / 2};
+  auto backprojected =
+      warper->warpPointBackward(roll_center, camera.k_mat, camera.r_mat);
+
+  return (camera.r_mat * camera.k_mat.inv()) *
+         cv::Mat{backprojected.x, backprojected.y, 1.0f};
+}
+
 RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   int num_cameras = static_cast<int>(cameras.cameras.size());
 
@@ -648,18 +658,14 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
                              .warper = cameras.warp_helper.warper};
 
   int camera_id = SelectMiddleCamera(cameras.warp_helper.full_sizes, warp);
-  auto& camera = warp.cameras[camera_id];
+  const auto& camera = warp.cameras[camera_id];
 
   auto vertical_handle =
       VerticalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
   auto horizontal_handle =
       HorizontalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
 
-  auto roll_center = cv::Point2f{(dst_roi.tl() + dst_roi.br()) / 2};
-  auto roll_center_scaled =
-      roll_center / cameras.warp_helper.warper->getScale();
-
-  warp.rollAxis = cv::Mat{roll_center_scaled.x, roll_center_scaled.y, 1.0f};
+  warp.rollAxis = RollAxis(dst_roi, camera, cameras.warp_helper.warper);
 
   return {.horizontal_handle = std::move(horizontal_handle),
           .vertical_handle = std::move(vertical_handle),
