@@ -566,18 +566,6 @@ Action DrawActionButtons(ImageType image_type, int target_id,
   }
   ImGui::SameLine();
   utils::imgui::EnableIf(
-      image_type == ImageType::kPanoPreview,
-      [&] {
-        if (ImGui::Button("Full-res")) {
-          action |= {.type = ActionType::kShowPano,
-                     .target_id = target_id,
-                     .extra = ShowPanoExtra{.full_res = true}};
-        }
-      },
-      image_type == ImageType::kPanoFullRes ? "Already computed"
-                                            : "First select a panorama");
-  ImGui::SameLine();
-  utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes ||
           image_type == ImageType::kPanoPreview,
       [&] {
@@ -596,6 +584,18 @@ Action DrawActionButtons(ImageType image_type, int target_id,
         }
       },
       "First select a panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Full-res")) {
+          action |= {.type = ActionType::kShowPano,
+                     .target_id = target_id,
+                     .extra = ShowPanoExtra{.full_res = true}};
+        }
+      },
+      image_type == ImageType::kPanoFullRes ? "Already computed"
+                                            : "First select a panorama");
   ImGui::SameLine();
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes,
