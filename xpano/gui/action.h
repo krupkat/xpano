@@ -11,6 +11,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "xpano/utils/rect.h"
+
 namespace xpano::gui {
 
 enum class ActionType {
@@ -35,7 +37,8 @@ enum class ActionType {
   kQuit,
   kToggleDebugLog,
   kWarnInputConversion,
-  kResetOptions
+  kResetOptions,
+  kSaveCrop
 };
 
 struct ShowPanoExtra {
@@ -49,11 +52,15 @@ struct RotateExtra {
   cv::Mat rotation_matrix;
 };
 
+struct CropExtra {
+  utils::RectRRf crop_rect;
+};
+
 struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
   bool delayed = false;
-  std::variant<ShowPanoExtra, LoadFilesExtra, RotateExtra> extra;
+  std::variant<ShowPanoExtra, LoadFilesExtra, RotateExtra, CropExtra> extra;
 };
 
 template <typename TExtraType>

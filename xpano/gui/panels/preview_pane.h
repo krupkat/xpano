@@ -48,16 +48,12 @@ constexpr auto DefaultEdges() {
                     Edge{EdgeType::kLeft}, Edge{EdgeType::kRight}};
 }
 
-constexpr auto DefaultCropRect() {
-  return utils::Rect(utils::Ratio2f{0.0f}, utils::Ratio2f{1.0f});
-}
-
 enum class CropMode { kInitial, kEnabled, kDisabled };
 
 enum class RotateMode { kEnabled, kDisabled };
 
 struct DraggableWidget {
-  utils::RectRRf rect = DefaultCropRect();
+  utils::RectRRf rect = utils::DefaultCropRect();
   std::array<Edge, 4> edges = DefaultEdges();
 };
 
@@ -144,7 +140,7 @@ class PreviewPane {
   RotateMode rotate_mode_ = RotateMode::kDisabled;
   DraggableWidget crop_widget_;
   RotationWidget rotate_widget_;
-  utils::RectRRf suggested_crop_ = DefaultCropRect();
+  utils::RectRRf suggested_crop_ = utils::DefaultCropRect();
   std::optional<algorithm::Cameras> cameras_;
 
   int zoom_id_ = 1;

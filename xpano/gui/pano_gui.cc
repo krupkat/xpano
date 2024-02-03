@@ -510,6 +510,17 @@ Action PanoGui::PerformAction(const Action& action) {
       plot_pane_.ToggleCrop();
       break;
     }
+    case ActionType::kSaveCrop: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        auto extra = ValueOrDefault<CropExtra>(action);
+        pano.crop = extra.crop_rect;
+        spdlog::info("Saved crop rect: {} {} {} {}", extra.crop_rect.start[0],
+                     extra.crop_rect.start[1], extra.crop_rect.end[0],
+                     extra.crop_rect.end[1]);
+      }
+      break;
+    }
     case ActionType::kToggleRotate: {
       return plot_pane_.ToggleRotate();
       break;

@@ -70,4 +70,6 @@ auto Area(const TRectType& rect) {
   }
 }
 
+constexpr auto DefaultCropRect() { return Rect(Ratio2f{0.0f}, Ratio2f{1.0f}); }
+
 }  // namespace xpano::utils

@@ -205,27 +205,36 @@ bool IsMouseCloseToEdge(EdgeType edge_type, const utils::RectPPf& rect,
   }
 }
 
-DraggableWidget Drag(const DraggableWidget& input_widget,
-                     const utils::RectPVf& image, utils::Point2f mouse_pos,
-                     bool mouse_clicked, bool mouse_down) {
+template <typename TWidget>
+struct DragResult {
+  TWidget widget;
+  bool finished_dragging = false;
+};
+
+DragResult<DraggableWidget> Drag(const DraggableWidget& input_widget,
+                                 const utils::RectPVf& image,
+                                 utils::Point2f mouse_pos, bool mouse_clicked,
+                                 bool mouse_down) {
   auto widget = input_widget;
   auto rect_window_coords = CropRectPP(image, widget.rect);
 
   bool dragging = false;
+  bool finished_dragging = false;
   for (auto& edge : widget.edges) {
     edge.mouse_close =
         IsMouseCloseToEdge(edge.type, rect_window_coords, mouse_pos);
     if (edge.mouse_close && mouse_clicked) {
       edge.dragging = true;
     }
-    if (!mouse_down) {
+    if (edge.dragging && !mouse_down) {
       edge.dragging = false;
+      finished_dragging = true;
     }
     dragging |= edge.dragging;
   }
 
   if (!dragging) {
-    return widget;
+    return {widget, finished_dragging};
   }
 
   auto new_pos = (mouse_pos - image.start) / image.size;
@@ -258,7 +267,7 @@ DraggableWidget Drag(const DraggableWidget& input_widget,
     }
   }
 
-  return widget;
+  return {widget, false};
 }
 
 float LineToSegmentDistance(const ImVec2& a, const ImVec2& b, const ImVec2& p) {
@@ -315,10 +324,10 @@ float ComputeRoll(const utils::Point2f& mouse_start,
   return start + angle;
 }
 
-std::pair<RotationState, bool> Drag(const RotationWidget& widget,
-                                    const utils::RectPVf& image,
-                                    utils::Point2f mouse_pos,
-                                    bool mouse_clicked, bool mouse_down) {
+DragResult<RotationState> Drag(const RotationWidget& widget,
+                               const utils::RectPVf& image,
+                               utils::Point2f mouse_pos, bool mouse_clicked,
+                               bool mouse_down) {
   auto within_image = [&image](const utils::Point2f& pos) {
     return pos[0] >= image.start[0] &&
            pos[0] <= image.start[0] + image.size[0] &&
@@ -327,7 +336,7 @@ std::pair<RotationState, bool> Drag(const RotationWidget& widget,
   auto new_rotation = widget.rotation;
   bool dragging = false;
   bool mouse_close = false;
-  bool bake_in = false;
+  bool finished_dragging = false;
   for (auto& edge : new_rotation.edges) {
     switch (edge.type) {
       case EdgeType::kHorizontal: {
@@ -360,7 +369,7 @@ std::pair<RotationState, bool> Drag(const RotationWidget& widget,
 
     if (edge.dragging && !mouse_down) {
       edge.dragging = false;
-      bake_in = true;
+      finished_dragging = true;
     }
 
     dragging |= edge.dragging;
@@ -368,7 +377,7 @@ std::pair<RotationState, bool> Drag(const RotationWidget& widget,
   }
 
   if (!dragging) {
-    return {new_rotation, bake_in};
+    return {new_rotation, finished_dragging};
   }
 
   for (const auto& edge : new_rotation.edges) {
@@ -395,7 +404,7 @@ std::pair<RotationState, bool> Drag(const RotationWidget& widget,
     }
   }
 
-  return {new_rotation, bake_in};
+  return {new_rotation, false};
 }
 
 template <typename... TEdge>
@@ -743,7 +752,7 @@ void PreviewPane::Reset() {
   crop_widget_ = {};
   rotate_mode_ = RotateMode::kDisabled;
   rotate_widget_ = {};
-  suggested_crop_ = DefaultCropRect();
+  suggested_crop_ = utils::DefaultCropRect();
   full_resolution_pano_ = cv::Mat{};
 }
 
@@ -811,18 +820,23 @@ Action PreviewPane::HandleInputs(const utils::RectPVf& window,
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
 
     if (crop_mode_ == CropMode::kEnabled) {
-      crop_widget_ =
+      auto drag_result =
           Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
+      crop_widget_ = drag_result.widget;
       SelectMouseCursor(crop_widget_);
+      if (drag_result.finished_dragging) {
+        return Action{.type = ActionType::kSaveCrop,
+                      .extra = CropExtra{.crop_rect = crop_widget_.rect}};
+      }
       return {};
     }
 
     if (rotate_mode_ == RotateMode::kEnabled) {
-      auto [new_state, bake_in] =
+      auto [new_state, finished_dragging] =
           Drag(rotate_widget_, image, mouse_pos, mouse_clicked, mouse_down);
       rotate_widget_.rotation = new_state;
       SelectMouseCursor(rotate_widget_);
-      if (bake_in) {
+      if (finished_dragging) {
         return Action{.type = ActionType::kRotate,
                       .delayed = true,
                       .extra = RotateExtra{
