@@ -20,6 +20,7 @@
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/utils/opencv.h"
+#include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 #include "xpano/utils/vec_converters.h"
 
@@ -874,10 +875,10 @@ Action PreviewPane::HandleInputs(const utils::RectPVf& window,
 
 ImageType PreviewPane::Type() const { return image_type_; }
 
-void PreviewPane::ToggleCrop() {
+Action PreviewPane::ToggleCrop() {
   if (image_type_ != ImageType::kPanoFullRes and
       image_type_ != ImageType::kPanoPreview) {
-    return;
+    return {};
   }
 
   switch (crop_mode_) {
@@ -886,18 +887,26 @@ void PreviewPane::ToggleCrop() {
       EndRotate();
       crop_widget_.rect = suggested_crop_;
       crop_mode_ = CropMode::kEnabled;
-      break;
+      return Action{.type = ActionType::kSaveCrop,
+                    .delayed = true,
+                    .extra = CropExtra{.crop_rect = crop_widget_.rect}};
     case CropMode::kEnabled:
       crop_mode_ = CropMode::kDisabled;
       break;
-    case CropMode::kDisabled:
+    case CropMode::kDisabled: {
+      Action action = {};
+      if (IsRotateEnabled()) {
+        action = {.type = ActionType::kRecrop, .delayed = true};
+      }
       ResetZoom();
       EndRotate();
       crop_mode_ = CropMode::kEnabled;
-      break;
+      return action;
+    }
     default:
       break;
   }
+  return {};
 }
 
 bool PreviewPane::IsRotateEnabled() const {
@@ -909,19 +918,14 @@ Action PreviewPane::ToggleRotate() {
     case RotateMode::kEnabled: {
       ResetZoom(1);
       rotate_mode_ = RotateMode::kDisabled;
-      return Action{.type = ActionType::kRotate,
-                    .delayed = true,
-                    .extra = RotateExtra{
-                        .rotation_matrix = FullRotation(rotate_widget_.rotation,
-                                                        rotate_widget_.warp)}};
-      break;
+      return Action{.type = ActionType::kRecrop, .delayed = true};
     }
     case RotateMode::kDisabled: {
       if (cameras_) {
         ResetZoom(0);
         EndCrop();
-        rotate_widget_ = SetupRotationWidget(*cameras_);
         rotate_mode_ = RotateMode::kEnabled;
+        crop_widget_.rect = utils::DefaultCropRect();
       } else {
         spdlog::warn("Cannot enable rotate mode, missing camera parameters.");
       }
@@ -929,7 +933,7 @@ Action PreviewPane::ToggleRotate() {
     }
     default:
       break;
-  }
+  }  // namespace xpano::gui
 
   return {};
 }
@@ -950,12 +954,20 @@ cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
 
 utils::RectRRf PreviewPane::CropRect() const { return crop_widget_.rect; }
 
+void PreviewPane::ForceCrop(const utils::RectRRf& rect) {
+  crop_widget_.rect = rect;
+  if (crop_mode_ == CropMode::kInitial) {
+    crop_mode_ = CropMode::kDisabled;
+  }
+}
+
 void PreviewPane::SetSuggestedCrop(const utils::RectRRf& rect) {
   suggested_crop_ = rect;
 }
 
 void PreviewPane::SetCameras(const algorithm::Cameras& cameras) {
   cameras_ = cameras;
+  rotate_widget_ = SetupRotationWidget(*cameras_);
 }
 
 }  // namespace xpano::gui

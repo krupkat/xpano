@@ -33,7 +33,7 @@ struct Cameras {
 struct Pano {
   std::vector<int> ids;
   bool exported = false;
-  utils::RectRRf crop = utils::DefaultCropRect();
+  std::optional<utils::RectRRf> crop;
   std::optional<Cameras> cameras;
 };
 

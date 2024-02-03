@@ -175,15 +175,12 @@ auto ResolveStitchingResultFuture(
       fmt::format("Stitched pano {} successfully", result.pano_id)};
   spdlog::info(*status_message);
 
-  if (result.cameras) {
-    plot_pane->SetCameras(*result.cameras);
+  if (!plot_pane->IsRotateEnabled()) {
+    plot_pane->Reset();
   }
 
-  if (plot_pane->IsRotateEnabled()) {
-    plot_pane->ToggleRotate();
-    plot_pane->ToggleRotate();
-  } else {
-    plot_pane->Reset();
+  if (result.cameras) {
+    plot_pane->SetCameras(*result.cameras);
   }
 
   plot_pane->Reload(*result.pano, result.full_res ? ImageType::kPanoFullRes
@@ -507,8 +504,7 @@ Action PanoGui::PerformAction(const Action& action) {
       break;
     }
     case ActionType::kToggleCrop: {
-      plot_pane_.ToggleCrop();
-      break;
+      return plot_pane_.ToggleCrop();
     }
     case ActionType::kSaveCrop: {
       if (selection_.type == SelectionType::kPano) {
@@ -521,9 +517,17 @@ Action PanoGui::PerformAction(const Action& action) {
       }
       break;
     }
+    case ActionType::kRecrop: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        if (pano.crop) {
+          plot_pane_.ForceCrop(*pano.crop);
+        }
+      }
+      break;
+    };
     case ActionType::kToggleRotate: {
       return plot_pane_.ToggleRotate();
-      break;
     }
     case ActionType::kWarnInputConversion: {
       warning_pane_.Queue(WarningType::kWarnInputConversion);
@@ -599,11 +603,15 @@ MultiAction PanoGui::ResolveFutures() {
       [this, &actions](std::future<pipeline::StitchingResult> pano_future) {
         auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
+        auto& pano = stitcher_data_->panos[result.pano_id];
         if (result.export_path) {
-          stitcher_data_->panos[result.pano_id].exported = true;
+          pano.exported = true;
         }
         if (result.cameras) {
-          stitcher_data_->panos[result.pano_id].cameras = result.cameras;
+          pano.cameras = result.cameras;
+        }
+        if (pano.crop && !plot_pane_.IsRotateEnabled()) {
+          plot_pane_.ForceCrop(*pano.crop);
         }
         pano_mask_ = result.mask;
       };

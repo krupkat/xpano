@@ -113,11 +113,12 @@ class PreviewPane {
   void Reload(cv::Mat image, ImageType image_type);
   Action Draw(const std::string& message);
   void Reset();
-  void ToggleCrop();
+  Action ToggleCrop();
   Action ToggleRotate();
   bool IsRotateEnabled() const;
   void EndCrop();
   void EndRotate();
+  void ForceCrop(const utils::RectRRf& rect);
   void SetSuggestedCrop(const utils::RectRRf& rect);
   void SetCameras(const algorithm::Cameras& cameras);
 

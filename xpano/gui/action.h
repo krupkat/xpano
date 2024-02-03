@@ -38,7 +38,8 @@ enum class ActionType {
   kToggleDebugLog,
   kWarnInputConversion,
   kResetOptions,
-  kSaveCrop
+  kSaveCrop,
+  kRecrop
 };
 
 struct ShowPanoExtra {
