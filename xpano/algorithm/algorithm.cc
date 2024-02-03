@@ -21,11 +21,14 @@
 #include <opencv2/photo.hpp>
 #include <opencv2/stitching.hpp>
 #include <opencv2/stitching/detail/matchers.hpp>
+#include <opencv2/stitching/detail/warpers.hpp>
+#include <opencv2/stitching/warpers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/stitcher.h"
+#include "xpano/algorithm/warpers.h"
 #include "xpano/utils/disjoint_set.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
@@ -38,6 +41,7 @@ void InsertInOrder(int value, std::vector<int>* vec) {
   auto iter = std::lower_bound(vec->begin(), vec->end(), value);
   vec->insert(iter, value);
 }
+
 cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
   cv::Ptr<cv::WarperCreator> warper_creator;
   switch (options.type) {
@@ -74,25 +78,32 @@ cv::Ptr<cv::WarperCreator> PickWarper(ProjectionOptions options) {
   return warper_creator;
 }
 
-std::optional<cv::RotateFlags> GetRotationFlags(
-    WaveCorrectionType wave_correction,
-    cv::detail::WaveCorrectKind wave_correction_auto) {
-  // have to rotate clockwise in case vertical wave correction was either
-  // selected by user or autodetected
-  switch (wave_correction) {
-    case WaveCorrectionType::kOff:
-      [[fallthrough]];
-    case WaveCorrectionType::kHorizontal:
-      return {};
-    case WaveCorrectionType::kVertical:
-      return cv::ROTATE_90_CLOCKWISE;
-    case WaveCorrectionType::kAuto:
+cv::Ptr<cv::WarperCreator> PickWarperPortrait(ProjectionOptions options) {
+  // When vertical wave correction is detected / selected, the portrait
+  // variants of projections are used (if implemented)
+  cv::Ptr<cv::WarperCreator> warper_creator;
+  switch (options.type) {
+    case ProjectionType::kPerspective:
+      warper_creator = cv::makePtr<stitcher::PlanePortraitWarper>();
+      break;
+    case ProjectionType::kCylindrical:
+      warper_creator = cv::makePtr<stitcher::CylindricalPortraitWarper>();
+      break;
+    case ProjectionType::kSpherical:
+      warper_creator = cv::makePtr<stitcher::SphericalPortraitWarper>();
+      break;
+    case ProjectionType::kCompressedRectilinear:
+      warper_creator = cv::makePtr<cv::CompressedRectilinearPortraitWarper>(
+          options.a_param, options.b_param);
+      break;
+    case ProjectionType::kPanini:
+      warper_creator = cv::makePtr<cv::PaniniPortraitWarper>(options.a_param,
+                                                             options.b_param);
+      break;
+    default:
       break;
   }
-  if (wave_correction_auto == cv::detail::WAVE_CORRECT_VERT) {
-    return cv::ROTATE_90_CLOCKWISE;
-  }
-  return {};
+  return warper_creator;
 }
 
 cv::Ptr<cv::FeatureDetector> PickFeaturesFinder(FeatureType feature) {
@@ -246,6 +257,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
                     StitchUserOptions user_options, StitchOptions options) {
   auto stitcher = stitcher::Stitcher::Create(cv::Stitcher::PANORAMA);
   stitcher->SetWarper(PickWarper(user_options.projection));
+  stitcher->SetPortraitWarper(PickWarperPortrait(user_options.projection));
   stitcher->SetFeaturesFinder(PickFeaturesFinder(user_options.feature));
   stitcher->SetFeaturesMatcher(cv::makePtr<cv::detail::BestOf2NearestMatcher>(
       false, user_options.match_conf));
@@ -281,14 +293,6 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
     stitcher->ResultMask().copyTo(mask);
   }
 
-  if (auto rotate = GetRotationFlags(user_options.wave_correction,
-                                     stitcher->WaveCorrectKind());
-      rotate) {
-    cv::rotate(pano, pano, *rotate);
-    if (options.return_pano_mask) {
-      cv::rotate(mask, mask, *rotate);
-    }
-  }
   auto result_cameras =
       Cameras{stitcher->Cameras(), user_options.wave_correction,
               stitcher->WaveCorrectKind(), stitcher->GetWarpHelper()};

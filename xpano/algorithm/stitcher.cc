@@ -369,7 +369,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   pano.assign(result);
 
-  warp_helper_ = {work_scale_, corners, sizes, full_img_sizes_, std::move(warper)};
+  warp_helper_ = {work_scale_, corners, sizes, full_img_sizes_,
+                  std::move(warper)};
 
   EndMonitoring();
   return Status::kSuccess;
@@ -508,6 +509,11 @@ Status Stitcher::EstimateCameraParams() {
     cv::detail::waveCorrect(rmats, wave_correct_kind_);
     for (size_t i = 0; i < cameras_.size(); ++i) {
       cameras_[i].R = rmats[i];
+    }
+
+    if (wave_correct_kind_ == cv::detail::WAVE_CORRECT_VERT &&
+        warper_creater_portrait_) {
+      warper_creater_ = warper_creater_portrait_;
     }
   }
 

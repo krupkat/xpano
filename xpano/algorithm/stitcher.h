@@ -107,6 +107,12 @@ class Stitcher {
   }
   void SetWaveCorrectKind(cv::detail::WaveCorrectKind kind) {
     wave_correct_kind_ = kind;
+
+    if (do_wave_correct_ &&
+        wave_correct_kind_ == cv::detail::WAVE_CORRECT_VERT &&
+        warper_creater_portrait_) {
+      warper_creater_ = warper_creater_portrait_;
+    }
   }
 
   cv::Ptr<cv::Feature2D> FeaturesFinder() { return features_finder_; }
@@ -159,6 +165,9 @@ class Stitcher {
   }
   void SetWarper(const cv::Ptr<cv::WarperCreator>& creator) {
     warper_creater_ = creator;
+  }
+  void SetPortraitWarper(const cv::Ptr<cv::WarperCreator>& creator) {
+    warper_creater_portrait_ = creator;
   }
 
   cv::Ptr<cv::detail::ExposureCompensator> ExposureCompensator() {
@@ -240,6 +249,7 @@ class Stitcher {
   bool do_wave_correct_;
   cv::detail::WaveCorrectKind wave_correct_kind_;
   cv::Ptr<cv::WarperCreator> warper_creater_;
+  cv::Ptr<cv::WarperCreator> warper_creater_portrait_;
   cv::Ptr<cv::detail::ExposureCompensator> exposure_comp_;
   cv::Ptr<cv::detail::SeamFinder> seam_finder_;
   cv::Ptr<cv::detail::Blender> blender_;
