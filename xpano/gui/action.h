@@ -38,6 +38,7 @@ enum class ActionType {
   kToggleDebugLog,
   kWarnInputConversion,
   kResetOptions,
+  kResetRotation,
   kSaveCrop,
   kRecrop
 };

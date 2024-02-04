@@ -90,6 +90,17 @@ Action DrawFileMenu() {
   return action;
 }
 
+Action DrawEditMenu() {
+  Action action{};
+  if (ImGui::BeginMenu("Edit")) {
+    if (ImGui::MenuItem("Reset rotation")) {
+      action |= {ActionType::kResetRotation};
+    }
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
 void DrawExportOptionsMenu(pipeline::MetadataOptions* metadata_options,
                            pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Image export")) {
@@ -517,6 +528,7 @@ Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
+    action |= DrawEditMenu();
     action |= DrawOptionsMenu(options, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();

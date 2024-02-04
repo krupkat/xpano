@@ -539,6 +539,16 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kResetOptions: {
       options_ = {};
       warning_pane_.Queue(WarningType::kUserPrefResetOnRequest);
+      return {.type = ActionType::kRecomputePano, .delayed = true};
+    }
+    case ActionType::kResetRotation: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        if (pano.backup_cameras) {
+          pano.cameras = pano.backup_cameras;
+          return {.type = ActionType::kRecomputePano, .delayed = true};
+        }
+      }
       break;
     }
   }
@@ -613,6 +623,9 @@ MultiAction PanoGui::ResolveFutures() {
         }
         if (result.cameras) {
           pano.cameras = result.cameras;
+          if (!pano.backup_cameras) {
+            pano.backup_cameras = result.cameras;
+          }
         }
         if (pano.crop && !plot_pane_.IsRotateEnabled()) {
           plot_pane_.ForceCrop(*pano.crop);

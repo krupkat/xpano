@@ -35,6 +35,7 @@ struct Pano {
   bool exported = false;
   std::optional<utils::RectRRf> crop;
   std::optional<Cameras> cameras;
+  std::optional<Cameras> backup_cameras;
 };
 
 struct Match {
