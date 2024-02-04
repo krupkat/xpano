@@ -101,6 +101,7 @@ struct StaticWarpData {
 struct RotationWidget {
   Projectable horizontal_handle;
   Projectable vertical_handle;
+  Projectable roll_handle;
   std::vector<Projectable> image_borders;
 
   StaticWarpData warp;

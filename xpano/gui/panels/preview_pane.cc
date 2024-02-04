@@ -314,15 +314,13 @@ float ComputeYaw(const utils::Point2f& mouse_start,
 }
 
 float ComputeRoll(const utils::Point2f& mouse_start,
-                  const utils::Point2f& mouse_end, const utils::RectPVf& image,
-                  float start) {
-  auto center = image.start + image.size / 2.0f;
-  auto x = mouse_start - center;
-  auto y = mouse_end - center;
+                  const utils::Point2f& mouse_end,
+                  const utils::Point2f& roll_center) {
+  auto x = mouse_start - roll_center;
+  auto y = mouse_end - roll_center;
 
   auto angle = std::atan2(x[0], x[1]) - std::atan2(y[0], y[1]);
-
-  return start + angle;
+  return angle;
 }
 
 DragResult<RotationState> Drag(const RotationWidget& widget,
@@ -395,8 +393,11 @@ DragResult<RotationState> Drag(const RotationWidget& widget,
           break;
         }
         case EdgeType::kRoll: {
-          new_rotation.roll = ComputeRoll(new_rotation.mouse_start, mouse_pos,
-                                          image, new_rotation.roll_start);
+          auto roll =
+              Warp(widget.roll_handle, widget.warp, widget.rotation, image);
+          new_rotation.roll = new_rotation.roll_start +
+                              ComputeRoll(new_rotation.mouse_start, mouse_pos,
+                                          utils::ToPoint(roll[0]));
           break;
         }
         default:
@@ -404,7 +405,6 @@ DragResult<RotationState> Drag(const RotationWidget& widget,
       }
     }
   }
-
   return {new_rotation, false};
 }
 
@@ -554,6 +554,17 @@ Projectable VerticalHandle(cv::Rect dst_roi, const PanoCenter& center,
           .translation = -dst_roi.tl()};
 }
 
+Projectable RollHandle(cv::Rect dst_roi, const PanoCenter& center,
+                       const StaticWarpData& warp) {
+  const auto& camera = warp.cameras[center.id];
+  auto backprojected =
+      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
+
+  return {.camera_id = center.id,
+          .points = {backprojected},
+          .translation = -dst_roi.tl()};
+}
+
 cv::Mat Image2Camera(const cv::Point2f& point,
                      const PreprocessedCamera& camera) {
   return camera.r_mat * (camera.k_mat.inv() * cv::Mat{point.x, point.y, 1.0f});
@@ -678,6 +689,7 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
 
   auto vertical_handle = VerticalHandle(dst_roi, pano_center, warp);
   auto horizontal_handle = HorizontalHandle(dst_roi, pano_center, warp);
+  auto roll_handle = RollHandle(dst_roi, pano_center, warp);
 
   warp.rollAxis = RollAxis(pano_center, warp);
   warp.pitchAxis = PitchAxis(pano_center, warp);
@@ -685,6 +697,7 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
 
   return {.horizontal_handle = std::move(horizontal_handle),
           .vertical_handle = std::move(vertical_handle),
+          .roll_handle = std::move(roll_handle),
           .image_borders = std::move(projectables),
           .warp = std::move(warp)};
 }
