@@ -246,14 +246,9 @@ StitchingResult RunStitchingPipeline(
     };
   }
 
-  std::optional<utils::RectRRf> auto_crop;
-  std::optional<cv::Mat> pano_mask;
-  if (true) {
-    pano_mask = mask;
-    progress->SetTaskType(ProgressType::kAutoCrop);
-    auto_crop = algorithm::FindLargestCrop(mask);
-    progress->NotifyTaskDone();
-  }
+  progress->SetTaskType(ProgressType::kAutoCrop);
+  auto auto_crop = algorithm::FindLargestCrop(mask);
+  progress->NotifyTaskDone();
 
   std::optional<std::filesystem::path> export_path;
   if (options.export_path) {
@@ -271,8 +266,8 @@ StitchingResult RunStitchingPipeline(
                       .export_path;
   }
 
-  return StitchingResult{options.pano_id, options.full_res, status,    result,
-                         auto_crop,       export_path,      pano_mask, cameras};
+  return StitchingResult{options.pano_id, options.full_res, status, result,
+                         auto_crop,       export_path,      mask,   cameras};
 }
 
 }  // namespace

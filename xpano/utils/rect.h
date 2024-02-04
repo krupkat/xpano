@@ -72,4 +72,10 @@ auto Area(const TRectType& rect) {
 
 constexpr auto DefaultCropRect() { return Rect(Ratio2f{0.0f}, Ratio2f{1.0f}); }
 
+inline auto CropRectPP(const utils::RectPVf& image,
+                       const utils::RectRRf& crop_rect) {
+  return utils::Rect(image.start + image.size * crop_rect.start,
+                     image.start + image.size * crop_rect.end);
+}
+
 }  // namespace xpano::utils

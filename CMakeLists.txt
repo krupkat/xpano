@@ -67,6 +67,7 @@ set(XPANO_SOURCES
   "xpano/gui/panels/warning_pane.cc"
   "xpano/gui/pano_gui.cc"
   "xpano/gui/shortcut.cc"
+  "xpano/gui/widgets/widgets.cc"
   "xpano/pipeline/options.cc"
   "xpano/pipeline/stitcher_pipeline.cc"
   "xpano/utils/config.cc"
