@@ -111,14 +111,14 @@ cv::Mat FullRotation(const RotationState& state, const StaticWarpData& warp) {
   }
 
   if (state.pitch != 0.0f) {
-    cv::Mat rotation_vector = state.pitch * cv::Mat{1.0f, 0.0f, 0.0f};
+    cv::Mat rotation_vector = state.pitch * warp.pitchAxis;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
   }
 
   if (state.yaw != 0.0f) {
-    cv::Mat rotation_vector = state.yaw * cv::Mat{0.0f, 1.0f, 0.0f};
+    cv::Mat rotation_vector = state.yaw * warp.yawAxis;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
@@ -506,31 +506,16 @@ std::vector<cv::Point2f> PointsOnRectangle(cv::Size size,
   return points;
 }
 
-std::vector<cv::Point2f> Interpolate(const cv::Point& start,
-                                     const cv::Point& end, int num_edges = 50) {
+std::vector<cv::Point2f> Interpolate(const cv::Point2f& start,
+                                     const cv::Point2f& end,
+                                     int num_edges = 50) {
   std::vector<cv::Point2f> points;
   points.reserve(num_edges + 1);
   for (int i = 0; i <= num_edges; i++) {
     float alpha = static_cast<float>(i) / static_cast<float>(num_edges);
-    points.push_back(cv::Point2f{start} + alpha * cv::Point2f{end - start});
+    points.push_back(start + alpha * (end - start));
   }
   return points;
-}
-
-std::vector<cv::Point2f> WarpBackpward(
-    const std::vector<cv::Point2f>& points, const PreprocessedCamera& camera,
-    const cv::Ptr<cv::detail::RotationWarper>& warper) {
-  std::vector<cv::Point2f> warped(points.size());
-  std::transform(points.begin(), points.end(), warped.begin(),
-                 [&](const cv::Point2f& point) {
-                   return warper->warpPointBackward(point, camera.k_mat,
-                                                    camera.r_mat);
-                 });
-  std::erase_if(warped, [](const cv::Point2f& point) {
-    // this is how opencv reports points that cannot be warped back
-    return point.x == -1 && point.y == -1;
-  });
-  return warped;
 }
 
 struct PanoCenter {
@@ -540,44 +525,70 @@ struct PanoCenter {
 
 Projectable HorizontalHandle(cv::Rect dst_roi, const PanoCenter& center,
                              const StaticWarpData& warp) {
-  int mid_y = center.coords.y;
-
-  auto start = cv::Point{dst_roi.tl().x, mid_y};
-  auto end = cv::Point{dst_roi.br().x, mid_y};
-  auto diff = end - start;
-
-  auto points = Interpolate(start - diff, end + diff);
-
   const auto& camera = warp.cameras[center.id];
+  auto backprojected =
+      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
+
+  float mid_y = backprojected.y;
+
+  auto start = cv::Point2f{backprojected.x - dst_roi.width, mid_y};
+  auto end = cv::Point2f{backprojected.x + dst_roi.width, mid_y};
+
   return {.camera_id = center.id,
-          .points = WarpBackpward(points, camera, warp.warper),
+          .points = Interpolate(start, end),
           .translation = -dst_roi.tl()};
 }
 
 Projectable VerticalHandle(cv::Rect dst_roi, const PanoCenter& center,
                            const StaticWarpData& warp) {
-  int mid_x = center.coords.x;
-
-  auto start = cv::Point{mid_x, dst_roi.tl().y};
-  auto end = cv::Point{mid_x, dst_roi.br().y};
-  auto diff = end - start;
-
-  auto points = Interpolate(start - diff, end + diff);
-
   const auto& camera = warp.cameras[center.id];
+  auto backprojected =
+      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
+  float mid_x = backprojected.x;
+
+  auto start = cv::Point2f{mid_x, backprojected.y - dst_roi.height};
+  auto end = cv::Point2f{mid_x, backprojected.y + dst_roi.height};
+
   return {.camera_id = center.id,
-          .points = WarpBackpward(points, camera, warp.warper),
+          .points = Interpolate(start, end),
           .translation = -dst_roi.tl()};
 }
 
+cv::Mat Image2Camera(const cv::Point2f& point,
+                     const PreprocessedCamera& camera) {
+  return camera.r_mat * (camera.k_mat.inv() * cv::Mat{point.x, point.y, 1.0f});
+}
+
 cv::Mat RollAxis(const PanoCenter& center, const StaticWarpData& warp) {
+  const auto& camera = warp.cameras[center.id];
+  auto backprojected =
+      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
+  return Image2Camera(backprojected, camera);
+}
+
+cv::Mat PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
+  const auto& camera = warp.cameras[center.id];
+  auto backprojected =
+      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
+
+  cv::Point2f diff = {0.0f, 50.0f};
+  auto p1 = Image2Camera(backprojected - diff, camera);
+  auto p2 = Image2Camera(backprojected + diff, camera);
+
+  return p2.cross(p1);
+}
+
+cv::Mat YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
 
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
 
-  return (camera.r_mat * camera.k_mat.inv()) *
-         cv::Mat{backprojected.x, backprojected.y, 1.0f};
+  cv::Point2f diff = {50.0f, 0.0f};
+  auto p1 = Image2Camera(backprojected - diff, camera);
+  auto p2 = Image2Camera(backprojected + diff, camera);
+
+  return p1.cross(p2);
 }
 
 std::vector<PreprocessedCamera> Preprocess(
@@ -669,6 +680,8 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   auto horizontal_handle = HorizontalHandle(dst_roi, pano_center, warp);
 
   warp.rollAxis = RollAxis(pano_center, warp);
+  warp.pitchAxis = PitchAxis(pano_center, warp);
+  warp.yawAxis = YawAxis(pano_center, warp);
 
   return {.horizontal_handle = std::move(horizontal_handle),
           .vertical_handle = std::move(vertical_handle),

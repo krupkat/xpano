@@ -94,6 +94,8 @@ struct StaticWarpData {
   std::vector<PreprocessedCamera> cameras;
   cv::Ptr<cv::detail::RotationWarper> warper;
   cv::Mat rollAxis;
+  cv::Mat pitchAxis;
+  cv::Mat yawAxis;
 };
 
 struct RotationWidget {
