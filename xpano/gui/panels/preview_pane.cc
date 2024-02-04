@@ -427,12 +427,18 @@ void SelectMouseCursor(const RotationWidget& widget) {
       });
 
   switch (mouse_cursor_selector) {
+    case Select(EdgeType::kRoll, EdgeType::kHorizontal):
+      [[fallthough]];
     case Select(EdgeType::kHorizontal):
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
       break;
+    case Select(EdgeType::kRoll, EdgeType::kVertical):
+      [[fallthough]];
     case Select(EdgeType::kVertical):
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
       break;
+    case Select(EdgeType::kRoll, EdgeType::kHorizontal, EdgeType::kVertical):
+      [[fallthough]];
     case Select(EdgeType::kHorizontal, EdgeType::kVertical):
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
       break;
