@@ -551,10 +551,10 @@ void DrawWelcomeTextPart2() {
   ImGui::SameLine();
   utils::imgui::InfoMarker(
       "(?)",
-      "a) Select projection type\nb) Compute full resolution panorama "
-      "preview\nc) Toggle crop mode\nd) Auto fill empty space in the "
-      "panorama\ne) Panorama export\n - Works either with preview or full "
-      "resolution panoramas\n - In both cases exports a full resolution "
+      "a) Select projection type\nb) Toggle rotation mode\nc) Toggle crop "
+      "mode\nd) Compute full resolution panorama\ne) Auto fill empty space "
+      "in the panorama\nf) Panorama export\n - Works either with preview or "
+      "full resolution panoramas\n - In both cases exports a full resolution "
       "panorama");
   ImGui::Spacing();
 }
