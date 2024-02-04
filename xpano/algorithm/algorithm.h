@@ -34,6 +34,7 @@ struct Pano {
   std::vector<int> ids;
   bool exported = false;
   std::optional<utils::RectRRf> crop;
+  std::optional<utils::RectRRf> auto_crop;
   std::optional<Cameras> cameras;
   std::optional<Cameras> backup_cameras;
 };

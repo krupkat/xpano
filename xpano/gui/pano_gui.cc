@@ -551,6 +551,16 @@ Action PanoGui::PerformAction(const Action& action) {
       }
       break;
     }
+    case ActionType::kResetCrop: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        pano.crop.reset();
+        if (pano.auto_crop) {
+          plot_pane_.ResetCrop(*pano.auto_crop);
+        }
+      }
+      break;
+    }
   }
   return {};
 }
@@ -626,6 +636,9 @@ MultiAction PanoGui::ResolveFutures() {
           if (!pano.backup_cameras) {
             pano.backup_cameras = result.cameras;
           }
+        }
+        if (result.auto_crop) {
+          pano.auto_crop = result.auto_crop;
         }
         if (pano.crop && !plot_pane_.IsRotateEnabled()) {
           plot_pane_.ForceCrop(*pano.crop);

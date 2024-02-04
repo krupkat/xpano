@@ -39,6 +39,7 @@ enum class ActionType {
   kWarnInputConversion,
   kResetOptions,
   kResetRotation,
+  kResetCrop,
   kSaveCrop,
   kRecrop
 };

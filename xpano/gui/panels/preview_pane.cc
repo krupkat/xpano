@@ -1010,6 +1010,12 @@ void PreviewPane::EndRotate() {
 
 cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
 
+void PreviewPane::ResetCrop(const utils::RectRRf& rect) {
+  crop_mode_ = CropMode::kInitial;
+  crop_widget_ = {};
+  suggested_crop_ = rect;
+}
+
 void PreviewPane::ForceCrop(const utils::RectRRf& rect) {
   crop_widget_.rect = rect;
   if (crop_mode_ == CropMode::kInitial) {

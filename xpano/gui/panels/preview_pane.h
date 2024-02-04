@@ -125,6 +125,7 @@ class PreviewPane {
   bool IsRotateEnabled() const;
   void EndCrop();
   void EndRotate();
+  void ResetCrop(const utils::RectRRf& rect);
   void ForceCrop(const utils::RectRRf& rect);
   void SetSuggestedCrop(const utils::RectRRf& rect);
   void SetCameras(const algorithm::Cameras& cameras);

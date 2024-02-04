@@ -93,6 +93,9 @@ Action DrawFileMenu() {
 Action DrawEditMenu() {
   Action action{};
   if (ImGui::BeginMenu("Edit")) {
+    if (ImGui::MenuItem("Reset crop")) {
+      action |= {ActionType::kResetCrop};
+    }
     if (ImGui::MenuItem("Reset rotation")) {
       action |= {ActionType::kResetRotation};
     }
