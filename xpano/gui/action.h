@@ -45,6 +45,7 @@ enum class ActionType {
 struct ShowPanoExtra {
   bool full_res = false;
   bool scroll_thumbnails = false;
+  bool reset_crop = false;
 };
 
 using LoadFilesExtra = std::vector<std::filesystem::path>;

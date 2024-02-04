@@ -119,7 +119,8 @@ Action ModifyPano(int clicked_image, Selection* selection,
   if (selection->type == SelectionType::kPano) {
     return {.type = ActionType::kShowPano,
             .target_id = selection->target_id,
-            .delayed = true};
+            .delayed = true,
+            .extra = ShowPanoExtra{.reset_crop = true}};
   }
   return {};
 }
@@ -453,10 +454,13 @@ Action PanoGui::PerformAction(const Action& action) {
                                       {.pano_id = selection_.target_id,
                                        .full_res = extra.full_res,
                                        .stitch_algorithm = options_.stitch});
-      const auto& pano = stitcher_data_->panos[selection_.target_id];
+      auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.Highlight(pano.ids);
       if (extra.scroll_thumbnails) {
         thumbnail_pane_.SetScrollX(pano.ids);
+      }
+      if (extra.reset_crop) {
+        pano.crop.reset();
       }
       break;
     }
@@ -480,7 +484,9 @@ Action PanoGui::PerformAction(const Action& action) {
                      Label(options_.stitch.projection.type));
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
-                .delayed = true};
+                .delayed = true,
+                .extra = ShowPanoExtra{.reset_crop =
+                                           action.type != ActionType::kRotate}};
       }
       break;
     }
@@ -511,9 +517,6 @@ Action PanoGui::PerformAction(const Action& action) {
         auto& pano = stitcher_data_->panos[selection_.target_id];
         auto extra = ValueOrDefault<CropExtra>(action);
         pano.crop = extra.crop_rect;
-        spdlog::info("Saved crop rect: {} {} {} {}", extra.crop_rect.start[0],
-                     extra.crop_rect.start[1], extra.crop_rect.end[0],
-                     extra.crop_rect.end[1]);
       }
       break;
     }
@@ -560,12 +563,13 @@ void PanoGui::PerformExportAction(int pano_id) {
     if (options_.metadata.copy_from_first_image) {
       metadata_path = first_image->GetPath();
     }
+    const auto& pano = stitcher_data_->panos.at(pano_id);
     stitcher_pipeline_.RunExport(plot_pane_.Image(),
                                  {.pano_id = pano_id,
                                   .export_path = *export_path,
                                   .metadata_path = metadata_path,
                                   .compression = options_.compression,
-                                  .crop = plot_pane_.CropRect()});
+                                  .crop = pano.crop});
   } else {
     stitcher_pipeline_.RunStitching(*stitcher_data_,
                                     {.pano_id = pano_id,

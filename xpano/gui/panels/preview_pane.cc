@@ -902,14 +902,18 @@ Action PreviewPane::ToggleCrop() {
       crop_mode_ = CropMode::kDisabled;
       break;
     case CropMode::kDisabled: {
+      Action action = {};
       if (IsRotateEnabled()) {
         // setting auto crop when going directly from rotate to crop mode
         crop_widget_.rect = suggested_crop_;
+        action = {.type = ActionType::kSaveCrop,
+                  .delayed = true,
+                  .extra = CropExtra{.crop_rect = crop_widget_.rect}};
       }
       ResetZoom();
       EndRotate();
       crop_mode_ = CropMode::kEnabled;
-      break;
+      return action;
     }
     default:
       break;
@@ -959,8 +963,6 @@ void PreviewPane::EndRotate() {
 }
 
 cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
-
-utils::RectRRf PreviewPane::CropRect() const { return crop_widget_.rect; }
 
 void PreviewPane::ForceCrop(const utils::RectRRf& rect) {
   crop_widget_.rect = rect;
