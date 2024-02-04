@@ -13,6 +13,6 @@ pkgs.mkShell {
     exiv2
     dbus
     (python3.withPackages (pkgs: with pkgs; [ pyyaml ]))
-    clang-tools_17
+    clang-tools_15
   ];
 }

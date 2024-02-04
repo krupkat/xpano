@@ -104,21 +104,21 @@ cv::Mat FullRotation(const RotationState& state, const StaticWarpData& warp) {
   auto rot = cv::Mat::eye(3, 3, CV_32F);
 
   if (state.roll != 0.0f) {
-    cv::Mat rotation_vector = state.roll * warp.rollAxis;
+    cv::Mat rotation_vector = state.roll * warp.roll_axis;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
   }
 
   if (state.pitch != 0.0f) {
-    cv::Mat rotation_vector = state.pitch * warp.pitchAxis;
+    cv::Mat rotation_vector = state.pitch * warp.pitch_axis.coords;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
   }
 
   if (state.yaw != 0.0f) {
-    cv::Mat rotation_vector = state.yaw * warp.yawAxis;
+    cv::Mat rotation_vector = state.yaw * warp.yaw_axis.coords;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
@@ -299,18 +299,16 @@ bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
   return false;
 }
 
-constexpr float kRotFactor = 150.0f;
-
 float ComputePitch(const utils::Point2f& mouse_start,
-                   const utils::Point2f& mouse_end, float start) {
+                   const utils::Point2f& mouse_end, float speed) {
   auto vert_diff = mouse_start[1] - mouse_end[1];
-  return start + vert_diff / kRotFactor;
+  return vert_diff * speed;
 }
 
 float ComputeYaw(const utils::Point2f& mouse_start,
-                 const utils::Point2f& mouse_end, float start) {
+                 const utils::Point2f& mouse_end, float speed) {
   auto horiz_diff = mouse_end[0] - mouse_start[0];
-  return start + horiz_diff / kRotFactor;
+  return horiz_diff * speed;
 }
 
 float ComputeRoll(const utils::Point2f& mouse_start,
@@ -383,13 +381,19 @@ DragResult<RotationState> Drag(const RotationWidget& widget,
     if (edge.dragging) {
       switch (edge.type) {
         case EdgeType::kHorizontal: {
-          new_rotation.pitch = ComputePitch(new_rotation.mouse_start, mouse_pos,
-                                            new_rotation.pitch_start);
+          float speed = widget.warp.pitch_axis.rot_speed *
+                        (widget.warp.scale.width / image.size[0]);
+          new_rotation.pitch =
+              new_rotation.pitch_start +
+              ComputePitch(new_rotation.mouse_start, mouse_pos, speed);
           break;
         }
         case EdgeType::kVertical: {
-          new_rotation.yaw = ComputeYaw(new_rotation.mouse_start, mouse_pos,
-                                        new_rotation.yaw_start);
+          float speed = widget.warp.yaw_axis.rot_speed *
+                        (widget.warp.scale.width / image.size[0]);
+          new_rotation.yaw =
+              new_rotation.yaw_start +
+              ComputeYaw(new_rotation.mouse_start, mouse_pos, speed);
           break;
         }
         case EdgeType::kRoll: {
@@ -574,32 +578,42 @@ cv::Mat RollAxis(const PanoCenter& center, const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
-  return Image2Camera(backprojected, camera);
+  auto roll_axis = Image2Camera(backprojected, camera);
+  return roll_axis / cv::norm(roll_axis);
 }
 
-cv::Mat PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
+AxisWithSpeed GenericAxis(const PanoCenter& center, cv::Point2f dir,
+                          const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
 
+  auto probe1 = backprojected - dir;
+  auto probe2 = backprojected + dir;
+
+  auto p1_camera = Image2Camera(probe1, camera);
+  auto p2_camera = Image2Camera(probe2, camera);
+  cv::Mat pitch_axis = p2_camera.cross(p1_camera);
+  float angle = std::asin(cv::norm(pitch_axis) /
+                          (cv::norm(p1_camera) * cv::norm(p2_camera)));
+
+  auto p1_reproj = warp.warper->warpPoint(probe1, camera.k_mat, camera.r_mat);
+  auto p2_reproj = warp.warper->warpPoint(probe2, camera.k_mat, camera.r_mat);
+  float distance = cv::norm(p1_reproj - p2_reproj);
+
+  return {pitch_axis / cv::norm(pitch_axis), angle / distance};
+}
+
+AxisWithSpeed PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
   cv::Point2f diff = {0.0f, 50.0f};
-  auto p1 = Image2Camera(backprojected - diff, camera);
-  auto p2 = Image2Camera(backprojected + diff, camera);
-
-  return p2.cross(p1);
+  return GenericAxis(center, diff, warp);
 }
 
-cv::Mat YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
-  const auto& camera = warp.cameras[center.id];
-
-  auto backprojected =
-      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
-
+AxisWithSpeed YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
   cv::Point2f diff = {50.0f, 0.0f};
-  auto p1 = Image2Camera(backprojected - diff, camera);
-  auto p2 = Image2Camera(backprojected + diff, camera);
-
-  return p1.cross(p2);
+  auto axis = GenericAxis(center, diff, warp);
+  axis.coords *= -1.0f;
+  return axis;
 }
 
 std::vector<PreprocessedCamera> Preprocess(
@@ -691,9 +705,9 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   auto horizontal_handle = HorizontalHandle(dst_roi, pano_center, warp);
   auto roll_handle = RollHandle(dst_roi, pano_center, warp);
 
-  warp.rollAxis = RollAxis(pano_center, warp);
-  warp.pitchAxis = PitchAxis(pano_center, warp);
-  warp.yawAxis = YawAxis(pano_center, warp);
+  warp.roll_axis = RollAxis(pano_center, warp);
+  warp.pitch_axis = PitchAxis(pano_center, warp);
+  warp.yaw_axis = YawAxis(pano_center, warp);
 
   return {.horizontal_handle = std::move(horizontal_handle),
           .vertical_handle = std::move(vertical_handle),
