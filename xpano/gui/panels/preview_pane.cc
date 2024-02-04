@@ -533,10 +533,14 @@ std::vector<cv::Point2f> WarpBackpward(
   return warped;
 }
 
-Projectable HorizontalHandle(
-    cv::Rect dst_roi, int camera_id, const PreprocessedCamera& camera,
-    const cv::Ptr<cv::detail::RotationWarper>& warper) {
-  int mid_y = (dst_roi.tl().y + dst_roi.br().y) / 2;
+struct PanoCenter {
+  int id;
+  cv::Point2f coords;
+};
+
+Projectable HorizontalHandle(cv::Rect dst_roi, const PanoCenter& center,
+                             const StaticWarpData& warp) {
+  int mid_y = center.coords.y;
 
   auto start = cv::Point{dst_roi.tl().x, mid_y};
   auto end = cv::Point{dst_roi.br().x, mid_y};
@@ -544,15 +548,15 @@ Projectable HorizontalHandle(
 
   auto points = Interpolate(start - diff, end + diff);
 
-  return {.camera_id = camera_id,
-          .points = WarpBackpward(points, camera, warper),
+  const auto& camera = warp.cameras[center.id];
+  return {.camera_id = center.id,
+          .points = WarpBackpward(points, camera, warp.warper),
           .translation = -dst_roi.tl()};
 }
 
-Projectable VerticalHandle(cv::Rect dst_roi, int camera_id,
-                           const PreprocessedCamera& camera,
-                           const cv::Ptr<cv::detail::RotationWarper>& warper) {
-  int mid_x = (dst_roi.tl().x + dst_roi.br().x) / 2;
+Projectable VerticalHandle(cv::Rect dst_roi, const PanoCenter& center,
+                           const StaticWarpData& warp) {
+  int mid_x = center.coords.x;
 
   auto start = cv::Point{mid_x, dst_roi.tl().y};
   auto end = cv::Point{mid_x, dst_roi.br().y};
@@ -560,12 +564,21 @@ Projectable VerticalHandle(cv::Rect dst_roi, int camera_id,
 
   auto points = Interpolate(start - diff, end + diff);
 
-  return {.camera_id = camera_id,
-          .points = WarpBackpward(points, camera, warper),
+  const auto& camera = warp.cameras[center.id];
+  return {.camera_id = center.id,
+          .points = WarpBackpward(points, camera, warp.warper),
           .translation = -dst_roi.tl()};
 }
 
-Projectable RollHandle(int camera_id) { return {}; }
+cv::Mat RollAxis(const PanoCenter& center, const StaticWarpData& warp) {
+  const auto& camera = warp.cameras[center.id];
+
+  auto backprojected =
+      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
+
+  return (camera.r_mat * camera.k_mat.inv()) *
+         cv::Mat{backprojected.x, backprojected.y, 1.0f};
+}
 
 std::vector<PreprocessedCamera> Preprocess(
     const std::vector<cv::detail::CameraParams>& cameras, double work_scale) {
@@ -586,46 +599,39 @@ std::vector<cv::Point2f> Corners(cv::Size size) {
           cv::Point2i{size.width, size.height}, cv::Point2i{0, size.height}};
 }
 
-ImVec2 Avg(const std::vector<ImVec2>& points) {
-  ImVec2 sum = std::accumulate(points.begin(), points.end(), ImVec2{0.0f, 0.0f},
-                               [](const ImVec2& a, const ImVec2& b) {
-                                 return ImVec2{a.x + b.x, a.y + b.y};
+template <typename TPoint>
+TPoint Avg(const std::vector<TPoint>& points) {
+  TPoint sum = std::accumulate(points.begin(), points.end(), TPoint{0.0f, 0.0f},
+                               [](const TPoint& a, const TPoint& b) {
+                                 return TPoint{a.x + b.x, a.y + b.y};
                                });
-  return ImVec2{sum.x / points.size(), sum.y / points.size()};
+  return TPoint{sum.x / points.size(), sum.y / points.size()};
 }
 
-int SelectMiddleCamera(const std::vector<cv::Size> image_sizes,
-                       const StaticWarpData& warp) {
-  std::vector<ImVec2> centers;
+PanoCenter ComputePanoCenter(const std::vector<cv::Size>& image_sizes,
+                             const StaticWarpData& warp) {
+  std::vector<cv::Point2f> centers;
   for (int i = 0; i < image_sizes.size(); i++) {
-    auto corners =
-        Projectable{.camera_id = i, .points = Corners(image_sizes[i])};
-    auto projected = Warp(corners, warp, {}, {});
-    auto center = Avg(projected);
-    centers.push_back(center);
+    auto center =
+        cv::Point2f{image_sizes[i].width / 2.0f, image_sizes[i].height / 2.0f};
+
+    auto projected_center = warp.warper->warpPoint(
+        center, warp.cameras[i].k_mat, warp.cameras[i].r_mat);
+    centers.push_back(projected_center);
   }
 
-  auto dist = [](const ImVec2& a, const ImVec2& b) {
+  auto dist = [](const cv::Point2f& a, const cv::Point2f& b) {
     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
   };
 
   auto center = Avg(centers);
-  auto middle_image =
-      std::min_element(centers.begin(), centers.end(),
-                       [&center, &dist](const ImVec2& a, const ImVec2& b) {
-                         return dist(a, center) < dist(b, center);
-                       });
-  return static_cast<int>(std::distance(centers.begin(), middle_image));
-}
-
-cv::Mat RollAxis(cv::Rect dst_roi, const PreprocessedCamera& camera,
-                 const cv::Ptr<cv::detail::RotationWarper>& warper) {
-  auto roll_center = cv::Point2f{(dst_roi.tl() + dst_roi.br()) / 2};
-  auto backprojected =
-      warper->warpPointBackward(roll_center, camera.k_mat, camera.r_mat);
-
-  return (camera.r_mat * camera.k_mat.inv()) *
-         cv::Mat{backprojected.x, backprojected.y, 1.0f};
+  auto middle_image = std::min_element(
+      centers.begin(), centers.end(),
+      [&center, &dist](const cv::Point2f& a, const cv::Point2f& b) {
+        return dist(a, center) < dist(b, center);
+      });
+  return {static_cast<int>(std::distance(centers.begin(), middle_image)),
+          cv::Point2f{center.x, center.y}};
 }
 
 RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
@@ -657,19 +663,15 @@ RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
                              .cameras = std::move(preprocessed_cameras),
                              .warper = cameras.warp_helper.warper};
 
-  int camera_id = SelectMiddleCamera(cameras.warp_helper.full_sizes, warp);
-  const auto& camera = warp.cameras[camera_id];
+  auto pano_center = ComputePanoCenter(cameras.warp_helper.full_sizes, warp);
 
-  auto vertical_handle =
-      VerticalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
-  auto horizontal_handle =
-      HorizontalHandle(dst_roi, camera_id, camera, cameras.warp_helper.warper);
+  auto vertical_handle = VerticalHandle(dst_roi, pano_center, warp);
+  auto horizontal_handle = HorizontalHandle(dst_roi, pano_center, warp);
 
-  warp.rollAxis = RollAxis(dst_roi, camera, cameras.warp_helper.warper);
+  warp.rollAxis = RollAxis(pano_center, warp);
 
   return {.horizontal_handle = std::move(horizontal_handle),
           .vertical_handle = std::move(vertical_handle),
-          .roll_handle = RollHandle(camera_id),
           .image_borders = std::move(projectables),
           .warp = std::move(warp)};
 }
@@ -939,7 +941,7 @@ Action PreviewPane::ToggleRotate() {
     }
     default:
       break;
-  }  // namespace xpano::gui
+  }
 
   return {};
 }
