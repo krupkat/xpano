@@ -900,14 +900,14 @@ Action PreviewPane::ToggleCrop() {
       crop_mode_ = CropMode::kDisabled;
       break;
     case CropMode::kDisabled: {
-      Action action = {};
       if (IsRotateEnabled()) {
-        action = {.type = ActionType::kRecrop, .delayed = true};
+        // setting auto crop when going directly from rotate to crop mode
+        crop_widget_.rect = suggested_crop_;
       }
       ResetZoom();
       EndRotate();
       crop_mode_ = CropMode::kEnabled;
-      return action;
+      break;
     }
     default:
       break;
