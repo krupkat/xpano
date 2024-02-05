@@ -70,10 +70,8 @@ Install with macports: `sudo port install libsdl2 spdlog catch2` (for details: [
 Run the build script from the root of the repository:
 
 ```
-./misc/build/build-macos-12.sh
+./misc/build/build-macos.sh
 ```
-
-See https://github.com/krupkat/xpano/pull/99 for build instructions on the Apple silicon.
 
 ### Ubuntu 22.04
 
