@@ -111,7 +111,7 @@ std::vector<cv::Point2f> Interpolate(const cv::Point2f& start,
   return points;
 }
 
-Projectable GenericHandle(cv::Rect dst_roi, cv::Point2f dir,
+Projectable GenericHandle(const cv::Rect& dst_roi, const cv::Point2f& dir,
                           const PanoCenter& center,
                           const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
@@ -127,19 +127,19 @@ Projectable GenericHandle(cv::Rect dst_roi, cv::Point2f dir,
           .translation = -dst_roi.tl()};
 }
 
-Projectable HorizontalHandle(cv::Rect dst_roi, const PanoCenter& center,
+Projectable HorizontalHandle(const cv::Rect& dst_roi, const PanoCenter& center,
                              const StaticWarpData& warp) {
   auto diff = cv::Point2f{static_cast<float>(dst_roi.width), 0.0f};
   return GenericHandle(dst_roi, diff, center, warp);
 }
 
-Projectable VerticalHandle(cv::Rect dst_roi, const PanoCenter& center,
+Projectable VerticalHandle(const cv::Rect& dst_roi, const PanoCenter& center,
                            const StaticWarpData& warp) {
   auto diff = cv::Point2f{0.0f, static_cast<float>(dst_roi.height)};
   return GenericHandle(dst_roi, diff, center, warp);
 }
 
-Projectable RollHandle(cv::Rect dst_roi, const PanoCenter& center,
+Projectable RollHandle(const cv::Rect& dst_roi, const PanoCenter& center,
                        const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
@@ -163,7 +163,7 @@ cv::Mat RollAxis(const PanoCenter& center, const StaticWarpData& warp) {
   return roll_axis / cv::norm(roll_axis);
 }
 
-AxisWithSpeed GenericAxis(const PanoCenter& center, cv::Point2f dir,
+AxisWithSpeed GenericAxis(const PanoCenter& center, const cv::Point2f& dir,
                           const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
