@@ -45,8 +45,9 @@ struct RotationState {
   std::array<Edge, 3> edges = DefaultEdgesRotation();
 };
 
-struct AxisWithSpeed {
+struct Axis {
   cv::Mat coords;
+  cv::Point2f drag_dir;
   float rot_speed;  // angle per 1 shifted pixel
 };
 
@@ -55,8 +56,8 @@ struct StaticWarpData {
   std::vector<PreprocessedCamera> cameras;
   cv::Ptr<cv::detail::RotationWarper> warper;
   cv::Mat roll_axis;
-  AxisWithSpeed pitch_axis;
-  AxisWithSpeed yaw_axis;
+  Axis pitch_axis;
+  Axis yaw_axis;
 };
 
 struct RotationWidget {

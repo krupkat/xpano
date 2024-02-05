@@ -29,6 +29,12 @@ inline cv::Rect CvRect(Point2i start, Vec2i size) {
   return cv::Rect{start[0], start[1], size[0], size[1]};
 }
 inline cv::Size CvSize(Vec2i size) { return cv::Size{size[0], size[1]}; }
+
+template <typename TType, typename NameTag>
+inline cv::Point2f CvPoint(const Vec<TType, 2, NameTag>& vec) {
+  return {vec[0], vec[1]};
+}
+
 inline Vec2i ToIntVec(const cv::MatSize& size) {
   return Vec2i{size[1], size[0]};
 }

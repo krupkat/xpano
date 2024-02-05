@@ -155,16 +155,21 @@ cv::Mat Image2Camera(const cv::Point2f& point,
   return camera.r_mat * (camera.k_mat.inv() * cv::Mat{point.x, point.y, 1.0f});
 }
 
+template <typename TMat>
+TMat Normalized(const TMat& input) {
+  return input / cv::norm(input);
+}
+
 cv::Mat RollAxis(const PanoCenter& center, const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
   auto roll_axis = Image2Camera(backprojected, camera);
-  return roll_axis / cv::norm(roll_axis);
+  return Normalized(roll_axis);
 }
 
-AxisWithSpeed GenericAxis(const PanoCenter& center, const cv::Point2f& dir,
-                          const StaticWarpData& warp) {
+Axis GenericAxis(const PanoCenter& center, const cv::Point2f& dir,
+                 const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
@@ -180,18 +185,19 @@ AxisWithSpeed GenericAxis(const PanoCenter& center, const cv::Point2f& dir,
 
   auto p1_reproj = warp.warper->warpPoint(probe1, camera.k_mat, camera.r_mat);
   auto p2_reproj = warp.warper->warpPoint(probe2, camera.k_mat, camera.r_mat);
-  const double distance = cv::norm(p1_reproj - p2_reproj);
+  auto diff_reproj = p1_reproj - p2_reproj;
+  const double distance = cv::norm(diff_reproj);
 
-  return {pitch_axis / cv::norm(pitch_axis),
+  return {Normalized(pitch_axis), Normalized(diff_reproj),
           static_cast<float>(angle / distance)};
 }
 
-AxisWithSpeed PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
+Axis PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
   const cv::Point2f diff = {0.0f, 50.0f};
   return GenericAxis(center, diff, warp);
 }
 
-AxisWithSpeed YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
+Axis YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
   const cv::Point2f diff = {50.0f, 0.0f};
   auto axis = GenericAxis(center, diff, warp);
   axis.coords *= -1.0f;
@@ -229,16 +235,30 @@ bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
   return false;
 }
 
-float ComputePitch(const utils::Point2f& mouse_start,
-                   const utils::Point2f& mouse_end, float speed) {
-  auto vert_diff = mouse_start[1] - mouse_end[1];
-  return vert_diff * speed;
+float Project(const cv::Point2f& diff, const cv::Point2f& target_dir) {
+  auto diff_length = cv::norm(diff);
+  if (diff_length < 1e-6f) {
+    return 0.0f;
+  }
+  auto cos_theta = diff.dot(target_dir) / diff_length;
+  return static_cast<float>(diff_length * cos_theta);
 }
 
-float ComputeYaw(const utils::Point2f& mouse_start,
-                 const utils::Point2f& mouse_end, float speed) {
-  auto horiz_diff = mouse_end[0] - mouse_start[0];
-  return horiz_diff * speed;
+float ComputePitch(const utils::Vec2f& mouse_diff, const StaticWarpData& warp,
+                   const utils::RectPVf& image) {
+  const float speed = warp.pitch_axis.rot_speed *
+                      (static_cast<float>(warp.scale.width) / image.size[0]);
+
+  return -1.0f * speed *
+         Project(utils::CvPoint(mouse_diff), warp.pitch_axis.drag_dir);
+}
+
+float ComputeYaw(const utils::Vec2f& mouse_diff, const StaticWarpData& warp,
+                 const utils::RectPVf& image) {
+  const float speed = warp.yaw_axis.rot_speed *
+                      (static_cast<float>(warp.scale.height) / image.size[1]);
+
+  return speed * Project(utils::CvPoint(mouse_diff), warp.yaw_axis.drag_dir);
 }
 
 float ComputeRoll(const utils::Point2f& mouse_start,
@@ -248,6 +268,10 @@ float ComputeRoll(const utils::Point2f& mouse_start,
   auto d_y = mouse_end - roll_center;
 
   return std::atan2(d_x[0], d_x[1]) - std::atan2(d_y[0], d_y[1]);
+}
+
+bool IsHorizontal(const cv::Point2f& dir) {
+  return std::abs(dir.x) > std::abs(dir.y);
 }
 
 }  // namespace
@@ -350,17 +374,6 @@ Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
   return projected;
 }
 
-float ScaledPitchSpeed(const StaticWarpData& warp,
-                       const utils::RectPVf& image) {
-  return warp.pitch_axis.rot_speed *
-         (static_cast<float>(warp.scale.width) / image.size[0]);
-}
-
-float ScaledYawSpeed(const StaticWarpData& warp, const utils::RectPVf& image) {
-  return warp.yaw_axis.rot_speed *
-         (static_cast<float>(warp.scale.height) / image.size[1]);
-}
-
 DragResult<RotationState> Drag(const RotationWidget& widget,
                                const utils::RectPVf& image,
                                utils::Point2f mouse_pos, bool mouse_clicked,
@@ -421,17 +434,16 @@ DragResult<RotationState> Drag(const RotationWidget& widget,
     if (edge.dragging) {
       switch (edge.type) {
         case EdgeType::kHorizontal: {
-          const float speed = ScaledPitchSpeed(widget.warp, image);
           new_rotation.pitch =
               new_rotation.pitch_start +
-              ComputePitch(new_rotation.mouse_start, mouse_pos, speed);
+              ComputePitch(new_rotation.mouse_start - mouse_pos, widget.warp,
+                           image);
           break;
         }
         case EdgeType::kVertical: {
-          const float speed = ScaledYawSpeed(widget.warp, image);
-          new_rotation.yaw =
-              new_rotation.yaw_start +
-              ComputeYaw(new_rotation.mouse_start, mouse_pos, speed);
+          new_rotation.yaw = new_rotation.yaw_start +
+                             ComputeYaw(new_rotation.mouse_start - mouse_pos,
+                                        widget.warp, image);
           break;
         }
         case EdgeType::kRoll: {
@@ -463,12 +475,16 @@ void SelectMouseCursor(const widgets::RotationWidget& widget) {
     case Select(EdgeType::kRoll, EdgeType::kHorizontal):
       [[fallthrough]];
     case Select(EdgeType::kHorizontal):
-      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+      ImGui::SetMouseCursor((IsHorizontal(widget.warp.pitch_axis.drag_dir))
+                                ? ImGuiMouseCursor_ResizeEW
+                                : ImGuiMouseCursor_ResizeNS);
       break;
     case Select(EdgeType::kRoll, EdgeType::kVertical):
       [[fallthrough]];
     case Select(EdgeType::kVertical):
-      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+      ImGui::SetMouseCursor((IsHorizontal(widget.warp.yaw_axis.drag_dir))
+                                ? ImGuiMouseCursor_ResizeEW
+                                : ImGuiMouseCursor_ResizeNS);
       break;
     case Select(EdgeType::kRoll, EdgeType::kHorizontal, EdgeType::kVertical):
       [[fallthrough]];
