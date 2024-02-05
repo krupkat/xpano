@@ -400,7 +400,7 @@ jobs:
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
+        key: ${{ matrix.os }}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
@@ -419,7 +419,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{ matrix.os }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
