@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Tomas Krupka
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "xpano/gui/widgets/widgets.h"
+#include "xpano/gui/widgets/rotate.h"
 
 #include <numeric>
 
@@ -198,41 +198,6 @@ AxisWithSpeed YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
   return axis;
 }
 
-bool IsMouseCloseToEdge(EdgeType edge_type, const utils::RectPPf& rect,
-                        utils::Point2f mouse_pos) {
-  auto within_x_bounds = [&rect](const utils::Point2f& mouse_pos) {
-    return mouse_pos[0] > rect.start[0] - kCropEdgeTolerance &&
-           mouse_pos[0] < rect.end[0] + kCropEdgeTolerance;
-  };
-
-  auto within_y_bounds = [&rect](const utils::Point2f& mouse_pos) {
-    return mouse_pos[1] > rect.start[1] - kCropEdgeTolerance &&
-           mouse_pos[1] < rect.end[1] + kCropEdgeTolerance;
-  };
-
-  switch (edge_type) {
-    case EdgeType::kTop: {
-      return std::abs(mouse_pos[1] - rect.start[1]) < kCropEdgeTolerance &&
-             within_x_bounds(mouse_pos);
-    }
-    case EdgeType::kBottom: {
-      return std::abs(mouse_pos[1] - rect.end[1]) < kCropEdgeTolerance &&
-             within_x_bounds(mouse_pos);
-    }
-    case EdgeType::kLeft: {
-      return std::abs(mouse_pos[0] - rect.start[0]) < kCropEdgeTolerance &&
-             within_y_bounds(mouse_pos);
-    }
-    case EdgeType::kRight: {
-      return std::abs(mouse_pos[0] - rect.end[0]) < kCropEdgeTolerance &&
-             within_y_bounds(mouse_pos);
-    }
-    default: {
-      return false;
-    }
-  }
-}
-
 float LineToSegmentDistance(const ImVec2& a, const ImVec2& b, const ImVec2& p) {
   auto ap = ImVec2{p.x - a.x, p.y - a.y};
   auto ab = ImVec2{b.x - a.x, b.y - a.y};
@@ -284,65 +249,6 @@ float ComputeRoll(const utils::Point2f& mouse_start,
 }
 
 }  // namespace
-
-DragResult<DraggableWidget> Drag(const DraggableWidget& input_widget,
-                                 const utils::RectPVf& image,
-                                 utils::Point2f mouse_pos, bool mouse_clicked,
-                                 bool mouse_down) {
-  auto widget = input_widget;
-  auto rect_window_coords = CropRectPP(image, widget.rect);
-
-  bool dragging = false;
-  bool finished_dragging = false;
-  for (auto& edge : widget.edges) {
-    edge.mouse_close =
-        IsMouseCloseToEdge(edge.type, rect_window_coords, mouse_pos);
-    if (edge.mouse_close && mouse_clicked) {
-      edge.dragging = true;
-    }
-    if (edge.dragging && !mouse_down) {
-      edge.dragging = false;
-      finished_dragging = true;
-    }
-    dragging |= edge.dragging;
-  }
-
-  if (!dragging) {
-    return {widget, finished_dragging};
-  }
-
-  auto new_pos = (mouse_pos - image.start) / image.size;
-  auto tolerance =
-      utils::Vec2f{static_cast<float>(kCropEdgeTolerance)} / image.size * 10.0f;
-  for (const auto& edge : widget.edges) {
-    if (edge.dragging) {
-      switch (edge.type) {
-        case EdgeType::kTop: {
-          widget.rect.start[1] =
-              std::clamp(new_pos[1], 0.0f, widget.rect.end[1] - tolerance[1]);
-          break;
-        }
-        case EdgeType::kBottom: {
-          widget.rect.end[1] =
-              std::clamp(new_pos[1], widget.rect.start[1] + tolerance[1], 1.0f);
-          break;
-        }
-        case EdgeType::kLeft: {
-          widget.rect.start[0] =
-              std::clamp(new_pos[0], 0.0f, widget.rect.end[0] - tolerance[0]);
-          break;
-        }
-        case EdgeType::kRight: {
-          widget.rect.end[0] =
-              std::clamp(new_pos[0], widget.rect.start[0] + tolerance[0], 1.0f);
-          break;
-        }
-      }
-    }
-  }
-
-  return {widget, false};
-}
 
 RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
   int num_cameras = static_cast<int>(cameras.cameras.size());
@@ -533,4 +439,38 @@ DragResult<RotationState> Drag(const RotationWidget& widget,
   return {new_rotation, false};
 }
 
-}  // namespace xpano::gui
+void SelectMouseCursor(const widgets::RotationWidget& widget) {
+  const int mouse_cursor_selector = std::accumulate(
+      widget.rotation.edges.begin(), widget.rotation.edges.end(), 0,
+      [](int sum, const widgets::Edge& edge) {
+        return sum + (edge.mouse_close || edge.dragging
+                          ? static_cast<int>(edge.type)
+                          : 0);
+      });
+
+  switch (mouse_cursor_selector) {
+    case Select(EdgeType::kRoll, EdgeType::kHorizontal):
+      [[fallthough]];
+    case Select(EdgeType::kHorizontal):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+      break;
+    case Select(EdgeType::kRoll, EdgeType::kVertical):
+      [[fallthough]];
+    case Select(EdgeType::kVertical):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+      break;
+    case Select(EdgeType::kRoll, EdgeType::kHorizontal, EdgeType::kVertical):
+      [[fallthough]];
+    case Select(EdgeType::kHorizontal, EdgeType::kVertical):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+      break;
+    case Select(EdgeType::kRoll):
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+      break;
+    default:
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+      break;
+  }
+}
+
+}  // namespace xpano::gui::widgets

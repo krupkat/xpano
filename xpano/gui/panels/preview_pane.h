@@ -14,6 +14,8 @@
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/widgets/widgets.h"
+#include "xpano/gui/widgets/drag.h"
+#include "xpano/gui/widgets/rotate.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
