@@ -13,7 +13,6 @@
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
-#include "xpano/gui/widgets/widgets.h"
 #include "xpano/gui/widgets/drag.h"
 #include "xpano/gui/widgets/rotate.h"
 #include "xpano/utils/rect.h"
@@ -60,7 +59,8 @@ class PreviewPane {
   void ZoomOut();
   void AdvanceZoom();
   void ResetZoom(int target_level = 1);
-  Action HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
+  Action HandleInputs(const utils::RectPVf& window,
+                      const utils::RectPVf& image);
 
   utils::Ratio2f tex_coord_;
 
