@@ -376,9 +376,15 @@ jobs:
         ctest --output-on-failure
         cd ..
 
-  build-macos-12:
-    runs-on: macos-12
+  build-macos:
+    name: build-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    strategy:
+      matrix:
+        os: [macos-12, macos-14]
 
     steps:
     - uses: actions/checkout@v3
