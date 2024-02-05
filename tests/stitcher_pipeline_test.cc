@@ -96,6 +96,49 @@ TEST_CASE("Stitcher pipeline defaults") {
   CHECK(total_pixels == non_zero_pixels);
 }
 
+TEST_CASE("Stitcher pipeline defaults [extra results]") {
+  xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
+
+  auto loading_task = stitcher.RunLoading(kInputs, {}, {});
+  auto result = loading_task.future.get();
+  auto progress = loading_task.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(result.images.size() == 10);
+  CHECK(result.matches.size() == 17);
+  REQUIRE(result.panos.size() == 2);
+  REQUIRE_THAT(result.panos[0].ids, Equals<int>({1, 2, 3, 4, 5}));
+  REQUIRE_THAT(result.panos[1].ids, Equals<int>({6, 7, 8}));
+
+  // preview
+  auto stitching_task0 = stitcher.RunStitching(result, {.pano_id = 0});
+
+  auto stitch_result0 = stitching_task0.future.get();
+  progress = stitching_task0.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(stitch_result0.pano.has_value());
+  CHECK(stitch_result0.auto_crop.has_value());
+  CHECK(stitch_result0.mask.has_value());
+  CHECK_FALSE(stitch_result0.export_path.has_value());
+  REQUIRE(stitch_result0.cameras.has_value());
+  CHECK(stitch_result0.cameras->cameras.size() == 5);
+
+  // full resolution
+  auto stitching_task1 =
+      stitcher.RunStitching(result, {.pano_id = 1, .full_res = true});
+  auto stitch_result1 = stitching_task1.future.get();
+  progress = stitching_task1.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(stitch_result1.pano.has_value());
+  CHECK(stitch_result1.auto_crop.has_value());
+  CHECK(stitch_result1.mask.has_value());
+  CHECK_FALSE(stitch_result1.export_path.has_value());
+  REQUIRE(stitch_result1.cameras.has_value());
+  CHECK(stitch_result1.cameras->cameras.size() == 3);
+}
+
 TEST_CASE("Stitcher pipeline single pano matching") {
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
   auto loading_task = stitcher.RunLoading(
@@ -279,6 +322,29 @@ const std::vector<std::filesystem::path> kInputsWithExifMetadata = {
     "data/image07.jpg",
     "data/image08.jpg",
 };
+
+TEST_CASE("Export [extra results]") {
+  const std::filesystem::path tmp_path =
+      xpano::tests::TmpPath().replace_extension("jpg");
+
+  xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
+  auto loading_task = stitcher.RunLoading(kInputsWithExifMetadata, {}, {});
+  auto data = loading_task.future.get();
+  REQUIRE(data.panos.size() == 1);
+  auto stitch_result =
+      stitcher.RunStitching(data, {.pano_id = 0, .export_path = tmp_path})
+          .future.get();
+
+  CHECK(stitch_result.pano.has_value());
+  CHECK(stitch_result.auto_crop.has_value());
+  CHECK(stitch_result.mask.has_value());
+  CHECK(stitch_result.export_path.has_value());
+  REQUIRE(stitch_result.cameras.has_value());
+  CHECK(stitch_result.cameras->cameras.size() == 3);
+
+  REQUIRE(std::filesystem::exists(tmp_path));
+  std::filesystem::remove(tmp_path);
+}
 
 TEST_CASE("ExportWithMetadata") {
   const std::filesystem::path tmp_path =
