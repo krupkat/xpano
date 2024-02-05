@@ -93,11 +93,17 @@ Action DrawFileMenu() {
 Action DrawEditMenu() {
   Action action{};
   if (ImGui::BeginMenu("Edit")) {
-    if (ImGui::MenuItem("Reset crop")) {
-      action |= {ActionType::kResetCrop};
+    if (ImGui::MenuItem("Toggle rotation", Label(ShortcutType::kRotate))) {
+      action |= {ActionType::kToggleRotate};
+    }
+    if (ImGui::MenuItem("Toggle crop", Label(ShortcutType::kCrop))) {
+      action |= {ActionType::kToggleCrop};
     }
     if (ImGui::MenuItem("Reset rotation")) {
       action |= {ActionType::kResetRotation};
+    }
+    if (ImGui::MenuItem("Reset crop")) {
+      action |= {ActionType::kResetCrop};
     }
     ImGui::EndMenu();
   }

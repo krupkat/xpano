@@ -5,7 +5,7 @@
 
 namespace xpano::gui {
 
-enum class ShortcutType { kOpen, kExport, kDebug, kReset };
+enum class ShortcutType { kOpen, kExport, kDebug, kReset, kRotate, kCrop };
 
 const char* Label(ShortcutType type);
 
