@@ -15,8 +15,10 @@ namespace xpano::gui::widgets {
 
 namespace {
 
-std::vector<cv::Point2f> PointsOnRectangle(cv::Size size,
-                                           int points_per_edge = 50) {
+constexpr int kPointsPerEdge = 50;
+
+std::vector<cv::Point2f> PointsOnRectangle(
+    cv::Size size, int points_per_edge = kPointsPerEdge) {
   std::vector<cv::Point2f> points;
   points.reserve(points_per_edge * 4 + 1);
   for (int i = 0; i < points_per_edge; i++) {
@@ -60,8 +62,8 @@ std::vector<PreprocessedCamera> Preprocess(
 template <typename TPoint>
 TPoint Avg(const std::vector<TPoint>& points) {
   TPoint sum = std::accumulate(points.begin(), points.end(), TPoint{0.0f, 0.0f},
-                               [](const TPoint& a, const TPoint& b) {
-                                 return TPoint{a.x + b.x, a.y + b.y};
+                               [](const TPoint& lhs, const TPoint& rhs) {
+                                 return TPoint{lhs.x + rhs.x, lhs.y + rhs.y};
                                });
   return TPoint{sum.x / points.size(), sum.y / points.size()};
 }
@@ -75,23 +77,23 @@ PanoCenter ComputePanoCenter(const std::vector<cv::Size>& image_sizes,
                              const StaticWarpData& warp) {
   std::vector<cv::Point2f> centers;
   for (int i = 0; i < image_sizes.size(); i++) {
-    auto center =
-        cv::Point2f{image_sizes[i].width / 2.0f, image_sizes[i].height / 2.0f};
+    auto center = cv::Point2f{static_cast<float>(image_sizes[i].width) / 2.0f,
+                              static_cast<float>(image_sizes[i].height) / 2.0f};
 
     auto projected_center = warp.warper->warpPoint(
         center, warp.cameras[i].k_mat, warp.cameras[i].r_mat);
     centers.push_back(projected_center);
   }
 
-  auto dist = [](const cv::Point2f& a, const cv::Point2f& b) {
-    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  auto dist = [](const cv::Point2f& lhs, const cv::Point2f& rhs) {
+    return cv::norm(lhs - rhs);
   };
 
   auto center = Avg(centers);
   auto middle_image = std::min_element(
       centers.begin(), centers.end(),
-      [&center, &dist](const cv::Point2f& a, const cv::Point2f& b) {
-        return dist(a, center) < dist(b, center);
+      [&center, &dist](const cv::Point2f& left, const cv::Point2f& right) {
+        return dist(left, center) < dist(right, center);
       });
   return {static_cast<int>(std::distance(centers.begin(), middle_image)),
           cv::Point2f{center.x, center.y}};
@@ -99,45 +101,42 @@ PanoCenter ComputePanoCenter(const std::vector<cv::Size>& image_sizes,
 
 std::vector<cv::Point2f> Interpolate(const cv::Point2f& start,
                                      const cv::Point2f& end,
-                                     int num_edges = 50) {
+                                     int num_edges = kPointsPerEdge) {
   std::vector<cv::Point2f> points;
   points.reserve(num_edges + 1);
   for (int i = 0; i <= num_edges; i++) {
-    float alpha = static_cast<float>(i) / static_cast<float>(num_edges);
+    const float alpha = static_cast<float>(i) / static_cast<float>(num_edges);
     points.push_back(start + alpha * (end - start));
   }
   return points;
 }
 
-Projectable HorizontalHandle(cv::Rect dst_roi, const PanoCenter& center,
-                             const StaticWarpData& warp) {
+Projectable GenericHandle(cv::Rect dst_roi, cv::Point2f dir,
+                          const PanoCenter& center,
+                          const StaticWarpData& warp) {
   const auto& camera = warp.cameras[center.id];
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
 
-  float mid_y = backprojected.y;
-
-  auto start = cv::Point2f{backprojected.x - dst_roi.width, mid_y};
-  auto end = cv::Point2f{backprojected.x + dst_roi.width, mid_y};
+  auto diff = cv::Point2f{static_cast<float>(dst_roi.width), 0.0f};
+  auto start = backprojected - dir;
+  auto end = backprojected + dir;
 
   return {.camera_id = center.id,
           .points = Interpolate(start, end),
           .translation = -dst_roi.tl()};
 }
 
+Projectable HorizontalHandle(cv::Rect dst_roi, const PanoCenter& center,
+                             const StaticWarpData& warp) {
+  auto diff = cv::Point2f{static_cast<float>(dst_roi.width), 0.0f};
+  return GenericHandle(dst_roi, diff, center, warp);
+}
+
 Projectable VerticalHandle(cv::Rect dst_roi, const PanoCenter& center,
                            const StaticWarpData& warp) {
-  const auto& camera = warp.cameras[center.id];
-  auto backprojected =
-      warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
-  float mid_x = backprojected.x;
-
-  auto start = cv::Point2f{mid_x, backprojected.y - dst_roi.height};
-  auto end = cv::Point2f{mid_x, backprojected.y + dst_roi.height};
-
-  return {.camera_id = center.id,
-          .points = Interpolate(start, end),
-          .translation = -dst_roi.tl()};
+  auto diff = cv::Point2f{0.0f, static_cast<float>(dst_roi.height)};
+  return GenericHandle(dst_roi, diff, center, warp);
 }
 
 Projectable RollHandle(cv::Rect dst_roi, const PanoCenter& center,
@@ -175,36 +174,39 @@ AxisWithSpeed GenericAxis(const PanoCenter& center, cv::Point2f dir,
 
   auto p1_camera = Image2Camera(probe1, camera);
   auto p2_camera = Image2Camera(probe2, camera);
-  cv::Mat pitch_axis = p2_camera.cross(p1_camera);
-  float angle = std::asin(cv::norm(pitch_axis) /
-                          (cv::norm(p1_camera) * cv::norm(p2_camera)));
+  const cv::Mat pitch_axis = p2_camera.cross(p1_camera);
+  const double angle = std::asin(cv::norm(pitch_axis) /
+                                 (cv::norm(p1_camera) * cv::norm(p2_camera)));
 
   auto p1_reproj = warp.warper->warpPoint(probe1, camera.k_mat, camera.r_mat);
   auto p2_reproj = warp.warper->warpPoint(probe2, camera.k_mat, camera.r_mat);
-  float distance = cv::norm(p1_reproj - p2_reproj);
+  const double distance = cv::norm(p1_reproj - p2_reproj);
 
-  return {pitch_axis / cv::norm(pitch_axis), angle / distance};
+  return {pitch_axis / cv::norm(pitch_axis),
+          static_cast<float>(angle / distance)};
 }
 
 AxisWithSpeed PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
-  cv::Point2f diff = {0.0f, 50.0f};
+  const cv::Point2f diff = {0.0f, 50.0f};
   return GenericAxis(center, diff, warp);
 }
 
 AxisWithSpeed YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
-  cv::Point2f diff = {50.0f, 0.0f};
+  const cv::Point2f diff = {50.0f, 0.0f};
   auto axis = GenericAxis(center, diff, warp);
   axis.coords *= -1.0f;
   return axis;
 }
 
-float LineToSegmentDistance(const ImVec2& a, const ImVec2& b, const ImVec2& p) {
+// NOLINTBEGIN(readability-identifier-length)
+float PointToSegmentDistance(const ImVec2& a, const ImVec2& b,
+                             const ImVec2& p) {
   auto ap = ImVec2{p.x - a.x, p.y - a.y};
   auto ab = ImVec2{b.x - a.x, b.y - a.y};
   auto dot = [](const ImVec2& a, const ImVec2& b) {
     return a.x * b.x + a.y * b.y;
   };
-  float dot_ab = dot(ab, ab);
+  const float dot_ab = dot(ab, ab);
   if (dot_ab < 1e-6f) {
     return dot(ap, ap);
   }
@@ -213,11 +215,12 @@ float LineToSegmentDistance(const ImVec2& a, const ImVec2& b, const ImVec2& p) {
   auto diff = ImVec2{p.x - projected.x, p.y - projected.y};
   return dot(diff, diff);
 }
+// NOLINTEND(readability-identifier-length)
 
 bool IsMouseCloseToPoly(const Polyline& poly, utils::Point2f mouse_pos) {
   for (int i = 0; i < poly.size() - 1; i++) {
-    auto dist = LineToSegmentDistance(poly[i], poly[i + 1],
-                                      ImVec2{mouse_pos[0], mouse_pos[1]});
+    auto dist = PointToSegmentDistance(poly[i], poly[i + 1],
+                                       ImVec2{mouse_pos[0], mouse_pos[1]});
     if (dist < kCropEdgeTolerance * kCropEdgeTolerance) {
       return true;
     }
@@ -241,17 +244,16 @@ float ComputeYaw(const utils::Point2f& mouse_start,
 float ComputeRoll(const utils::Point2f& mouse_start,
                   const utils::Point2f& mouse_end,
                   const utils::Point2f& roll_center) {
-  auto x = mouse_start - roll_center;
-  auto y = mouse_end - roll_center;
+  auto d_x = mouse_start - roll_center;
+  auto d_y = mouse_end - roll_center;
 
-  auto angle = std::atan2(x[0], x[1]) - std::atan2(y[0], y[1]);
-  return angle;
+  return std::atan2(d_x[0], d_x[1]) - std::atan2(d_y[0], d_y[1]);
 }
 
 }  // namespace
 
 RotationWidget SetupRotationWidget(const algorithm::Cameras& cameras) {
-  int num_cameras = static_cast<int>(cameras.cameras.size());
+  const int num_cameras = static_cast<int>(cameras.cameras.size());
 
   auto dst_roi = cv::detail::resultRoi(cameras.warp_helper.corners,
                                        cameras.warp_helper.sizes);
@@ -300,21 +302,21 @@ cv::Mat FullRotation(const RotationState& state, const StaticWarpData& warp) {
   auto rot = cv::Mat::eye(3, 3, CV_32F);
 
   if (state.roll != 0.0f) {
-    cv::Mat rotation_vector = state.roll * warp.roll_axis;
+    const cv::Mat rotation_vector = state.roll * warp.roll_axis;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
   }
 
   if (state.pitch != 0.0f) {
-    cv::Mat rotation_vector = state.pitch * warp.pitch_axis.coords;
+    const cv::Mat rotation_vector = state.pitch * warp.pitch_axis.coords;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
   }
 
   if (state.yaw != 0.0f) {
-    cv::Mat rotation_vector = state.yaw * warp.yaw_axis.coords;
+    const cv::Mat rotation_vector = state.yaw * warp.yaw_axis.coords;
     cv::Mat rotation_matrix;
     cv::Rodrigues(rotation_vector, rotation_matrix);
     rot = rotation_matrix * rot;
@@ -325,7 +327,7 @@ cv::Mat FullRotation(const RotationState& state, const StaticWarpData& warp) {
 
 Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
               const RotationState& state, const utils::RectPVf& image) {
-  int camera_id = projectable.camera_id;
+  const int camera_id = projectable.camera_id;
   const auto& camera = warp.cameras[camera_id];
   cv::Mat extra_rotation = FullRotation(state, warp);
 
@@ -346,6 +348,17 @@ Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
                            image.start[1]};
                  });
   return projected;
+}
+
+float ScaledPitchSpeed(const StaticWarpData& warp,
+                       const utils::RectPVf& image) {
+  return warp.pitch_axis.rot_speed *
+         (static_cast<float>(warp.scale.width) / image.size[0]);
+}
+
+float ScaledYawSpeed(const StaticWarpData& warp, const utils::RectPVf& image) {
+  return warp.yaw_axis.rot_speed *
+         (static_cast<float>(warp.scale.height) / image.size[1]);
 }
 
 DragResult<RotationState> Drag(const RotationWidget& widget,
@@ -408,16 +421,14 @@ DragResult<RotationState> Drag(const RotationWidget& widget,
     if (edge.dragging) {
       switch (edge.type) {
         case EdgeType::kHorizontal: {
-          float speed = widget.warp.pitch_axis.rot_speed *
-                        (widget.warp.scale.width / image.size[0]);
+          const float speed = ScaledPitchSpeed(widget.warp, image);
           new_rotation.pitch =
               new_rotation.pitch_start +
               ComputePitch(new_rotation.mouse_start, mouse_pos, speed);
           break;
         }
         case EdgeType::kVertical: {
-          float speed = widget.warp.yaw_axis.rot_speed *
-                        (widget.warp.scale.width / image.size[0]);
+          const float speed = ScaledYawSpeed(widget.warp, image);
           new_rotation.yaw =
               new_rotation.yaw_start +
               ComputeYaw(new_rotation.mouse_start, mouse_pos, speed);
@@ -450,17 +461,17 @@ void SelectMouseCursor(const widgets::RotationWidget& widget) {
 
   switch (mouse_cursor_selector) {
     case Select(EdgeType::kRoll, EdgeType::kHorizontal):
-      [[fallthough]];
+      [[fallthrough]];
     case Select(EdgeType::kHorizontal):
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
       break;
     case Select(EdgeType::kRoll, EdgeType::kVertical):
-      [[fallthough]];
+      [[fallthrough]];
     case Select(EdgeType::kVertical):
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
       break;
     case Select(EdgeType::kRoll, EdgeType::kHorizontal, EdgeType::kVertical):
-      [[fallthough]];
+      [[fallthrough]];
     case Select(EdgeType::kHorizontal, EdgeType::kVertical):
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
       break;

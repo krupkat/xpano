@@ -379,6 +379,7 @@ void PanoGui::Reset() {
   stitcher_data_.reset();
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
 Action PanoGui::PerformAction(const Action& action) {
   if (action.delayed) {
     return {};

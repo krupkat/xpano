@@ -42,7 +42,7 @@ class PreviewPane {
   void Reset();
   Action ToggleCrop();
   Action ToggleRotate();
-  bool IsRotateEnabled() const;
+  [[nodiscard]] bool IsRotateEnabled() const;
   void EndCrop();
   void EndRotate();
   void ResetCrop(const utils::RectRRf& rect);

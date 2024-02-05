@@ -28,8 +28,6 @@ namespace xpano::gui {
 
 namespace {
 
-using widgets::EdgeType;
-
 void DrawMessage(utils::Point2f pos, const std::string& message) {
   if (message.empty()) {
     return;
@@ -93,11 +91,14 @@ void Draw(const widgets::Polyline& poly, const utils::RectPVf& image) {
     while (end != poly.end() && within_image(*end)) {
       end++;
     }
-    ImGui::GetWindowDrawList()->AddPolyline(&(*start), end - start, color,
-                                            ImDrawFlags_None, 2.0f);
+
+    ImGui::GetWindowDrawList()->AddPolyline(&(*start),
+                                            static_cast<int>(end - start),
+                                            color, ImDrawFlags_None, 2.0f);
   }
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
 void Overlay(const widgets::RotationWidget& widget, const utils::RectPVf& image,
              const utils::RectPVf& window) {
   std::vector<widgets::Polyline> polys;

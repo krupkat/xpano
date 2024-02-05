@@ -355,7 +355,7 @@ Pano SinglePano(int size) {
   return pano;
 }
 
-Cameras Rotate(const Cameras& cameras, const cv::Mat rotation_matrix) {
+Cameras Rotate(const Cameras& cameras, const cv::Mat& rotation_matrix) {
   Cameras rotated = cameras;
   for (auto& camera : rotated.cameras) {
     camera.R = rotation_matrix * camera.R;
