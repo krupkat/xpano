@@ -32,6 +32,7 @@ add_executable(StitcherTest
   ../xpano/pipeline/stitcher_pipeline.cc
   ../xpano/utils/disjoint_set.cc
   ../xpano/utils/exiv2.cc
+  ../xpano/utils/opencv.cc
   ../xpano/utils/path.cc)
 
 target_link_libraries(StitcherTest 

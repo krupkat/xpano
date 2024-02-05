@@ -23,9 +23,20 @@
 
 namespace xpano::algorithm {
 
+struct Cameras {
+  std::vector<cv::detail::CameraParams> cameras;
+  WaveCorrectionType wave_correction_user;           // set by user
+  cv::detail::WaveCorrectKind wave_correction_auto;  // computed by OpenCV
+  stitcher::WarpHelper warp_helper;
+};
+
 struct Pano {
   std::vector<int> ids;
   bool exported = false;
+  std::optional<utils::RectRRf> crop;
+  std::optional<utils::RectRRf> auto_crop;
+  std::optional<Cameras> cameras;
+  std::optional<Cameras> backup_cameras;
 };
 
 struct Match {
@@ -47,6 +58,7 @@ struct StitchResult {
   stitcher::Status status;
   cv::Mat pano;
   cv::Mat mask;
+  Cameras cameras;
 };
 
 struct StitchOptions {
@@ -56,6 +68,7 @@ struct StitchOptions {
 };
 
 StitchResult Stitch(const std::vector<cv::Mat>& images,
+                    const std::optional<Cameras>& cameras,
                     StitchUserOptions user_options, StitchOptions options);
 
 int StitchTasksCount(int num_images);
@@ -66,5 +79,7 @@ std::optional<utils::RectRRf> FindLargestCrop(const cv::Mat& mask);
 
 cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
                 InpaintingOptions options);
+
+Cameras Rotate(const Cameras& cameras, const cv::Mat& rotation_matrix);
 
 }  // namespace xpano::algorithm

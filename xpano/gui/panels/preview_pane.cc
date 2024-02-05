@@ -7,19 +7,27 @@
 #include <cmath>
 #include <numeric>
 #include <utility>
+#include <vector>
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/stitching/detail/camera.hpp>
+#include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
+#include "xpano/gui/widgets/widgets.h"
+#include "xpano/utils/opencv.h"
+#include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 #include "xpano/utils/vec_converters.h"
 
 namespace xpano::gui {
 
 namespace {
+
 void DrawMessage(utils::Point2f pos, const std::string& message) {
   if (message.empty()) {
     return;
@@ -34,11 +42,6 @@ void DrawMessage(utils::Point2f pos, const std::string& message) {
   ImGui::Begin("Overlay", nullptr, window_flags);
   ImGui::TextUnformatted(message.c_str());
   ImGui::End();
-}
-
-auto CropRectPP(const utils::RectPVf& image, const utils::RectRRf& crop_rect) {
-  return utils::Rect(image.start + image.size * crop_rect.start,
-                     image.start + image.size * crop_rect.end);
 }
 
 void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
@@ -64,150 +67,68 @@ void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
                                       0, 2.0f);
 }
 
-bool IsMouseCloseToEdge(EdgeType edge_type, const utils::RectPPf& rect,
-                        utils::Point2f mouse_pos) {
-  auto within_x_bounds = [&rect](const utils::Point2f& mouse_pos) {
-    return mouse_pos[0] > rect.start[0] - kCropEdgeTolerance &&
-           mouse_pos[0] < rect.end[0] + kCropEdgeTolerance;
+void Draw(const widgets::Polyline& poly, const utils::RectPVf& image) {
+  const auto color = ImColor(255, 255, 255, 255);
+
+  auto within_image = [&image](const ImVec2& point) {
+    return point.x >= image.start[0] &&
+           point.x <= image.start[0] + image.size[0] &&
+           point.y >= image.start[1] &&
+           point.y <= image.start[1] + image.size[1];
   };
 
-  auto within_y_bounds = [&rect](const utils::Point2f& mouse_pos) {
-    return mouse_pos[1] > rect.start[1] - kCropEdgeTolerance &&
-           mouse_pos[1] < rect.end[1] + kCropEdgeTolerance;
-  };
+  auto start = poly.begin();
+  auto end = poly.begin();
 
-  switch (edge_type) {
-    case EdgeType::kTop: {
-      return std::abs(mouse_pos[1] - rect.start[1]) < kCropEdgeTolerance &&
-             within_x_bounds(mouse_pos);
+  while (end != poly.end()) {
+    while (end != poly.end() && !within_image(*end)) {
+      end++;
     }
-    case EdgeType::kBottom: {
-      return std::abs(mouse_pos[1] - rect.end[1]) < kCropEdgeTolerance &&
-             within_x_bounds(mouse_pos);
+    if (end == poly.end()) {
+      break;
     }
-    case EdgeType::kLeft: {
-      return std::abs(mouse_pos[0] - rect.start[0]) < kCropEdgeTolerance &&
-             within_y_bounds(mouse_pos);
+    start = end;
+    while (end != poly.end() && within_image(*end)) {
+      end++;
     }
-    case EdgeType::kRight: {
-      return std::abs(mouse_pos[0] - rect.end[0]) < kCropEdgeTolerance &&
-             within_y_bounds(mouse_pos);
-    }
-    default: {
-      return false;
-    }
+
+    ImGui::GetWindowDrawList()->AddPolyline(&(*start),
+                                            static_cast<int>(end - start),
+                                            color, ImDrawFlags_None, 2.0f);
   }
 }
 
-DraggableWidget Drag(const DraggableWidget& input_widget,
-                     const utils::RectPVf& image, utils::Point2f mouse_pos,
-                     bool mouse_clicked, bool mouse_down) {
-  auto widget = input_widget;
-  auto rect_window_coords = CropRectPP(image, widget.rect);
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
+void Overlay(const widgets::RotationWidget& widget, const utils::RectPVf& image,
+             const utils::RectPVf& window) {
+  std::vector<widgets::Polyline> polys;
+  polys.reserve(widget.image_borders.size() + 2);
 
-  bool dragging = false;
-  for (auto& edge : widget.edges) {
-    edge.mouse_close =
-        IsMouseCloseToEdge(edge.type, rect_window_coords, mouse_pos);
-    if (edge.mouse_close && mouse_clicked) {
-      edge.dragging = true;
-    }
-    if (!mouse_down) {
-      edge.dragging = false;
-    }
-    dragging |= edge.dragging;
+  for (const auto& border : widget.image_borders) {
+    polys.push_back(Warp(border, widget.warp, widget.rotation, image));
   }
 
-  if (!dragging) {
-    return widget;
-  }
+  polys.push_back(
+      Warp(widget.horizontal_handle, widget.warp, widget.rotation, image));
+  polys.push_back(
+      Warp(widget.vertical_handle, widget.warp, widget.rotation, image));
 
-  auto new_pos = (mouse_pos - image.start) / image.size;
-  auto tolerance =
-      utils::Vec2f{static_cast<float>(kCropEdgeTolerance)} / image.size * 10.0f;
-  for (const auto& edge : widget.edges) {
-    if (edge.dragging) {
-      switch (edge.type) {
-        case EdgeType::kTop: {
-          widget.rect.start[1] =
-              std::clamp(new_pos[1], 0.0f, widget.rect.end[1] - tolerance[1]);
-          break;
-        }
-        case EdgeType::kBottom: {
-          widget.rect.end[1] =
-              std::clamp(new_pos[1], widget.rect.start[1] + tolerance[1], 1.0f);
-          break;
-        }
-        case EdgeType::kLeft: {
-          widget.rect.start[0] =
-              std::clamp(new_pos[0], 0.0f, widget.rect.end[0] - tolerance[0]);
-          break;
-        }
-        case EdgeType::kRight: {
-          widget.rect.end[0] =
-              std::clamp(new_pos[0], widget.rect.start[0] + tolerance[0], 1.0f);
-          break;
-        }
-      }
-    }
-  }
-
-  return widget;
-}
-
-template <typename... TEdge>
-constexpr int Select(TEdge... edges) {
-  return (static_cast<int>(edges) + ...);
-}
-
-void SelectMouseCursor(const DraggableWidget& crop) {
-  const int mouse_cursor_selector = std::accumulate(
-      crop.edges.begin(), crop.edges.end(), 0, [](int sum, const Edge& edge) {
-        return sum + (edge.mouse_close || edge.dragging
-                          ? static_cast<int>(edge.type)
-                          : 0);
-      });
-
-  switch (mouse_cursor_selector) {
-    case Select(EdgeType::kTop):
-      [[fallthrough]];
-    case Select(EdgeType::kBottom):
-      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
-      break;
-    case Select(EdgeType::kLeft):
-      [[fallthrough]];
-    case Select(EdgeType::kRight):
-      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-      break;
-    case Select(EdgeType::kBottom, EdgeType::kRight):
-      [[fallthrough]];
-    case Select(EdgeType::kTop, EdgeType::kLeft): {
-      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
-      break;
-    }
-    case Select(EdgeType::kBottom, EdgeType::kLeft):
-      [[fallthrough]];
-    case Select(EdgeType::kTop, EdgeType::kRight): {
-      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNESW);
-      break;
-    }
-    default:
-      ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-      break;
+  for (const auto& poly : polys) {
+    Draw(poly, window);
   }
 }
 
 }  // namespace
 
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
-  std::iota(zoom_levels_.begin(), zoom_levels_.end(), 0.0f);
+  std::iota(zoom_levels_.begin(), zoom_levels_.end(), -1.0f);
   std::transform(zoom_levels_.begin(), zoom_levels_.end(), zoom_levels_.begin(),
                  [](float exp) { return std::pow(kZoomFactor, exp); });
 };
 
 float PreviewPane::Zoom() const { return zoom_; }
 
-bool PreviewPane::IsZoomed() const { return zoom_ != 1.0f; }
+bool PreviewPane::IsZoomed() const { return zoom_id_ != 1; }
 
 void PreviewPane::ZoomIn() {
   if (crop_mode_ != CropMode::kEnabled && zoom_id_ < kZoomLevels - 1) {
@@ -216,7 +137,7 @@ void PreviewPane::ZoomIn() {
 }
 
 void PreviewPane::ZoomOut() {
-  if (zoom_id_ > 0) {
+  if (zoom_id_ > 1) {
     zoom_id_--;
   }
 }
@@ -231,9 +152,11 @@ void PreviewPane::AdvanceZoom() {
   }
 }
 
-void PreviewPane::ResetZoom() {
-  zoom_id_ = 0;
-  zoom_ = 1.0f;
+void PreviewPane::ResetZoom(int target_level) {
+  zoom_id_ = target_level;
+  zoom_ = zoom_levels_[target_level];
+  screen_offset_ = utils::Ratio2f{0.5f, 0.5f};
+  image_offset_ = utils::Ratio2f{0.5f, 0.5f};
 }
 
 void PreviewPane::Load(cv::Mat image, ImageType image_type) {
@@ -278,11 +201,14 @@ void PreviewPane::Reset() {
   image_type_ = ImageType::kNone;
   crop_mode_ = CropMode::kInitial;
   crop_widget_ = {};
-  suggested_crop_ = DefaultCropRect();
+  rotate_mode_ = RotateMode::kDisabled;
+  rotate_widget_ = {};
+  suggested_crop_ = utils::DefaultCropRect();
   full_resolution_pano_ = cv::Mat{};
 }
 
-void PreviewPane::Draw(const std::string& message) {
+Action PreviewPane::Draw(const std::string& message) {
+  Action action{};
   ImGui::Begin("Preview");
   auto window = utils::Rect(utils::ToPoint(ImGui::GetCursorScreenPos()),
                             utils::ToVec(ImGui::GetContentRegionAvail()));
@@ -308,7 +234,7 @@ void PreviewPane::Draw(const std::string& message) {
                           image_size * Zoom());
     }
 
-    HandleInputs(window, image);
+    action |= HandleInputs(window, image);
 
     auto tex_coords =
         (crop_mode_ == CropMode::kEnabled || crop_mode_ == CropMode::kInitial)
@@ -324,27 +250,56 @@ void PreviewPane::Draw(const std::string& message) {
     if (crop_mode_ == CropMode::kEnabled) {
       Overlay(crop_widget_.rect, image);
     }
+
+    if (rotate_mode_ == RotateMode::kEnabled) {
+      Overlay(rotate_widget_, image, window);
+    }
   }
   ImGui::End();
+  return action;
 }
 
-void PreviewPane::HandleInputs(const utils::RectPVf& window,
-                               const utils::RectPVf& image) {
+Action PreviewPane::HandleInputs(const utils::RectPVf& window,
+                                 const utils::RectPVf& image) {
   // Let the crop widget take events from the whole window
   // to be able to set the correct cursor icon
-  if (crop_mode_ == CropMode::kEnabled) {
+
+  if (crop_mode_ == CropMode::kEnabled ||
+      rotate_mode_ == RotateMode::kEnabled) {
     const bool mouse_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
     const bool mouse_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
     auto mouse_pos = utils::ToPoint(ImGui::GetMousePos());
 
-    crop_widget_ =
-        Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
-    SelectMouseCursor(crop_widget_);
-    return;
+    if (crop_mode_ == CropMode::kEnabled) {
+      auto drag_result =
+          Drag(crop_widget_, image, mouse_pos, mouse_clicked, mouse_down);
+      crop_widget_ = drag_result.widget;
+      SelectMouseCursor(crop_widget_);
+      if (drag_result.finished_dragging) {
+        return Action{.type = ActionType::kSaveCrop,
+                      .extra = CropExtra{.crop_rect = crop_widget_.rect}};
+      }
+      return {};
+    }
+
+    if (rotate_mode_ == RotateMode::kEnabled) {
+      auto [new_state, finished_dragging] =
+          Drag(rotate_widget_, image, mouse_pos, mouse_clicked, mouse_down);
+      rotate_widget_.rotation = new_state;
+      SelectMouseCursor(rotate_widget_);
+      if (finished_dragging) {
+        return Action{.type = ActionType::kRotate,
+                      .delayed = true,
+                      .extra = RotateExtra{
+                          .rotation_matrix = FullRotation(
+                              rotate_widget_.rotation, rotate_widget_.warp)}};
+      }
+      return {};
+    }
   }
 
   if (!ImGui::IsWindowHovered()) {
-    return;
+    return {};
   }
 
   // Zoom + pan only when not cropping
@@ -365,31 +320,76 @@ void PreviewPane::HandleInputs(const utils::RectPVf& window,
   if (mouse_wheel < 0) {
     ZoomOut();
   }
+  return {};
 }
 
 ImageType PreviewPane::Type() const { return image_type_; }
 
-void PreviewPane::ToggleCrop() {
-  if (image_type_ != ImageType::kPanoFullRes) {
-    return;
+Action PreviewPane::ToggleCrop() {
+  if (image_type_ != ImageType::kPanoFullRes and
+      image_type_ != ImageType::kPanoPreview) {
+    return {};
   }
 
   switch (crop_mode_) {
     case CropMode::kInitial:
       ResetZoom();
+      EndRotate();
       crop_widget_.rect = suggested_crop_;
       crop_mode_ = CropMode::kEnabled;
-      break;
+      return Action{.type = ActionType::kSaveCrop,
+                    .delayed = true,
+                    .extra = CropExtra{.crop_rect = crop_widget_.rect}};
     case CropMode::kEnabled:
       crop_mode_ = CropMode::kDisabled;
       break;
-    case CropMode::kDisabled:
+    case CropMode::kDisabled: {
+      Action action = {};
+      if (IsRotateEnabled()) {
+        // setting auto crop when going directly from rotate to crop mode
+        crop_widget_.rect = suggested_crop_;
+        action = {.type = ActionType::kSaveCrop,
+                  .delayed = true,
+                  .extra = CropExtra{.crop_rect = crop_widget_.rect}};
+      }
       ResetZoom();
+      EndRotate();
       crop_mode_ = CropMode::kEnabled;
-      break;
+      return action;
+    }
     default:
       break;
   }
+  return {};
+}
+
+bool PreviewPane::IsRotateEnabled() const {
+  return rotate_mode_ == RotateMode::kEnabled;
+}
+
+Action PreviewPane::ToggleRotate() {
+  switch (rotate_mode_) {
+    case RotateMode::kEnabled: {
+      ResetZoom(1);
+      rotate_mode_ = RotateMode::kDisabled;
+      return Action{.type = ActionType::kRecrop, .delayed = true};
+    }
+    case RotateMode::kDisabled: {
+      if (cameras_) {
+        ResetZoom(0);
+        EndCrop();
+        rotate_mode_ = RotateMode::kEnabled;
+        crop_widget_.rect = utils::DefaultCropRect();
+      } else {
+        spdlog::warn("Cannot enable rotate mode, missing camera parameters.");
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  return {};
 }
 
 void PreviewPane::EndCrop() {
@@ -398,12 +398,34 @@ void PreviewPane::EndCrop() {
   }
 }
 
+void PreviewPane::EndRotate() {
+  if (rotate_mode_ == RotateMode::kEnabled) {
+    rotate_mode_ = RotateMode::kDisabled;
+  }
+}
+
 cv::Mat PreviewPane::Image() const { return full_resolution_pano_; }
 
-utils::RectRRf PreviewPane::CropRect() const { return crop_widget_.rect; }
+void PreviewPane::ResetCrop(const utils::RectRRf& rect) {
+  crop_mode_ = CropMode::kInitial;
+  crop_widget_ = {};
+  suggested_crop_ = rect;
+}
+
+void PreviewPane::ForceCrop(const utils::RectRRf& rect) {
+  crop_widget_.rect = rect;
+  if (crop_mode_ == CropMode::kInitial) {
+    crop_mode_ = CropMode::kDisabled;
+  }
+}
 
 void PreviewPane::SetSuggestedCrop(const utils::RectRRf& rect) {
   suggested_crop_ = rect;
+}
+
+void PreviewPane::SetCameras(const algorithm::Cameras& cameras) {
+  cameras_ = cameras;
+  rotate_widget_ = widgets::SetupRotationWidget(*cameras_);
 }
 
 }  // namespace xpano::gui

@@ -9,14 +9,20 @@
 #include <variant>
 #include <vector>
 
+#include <opencv2/core.hpp>
+
+#include "xpano/utils/rect.h"
+
 namespace xpano::gui {
 
 enum class ActionType {
   kNone,
   kCancelPipeline,
   kToggleCrop,
+  kToggleRotate,
   kDisableHighlight,
   kExport,
+  kRotate,
   kInpaint,
   kLoadFiles,
   kOpenDirectory,
@@ -31,21 +37,34 @@ enum class ActionType {
   kQuit,
   kToggleDebugLog,
   kWarnInputConversion,
-  kResetOptions
+  kResetOptions,
+  kResetRotation,
+  kResetCrop,
+  kSaveCrop,
+  kRecrop
 };
 
 struct ShowPanoExtra {
   bool full_res = false;
   bool scroll_thumbnails = false;
+  bool reset_crop = false;
 };
 
 using LoadFilesExtra = std::vector<std::filesystem::path>;
+
+struct RotateExtra {
+  cv::Mat rotation_matrix;
+};
+
+struct CropExtra {
+  utils::RectRRf crop_rect;
+};
 
 struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
   bool delayed = false;
-  std::variant<ShowPanoExtra, LoadFilesExtra> extra;
+  std::variant<ShowPanoExtra, LoadFilesExtra, RotateExtra, CropExtra> extra;
 };
 
 template <typename TExtraType>

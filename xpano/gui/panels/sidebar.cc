@@ -90,6 +90,26 @@ Action DrawFileMenu() {
   return action;
 }
 
+Action DrawEditMenu() {
+  Action action{};
+  if (ImGui::BeginMenu("Edit")) {
+    if (ImGui::MenuItem("Toggle rotation", Label(ShortcutType::kRotate))) {
+      action |= {ActionType::kToggleRotate};
+    }
+    if (ImGui::MenuItem("Toggle crop", Label(ShortcutType::kCrop))) {
+      action |= {ActionType::kToggleCrop};
+    }
+    if (ImGui::MenuItem("Reset rotation")) {
+      action |= {ActionType::kResetRotation};
+    }
+    if (ImGui::MenuItem("Reset crop")) {
+      action |= {ActionType::kResetCrop};
+    }
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
 void DrawExportOptionsMenu(pipeline::MetadataOptions* metadata_options,
                            pipeline::CompressionOptions* compression_options) {
   if (ImGui::BeginMenu("Image export")) {
@@ -517,6 +537,7 @@ Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
+    action |= DrawEditMenu();
     action |= DrawOptionsMenu(options, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
@@ -536,10 +557,10 @@ void DrawWelcomeTextPart2() {
   ImGui::SameLine();
   utils::imgui::InfoMarker(
       "(?)",
-      "a) Select projection type\nb) Compute full resolution panorama "
-      "preview\nc) Toggle crop mode\nd) Auto fill empty space in the "
-      "panorama\ne) Panorama export\n - Works either with preview or full "
-      "resolution panoramas\n - In both cases exports a full resolution "
+      "a) Select projection type\nb) Toggle rotation mode\nc) Toggle crop "
+      "mode\nd) Compute full resolution panorama\ne) Auto fill empty space "
+      "in the panorama\nf) Panorama export\n - Works either with preview or "
+      "full resolution panoramas\n - In both cases exports a full resolution "
       "panorama");
   ImGui::Spacing();
 }
@@ -566,6 +587,26 @@ Action DrawActionButtons(ImageType image_type, int target_id,
   }
   ImGui::SameLine();
   utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes ||
+          image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Rotate")) {
+          action |= {ActionType::kToggleRotate};
+        }
+      },
+      "First select a panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
+      image_type == ImageType::kPanoFullRes ||
+          image_type == ImageType::kPanoPreview,
+      [&] {
+        if (ImGui::Button("Crop")) {
+          action |= {ActionType::kToggleCrop};
+        }
+      },
+      "First select a panorama");
+  ImGui::SameLine();
+  utils::imgui::EnableIf(
       image_type == ImageType::kPanoPreview,
       [&] {
         if (ImGui::Button("Full-res")) {
@@ -576,15 +617,6 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       },
       image_type == ImageType::kPanoFullRes ? "Already computed"
                                             : "First select a panorama");
-  ImGui::SameLine();
-  utils::imgui::EnableIf(
-      image_type == ImageType::kPanoFullRes,
-      [&] {
-        if (ImGui::Button("Crop")) {
-          action |= {ActionType::kToggleCrop};
-        }
-      },
-      "First compute a full resolution panorama");
   ImGui::SameLine();
   utils::imgui::EnableIf(
       image_type == ImageType::kPanoFullRes,

@@ -17,3 +17,5 @@ _site
 exiv2/
 Xpano.app
 .cache
+.envrc
+.direnv

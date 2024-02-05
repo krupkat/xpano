@@ -55,6 +55,7 @@
 #include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/progress.h"
+#include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {
 
@@ -64,6 +65,14 @@ enum class Status {
   kErrNeedMoreImgs,
   kErrHomographyEstFail,
   kErrCameraParamsAdjustFail
+};
+
+struct WarpHelper {
+  double work_scale;
+  std::vector<cv::Point> corners;
+  std::vector<cv::Size> sizes;
+  std::vector<cv::Size> full_sizes;
+  cv::Ptr<cv::detail::RotationWarper> warper;
 };
 
 class Stitcher {
@@ -98,6 +107,12 @@ class Stitcher {
   }
   void SetWaveCorrectKind(cv::detail::WaveCorrectKind kind) {
     wave_correct_kind_ = kind;
+
+    if (do_wave_correct_ &&
+        wave_correct_kind_ == cv::detail::WAVE_CORRECT_VERT &&
+        warper_creater_portrait_) {
+      warper_creater_ = warper_creater_portrait_;
+    }
   }
 
   cv::Ptr<cv::Feature2D> FeaturesFinder() { return features_finder_; }
@@ -151,6 +166,9 @@ class Stitcher {
   void SetWarper(const cv::Ptr<cv::WarperCreator>& creator) {
     warper_creater_ = creator;
   }
+  void SetPortraitWarper(const cv::Ptr<cv::WarperCreator>& creator) {
+    warper_creater_portrait_ = creator;
+  }
 
   cv::Ptr<cv::detail::ExposureCompensator> ExposureCompensator() {
     return exposure_comp_;
@@ -186,6 +204,7 @@ class Stitcher {
   Status SetTransform(cv::InputArrayOfArrays images,
                       const std::vector<cv::detail::CameraParams>& cameras,
                       const std::vector<int>& component);
+
   Status SetTransform(cv::InputArrayOfArrays images,
                       const std::vector<cv::detail::CameraParams>& cameras);
 
@@ -205,6 +224,8 @@ class Stitcher {
   [[nodiscard]] cv::UMat ResultMask() const { return result_mask_; }
 
   void SetProgressMonitor(ProgressMonitor* monitor) { monitor_ = monitor; }
+
+  [[nodiscard]] WarpHelper GetWarpHelper() const { return warp_helper_; }
 
  private:
   Status MatchImages();
@@ -228,6 +249,7 @@ class Stitcher {
   bool do_wave_correct_;
   cv::detail::WaveCorrectKind wave_correct_kind_;
   cv::Ptr<cv::WarperCreator> warper_creater_;
+  cv::Ptr<cv::WarperCreator> warper_creater_portrait_;
   cv::Ptr<cv::detail::ExposureCompensator> exposure_comp_;
   cv::Ptr<cv::detail::SeamFinder> seam_finder_;
   cv::Ptr<cv::detail::Blender> blender_;
@@ -248,6 +270,7 @@ class Stitcher {
   double warped_image_scale_ = 1.0;
 
   ProgressMonitor* monitor_ = nullptr;
+  WarpHelper warp_helper_ = {};
 };
 
 }  // namespace xpano::algorithm::stitcher

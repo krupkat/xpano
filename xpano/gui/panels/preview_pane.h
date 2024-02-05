@@ -4,12 +4,17 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <string>
 
 #include <opencv2/core.hpp>
 
+#include "xpano/algorithm/algorithm.h"
 #include "xpano/constants.h"
+#include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
+#include "xpano/gui/widgets/drag.h"
+#include "xpano/gui/widgets/rotate.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
@@ -23,44 +28,29 @@ enum class ImageType {
   kPanoFullRes
 };
 
-enum class EdgeType { kTop = 1, kBottom = 2, kLeft = 4, kRight = 8 };
-
-struct Edge {
-  EdgeType type;
-  bool dragging = false;
-  bool mouse_close = false;
-};
-
-constexpr auto DefaultEdges() {
-  return std::array{Edge{EdgeType::kTop}, Edge{EdgeType::kBottom},
-                    Edge{EdgeType::kLeft}, Edge{EdgeType::kRight}};
-}
-
-constexpr auto DefaultCropRect() {
-  return utils::Rect(utils::Ratio2f{0.0f}, utils::Ratio2f{1.0f});
-}
-
 enum class CropMode { kInitial, kEnabled, kDisabled };
 
-struct DraggableWidget {
-  utils::RectRRf rect = DefaultCropRect();
-  std::array<Edge, 4> edges = DefaultEdges();
-};
+enum class RotateMode { kEnabled, kDisabled };
 
 class PreviewPane {
  public:
   explicit PreviewPane(backends::Base* backend);
   void Load(cv::Mat image, ImageType image_type);
   void Reload(cv::Mat image, ImageType image_type);
-  void Draw(const std::string& message);
+  Action Draw(const std::string& message);
   void Reset();
-  void ToggleCrop();
+  Action ToggleCrop();
+  Action ToggleRotate();
+  [[nodiscard]] bool IsRotateEnabled() const;
   void EndCrop();
+  void EndRotate();
+  void ResetCrop(const utils::RectRRf& rect);
+  void ForceCrop(const utils::RectRRf& rect);
   void SetSuggestedCrop(const utils::RectRRf& rect);
+  void SetCameras(const algorithm::Cameras& cameras);
 
   [[nodiscard]] ImageType Type() const;
   [[nodiscard]] cv::Mat Image() const;
-  [[nodiscard]] utils::RectRRf CropRect() const;
 
  private:
   [[nodiscard]] float Zoom() const;
@@ -68,16 +58,20 @@ class PreviewPane {
   void ZoomIn();
   void ZoomOut();
   void AdvanceZoom();
-  void ResetZoom();
-  void HandleInputs(const utils::RectPVf& window, const utils::RectPVf& image);
+  void ResetZoom(int target_level = 1);
+  Action HandleInputs(const utils::RectPVf& window,
+                      const utils::RectPVf& image);
 
   utils::Ratio2f tex_coord_;
 
   CropMode crop_mode_ = CropMode::kInitial;
-  DraggableWidget crop_widget_;
-  utils::RectRRf suggested_crop_ = DefaultCropRect();
+  RotateMode rotate_mode_ = RotateMode::kDisabled;
+  widgets::DraggableWidget crop_widget_;
+  widgets::RotationWidget rotate_widget_;
+  utils::RectRRf suggested_crop_ = utils::DefaultCropRect();
+  std::optional<algorithm::Cameras> cameras_;
 
-  int zoom_id_ = 0;
+  int zoom_id_ = 1;
   float zoom_ = 1.0f;
   std::array<float, kZoomLevels> zoom_levels_;
 

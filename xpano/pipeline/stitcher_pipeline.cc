@@ -196,7 +196,7 @@ int StitchTaskCount(const StitchingOptions &options, int num_images) {
   return 1 +                                        // Stitching
          algorithm::StitchTasksCount(num_images) +  // Stitching subtasks
          (options.export_path ? 1 : 0) +            // Export
-         (options.full_res ? 1 : 0) +               // Auto crop
+         1 +                                        // Auto crop
          (options.full_res ? num_images : 1);  // Load full res / load previews
 }
 
@@ -231,9 +231,9 @@ StitchingResult RunStitchingPipeline(
   }
 
   progress->SetTaskType(ProgressType::kStitchingPano);
-  auto [status, result, mask] =
-      algorithm::Stitch(imgs, options.stitch_algorithm,
-                        {.return_pano_mask = options.full_res,
+  auto [status, result, mask, cameras] =
+      algorithm::Stitch(imgs, pano.cameras, options.stitch_algorithm,
+                        {.return_pano_mask = true,
                          .threads_for_multiblend = multiblend_pool,
                          .progress_monitor = progress});
   progress->NotifyTaskDone();
@@ -246,14 +246,9 @@ StitchingResult RunStitchingPipeline(
     };
   }
 
-  std::optional<utils::RectRRf> auto_crop;
-  std::optional<cv::Mat> pano_mask;
-  if (options.full_res) {
-    pano_mask = mask;
-    progress->SetTaskType(ProgressType::kAutoCrop);
-    auto_crop = algorithm::FindLargestCrop(mask);
-    progress->NotifyTaskDone();
-  }
+  progress->SetTaskType(ProgressType::kAutoCrop);
+  auto auto_crop = algorithm::FindLargestCrop(mask);
+  progress->NotifyTaskDone();
 
   std::optional<std::filesystem::path> export_path;
   if (options.export_path) {
@@ -271,8 +266,8 @@ StitchingResult RunStitchingPipeline(
                       .export_path;
   }
 
-  return StitchingResult{options.pano_id, options.full_res, status,   result,
-                         auto_crop,       export_path,      pano_mask};
+  return StitchingResult{options.pano_id, options.full_res, status, result,
+                         auto_crop,       export_path,      mask,   cameras};
 }
 
 }  // namespace

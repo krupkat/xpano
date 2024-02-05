@@ -119,7 +119,8 @@ Action ModifyPano(int clicked_image, Selection* selection,
   if (selection->type == SelectionType::kPano) {
     return {.type = ActionType::kShowPano,
             .target_id = selection->target_id,
-            .delayed = true};
+            .delayed = true,
+            .extra = ShowPanoExtra{.reset_crop = true}};
   }
   return {};
 }
@@ -151,8 +152,7 @@ auto ResolveStitcherDataFuture(
 
 auto ResolveStitchingResultFuture(
     std::future<pipeline::StitchingResult> pano_future, PreviewPane* plot_pane,
-    StatusMessage* status_message)
-    -> std::pair<std::optional<int>, std::optional<cv::Mat>> {
+    StatusMessage* status_message) -> pipeline::StitchingResult {
   pipeline::StitchingResult result;
   try {
     result = pano_future.get();
@@ -176,23 +176,29 @@ auto ResolveStitchingResultFuture(
       fmt::format("Stitched pano {} successfully", result.pano_id)};
   spdlog::info(*status_message);
 
-  plot_pane->Load(*result.pano, result.full_res ? ImageType::kPanoFullRes
-                                                : ImageType::kPanoPreview);
+  if (!plot_pane->IsRotateEnabled()) {
+    plot_pane->Reset();
+  }
+
+  if (result.cameras) {
+    plot_pane->SetCameras(*result.cameras);
+  }
+
+  plot_pane->Reload(*result.pano, result.full_res ? ImageType::kPanoFullRes
+                                                  : ImageType::kPanoPreview);
 
   if (result.auto_crop) {
     plot_pane->SetSuggestedCrop(*result.auto_crop);
   }
 
-  std::optional<int> export_pano_id;
   if (result.export_path) {
     *status_message = {
         fmt::format("Exported pano {} successfully", result.pano_id),
         result.export_path->string()};
     spdlog::info(*status_message);
-    export_pano_id = result.pano_id;
   }
 
-  return {export_pano_id, result.mask};
+  return std::move(result);
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
@@ -311,7 +317,7 @@ Action PanoGui::DrawGui() {
   layout::InitDockSpace();
   auto action = DrawSidebar();
   action |= thumbnail_pane_.Draw();
-  plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
+  action |= plot_pane_.Draw(PreviewMessage(selection_, plot_pane_.Type()));
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
@@ -373,6 +379,7 @@ void PanoGui::Reset() {
   stitcher_data_.reset();
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
 Action PanoGui::PerformAction(const Action& action) {
   if (action.delayed) {
     return {};
@@ -448,23 +455,39 @@ Action PanoGui::PerformAction(const Action& action) {
                                       {.pano_id = selection_.target_id,
                                        .full_res = extra.full_res,
                                        .stitch_algorithm = options_.stitch});
-      const auto& pano = stitcher_data_->panos[selection_.target_id];
+      auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.Highlight(pano.ids);
       if (extra.scroll_thumbnails) {
         thumbnail_pane_.SetScrollX(pano.ids);
+      }
+      if (extra.reset_crop) {
+        pano.crop.reset();
       }
       break;
     }
     case ActionType::kModifyPano: {
       return ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
     }
+    case ActionType::kRotate: {
+      if (selection_.type == SelectionType::kPano) {
+        if (auto& cameras =
+                stitcher_data_->panos.at(selection_.target_id).cameras;
+            cameras) {
+          auto extra = ValueOrDefault<RotateExtra>(action);
+          cameras = algorithm::Rotate(*cameras, extra.rotation_matrix);
+        }
+      }
+    }
+      [[fallthrough]];
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
                      Label(options_.stitch.projection.type));
         return {.type = ActionType::kShowPano,
                 .target_id = selection_.target_id,
-                .delayed = true};
+                .delayed = true,
+                .extra = ShowPanoExtra{.reset_crop =
+                                           action.type != ActionType::kRotate}};
       }
       break;
     }
@@ -488,8 +511,27 @@ Action PanoGui::PerformAction(const Action& action) {
       break;
     }
     case ActionType::kToggleCrop: {
-      plot_pane_.ToggleCrop();
+      return plot_pane_.ToggleCrop();
+    }
+    case ActionType::kSaveCrop: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        auto extra = ValueOrDefault<CropExtra>(action);
+        pano.crop = extra.crop_rect;
+      }
       break;
+    }
+    case ActionType::kRecrop: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        if (pano.crop) {
+          plot_pane_.ForceCrop(*pano.crop);
+        }
+      }
+      break;
+    };
+    case ActionType::kToggleRotate: {
+      return plot_pane_.ToggleRotate();
     }
     case ActionType::kWarnInputConversion: {
       warning_pane_.Queue(WarningType::kWarnInputConversion);
@@ -498,6 +540,26 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kResetOptions: {
       options_ = {};
       warning_pane_.Queue(WarningType::kUserPrefResetOnRequest);
+      return {.type = ActionType::kRecomputePano, .delayed = true};
+    }
+    case ActionType::kResetRotation: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        if (pano.backup_cameras) {
+          pano.cameras = pano.backup_cameras;
+          return {.type = ActionType::kRecomputePano, .delayed = true};
+        }
+      }
+      break;
+    }
+    case ActionType::kResetCrop: {
+      if (selection_.type == SelectionType::kPano) {
+        auto& pano = stitcher_data_->panos[selection_.target_id];
+        pano.crop.reset();
+        if (pano.auto_crop) {
+          plot_pane_.ResetCrop(*pano.auto_crop);
+        }
+      }
       break;
     }
   }
@@ -522,12 +584,13 @@ void PanoGui::PerformExportAction(int pano_id) {
     if (options_.metadata.copy_from_first_image) {
       metadata_path = first_image->GetPath();
     }
+    const auto& pano = stitcher_data_->panos.at(pano_id);
     stitcher_pipeline_.RunExport(plot_pane_.Image(),
                                  {.pano_id = pano_id,
                                   .export_path = *export_path,
                                   .metadata_path = metadata_path,
                                   .compression = options_.compression,
-                                  .crop = plot_pane_.CropRect()});
+                                  .crop = pano.crop});
   } else {
     stitcher_pipeline_.RunStitching(*stitcher_data_,
                                     {.pano_id = pano_id,
@@ -562,13 +625,26 @@ MultiAction PanoGui::ResolveFutures() {
       };
 
   auto handle_pano =
-      [this](std::future<pipeline::StitchingResult> pano_future) {
-        auto [export_pano_id, export_mask] = ResolveStitchingResultFuture(
+      [this, &actions](std::future<pipeline::StitchingResult> pano_future) {
+        auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
-        if (export_pano_id) {
-          stitcher_data_->panos[*export_pano_id].exported = true;
+        auto& pano = stitcher_data_->panos[result.pano_id];
+        if (result.export_path) {
+          pano.exported = true;
         }
-        pano_mask_ = export_mask;
+        if (result.cameras) {
+          pano.cameras = result.cameras;
+          if (!pano.backup_cameras) {
+            pano.backup_cameras = result.cameras;
+          }
+        }
+        if (result.auto_crop) {
+          pano.auto_crop = result.auto_crop;
+        }
+        if (pano.crop && !plot_pane_.IsRotateEnabled()) {
+          plot_pane_.ForceCrop(*pano.crop);
+        }
+        pano_mask_ = result.mask;
       };
 
   auto handle_export =

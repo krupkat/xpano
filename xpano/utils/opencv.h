@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <vector>
+
 #include <opencv2/core/version.hpp>
+#include <opencv2/stitching.hpp>
 
 #define XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT \
   (CV_VERSION_MAJOR >= 4 && CV_VERSION_MINOR >= 7)
@@ -16,5 +19,10 @@ namespace xpano::utils::opencv {
 constexpr bool HasJpegSubsamplingSupport() {
   return XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT;
 }
+
+std::vector<cv::detail::CameraParams> Scale(
+    const std::vector<cv::detail::CameraParams> &cameras, double scale);
+
+cv::Mat ToFloat(const cv::Mat &image);
 
 }  // namespace xpano::utils::opencv
