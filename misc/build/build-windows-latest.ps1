@@ -47,6 +47,7 @@ git clone https://github.com/gabime/spdlog.git --depth 1 --branch $env:SPDLOG_VE
 cd spdlog
 cmake -B build -G "$env:GENERATOR" `
   -DCMAKE_INSTALL_PREFIX=build/install `
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 cmake --build build --target install --config $env:BUILD_TYPE
 cd ..
