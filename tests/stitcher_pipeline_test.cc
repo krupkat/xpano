@@ -224,7 +224,7 @@ TEST_CASE("Incomplete pano") {
   auto stitching_task0 = stitcher.RunStitching(stitch_data, {.pano_id = 0});
   auto stitch_result0 = stitching_task0.future.get();
 
-  // TODO: fix, this is currently not equal
+  // TODO(krupkat): fix, this is currently not equal
   // progress = stitching_task0.progress->Report();
   // CHECK(progress.tasks_done == progress.num_tasks);
 
