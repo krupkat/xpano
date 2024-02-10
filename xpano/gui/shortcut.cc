@@ -19,7 +19,7 @@ const char* Label(ShortcutType type) {
     case ShortcutType::kReset:
       return reinterpret_cast<const char*>(u8"⌘ R");
     case ShortcutType::kRotate:
-      return "R";
+      return "A";
     case ShortcutType::kCrop:
       return "C";
     default:
@@ -36,7 +36,7 @@ const char* Label(ShortcutType type) {
     case ShortcutType::kReset:
       return "CTRL+R";
     case ShortcutType::kRotate:
-      return "R";
+      return "A";
     case ShortcutType::kCrop:
       return "C";
     default:
@@ -60,10 +60,10 @@ Action CheckKeybindings() {
   if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
     return {ActionType::kToggleDebugLog};
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_R)) {
-    if (ctrl) {
-      return {ActionType::kResetOptions};
-    }
+  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_R)) {
+    return {ActionType::kResetOptions};
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_A)) {
     return {ActionType::kToggleRotate};
   }
   if (ImGui::IsKeyPressed(ImGuiKey_C)) {

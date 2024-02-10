@@ -96,13 +96,13 @@ Action DrawFileMenu() {
 Action DrawEditMenu() {
   Action action{};
   if (ImGui::BeginMenu("Edit")) {
-    if (ImGui::MenuItem("Toggle rotation", Label(ShortcutType::kRotate))) {
+    if (ImGui::MenuItem("Toggle adjustments", Label(ShortcutType::kRotate))) {
       action |= {ActionType::kToggleRotate};
     }
     if (ImGui::MenuItem("Toggle crop", Label(ShortcutType::kCrop))) {
       action |= {ActionType::kToggleCrop};
     }
-    if (ImGui::MenuItem("Reset rotation")) {
+    if (ImGui::MenuItem("Reset adjustments")) {
       action |= {ActionType::kResetRotation};
     }
     if (ImGui::MenuItem("Reset crop")) {
@@ -560,11 +560,12 @@ void DrawWelcomeTextPart2() {
   ImGui::SameLine();
   utils::imgui::InfoMarker(
       "(?)",
-      "a) Select projection type\nb) Toggle rotation mode\nc) Toggle crop "
-      "mode\nd) Compute full resolution panorama\ne) Auto fill empty space "
-      "in the panorama\nf) Panorama export\n - Works either with preview or "
-      "full resolution panoramas\n - In both cases exports a full resolution "
-      "panorama");
+      "a) Select projection type\nb) Toggle adjustment mode\n - Drag the "
+      "horizontal / vertical axis, or the center point\n - Rotate the panorama "
+      "around the center point\nc) Toggle crop mode\nd) Compute full "
+      "resolution panorama\ne) Auto fill empty space in the panorama\nf) "
+      "Panorama export\n - Works either with preview or full resolution "
+      "panoramas\n - In both cases exports a full resolution panorama");
   ImGui::Spacing();
 }
 
@@ -593,7 +594,7 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       image_type == ImageType::kPanoFullRes ||
           image_type == ImageType::kPanoPreview,
       [&] {
-        if (ImGui::Button("Rotate")) {
+        if (ImGui::Button("Adjust")) {
           action |= {ActionType::kToggleRotate};
         }
       },

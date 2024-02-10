@@ -321,7 +321,7 @@ std::string ToString(stitcher::Status& status) {
     case stitcher::Status::kErrCameraParamsAdjustFail:
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
     case stitcher::Status::kErrPanoTooLarge:
-      return "ERR_PANO_TOO_LARGE\nReset the project through the edit menu.";
+      return "ERR_PANO_TOO_LARGE\nReset the adjustments through the edit menu.";
     default:
       return "ERR_UNKNOWN";
   }

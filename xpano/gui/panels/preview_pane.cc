@@ -65,9 +65,8 @@ void Overlay(const utils::RectRRf& crop_rect, const utils::RectPVf& image) {
                                       0, 2.0f);
 }
 
-void Draw(const widgets::Polyline& poly, const utils::RectPVf& image) {
-  const auto color = ImColor(255, 255, 255, 255);
-
+void Draw(const widgets::Polyline& poly, const utils::RectPVf& image,
+          const ImColor& color) {
   auto within_image = [&image](const ImVec2& point) {
     return point.x >= image.start[0] &&
            point.x <= image.start[0] + image.size[0] &&
@@ -100,20 +99,21 @@ void Draw(const widgets::Polyline& poly, const utils::RectPVf& image) {
 void Overlay(const widgets::RotationWidget& widget, const utils::RectPVf& image,
              const utils::RectPVf& window) {
   std::vector<widgets::Polyline> polys;
-  polys.reserve(widget.image_borders.size() + 2);
+  polys.reserve(widget.image_borders.size());
 
   for (const auto& border : widget.image_borders) {
     polys.push_back(Warp(border, widget.warp, widget.rotation, image));
   }
-
-  polys.push_back(
-      Warp(widget.horizontal_handle, widget.warp, widget.rotation, image));
-  polys.push_back(
-      Warp(widget.vertical_handle, widget.warp, widget.rotation, image));
-
+  const auto border_color = ImColor(255, 255, 255, 128);
   for (const auto& poly : polys) {
-    Draw(poly, window);
+    Draw(poly, window, border_color);
   }
+
+  const auto axis_color = ImColor(255, 255, 255, 255);
+  Draw(Warp(widget.horizontal_handle, widget.warp, widget.rotation, image),
+       window, axis_color);
+  Draw(Warp(widget.vertical_handle, widget.warp, widget.rotation, image),
+       window, axis_color);
 }
 
 }  // namespace
