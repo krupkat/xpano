@@ -301,6 +301,7 @@ int StitchTasksCount(int num_images) {
          1 +           // match features
          1 +           // estimate homography
          1 +           // bundle adjustment
+         1 +           // compute pano size
          1 +           // prepare seams
          1 +           // find seams
          num_images +  // compose
@@ -320,6 +321,8 @@ std::string ToString(stitcher::Status& status) {
       return "ERR_HOMOGRAPHY_EST_FAIL";
     case stitcher::Status::kErrCameraParamsAdjustFail:
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
+    case stitcher::Status::kErrPanoTooLarge:
+      return "ERR_PANO_TOO_LARGE\nReset the project through the edit menu.";
     default:
       return "ERR_UNKNOWN";
   }

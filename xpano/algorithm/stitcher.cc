@@ -57,6 +57,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "xpano/constants.h"
 #include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {
@@ -255,22 +256,6 @@ Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity):
 Status Stitcher::ComposePanorama(cv::OutputArray pano) {
-  spdlog::info("Estimating seams... ");
-  NextTask(ProgressType::kStitchSeamsPrepare);
-
-  std::vector<cv::UMat> masks_warped;
-  if (auto status = EstimateSeams(&masks_warped); status != Status::kSuccess) {
-    return status;
-  }
-
-  seam_est_imgs_.clear();
-
-  if (Cancelled()) {
-    return Status::kCancelled;
-  }
-  spdlog::info("Compositing...");
-  auto compositing_total_timer = Timer();
-
   cv::UMat img_warped;
   cv::UMat dilated_mask;
   cv::UMat seam_mask;
@@ -285,6 +270,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   cv::Ptr<cv::detail::RotationWarper> warper;
   {
+    spdlog::info("Calculating pano size... ");
+    NextTask(ProgressType::kStitchComputeRoi);
     auto compute_roi_timer = Timer();
 
     // Update warped image scale
@@ -300,12 +287,37 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
       corners[i] = roi.tl();
       sizes[i] = roi.size();
     }
-    compute_roi_timer.Report(" compute roi time");
+    compute_roi_timer.Report(" compute pano size time");
+  }
+  auto dst_roi = cv::detail::resultRoi(corners, sizes);
+
+  if (dst_roi.width >= kMaxPanoSize || dst_roi.height >= kMaxPanoSize) {
+    spdlog::error("Panorama is too large to compute: {}x{}, max size is {}",
+                  dst_roi.width, dst_roi.height, kMaxPanoSize);
+    return Status::kErrPanoTooLarge;
   }
 
-  auto dst_roi = cv::detail::resultRoi(corners, sizes);
-  blender_->prepare(dst_roi);
+  std::vector<cv::UMat> masks_warped;
+  {
+    spdlog::info("Estimating seams... ");
+    NextTask(ProgressType::kStitchSeamsPrepare);
 
+    if (auto status = EstimateSeams(&masks_warped);
+        status != Status::kSuccess) {
+      return status;
+    }
+
+    seam_est_imgs_.clear();
+
+    if (Cancelled()) {
+      return Status::kCancelled;
+    }
+  }
+
+  spdlog::info("Compositing...");
+  auto compositing_total_timer = Timer();
+
+  blender_->prepare(dst_roi);
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     NextTask(ProgressType::kStitchCompose);
     if (auto non_zero = cv::countNonZero(masks_warped[img_idx]);
