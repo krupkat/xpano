@@ -123,7 +123,7 @@ Action ModifyPano(int clicked_image, Selection* selection,
     return {.type = ActionType::kShowPano,
             .target_id = selection->target_id,
             .delayed = true,
-            .extra = ShowPanoExtra{.reset_crop = true}};
+            .extra = ShowPanoExtra{.reset_crop = true, .reset_cameras = true}};
   }
   return {};
 }
@@ -454,17 +454,21 @@ Action PanoGui::PerformAction(const Action& action) {
       spdlog::info("Calculating pano {}", selection_.target_id);
       status_message_ = {};
       auto extra = ValueOrDefault<ShowPanoExtra>(action);
+      auto& pano = stitcher_data_->panos[selection_.target_id];
+      if (extra.reset_cameras) {
+        pano.cameras.reset();
+        pano.backup_cameras.reset();
+      }
+      if (extra.reset_crop) {
+        pano.crop.reset();
+      }
       stitcher_pipeline_.RunStitching(*stitcher_data_,
                                       {.pano_id = selection_.target_id,
                                        .full_res = extra.full_res,
                                        .stitch_algorithm = options_.stitch});
-      auto& pano = stitcher_data_->panos[selection_.target_id];
       thumbnail_pane_.Highlight(pano.ids);
       if (extra.scroll_thumbnails) {
         thumbnail_pane_.SetScrollX(pano.ids);
-      }
-      if (extra.reset_crop) {
-        pano.crop.reset();
       }
       break;
     }
