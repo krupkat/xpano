@@ -272,10 +272,9 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   stitcher::Status status;
 
   if (cameras &&
-      cameras->wave_correction_user == user_options.wave_correction &&
-      cameras->cameras.size() == images.size()) {
+      cameras->wave_correction_user == user_options.wave_correction) {
     stitcher->SetWaveCorrectKind(cameras->wave_correction_auto);
-    stitcher->SetTransform(images, cameras->cameras);
+    stitcher->SetTransform(images, cameras->cameras, cameras->component);
     status = stitcher->ComposePanorama(pano);
   } else {
     status = stitcher->Stitch(images, pano);
@@ -290,9 +289,9 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
     stitcher->ResultMask().copyTo(mask);
   }
 
-  auto result_cameras =
-      Cameras{stitcher->Cameras(), user_options.wave_correction,
-              stitcher->WaveCorrectKind(), stitcher->GetWarpHelper()};
+  auto result_cameras = Cameras{
+      stitcher->Cameras(), stitcher->Component(), user_options.wave_correction,
+      stitcher->WaveCorrectKind(), stitcher->GetWarpHelper()};
   return {status, pano, mask, std::move(result_cameras)};
 }
 

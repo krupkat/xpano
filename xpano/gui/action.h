@@ -48,6 +48,7 @@ struct ShowPanoExtra {
   bool full_res = false;
   bool scroll_thumbnails = false;
   bool reset_crop = false;
+  bool reset_cameras = false;
 };
 
 using LoadFilesExtra = std::vector<std::filesystem::path>;
