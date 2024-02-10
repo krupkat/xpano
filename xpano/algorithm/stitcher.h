@@ -64,7 +64,8 @@ enum class Status {
   kCancelled,
   kErrNeedMoreImgs,
   kErrHomographyEstFail,
-  kErrCameraParamsAdjustFail
+  kErrCameraParamsAdjustFail,
+  kErrPanoTooLarge
 };
 
 struct WarpHelper {

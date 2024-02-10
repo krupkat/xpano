@@ -20,6 +20,7 @@ enum class ProgressType {
   kStitchMatchFeatures,
   kStitchEstimateHomography,
   kStitchBundleAdjustment,
+  kStitchComputeRoi,
   kStitchSeamsPrepare,
   kStitchSeamsFind,
   kStitchCompose,

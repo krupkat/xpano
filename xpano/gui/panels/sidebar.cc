@@ -57,6 +57,8 @@ std::string ProgressLabel(pipeline::ProgressType type) {
       return "Estimating homography";
     case pipeline::ProgressType::kStitchBundleAdjustment:
       return "Bundle adjustment";
+    case pipeline::ProgressType::kStitchComputeRoi:
+      return "Computing pano size";
     case pipeline::ProgressType::kStitchSeamsPrepare:
       return "Preparing seams";
     case pipeline::ProgressType::kStitchSeamsFind:
