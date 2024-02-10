@@ -17,7 +17,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  CATCH_VERSION: "v3.5.0"
+  CATCH_VERSION: "v3.5.2"
   EXIV2_VERSION: "v0.28.1"
 
 jobs:
