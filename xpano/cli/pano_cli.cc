@@ -14,8 +14,8 @@
 #include "xpano/cli/signal.h"
 #include "xpano/constants.h"
 #include "xpano/log/logger.h"
-#include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/pipeline/options.h"
+#include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/future.h"
 #include "xpano/version_fmt.h"
 

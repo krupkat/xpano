@@ -102,6 +102,8 @@ DragResult<DraggableWidget> Drag(const DraggableWidget& input_widget,
               std::clamp(new_pos[0], widget.rect.start[0] + tolerance[0], 1.0f);
           break;
         }
+        default:
+          break;
       }
     }
   }

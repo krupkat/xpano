@@ -50,8 +50,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <numeric>
-#include <stddef.h>
 #include <string_view>
 #include <utility>
 
@@ -96,7 +96,7 @@ class Timer {
     return kTickFrequency;
   }
 
-  int64 start_count_;
+  int64 start_count_ = 0;
 };
 
 double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {

@@ -201,7 +201,7 @@ auto ResolveStitchingResultFuture(
     spdlog::info(*status_message);
   }
 
-  return std::move(result);
+  return result;
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
@@ -628,7 +628,7 @@ MultiAction PanoGui::ResolveFutures() {
       };
 
   auto handle_pano =
-      [this, &actions](std::future<pipeline::StitchingResult> pano_future) {
+      [this](std::future<pipeline::StitchingResult> pano_future) {
         auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
         auto& pano = stitcher_data_->panos[result.pano_id];

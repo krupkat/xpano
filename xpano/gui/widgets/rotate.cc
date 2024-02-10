@@ -123,7 +123,6 @@ Projectable GenericHandle(const cv::Rect& dst_roi, const cv::Point2f& dir,
   auto backprojected =
       warp.warper->warpPointBackward(center.coords, camera.k_mat, camera.r_mat);
 
-  auto diff = cv::Point2f{static_cast<float>(dst_roi.width), 0.0f};
   auto start = backprojected - dir;
   auto end = backprojected + dir;
 
