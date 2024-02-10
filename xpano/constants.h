@@ -56,7 +56,7 @@ constexpr int kMaxPngCompression = 9;
 
 constexpr int kAboutBoxWidth = 70;
 constexpr int kAboutBoxHeight = 30;
-constexpr int kSidebarWidth = 27;
+constexpr int kSidebarWidth = 35;
 constexpr int kWideButtonWidth = 12;
 
 const std::string kOrgName = "krupkat";
