@@ -4,9 +4,9 @@
 #include "xpano/algorithm/blenders.h"
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
-#include <stdint.h>
 
 #ifdef XPANO_WITH_MULTIBLEND
 #include <mb/multiblend.h>
