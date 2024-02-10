@@ -14,6 +14,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+
 #ifdef XPANO_WITH_EXIV2
 #include <exiv2/exiv2.hpp>
 #endif
@@ -23,6 +24,7 @@
 
 #include "tests/utils.h"
 #include "xpano/algorithm/options.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
 
 using Catch::Matchers::Equals;
@@ -141,6 +143,60 @@ TEST_CASE("Stitcher pipeline defaults [extra results]") {
   CHECK_FALSE(stitch_result1.export_path.has_value());
   REQUIRE(stitch_result1.cameras.has_value());
   CHECK(stitch_result1.cameras->cameras.size() == 3);
+}
+
+const std::vector<std::filesystem::path> kInputsFirstPano = {
+    "data/image01.jpg", "data/image02.jpg", "data/image03.jpg",
+    "data/image04.jpg", "data/image05.jpg"};
+
+TEST_CASE("Pano too large") {
+  xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
+
+  auto loading_task = stitcher.RunLoading(kInputsFirstPano, {}, {});
+  auto stitch_data = loading_task.future.get();
+  auto progress = loading_task.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(stitch_data.images.size() == 5);
+  REQUIRE(stitch_data.panos.size() == 1);
+  REQUIRE_THAT(stitch_data.panos[0].ids, Equals<int>({0, 1, 2, 3, 4}));
+
+  const float eps = 0.02;
+
+  // stitch for the 1st time
+  auto proj_options = xpano::algorithm::StitchUserOptions{
+      .projection = {.type = xpano::algorithm::ProjectionType::kPerspective}};
+  auto stitching_task0 = stitcher.RunStitching(
+      stitch_data, {.pano_id = 0, .stitch_algorithm = proj_options});
+
+  auto stitch_result0 = stitching_task0.future.get();
+  progress = stitching_task0.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(stitch_result0.pano.has_value());
+  CHECK_THAT(stitch_result0.pano->rows, WithinRel(1737, eps));
+  CHECK_THAT(stitch_result0.pano->cols, WithinRel(4303, eps));
+
+  REQUIRE(stitch_result0.cameras.has_value());
+  CHECK(stitch_result0.cameras->cameras.size() == 5);
+
+  // rotate and stitch again
+  auto rot_data = std::array{0.86f,  -0.31f, -0.42f, 0.02f, 0.82f,
+                             -0.57f, 0.52f,  0.48f,  0.71f};
+  auto rotation_matrix = cv::Mat(3, 3, CV_32F, rot_data.data());
+
+  stitch_data.panos[0].cameras =
+      xpano::algorithm::Rotate(*stitch_result0.cameras, rotation_matrix);
+  auto stitching_task1 = stitcher.RunStitching(
+      stitch_data, {.pano_id = 0, .stitch_algorithm = proj_options});
+
+  auto stitch_result1 = stitching_task1.future.get();
+  progress = stitching_task1.progress->Report();
+
+  REQUIRE(progress.tasks_done != progress.num_tasks);
+  REQUIRE_FALSE(stitch_result1.pano.has_value());
+  REQUIRE(stitch_result1.status ==
+          xpano::algorithm::stitcher::Status::kErrPanoTooLarge);
 }
 
 TEST_CASE("Stitcher pipeline single pano matching") {
