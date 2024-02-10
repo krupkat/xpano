@@ -12,14 +12,12 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/stitching/detail/camera.hpp>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/widgets/widgets.h"
-#include "xpano/utils/opencv.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 #include "xpano/utils/vec_converters.h"

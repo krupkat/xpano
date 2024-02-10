@@ -4,6 +4,7 @@
 #include "xpano/utils/opencv.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include <opencv2/stitching.hpp>

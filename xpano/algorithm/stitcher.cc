@@ -49,10 +49,15 @@
 #include "xpano/algorithm/stitcher.h"
 
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <numeric>
 #include <string_view>
+#include <utility>
 
 #include <spdlog/spdlog.h>
+
+#include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {
 
@@ -91,7 +96,7 @@ class Timer {
     return kTickFrequency;
   }
 
-  int64 start_count_;
+  int64 start_count_ = 0;
 };
 
 double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {

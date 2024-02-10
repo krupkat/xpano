@@ -5,7 +5,6 @@
 
 #include <filesystem>
 #include <optional>
-#include <string>
 
 #include "xpano/constants.h"
 #include "xpano/pipeline/options.h"

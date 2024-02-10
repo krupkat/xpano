@@ -8,6 +8,8 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include <SDL.h>
 #include <spdlog/spdlog.h>

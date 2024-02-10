@@ -48,14 +48,14 @@
 
 #pragma once
 
-#include <atomic>
+#include <vector>
 
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/imgproc.hpp>
 #include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/progress.h"
-#include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {
 

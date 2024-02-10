@@ -6,6 +6,8 @@
 #include "xpano/gui/pano_gui.h"
 
 #include <algorithm>
+#include <exception>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <string>
@@ -19,6 +21,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/options.h"
 #include "xpano/cli/args.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
@@ -198,7 +201,7 @@ auto ResolveStitchingResultFuture(
     spdlog::info(*status_message);
   }
 
-  return std::move(result);
+  return result;
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
@@ -625,7 +628,7 @@ MultiAction PanoGui::ResolveFutures() {
       };
 
   auto handle_pano =
-      [this, &actions](std::future<pipeline::StitchingResult> pano_future) {
+      [this](std::future<pipeline::StitchingResult> pano_future) {
         auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
         auto& pano = stitcher_data_->panos[result.pano_id];

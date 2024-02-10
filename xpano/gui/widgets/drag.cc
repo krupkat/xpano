@@ -3,7 +3,13 @@
 
 #include "xpano/gui/widgets/drag.h"
 
+#include <algorithm>
+#include <cmath>
 #include <numeric>
+
+#include <imgui.h>
+
+#include "xpano/constants.h"
 
 namespace xpano::gui::widgets {
 
@@ -96,6 +102,8 @@ DragResult<DraggableWidget> Drag(const DraggableWidget& input_widget,
               std::clamp(new_pos[0], widget.rect.start[0] + tolerance[0], 1.0f);
           break;
         }
+        default:
+          break;
       }
     }
   }

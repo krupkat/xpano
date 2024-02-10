@@ -12,15 +12,6 @@
 
 namespace xpano::gui {
 
-namespace {
-
-const std::string kGithubIssuesLink =
-    R"(https://github.com/krupkat/xpano/issues)";
-
-const std::string kAuthorEmail = R"(tomas@krupkat.cz)";
-
-}  // namespace
-
 BugReportPane::BugReportPane(logger::Logger *logger) : logger_(logger) {}
 
 void BugReportPane::Show() { show_ = true; }

@@ -32,7 +32,7 @@ struct Vec {
   template <typename... Args>
     requires(std::same_as<TType, Args> && ...) && (sizeof...(Args) == N)
   // NOLINTNEXTLINE(google-explicit-constructor)
-  constexpr Vec(Args... args) : data_{args...} {};
+  constexpr Vec(Args... args) : data_{args...} {}
 
   constexpr TType& operator[](size_t index) { return data_[index]; }
   constexpr const TType& operator[](size_t index) const { return data_[index]; }

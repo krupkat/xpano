@@ -7,6 +7,7 @@
 
 #include "xpano/gui/widgets/widgets.h"
 #include "xpano/utils/rect.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::gui::widgets {
 

@@ -13,6 +13,7 @@
 #include <imgui_impl_sdlrenderer2.h>
 #include <nfd.h>
 #include <SDL.h>
+#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/cli/pano_cli.h"
@@ -66,7 +67,9 @@ int main(int argc, char** argv) {
   xpano::logger::Logger logger{};
   logger.RedirectSpdlogToGui(app_data_path);
   xpano::logger::RedirectSDLOutput();
-  // spdlog::info("Current locale: {}", locale);
+  if (locale != nullptr) {
+    spdlog::info("Current locale: {}", locale);
+  }
 
   if (!app_data_path) {
     spdlog::warn(

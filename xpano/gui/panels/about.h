@@ -6,6 +6,7 @@
 
 #include <future>
 #include <optional>
+#include <string>
 
 #include "xpano/utils/text.h"
 

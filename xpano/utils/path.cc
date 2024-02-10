@@ -4,6 +4,7 @@
 #include "xpano/utils/path.h"
 
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <iterator>
 #include <string>

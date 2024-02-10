@@ -3,15 +3,14 @@
 
 #include "xpano/algorithm/blenders.h"
 
+#include <array>
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 
 #ifdef XPANO_WITH_MULTIBLEND
-#include <mb/flex.h>
 #include <mb/multiblend.h>
-#include <mb/threadpool.h>
 #endif
-#include <spdlog/fmt/fmt.h>
 
 namespace xpano::algorithm::blenders {
 

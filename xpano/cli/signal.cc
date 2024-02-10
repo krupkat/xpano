@@ -3,10 +3,10 @@
 
 #include "xpano/cli/signal.h"
 
-#include <spdlog/spdlog.h>
-
 #ifdef _WIN32
 #include <windows.h>
+
+#include <spdlog/spdlog.h>
 #else
 #include <signal.h>  // NOLINT(modernize-deprecated-headers)
 #endif
