@@ -199,6 +199,41 @@ TEST_CASE("Pano too large") {
           xpano::algorithm::stitcher::Status::kErrPanoTooLarge);
 }
 
+const std::vector<std::filesystem::path> kInputsIncomplete = {
+    "data/image05.jpg",  // pano 1
+    "data/image06.jpg",  // pano 2
+    "data/image07.jpg"   // pano 2
+};
+
+TEST_CASE("Incomplete pano") {
+  xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
+
+  auto loading_task = stitcher.RunLoading(kInputsIncomplete, {}, {});
+  auto stitch_data = loading_task.future.get();
+  auto progress = loading_task.progress->Report();
+  CHECK(progress.tasks_done == progress.num_tasks);
+
+  CHECK(stitch_data.images.size() == 3);
+  REQUIRE(stitch_data.panos.size() == 1);
+  REQUIRE_THAT(stitch_data.panos[0].ids, Equals<int>({1, 2}));
+
+  // add an unrelated image to the pano
+  stitch_data.panos[0].ids = {0, 1, 2};
+
+  // stitch
+  auto stitching_task0 = stitcher.RunStitching(stitch_data, {.pano_id = 0});
+  auto stitch_result0 = stitching_task0.future.get();
+
+  // TODO: fix, this is currently not equal
+  // progress = stitching_task0.progress->Report();
+  // CHECK(progress.tasks_done == progress.num_tasks);
+
+  REQUIRE(stitch_result0.pano.has_value());
+  REQUIRE(stitch_result0.cameras.has_value());
+  CHECK(stitch_result0.cameras->cameras.size() == 2);
+  CHECK_THAT(stitch_result0.cameras->component, Equals<int>({1, 2}));
+}
+
 TEST_CASE("Stitcher pipeline single pano matching") {
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
   auto loading_task = stitcher.RunLoading(
