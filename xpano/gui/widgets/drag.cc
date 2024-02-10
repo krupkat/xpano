@@ -3,7 +3,13 @@
 
 #include "xpano/gui/widgets/drag.h"
 
+#include <algorithm>
+#include <cmath>
 #include <numeric>
+
+#include <imgui.h>
+
+#include "xpano/constants.h"
 
 namespace xpano::gui::widgets {
 

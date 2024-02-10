@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <array>
-#include <atomic>
 #include <optional>
 #include <string>
 #include <vector>
@@ -17,7 +15,6 @@
 #include "xpano/algorithm/options.h"
 #include "xpano/algorithm/progress.h"
 #include "xpano/algorithm/stitcher.h"
-#include "xpano/constants.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"
 

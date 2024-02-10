@@ -20,9 +20,6 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/photo.hpp>
 #include <opencv2/stitching.hpp>
-#include <opencv2/stitching/detail/matchers.hpp>
-#include <opencv2/stitching/detail/warpers.hpp>
-#include <opencv2/stitching/warpers.hpp>
 
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/blenders.h"

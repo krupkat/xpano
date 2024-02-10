@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "tests/utils.h"
+#include "xpano/algorithm/options.h"
 #include "xpano/pipeline/options.h"
 
 struct Bar {

@@ -16,6 +16,7 @@
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/progress.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/preview_pane.h"

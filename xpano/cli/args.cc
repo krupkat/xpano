@@ -3,7 +3,9 @@
 
 #include "xpano/cli/args.h"
 
+#include <exception>
 #include <filesystem>
+#include <string>
 #include <vector>
 
 #include <spdlog/fmt/fmt.h>

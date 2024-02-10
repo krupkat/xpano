@@ -4,6 +4,7 @@
 #include "xpano/cli/pano_cli.h"
 
 #include <atomic>
+#include <exception>
 #include <filesystem>
 
 #include <spdlog/spdlog.h>
@@ -14,6 +15,7 @@
 #include "xpano/constants.h"
 #include "xpano/log/logger.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/utils/future.h"
 #include "xpano/version_fmt.h"
 

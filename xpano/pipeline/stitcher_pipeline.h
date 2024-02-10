@@ -5,24 +5,22 @@
 #pragma once
 
 #include <algorithm>
-#include <atomic>
 #include <deque>
 #include <filesystem>
 #include <future>
+#include <memory>
 #include <optional>
-#include <string>
 #include <thread>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
 #include <opencv2/core.hpp>
-#include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/progress.h"
 #include "xpano/algorithm/stitcher.h"
-#include "xpano/constants.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/threadpool.h"

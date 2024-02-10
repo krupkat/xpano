@@ -3,13 +3,17 @@
 
 #pragma once
 
+#include <array>
+#include <vector>
+
 #include <imgui.h>
 #include <opencv2/core.hpp>
-#include <opencv2/stitching/detail/warpers.hpp>
+#include <opencv2/stitching.hpp>
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/gui/widgets/widgets.h"
 #include "xpano/utils/rect.h"
+#include "xpano/utils/vec.h"
 
 namespace xpano::gui::widgets {
 

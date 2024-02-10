@@ -6,7 +6,9 @@
 #ifdef XPANO_WITH_MULTIBLEND
 #include <mb/image.h>
 #endif
-#include <opencv2/stitching/detail/blenders.hpp>
+
+#include <opencv2/core.hpp>
+#include <opencv2/stitching.hpp>
 
 #include "xpano/utils/threadpool.h"
 

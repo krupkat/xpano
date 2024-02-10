@@ -12,7 +12,6 @@
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/sdl_.h"
 #include "xpano/utils/serialize.h"
-#include "xpano/version.h"
 
 namespace xpano::utils::config {
 

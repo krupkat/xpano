@@ -9,6 +9,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/options.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/thumbnail_pane.h"

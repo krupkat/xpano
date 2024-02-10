@@ -5,23 +5,19 @@
 #include "xpano/pipeline/stitcher_pipeline.h"
 
 #include <algorithm>
-#include <atomic>
 #include <filesystem>
 #include <future>
 #include <optional>
-#include <string>
 #include <utility>
 #include <vector>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <opencv2/stitching.hpp>
 #include <spdlog/spdlog.h>
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/constants.h"
-#include "xpano/utils/common.h"
 #include "xpano/utils/exiv2.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/opencv.h"

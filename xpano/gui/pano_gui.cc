@@ -6,6 +6,8 @@
 #include "xpano/gui/pano_gui.h"
 
 #include <algorithm>
+#include <exception>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <string>
@@ -19,6 +21,7 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/options.h"
 #include "xpano/cli/args.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"

@@ -3,12 +3,14 @@
 
 #include "xpano/pipeline/stitcher_pipeline.h"
 
+#include <chrono>
 #include <filesystem>
+#include <iterator>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
@@ -20,6 +22,8 @@
 #include <opencv2/imgproc.hpp>
 
 #include "tests/utils.h"
+#include "xpano/algorithm/options.h"
+#include "xpano/constants.h"
 
 using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;

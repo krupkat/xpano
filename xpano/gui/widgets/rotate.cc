@@ -3,11 +3,16 @@
 
 #include "xpano/gui/widgets/rotate.h"
 
+#include <cmath>
+#include <iterator>
 #include <numeric>
+#include <utility>
 
+#include <imgui.h>
 #include <opencv2/calib3d.hpp>
 #include <spdlog/spdlog.h>
 
+#include "xpano/constants.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/vec_converters.h"
 

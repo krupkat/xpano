@@ -49,10 +49,15 @@
 #include "xpano/algorithm/stitcher.h"
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
+#include <stddef.h>
 #include <string_view>
+#include <utility>
 
 #include <spdlog/spdlog.h>
+
+#include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {
 

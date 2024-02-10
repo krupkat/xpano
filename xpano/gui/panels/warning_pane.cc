@@ -3,6 +3,8 @@
 
 #include "xpano/gui/panels/warning_pane.h"
 
+#include <utility>
+
 #include <imgui.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>

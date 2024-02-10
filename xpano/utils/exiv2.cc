@@ -3,6 +3,8 @@
 
 #include "xpano/utils/exiv2.h"
 
+#include <string>
+
 #ifdef XPANO_WITH_EXIV2
 #include <exiv2/exiv2.hpp>
 #endif
