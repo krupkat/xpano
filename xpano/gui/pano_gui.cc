@@ -586,12 +586,12 @@ void PanoGui::PerformExportAction(int pano_id) {
     return;
   }
 
+  const auto& pano = stitcher_data_->panos.at(pano_id);
   if (plot_pane_.Type() == ImageType::kPanoFullRes) {
     std::optional<std::filesystem::path> metadata_path;
     if (options_.metadata.copy_from_first_image) {
       metadata_path = first_image->GetPath();
     }
-    const auto& pano = stitcher_data_->panos.at(pano_id);
     stitcher_pipeline_.RunExport(plot_pane_.Image(),
                                  {.pano_id = pano_id,
                                   .export_path = *export_path,
@@ -603,6 +603,7 @@ void PanoGui::PerformExportAction(int pano_id) {
                                     {.pano_id = pano_id,
                                      .full_res = true,
                                      .export_path = *export_path,
+                                     .export_crop = pano.crop,
                                      .metadata = options_.metadata,
                                      .compression = options_.compression,
                                      .stitch_algorithm = options_.stitch});

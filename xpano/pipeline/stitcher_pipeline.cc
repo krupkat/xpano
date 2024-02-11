@@ -257,7 +257,8 @@ StitchingResult RunStitchingPipeline(
     export_path = RunExportPipeline(result,
                                     {.export_path = *options.export_path,
                                      .metadata_path = metadata_path,
-                                     .compression = options.compression},
+                                     .compression = options.compression,
+                                     .crop = options.export_crop},
                                     progress)
                       .export_path;
   }
