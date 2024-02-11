@@ -1,3 +1,9 @@
+xpano (0.18.1-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.18.1, Fix cropped panorama export
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Sun, 11 Feb 2024 20:56:22 +0100
+
 xpano (0.18.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.18.0, Projection adjustments
