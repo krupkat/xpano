@@ -1,3 +1,9 @@
+# Xpano 0.18.0
+
+- Projection adjustments
+  - Drag the panorama by its horizontal / vertical axis
+  - Rotate the panorama by its center point
+
 # Xpano 0.17.0
 
 - Image stack detection

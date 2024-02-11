@@ -29,6 +29,18 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.18.0" date="2024-02-11">
+      <description>
+        <ul>
+          <li>Panorama adjustments
+            <ul>
+              <li>Drag the panorama by its horizontal / vertical axis</li>
+              <li>Rotate the panorama by its center point</li>
+            </ul>
+          </li>
+        </ul>
+      </description>
+    </release>
     <release version="0.17.0" date="2023-11-05">
       <description>
         <ul>
