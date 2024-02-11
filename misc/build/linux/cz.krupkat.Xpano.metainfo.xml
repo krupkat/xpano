@@ -29,6 +29,14 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.18.1" date="2024-02-11">
+      <description>
+        <ul>
+          <li>Panorama adjustments</li>
+          <li>Fix cropped panorama export</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.18.0" date="2024-02-11">
       <description>
         <ul>

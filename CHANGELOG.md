@@ -1,3 +1,7 @@
+# Xpano 0.18.1
+
+- Fix cropped panorama export
+
 # Xpano 0.18.0
 
 - Projection adjustments
