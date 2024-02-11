@@ -9,6 +9,7 @@ The tool focuses on simplicity and ease of use, features include:
 - Auto detection of groups of images that can be stitched into panoramas
 - Preview + zoom + pan of the computed panoramas
 - Crop mode, boundary auto fill, selectable projection types
+- Projection adjustments: pitch, yaw and roll
 - Export of full resolution panoramas including exif metadata
 
 ## Demo
