@@ -66,42 +66,116 @@ std::vector<PreprocessedCamera> Preprocess(
 
 template <typename TPoint>
 TPoint Avg(const std::vector<TPoint>& points) {
-  TPoint sum = std::accumulate(points.begin(), points.end(), TPoint{0.0f, 0.0f},
-                               [](const TPoint& lhs, const TPoint& rhs) {
-                                 return TPoint{lhs.x + rhs.x, lhs.y + rhs.y};
-                               });
-  return TPoint{sum.x / points.size(), sum.y / points.size()};
+  TPoint sum = std::accumulate(
+      points.begin(), points.end(), TPoint{0.0f, 0.0f, 0.0f},
+      [](const TPoint& lhs, const TPoint& rhs) {
+        return TPoint{lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z};
+      });
+  float norm = cv::norm(sum);
+  if (norm < 1e-6f) {
+    return TPoint{0.0f, 1.0f, 0.0f};
+  }
+  return TPoint{sum.x / norm, sum.y / norm, sum.z / norm};
+}
+
+cv::Mat Image2Camera(const cv::Point2f& point,
+                     const PreprocessedCamera& camera) {
+  return camera.r_mat * (camera.k_mat.inv() * cv::Mat{point.x, point.y, 1.0f});
+}
+
+cv::Point2f Camera2Image(const cv::Point3f& point,
+                         const PreprocessedCamera& camera) {
+  cv::Mat proj =
+      camera.k_mat * (camera.r_mat.inv() * cv::Mat{point.x, point.y, point.z});
+  // spdlog::info("proj = {}, {}, {}", proj.at<float>(0), proj.at<float>(1),
+  //              proj.at<float>(2));
+  return cv::Point2f{proj.at<float>(0) / proj.at<float>(2),
+                     proj.at<float>(1) / proj.at<float>(2)};
+}
+
+template <typename TMat>
+TMat Normalized(const TMat& input) {
+  return input / cv::norm(input);
 }
 
 struct PanoCenter {
   int id;
   cv::Point2f coords;
+  cv::Point2f hdir;
+  cv::Point2f vdir;
 };
 
 PanoCenter ComputePanoCenter(const std::vector<cv::Size>& image_sizes,
                              const StaticWarpData& warp) {
-  std::vector<cv::Point2f> centers;
+  std::vector<cv::Point3f> centers;
   for (int i = 0; i < image_sizes.size(); i++) {
     auto center = cv::Point2f{static_cast<float>(image_sizes[i].width) / 2.0f,
                               static_cast<float>(image_sizes[i].height) / 2.0f};
 
-    auto projected_center = warp.warper->warpPoint(
-        center, warp.cameras[i].k_mat, warp.cameras[i].r_mat);
-    centers.push_back(projected_center);
+    auto center_camera = Image2Camera(center, warp.cameras[i]);
+    auto normalized = Normalized(center_camera);
+
+    // spdlog::info("center_camera = {}, {}, {}", center_camera.at<float>(0),
+    //              center_camera.at<float>(1), center_camera.at<float>(2));
+    spdlog::info("normalized = {}, {}, {}", normalized.at<float>(0),
+                 normalized.at<float>(1), normalized.at<float>(2));
+
+    centers.push_back(cv::Point3f(normalized));
   }
 
-  auto dist = [](const cv::Point2f& lhs, const cv::Point2f& rhs) {
+  auto dist = [](const cv::Point3f& lhs, const cv::Point3f& rhs) {
     return cv::norm(lhs - rhs);
   };
 
   auto center = Avg(centers);
+  spdlog::info("center = {}, {}, {}", center.x, center.y, center.z);
+
   auto middle_image = std::min_element(
       centers.begin(), centers.end(),
-      [&center, &dist](const cv::Point2f& left, const cv::Point2f& right) {
+      [&center, &dist](const cv::Point3f& left, const cv::Point3f& right) {
         return dist(left, center) < dist(right, center);
       });
-  return {static_cast<int>(std::distance(centers.begin(), middle_image)),
-          cv::Point2f{center.x, center.y}};
+
+  auto camera_id =
+      static_cast<int>(std::distance(centers.begin(), middle_image));
+
+  auto img_c = Camera2Image(center, warp.cameras[camera_id]);
+  auto result = warp.warper->warpPoint(img_c, warp.cameras[camera_id].k_mat,
+                                       warp.cameras[camera_id].r_mat);
+
+  cv::Mat pcaset(centers.size(), 3, CV_32F);
+  for (int i = 0; i < centers.size(); i++) {
+    auto distance = centers[i].dot(center);
+    auto projected = cv::Mat(centers[i] - distance * center);
+
+    pcaset.row(i) = projected.t();
+  }
+
+  // print out pcaset matrix
+  for (int i = 0; i < pcaset.rows; i++) {
+    spdlog::info("pcaset = {}, {}, {}", pcaset.at<float>(i, 0),
+                 pcaset.at<float>(i, 1), pcaset.at<float>(i, 2));
+  }
+
+  cv::PCA pca(pcaset, cv::Mat::zeros(1, 3, CV_32F), cv::PCA::DATA_AS_ROW, 2);
+  for (int i = 0; i < pca.eigenvalues.rows; i++) {
+    spdlog::info("eigenvalue = {}", pca.eigenvalues.at<float>(i));
+    spdlog::info("eigenvector = {}, {}, {}", pca.eigenvectors.at<float>(i, 0),
+                 pca.eigenvectors.at<float>(i, 1),
+                 pca.eigenvectors.at<float>(i, 2));
+  }
+
+  auto eig1 = cv::Point3f{pca.eigenvectors.at<float>(0, 0),
+                          pca.eigenvectors.at<float>(0, 1),
+                          pca.eigenvectors.at<float>(0, 2)};
+
+  auto img_h = Camera2Image(eig1, warp.cameras[camera_id]);
+  auto img_v = Camera2Image(eig1.cross(center), warp.cameras[camera_id]);
+
+  auto h_dir = Normalized(img_h - img_c);
+  auto v_dir = Normalized(img_v - img_c);
+
+  return {camera_id, result, h_dir, v_dir};
 }
 
 std::vector<cv::Point2f> Interpolate(const cv::Point2f& start,
@@ -133,13 +207,13 @@ Projectable GenericHandle(const cv::Rect& dst_roi, const cv::Point2f& dir,
 
 Projectable HorizontalHandle(const cv::Rect& dst_roi, const PanoCenter& center,
                              const StaticWarpData& warp) {
-  auto diff = cv::Point2f{static_cast<float>(dst_roi.width), 0.0f};
+  auto diff = static_cast<float>(dst_roi.width) * center.hdir;
   return GenericHandle(dst_roi, diff, center, warp);
 }
 
 Projectable VerticalHandle(const cv::Rect& dst_roi, const PanoCenter& center,
                            const StaticWarpData& warp) {
-  auto diff = cv::Point2f{0.0f, static_cast<float>(dst_roi.height)};
+  auto diff = static_cast<float>(dst_roi.height) * center.vdir;
   return GenericHandle(dst_roi, diff, center, warp);
 }
 
@@ -152,16 +226,6 @@ Projectable RollHandle(const cv::Rect& dst_roi, const PanoCenter& center,
   return {.camera_id = center.id,
           .points = {backprojected},
           .translation = -dst_roi.tl()};
-}
-
-cv::Mat Image2Camera(const cv::Point2f& point,
-                     const PreprocessedCamera& camera) {
-  return camera.r_mat * (camera.k_mat.inv() * cv::Mat{point.x, point.y, 1.0f});
-}
-
-template <typename TMat>
-TMat Normalized(const TMat& input) {
-  return input / cv::norm(input);
 }
 
 cv::Mat RollAxis(const PanoCenter& center, const StaticWarpData& warp) {
@@ -197,12 +261,12 @@ Axis GenericAxis(const PanoCenter& center, const cv::Point2f& dir,
 }
 
 Axis PitchAxis(const PanoCenter& center, const StaticWarpData& warp) {
-  const cv::Point2f diff = {0.0f, 50.0f};
+  const cv::Point2f diff = 50.0f * center.vdir;
   return GenericAxis(center, diff, warp);
 }
 
 Axis YawAxis(const PanoCenter& center, const StaticWarpData& warp) {
-  const cv::Point2f diff = {50.0f, 0.0f};
+  const cv::Point2f diff = 50.0f * center.hdir;
   auto axis = GenericAxis(center, diff, warp);
   axis.coords *= -1.0f;
   return axis;
