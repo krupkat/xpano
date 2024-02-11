@@ -26,6 +26,8 @@
 #include "xpano/algorithm/options.h"
 #include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
+#include "xpano/utils/rect.h"
+#include "xpano/utils/vec_opencv.h"
 
 using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
@@ -438,6 +440,46 @@ TEST_CASE("Export [extra results]") {
   CHECK(stitch_result.cameras->cameras.size() == 3);
 
   REQUIRE(std::filesystem::exists(tmp_path));
+  std::filesystem::remove(tmp_path);
+}
+
+TEST_CASE("Export with crop") {
+  const std::filesystem::path tmp_path =
+      xpano::tests::TmpPath().replace_extension("png");
+
+  xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
+  auto loading_task = stitcher.RunLoading(kInputsWithExifMetadata, {}, {});
+  auto data = loading_task.future.get();
+  REQUIRE(data.panos.size() == 1);
+
+  auto crop = xpano::utils::Rect(xpano::utils::Ratio2f{0.25f, 0.25f},
+                                 xpano::utils::Ratio2f{0.5f, 0.75f});
+  auto stitch_result = stitcher
+                           .RunStitching(data, {.pano_id = 0,
+                                                .export_path = tmp_path,
+                                                .export_crop = crop})
+                           .future.get();
+
+  const float eps = 0.02;
+
+  CHECK(stitch_result.pano.has_value());
+  CHECK(stitch_result.export_path.has_value());
+
+  REQUIRE(std::filesystem::exists(tmp_path));
+  auto image = cv::imread(tmp_path.string());
+  REQUIRE(!image.empty());
+  CHECK_THAT(image.rows, WithinRel(488, eps));
+  CHECK_THAT(image.cols, WithinRel(334, eps));
+
+  auto cv_rect = xpano::utils::GetCvRect(*stitch_result.pano, crop);
+  auto pano_cropped = (*stitch_result.pano)(cv_rect);
+
+  REQUIRE(pano_cropped.rows == image.rows);
+  REQUIRE(pano_cropped.cols == image.cols);
+
+  auto avg_diff = cv::norm(pano_cropped, image);
+  CHECK(avg_diff <= 1e-6);
+
   std::filesystem::remove(tmp_path);
 }
 

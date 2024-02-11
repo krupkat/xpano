@@ -5,6 +5,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 
 namespace xpano::utils {
