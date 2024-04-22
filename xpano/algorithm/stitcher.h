@@ -135,6 +135,11 @@ class Stitcher {
     features_matcher_ = features_matcher;
   }
 
+  [[nodiscard]] int MaxPanoSize() const {return max_pano_size_; }
+  void SetMaxPanoSize(int max_pano_size) {
+    max_pano_size_ = max_pano_size;
+  }
+
   [[nodiscard]] const cv::UMat& MatchingMask() const { return matching_mask_; }
   void SetMatchingMask(const cv::UMat& mask) {
     CV_Assert(mask.type() == CV_8U && mask.cols == mask.rows);
@@ -272,6 +277,7 @@ class Stitcher {
 
   ProgressMonitor* monitor_ = nullptr;
   WarpHelper warp_helper_ = {};
+  int max_pano_size_;
 };
 
 }  // namespace xpano::algorithm::stitcher
