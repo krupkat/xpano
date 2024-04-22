@@ -104,5 +104,6 @@ const std::string kGithubIssuesLink = "https://github.com/krupkat/xpano/issues";
 const std::string kAuthorEmail = "tomas@krupkat.cz";
 
 constexpr int kMaxPanoSize = 16384;
+constexpr int kMaxPanoSizeStep = 256;
 
 }  // namespace xpano

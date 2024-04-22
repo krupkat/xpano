@@ -336,7 +336,7 @@ Action DrawMaxPanoSizeOptions(
   ImGui::Text("Max panorama size:");
   ImGui::Spacing();
   if (ImGui::InputInt("Max panorama size", &stitch_options->max_pano_size,
-                      256)) {
+                      kMaxPanoSizeStep)) {
     action |= {ActionType::kRecomputePano};
   }
   return action;
