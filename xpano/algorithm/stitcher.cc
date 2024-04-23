@@ -291,9 +291,9 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   }
   auto dst_roi = cv::detail::resultRoi(corners, sizes);
 
-  if (dst_roi.width >= kMaxPanoSize || dst_roi.height >= kMaxPanoSize) {
+  if (dst_roi.width >= max_pano_size_ || dst_roi.height >= max_pano_size_) {
     spdlog::error("Panorama is too large to compute: {}x{}, max size is {}",
-                  dst_roi.width, dst_roi.height, kMaxPanoSize);
+                  dst_roi.width, dst_roi.height, max_pano_size_);
     return Status::kErrPanoTooLarge;
   }
 

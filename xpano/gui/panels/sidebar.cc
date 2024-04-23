@@ -330,6 +330,18 @@ Action DrawBlendingOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
   return action;
 }
 
+Action DrawMaxPanoSizeOptions(
+    pipeline::StitchAlgorithmOptions* stitch_options) {
+  Action action{};
+  ImGui::Text("Max panorama size:");
+  ImGui::Spacing();
+  if (ImGui::InputInt("Max panorama size", &stitch_options->max_pano_size,
+                      kMaxPanoSizeStep)) {
+    action |= {ActionType::kRecomputePano};
+  }
+  return action;
+}
+
 Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
                              bool debug_enabled) {
   Action action{};
@@ -340,6 +352,7 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
     if (debug_enabled) {
       ImGui::SeparatorText("Debug");
       action |= DrawBlendingOptions(stitch_options);
+      action |= DrawMaxPanoSizeOptions(stitch_options);
       action |= DrawFeatureMatchingOptions(stitch_options);
 
       if (DrawMatchConf(&stitch_options->match_conf)) {
