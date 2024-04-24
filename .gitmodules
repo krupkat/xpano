@@ -1,12 +1,12 @@
 [submodule "external/imgui"]
 	path = external/imgui
-	url = ../imgui.git
+	url = ../../krupkat/imgui.git
 [submodule "external/nativefiledialog-extended"]
 	path = external/nativefiledialog-extended
 	url = ../../btzy/nativefiledialog-extended.git
 [submodule "external/thread-pool"]
 	path = external/thread-pool
-	url = ../thread-pool.git
+	url = ../../krupkat/thread-pool.git
 [submodule "external/alpaca"]
 	path = external/alpaca
 	url = ../../p-ranav/alpaca.git
@@ -15,7 +15,7 @@
 	url = ../../TartanLlama/expected.git
 [submodule "external/multiblend"]
 	path = external/multiblend
-	url = ../multiblend.git
+	url = ../../krupkat/multiblend.git
 [submodule "external/simde"]
 	path = external/simde
 	url = ../../simd-everywhere/simde.git
