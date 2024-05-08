@@ -8,7 +8,7 @@ $env:SPDLOG_VERSION = 'v1.14.1'
 $env:EXIV2_VERSION = 'v0.28.2'
 $env:GENERATOR = 'Ninja Multi-Config'
 
-# git submodule update --init
+git submodule update --init
 
 
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $env:OPENCV_VERSION
