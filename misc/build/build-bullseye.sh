@@ -1,6 +1,6 @@
 export BUILD_TYPE='Release'
 export SDL_VERSION='release-2.30.3'
-# export OPENCV_VERSION='4.9.0'
+# export OPENCV_VERSION='4.10.0'
 export CATCH_VERSION='v3.6.0'
 export SPDLOG_VERSION='v1.14.1'
 export EXIV2_VERSION='v0.28.2'

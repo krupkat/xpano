@@ -2,7 +2,7 @@
 
 $env:BUILD_TYPE = 'Release'
 $env:SDL_VERSION = 'release-2.30.3'
-$env:OPENCV_VERSION = '4.9.0'
+$env:OPENCV_VERSION = '4.10.0'
 $env:CATCH_VERSION = 'v3.6.0'
 $env:SPDLOG_VERSION = 'v1.14.1'
 $env:EXIV2_VERSION = 'v0.28.2'
