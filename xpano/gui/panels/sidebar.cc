@@ -335,9 +335,9 @@ Action DrawMaxPanoSizeOptions(
   Action action{};
   ImGui::Text("Max panorama size:");
   ImGui::Spacing();
-  if (ImGui::InputInt("Max panorama size", &stitch_options->max_pano_size,
-                      kMaxPanoSizeStep)) {
-    action |= {ActionType::kRecomputePano};
+  if (ImGui::InputInt("[MPx]",
+                      &stitch_options->max_pano_mpx)) {
+    stitch_options->max_pano_mpx = std::max(stitch_options->max_pano_mpx, 1);
   }
   return action;
 }
@@ -348,11 +348,11 @@ Action DrawStitchOptionsMenu(pipeline::StitchAlgorithmOptions* stitch_options,
   if (ImGui::BeginMenu("Panorama stitching")) {
     action |= DrawProjectionOptions(stitch_options);
     action |= DrawWaveCorrectionOptions(stitch_options);
+    action |= DrawMaxPanoSizeOptions(stitch_options);
 
     if (debug_enabled) {
       ImGui::SeparatorText("Debug");
       action |= DrawBlendingOptions(stitch_options);
-      action |= DrawMaxPanoSizeOptions(stitch_options);
       action |= DrawFeatureMatchingOptions(stitch_options);
 
       if (DrawMatchConf(&stitch_options->match_conf)) {

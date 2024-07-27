@@ -132,6 +132,46 @@ std::vector<TType> Index(const std::vector<TType> &vec,
   return subset;
 }
 
+struct Roi {
+  std::vector<cv::Point> corners;
+  std::vector<cv::Size> sizes;
+  cv::Ptr<cv::detail::RotationWarper> warper;
+  cv::Rect rect;
+};
+
+Roi ComputeRoi(const std::vector<cv::detail::CameraParams> &cameras_scaled,
+               std::vector<cv::Size> full_img_sizes,
+               const cv::Ptr<cv::WarperCreator> &warper_creater,
+               float warp_scale) {
+  spdlog::info("Calculating pano size... ");
+  // NextTask(ProgressType::kStitchComputeRoi);
+  auto compute_roi_timer = Timer();
+
+  std::vector<cv::Point> corners(cameras_scaled.size());
+  std::vector<cv::Size> sizes(cameras_scaled.size());
+
+  auto warper = warper_creater->create(warp_scale);
+
+  // Update corners and sizes
+  for (size_t i = 0; i < cameras_scaled.size(); ++i) {
+    auto k_float = utils::opencv::ToFloat(cameras_scaled[i].K());
+    const cv::Rect roi =
+        warper->warpRoi(full_img_sizes[i], k_float, cameras_scaled[i].R);
+    corners[i] = roi.tl();
+    sizes[i] = roi.size();
+  }
+
+  auto dst_roi = cv::detail::resultRoi(corners, sizes);
+
+  compute_roi_timer.Report(" compute pano size time");
+  return {corners, sizes, warper, dst_roi};
+}
+
+float MPx(const cv::Rect &rect) {
+  return static_cast<float>(rect.width) * static_cast<float>(rect.height) /
+         1e6f;
+}
+
 }  // namespace
 
 cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
@@ -265,36 +305,21 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   auto compose_work_aspect = 1.0 / work_scale_;
   auto cameras_scaled = utils::opencv::Scale(cameras_, compose_work_aspect);
 
-  std::vector<cv::Point> corners(imgs_.size());
-  std::vector<cv::Size> sizes(imgs_.size());
+  auto warp_scale =
+      static_cast<float>(warped_image_scale_ * compose_work_aspect);
+  auto roi =
+      ComputeRoi(cameras_scaled, full_img_sizes_, warper_creater_, warp_scale);
+  auto pano_mpx = MPx(roi.rect);
 
-  cv::Ptr<cv::detail::RotationWarper> warper;
-  {
-    spdlog::info("Calculating pano size... ");
-    NextTask(ProgressType::kStitchComputeRoi);
-    auto compute_roi_timer = Timer();
+  if (pano_mpx > max_pano_mpx_) {
+    spdlog::warn(
+        "Panorama is too large to compute: {}x{} ({:.2f} Mpx), max size is {} "
+        "MPx",
+        roi.rect.width, roi.rect.height, pano_mpx, max_pano_mpx_);
 
-    // Update warped image scale
-    auto warp_scale =
-        static_cast<float>(warped_image_scale_ * compose_work_aspect);
-    warper = warper_creater_->create(warp_scale);
-
-    // Update corners and sizes
-    for (size_t i = 0; i < imgs_.size(); ++i) {
-      auto k_float = utils::opencv::ToFloat(cameras_scaled[i].K());
-      const cv::Rect roi =
-          warper->warpRoi(full_img_sizes_[i], k_float, cameras_scaled[i].R);
-      corners[i] = roi.tl();
-      sizes[i] = roi.size();
-    }
-    compute_roi_timer.Report(" compute pano size time");
-  }
-  auto dst_roi = cv::detail::resultRoi(corners, sizes);
-
-  if (dst_roi.width >= max_pano_size_ || dst_roi.height >= max_pano_size_) {
-    spdlog::error("Panorama is too large to compute: {}x{}, max size is {}",
-                  dst_roi.width, dst_roi.height, max_pano_size_);
-    return Status::kErrPanoTooLarge;
+    auto smaller_warp_scale = warp_scale * std::sqrt(max_pano_mpx_ / pano_mpx);
+    roi = ComputeRoi(cameras_scaled, full_img_sizes_, warper_creater_,
+                     smaller_warp_scale);
   }
 
   std::vector<cv::UMat> masks_warped;
@@ -317,7 +342,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   spdlog::info("Compositing...");
   auto compositing_total_timer = Timer();
 
-  blender_->prepare(dst_roi);
+  blender_->prepare(roi.rect);
   for (size_t img_idx = 0; img_idx < imgs_.size(); ++img_idx) {
     NextTask(ProgressType::kStitchCompose);
     if (auto non_zero = cv::countNonZero(masks_warped[img_idx]);
@@ -337,19 +362,19 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     auto timer = Timer();
 
     // Warp the current image
-    warper->warp(img, k_float, cameras_[img_idx].R, interp_flags_,
-                 cv::BORDER_REFLECT, img_warped);
+    roi.warper->warp(img, k_float, cameras_[img_idx].R, interp_flags_,
+                     cv::BORDER_REFLECT, img_warped);
     timer.Report(" warp the current image");
 
     // Warp the current image mask
     mask.create(img_size, CV_8U);
     mask.setTo(cv::Scalar::all(kMaskValueOn));
-    warper->warp(mask, k_float, cameras_[img_idx].R, cv::INTER_NEAREST,
-                 cv::BORDER_CONSTANT, mask_warped);
+    roi.warper->warp(mask, k_float, cameras_[img_idx].R, cv::INTER_NEAREST,
+                     cv::BORDER_CONSTANT, mask_warped);
     timer.Report(" warp the current image mask");
 
     // Compensate exposure
-    exposure_comp_->apply(static_cast<int>(img_idx), corners[img_idx],
+    exposure_comp_->apply(static_cast<int>(img_idx), roi.corners[img_idx],
                           img_warped, mask_warped);
     timer.Report(" compensate exposure");
 
@@ -365,7 +390,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     timer.Report(" other");
 
     // Blend the current image
-    blender_->feed(img_warped, mask_warped, corners[img_idx]);
+    blender_->feed(img_warped, mask_warped, roi.corners[img_idx]);
     timer.Report(" feed time");
 
     compositing_timer.Report("Compositing ## time");
@@ -386,8 +411,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
 
   pano.assign(result);
 
-  warp_helper_ = {work_scale_, corners, sizes, full_img_sizes_,
-                  std::move(warper)};
+  warp_helper_ = {work_scale_, roi.corners, roi.sizes, full_img_sizes_,
+                  std::move(roi.warper)};
 
   EndMonitoring();
   return Status::kSuccess;

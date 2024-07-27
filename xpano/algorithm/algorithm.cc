@@ -260,7 +260,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
       false, user_options.match_conf));
   stitcher->SetWaveCorrection(user_options.wave_correction !=
                               WaveCorrectionType::kOff);
-  stitcher->SetMaxPanoSize(user_options.max_pano_size);
+  stitcher->SetMaxPanoMpx(user_options.max_pano_mpx);
   if (stitcher->WaveCorrection()) {
     stitcher->SetWaveCorrectKind(
         PickWaveCorrectKind(user_options.wave_correction));
