@@ -26,6 +26,7 @@
 #include "xpano/algorithm/options.h"
 #include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
+#include "xpano/utils/opencv.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec_opencv.h"
 
@@ -202,8 +203,8 @@ TEST_CASE("Pano too large") {
   REQUIRE(stitch_result1.status ==
           xpano::algorithm::stitcher::Status::kSuccessResolutionCapped);
 
-  CHECK_THAT(stitch_result1.pano->rows, WithinRel(1069, eps));
-  CHECK_THAT(stitch_result1.pano->cols, WithinRel(14971, eps));
+  auto pano_mpx = xpano::utils::opencv::MPx(*stitch_result1.pano);
+  CHECK_THAT(pano_mpx, WithinRel(max_pano_mpx, eps));
 }
 
 const std::vector<std::filesystem::path> kInputsIncomplete = {
