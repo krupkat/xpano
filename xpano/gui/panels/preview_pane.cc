@@ -220,8 +220,8 @@ Action PreviewPane::Draw(const std::string& message) {
   {
     std::optional<std::string> extra;
     if (image_type_ == ImageType::kPanoFullRes) {
-      extra =
-          fmt::format("[{:.1f} MPx]", utils::opencv::MPx(full_resolution_pano_));
+      extra = fmt::format("[{:.1f} MPx]",
+                          utils::opencv::MPx(full_resolution_pano_));
     }
     DrawMessage(window.start + utils::Vec2f{0.0f, window.size[1]}, message,
                 extra);
