@@ -38,6 +38,8 @@ const char* WarningMessage(WarningType warning) {
       return "File format is not supported!";
     case WarningType::kFilePickerUnknownError:
       return "File picker error!";
+    case WarningType::kResolutionCapped:
+      return "Image resolution was capped!";
     default:
       return "";
   }
@@ -59,6 +61,8 @@ const char* Title(WarningType warning) {
 bool EnableSnooze(WarningType warning) {
   switch (warning) {
     case WarningType::kWarnInputConversion:
+      [[fallthrough]];
+    case WarningType::kResolutionCapped:
       return true;
     default:
       return false;
@@ -142,6 +146,10 @@ void WarningPane::DrawExtra(const Warning& warning) {
       ImGui::EndChild();
       break;
     }
+    case WarningType::kResolutionCapped: {
+      ImGui::TextUnformatted(warning.extra_message.c_str());
+      break;
+    }
     default:
       break;
   }
@@ -176,6 +184,14 @@ void WarningPane::QueueFilePickerError(const file_dialog::Error& error) {
     default:
       break;
   }
+}
+
+void WarningPane::QueueResolutionCapped(int mpx_limit) {
+  pending_warnings_.push(
+      {WarningType::kResolutionCapped,
+       fmt::format(" - the current limit is {} MPx\n - "
+                   "increase it in Options -> Panorama stitching",
+                   mpx_limit)});
 }
 
 void WarningPane::Show(Warning warning) {

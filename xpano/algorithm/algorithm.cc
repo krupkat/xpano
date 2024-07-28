@@ -281,7 +281,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
     status = stitcher->Stitch(images, pano);
   }
 
-  if (status != stitcher::Status::kSuccess) {
+  if (!IsSuccess(status)) {
     return {status, {}, {}};
   }
 
@@ -313,6 +313,8 @@ std::string ToString(stitcher::Status& status) {
   switch (status) {
     case stitcher::Status::kSuccess:
       return "OK";
+    case stitcher::Status::kSuccessResolutionCapped:
+      return "OK_resolution_capped";
     case stitcher::Status::kCancelled:
       return "Cancelled";
     case stitcher::Status::kErrNeedMoreImgs:

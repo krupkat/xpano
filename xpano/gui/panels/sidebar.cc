@@ -332,12 +332,22 @@ Action DrawBlendingOptions(pipeline::StitchAlgorithmOptions* stitch_options) {
 
 Action DrawMaxPanoSizeOptions(
     pipeline::StitchAlgorithmOptions* stitch_options) {
+  static bool show_apply_button = false;
+
   Action action{};
   ImGui::Text("Max panorama size:");
   ImGui::Spacing();
-  if (ImGui::InputInt("[MPx]",
-                      &stitch_options->max_pano_mpx)) {
+  if (ImGui::InputInt("[MPx]", &stitch_options->max_pano_mpx)) {
     stitch_options->max_pano_mpx = std::max(stitch_options->max_pano_mpx, 1);
+    show_apply_button = true;
+  }
+
+  if (show_apply_button) {
+    ImGui::SameLine();
+    if (ImGui::Button("Apply")) {
+      action |= {ActionType::kRecomputePanoFullRes};
+      show_apply_button = false;
+    }
   }
   return action;
 }

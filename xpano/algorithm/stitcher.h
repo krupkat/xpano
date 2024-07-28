@@ -61,12 +61,15 @@ namespace xpano::algorithm::stitcher {
 
 enum class Status {
   kSuccess,
+  kSuccessResolutionCapped,
   kCancelled,
   kErrNeedMoreImgs,
   kErrHomographyEstFail,
   kErrCameraParamsAdjustFail,
   kErrPanoTooLarge
 };
+
+bool IsSuccess(Status status);
 
 struct WarpHelper {
   double work_scale;

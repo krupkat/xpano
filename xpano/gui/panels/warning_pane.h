@@ -23,7 +23,8 @@ enum class WarningType {
   kUserPrefResetOnRequest,
   kNewVersion,
   kFilePickerUnsupportedExt,
-  kFilePickerUnknownError
+  kFilePickerUnknownError,
+  kResolutionCapped
 };
 
 struct Warning {
@@ -38,6 +39,7 @@ class WarningPane {
   void QueueNewVersion(version::Triplet previous_version,
                        std::optional<utils::Text> changelog);
   void QueueFilePickerError(const file_dialog::Error& error);
+  void QueueResolutionCapped(int mpx_limit);
 
  private:
   void Show(Warning warning);

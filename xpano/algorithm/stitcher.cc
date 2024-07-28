@@ -144,7 +144,6 @@ Roi ComputeRoi(const std::vector<cv::detail::CameraParams> &cameras_scaled,
                const cv::Ptr<cv::WarperCreator> &warper_creater,
                float warp_scale) {
   spdlog::info("Calculating pano size... ");
-  // NextTask(ProgressType::kStitchComputeRoi);
   auto compute_roi_timer = Timer();
 
   std::vector<cv::Point> corners(cameras_scaled.size());
@@ -167,12 +166,12 @@ Roi ComputeRoi(const std::vector<cv::detail::CameraParams> &cameras_scaled,
   return {corners, sizes, warper, dst_roi};
 }
 
-float MPx(const cv::Rect &rect) {
-  return static_cast<float>(rect.width) * static_cast<float>(rect.height) /
-         1e6f;
-}
-
 }  // namespace
+
+bool IsSuccess(Status status) {
+  return status == Status::kSuccess ||
+         status == Status::kSuccessResolutionCapped;
+}
 
 cv::Ptr<Stitcher> Stitcher::Create(Mode mode) {
   cv::Ptr<Stitcher> stitcher = cv::makePtr<Stitcher>();
@@ -305,11 +304,14 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   auto compose_work_aspect = 1.0 / work_scale_;
   auto cameras_scaled = utils::opencv::Scale(cameras_, compose_work_aspect);
 
+  NextTask(ProgressType::kStitchComputeRoi);
+
+  bool resolution_capped = false;
   auto warp_scale =
       static_cast<float>(warped_image_scale_ * compose_work_aspect);
   auto roi =
       ComputeRoi(cameras_scaled, full_img_sizes_, warper_creater_, warp_scale);
-  auto pano_mpx = MPx(roi.rect);
+  auto pano_mpx = utils::opencv::MPx(roi.rect);
 
   if (pano_mpx > max_pano_mpx_) {
     spdlog::warn(
@@ -320,6 +322,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
     auto smaller_warp_scale = warp_scale * std::sqrt(max_pano_mpx_ / pano_mpx);
     roi = ComputeRoi(cameras_scaled, full_img_sizes_, warper_creater_,
                      smaller_warp_scale);
+    resolution_capped = true;
   }
 
   std::vector<cv::UMat> masks_warped;
@@ -415,7 +418,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
                   std::move(roi.warper)};
 
   EndMonitoring();
-  return Status::kSuccess;
+  return (resolution_capped) ? Status::kSuccessResolutionCapped
+                             : Status::kSuccess;
 }
 
 Status Stitcher::Stitch(cv::InputArrayOfArrays images, cv::OutputArray pano) {

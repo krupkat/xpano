@@ -130,8 +130,8 @@ Action ModifyPano(int clicked_image, Selection* selection,
 
 auto ResolveStitcherDataFuture(
     std::future<pipeline::StitcherData> stitcher_data_future,
-    ThumbnailPane* thumbnail_pane, StatusMessage* status_message)
-    -> std::optional<pipeline::StitcherData> {
+    ThumbnailPane* thumbnail_pane,
+    StatusMessage* status_message) -> std::optional<pipeline::StitcherData> {
   std::optional<pipeline::StitcherData> stitcher_data;
   try {
     stitcher_data = stitcher_data_future.get();
@@ -179,7 +179,7 @@ auto ResolveStitchingResultFuture(
       fmt::format("Stitched pano {} successfully", result.pano_id)};
   spdlog::info(*status_message);
 
-  if (!plot_pane->IsRotateEnabled()) {
+  if (!plot_pane->IsRotateEnabled() || result.full_res) {
     plot_pane->Reset();
   }
 
@@ -205,8 +205,8 @@ auto ResolveStitchingResultFuture(
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
-                         PreviewPane* plot_pane, StatusMessage* status_message)
-    -> std::optional<int> {
+                         PreviewPane* plot_pane,
+                         StatusMessage* status_message) -> std::optional<int> {
   pipeline::ExportResult result;
   try {
     result = export_future.get();
@@ -486,15 +486,19 @@ Action PanoGui::PerformAction(const Action& action) {
       }
     }
       [[fallthrough]];
+    case ActionType::kRecomputePanoFullRes:
+      [[fallthrough]];
     case ActionType::kRecomputePano: {
       if (selection_.type == SelectionType::kPano) {
         spdlog::info("Recomputing pano {}: {}", selection_.target_id,
                      Label(options_.stitch.projection.type));
-        return {.type = ActionType::kShowPano,
-                .target_id = selection_.target_id,
-                .delayed = true,
-                .extra = ShowPanoExtra{.reset_crop =
-                                           action.type != ActionType::kRotate}};
+        return {
+            .type = ActionType::kShowPano,
+            .target_id = selection_.target_id,
+            .delayed = true,
+            .extra = ShowPanoExtra{
+                .full_res = action.type == ActionType::kRecomputePanoFullRes,
+                .reset_crop = action.type != ActionType::kRotate}};
       }
       break;
     }
@@ -637,6 +641,11 @@ MultiAction PanoGui::ResolveFutures() {
         auto result = ResolveStitchingResultFuture(
             std::move(pano_future), &plot_pane_, &status_message_);
         auto& pano = stitcher_data_->panos[result.pano_id];
+        if (result.full_res &&
+            result.status ==
+                algorithm::stitcher::Status::kSuccessResolutionCapped) {
+          warning_pane_.QueueResolutionCapped(options_.stitch.max_pano_mpx);
+        }
         if (result.export_path) {
           pano.exported = true;
         }

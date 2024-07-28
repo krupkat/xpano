@@ -25,4 +25,8 @@ std::vector<cv::detail::CameraParams> Scale(
 
 cv::Mat ToFloat(const cv::Mat &image);
 
+float MPx(const cv::Rect &rect);
+
+float MPx(const cv::Mat &image);
+
 }  // namespace xpano::utils::opencv

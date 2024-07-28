@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -18,6 +19,7 @@
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
 #include "xpano/gui/widgets/widgets.h"
+#include "xpano/utils/opencv.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"
 #include "xpano/utils/vec_converters.h"
@@ -26,7 +28,8 @@ namespace xpano::gui {
 
 namespace {
 
-void DrawMessage(utils::Point2f pos, const std::string& message) {
+void DrawMessage(utils::Point2f pos, const std::string& message,
+                 const std::optional<std::string>& extra) {
   if (message.empty()) {
     return;
   }
@@ -39,6 +42,10 @@ void DrawMessage(utils::Point2f pos, const std::string& message) {
                           ImVec2(0.0f, 1.0f));
   ImGui::Begin("Overlay", nullptr, window_flags);
   ImGui::TextUnformatted(message.c_str());
+  if (extra) {
+    ImGui::SameLine();
+    ImGui::TextUnformatted(extra->c_str());
+  }
   ImGui::End();
 }
 
@@ -210,7 +217,15 @@ Action PreviewPane::Draw(const std::string& message) {
   ImGui::Begin("Preview");
   auto window = utils::Rect(utils::ToPoint(ImGui::GetCursorScreenPos()),
                             utils::ToVec(ImGui::GetContentRegionAvail()));
-  DrawMessage(window.start + utils::Vec2f{0.0f, window.size[1]}, message);
+  {
+    std::optional<std::string> extra;
+    if (image_type_ == ImageType::kPanoFullRes) {
+      extra =
+          fmt::format("[{:.1f} MPx]", utils::opencv::MPx(full_resolution_pano_));
+    }
+    DrawMessage(window.start + utils::Vec2f{0.0f, window.size[1]}, message,
+                extra);
+  }
 
   if (tex_ && image_type_ != ImageType::kNone) {
     auto mid = window.start + window.size / 2.0f;

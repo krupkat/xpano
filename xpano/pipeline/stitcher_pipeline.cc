@@ -44,17 +44,18 @@ cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
 #endif
 
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
-  return {
-    cv::IMWRITE_JPEG_QUALITY, options.jpeg_quality,
-        cv::IMWRITE_JPEG_PROGRESSIVE,
-        static_cast<int>(options.jpeg_progressive), cv::IMWRITE_JPEG_OPTIMIZE,
-        static_cast<int>(options.jpeg_optimize),
+  return {cv::IMWRITE_JPEG_QUALITY,
+          options.jpeg_quality,
+          cv::IMWRITE_JPEG_PROGRESSIVE,
+          static_cast<int>(options.jpeg_progressive),
+          cv::IMWRITE_JPEG_OPTIMIZE,
+          static_cast<int>(options.jpeg_optimize),
 #if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
-        cv::IMWRITE_JPEG_SAMPLING_FACTOR,
-        ToOpenCVEnum(options.jpeg_subsampling),
+          cv::IMWRITE_JPEG_SAMPLING_FACTOR,
+          ToOpenCVEnum(options.jpeg_subsampling),
 #endif
-        cv::IMWRITE_PNG_COMPRESSION, options.png_compression
-  };
+          cv::IMWRITE_PNG_COMPRESSION,
+          options.png_compression};
 }
 
 template <typename TFutureType, RunTraits run>
@@ -234,7 +235,7 @@ StitchingResult RunStitchingPipeline(
                          .progress_monitor = progress});
   progress->NotifyTaskDone();
 
-  if (status != algorithm::stitcher::Status::kSuccess) {
+  if (!IsSuccess(status)) {
     return StitchingResult{
         .pano_id = options.pano_id,
         .full_res = options.full_res,
