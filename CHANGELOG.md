@@ -1,3 +1,8 @@
+# Xpano 0.19.0
+
+- User selectable maximum panorama size (in MPx)
+  - Useful to limit cpu / memory usage with very large panoramas
+
 # Xpano 0.18.1
 
 - Fix cropped panorama export

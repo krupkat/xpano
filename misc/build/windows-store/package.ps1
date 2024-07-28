@@ -10,7 +10,7 @@ Param
     $TagParam
 )
 
-Copy-Item -Path "misc/build/windows-store/*" -Destination "install" -Recurse -Force
+Copy-Item -Path "misc/build/windows-store/*" -Destination "install" -Recurse -Container -Force
 cd "install"
 
 # Generate cert, this is not super sensitive, Microsoft resigns with their own cert

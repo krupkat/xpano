@@ -30,6 +30,14 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.19.0" date="2024-07-28">
+      <description>
+        <ul>
+          <li>User selectable maximum panorama size (in MPx)</li>
+          <li>Useful to limit cpu / memory usage with very large panoramas</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.18.1" date="2024-02-11">
       <description>
         <ul>
