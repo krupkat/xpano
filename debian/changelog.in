@@ -1,3 +1,9 @@
+xpano (0.19.0-0~ppa1~{{dist}}) {{dist}}; urgency=low
+
+  * Update to 0.19.0, Selectable max panorama size
+
+ -- Tomas Krupka <tomas@krupkat.cz>  Sun, 28 Jul 2024 16:54:12 +0200
+
 xpano (0.18.1-0~ppa1~{{dist}}) {{dist}}; urgency=low
 
   * Update to 0.18.1, Fix cropped panorama export
