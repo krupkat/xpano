@@ -336,6 +336,10 @@ Action DrawMaxPanoSizeOptions(
 
   Action action{};
   ImGui::Text("Max panorama size:");
+  ImGui::SameLine();
+  utils::imgui::InfoMarker("(?)",
+                           "If the panorama is larger it will be downscaled.\n "
+                           "A warning will be shown when this happens.");
   ImGui::Spacing();
   if (ImGui::InputInt("[MPx]", &stitch_options->max_pano_mpx)) {
     stitch_options->max_pano_mpx = std::max(stitch_options->max_pano_mpx, 1);

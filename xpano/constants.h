@@ -103,6 +103,6 @@ constexpr int kCancelAnimationFrameDuration = 128;
 const std::string kGithubIssuesLink = "https://github.com/krupkat/xpano/issues";
 const std::string kAuthorEmail = "tomas@krupkat.cz";
 
-constexpr int kMaxPanoMpx = 64;
+constexpr int kMaxPanoMpx = 100;
 
 }  // namespace xpano
