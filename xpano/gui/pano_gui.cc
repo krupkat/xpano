@@ -614,6 +614,7 @@ void PanoGui::PerformExportAction(int pano_id) {
   }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
 MultiAction PanoGui::ResolveFutures() {
   MultiAction actions;
   auto handle_stitcher_data =

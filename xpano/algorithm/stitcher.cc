@@ -314,7 +314,7 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   auto pano_mpx = utils::opencv::MPx(roi.rect);
 
   if (pano_mpx > max_pano_mpx_) {
-    float downscale_ratio = std::sqrt(max_pano_mpx_ / pano_mpx);
+    const float downscale_ratio = std::sqrt(max_pano_mpx_ / pano_mpx);
     warped_image_scale_ *= downscale_ratio;
 
     spdlog::warn(
