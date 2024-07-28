@@ -314,14 +314,21 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
   auto pano_mpx = utils::opencv::MPx(roi.rect);
 
   if (pano_mpx > max_pano_mpx_) {
+    float downscale_ratio = std::sqrt(max_pano_mpx_ / pano_mpx);
+    warped_image_scale_ *= downscale_ratio;
+
     spdlog::warn(
         "Panorama is too large to compute: {}x{} ({:.2f} Mpx), max size is {} "
         "MPx",
         roi.rect.width, roi.rect.height, pano_mpx, max_pano_mpx_);
 
-    auto smaller_warp_scale = warp_scale * std::sqrt(max_pano_mpx_ / pano_mpx);
+    auto smaller_warp_scale =
+        static_cast<float>(warped_image_scale_ * compose_work_aspect);
     roi = ComputeRoi(cameras_scaled, full_img_sizes_, warper_creater_,
                      smaller_warp_scale);
+    spdlog::warn("Limiting panorama size to {}x{}", roi.rect.width,
+                 roi.rect.height);
+
     resolution_capped = true;
   }
 

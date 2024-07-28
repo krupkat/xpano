@@ -296,12 +296,15 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   return {status, pano, mask, std::move(result_cameras)};
 }
 
-int StitchTasksCount(int num_images) {
-  return 1 +           // find features
-         1 +           // match features
-         1 +           // estimate homography
-         1 +           // bundle adjustment
-         1 +           // compute pano size
+int StitchTasksCount(int num_images, bool cameras_precomputed) {
+  int tasks = 0;
+  if (!cameras_precomputed) {
+    tasks += 1 +  // find features
+             1 +  // match features
+             1 +  // estimate homography
+             1;   // bundle adjustment
+  }
+  return tasks + 1 +   // compute pano size
          1 +           // prepare seams
          1 +           // find seams
          num_images +  // compose
@@ -323,8 +326,6 @@ std::string ToString(stitcher::Status& status) {
       return "ERR_HOMOGRAPHY_EST_FAIL";
     case stitcher::Status::kErrCameraParamsAdjustFail:
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
-    case stitcher::Status::kErrPanoTooLarge:
-      return "ERR_PANO_TOO_LARGE\nReset the adjustments through the edit menu.";
     default:
       return "ERR_UNKNOWN";
   }

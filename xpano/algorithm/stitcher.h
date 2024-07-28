@@ -65,8 +65,7 @@ enum class Status {
   kCancelled,
   kErrNeedMoreImgs,
   kErrHomographyEstFail,
-  kErrCameraParamsAdjustFail,
-  kErrPanoTooLarge
+  kErrCameraParamsAdjustFail
 };
 
 bool IsSuccess(Status status);

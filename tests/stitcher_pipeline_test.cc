@@ -164,10 +164,12 @@ TEST_CASE("Pano too large") {
   REQUIRE_THAT(stitch_data.panos[0].ids, Equals<int>({0, 1, 2, 3, 4}));
 
   const float eps = 0.02;
+  const int max_pano_mpx = 16;
 
   // stitch for the 1st time
   auto proj_options = xpano::algorithm::StitchUserOptions{
-      .projection = {.type = xpano::algorithm::ProjectionType::kPerspective}};
+      .projection = {.type = xpano::algorithm::ProjectionType::kPerspective},
+      .max_pano_mpx = max_pano_mpx};
   auto stitching_task0 = stitcher.RunStitching(
       stitch_data, {.pano_id = 0, .stitch_algorithm = proj_options});
 
@@ -195,10 +197,13 @@ TEST_CASE("Pano too large") {
   auto stitch_result1 = stitching_task1.future.get();
   progress = stitching_task1.progress->Report();
 
-  REQUIRE(progress.tasks_done != progress.num_tasks);
-  REQUIRE_FALSE(stitch_result1.pano.has_value());
+  REQUIRE(progress.tasks_done == progress.num_tasks);
+  REQUIRE(stitch_result1.pano.has_value());
   REQUIRE(stitch_result1.status ==
-          xpano::algorithm::stitcher::Status::kErrPanoTooLarge);
+          xpano::algorithm::stitcher::Status::kSuccessResolutionCapped);
+
+  CHECK_THAT(stitch_result1.pano->rows, WithinRel(1069, eps));
+  CHECK_THAT(stitch_result1.pano->cols, WithinRel(14971, eps));
 }
 
 const std::vector<std::filesystem::path> kInputsIncomplete = {
