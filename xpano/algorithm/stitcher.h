@@ -61,12 +61,14 @@ namespace xpano::algorithm::stitcher {
 
 enum class Status {
   kSuccess,
+  kSuccessResolutionCapped,
   kCancelled,
   kErrNeedMoreImgs,
   kErrHomographyEstFail,
-  kErrCameraParamsAdjustFail,
-  kErrPanoTooLarge
+  kErrCameraParamsAdjustFail
 };
+
+bool IsSuccess(Status status);
 
 struct WarpHelper {
   double work_scale;
@@ -135,8 +137,9 @@ class Stitcher {
     features_matcher_ = features_matcher;
   }
 
-  [[nodiscard]] int MaxPanoSize() const { return max_pano_size_; }
-  void SetMaxPanoSize(int max_pano_size) { max_pano_size_ = max_pano_size; }
+  void SetMaxPanoMpx(int max_pano_mpx) {
+    max_pano_mpx_ = static_cast<float>(max_pano_mpx);
+  }
 
   [[nodiscard]] const cv::UMat& MatchingMask() const { return matching_mask_; }
   void SetMatchingMask(const cv::UMat& mask) {
@@ -275,7 +278,7 @@ class Stitcher {
 
   ProgressMonitor* monitor_ = nullptr;
   WarpHelper warp_helper_ = {};
-  int max_pano_size_;
+  float max_pano_mpx_;
 };
 
 }  // namespace xpano::algorithm::stitcher

@@ -260,7 +260,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
       false, user_options.match_conf));
   stitcher->SetWaveCorrection(user_options.wave_correction !=
                               WaveCorrectionType::kOff);
-  stitcher->SetMaxPanoSize(user_options.max_pano_size);
+  stitcher->SetMaxPanoMpx(user_options.max_pano_mpx);
   if (stitcher->WaveCorrection()) {
     stitcher->SetWaveCorrectKind(
         PickWaveCorrectKind(user_options.wave_correction));
@@ -281,7 +281,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
     status = stitcher->Stitch(images, pano);
   }
 
-  if (status != stitcher::Status::kSuccess) {
+  if (!IsSuccess(status)) {
     return {status, {}, {}};
   }
 
@@ -296,12 +296,15 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
   return {status, pano, mask, std::move(result_cameras)};
 }
 
-int StitchTasksCount(int num_images) {
-  return 1 +           // find features
-         1 +           // match features
-         1 +           // estimate homography
-         1 +           // bundle adjustment
-         1 +           // compute pano size
+int StitchTasksCount(int num_images, bool cameras_precomputed) {
+  int tasks = 0;
+  if (!cameras_precomputed) {
+    tasks += 1 +  // find features
+             1 +  // match features
+             1 +  // estimate homography
+             1;   // bundle adjustment
+  }
+  return tasks + 1 +   // compute pano size
          1 +           // prepare seams
          1 +           // find seams
          num_images +  // compose
@@ -313,6 +316,8 @@ std::string ToString(stitcher::Status& status) {
   switch (status) {
     case stitcher::Status::kSuccess:
       return "OK";
+    case stitcher::Status::kSuccessResolutionCapped:
+      return "OK_resolution_capped";
     case stitcher::Status::kCancelled:
       return "Cancelled";
     case stitcher::Status::kErrNeedMoreImgs:
@@ -321,8 +326,6 @@ std::string ToString(stitcher::Status& status) {
       return "ERR_HOMOGRAPHY_EST_FAIL";
     case stitcher::Status::kErrCameraParamsAdjustFail:
       return "ERR_CAMERA_PARAMS_ADJUST_FAIL";
-    case stitcher::Status::kErrPanoTooLarge:
-      return "ERR_PANO_TOO_LARGE\nReset the adjustments through the edit menu.";
     default:
       return "ERR_UNKNOWN";
   }

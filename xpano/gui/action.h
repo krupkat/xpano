@@ -34,6 +34,7 @@ enum class ActionType {
   kShowPano,
   kModifyPano,
   kRecomputePano,
+  kRecomputePanoFullRes,
   kQuit,
   kToggleDebugLog,
   kWarnInputConversion,

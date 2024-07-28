@@ -44,17 +44,18 @@ cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
 #endif
 
 std::vector<int> CompressionParameters(const CompressionOptions &options) {
-  return {
-    cv::IMWRITE_JPEG_QUALITY, options.jpeg_quality,
-        cv::IMWRITE_JPEG_PROGRESSIVE,
-        static_cast<int>(options.jpeg_progressive), cv::IMWRITE_JPEG_OPTIMIZE,
-        static_cast<int>(options.jpeg_optimize),
+  return {cv::IMWRITE_JPEG_QUALITY,
+          options.jpeg_quality,
+          cv::IMWRITE_JPEG_PROGRESSIVE,
+          static_cast<int>(options.jpeg_progressive),
+          cv::IMWRITE_JPEG_OPTIMIZE,
+          static_cast<int>(options.jpeg_optimize),
 #if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
-        cv::IMWRITE_JPEG_SAMPLING_FACTOR,
-        ToOpenCVEnum(options.jpeg_subsampling),
+          cv::IMWRITE_JPEG_SAMPLING_FACTOR,
+          ToOpenCVEnum(options.jpeg_subsampling),
 #endif
-        cv::IMWRITE_PNG_COMPRESSION, options.png_compression
-  };
+          cv::IMWRITE_PNG_COMPRESSION,
+          options.png_compression};
 }
 
 template <typename TFutureType, RunTraits run>
@@ -188,11 +189,13 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
   return StitcherData{images, matches, panos};
 }
 
-int StitchTaskCount(const StitchingOptions &options, int num_images) {
-  return 1 +                                        // Stitching
-         algorithm::StitchTasksCount(num_images) +  // Stitching subtasks
-         (options.export_path ? 1 : 0) +            // Export
-         1 +                                        // Auto crop
+int StitchTaskCount(const StitchingOptions &options, int num_images,
+                    bool cameras_precomputed) {
+  return 1 +  // Stitching
+         algorithm::StitchTasksCount(
+             num_images, cameras_precomputed) +  // Stitching subtasks
+         (options.export_path ? 1 : 0) +         // Export
+         1 +                                     // Auto crop
          (options.full_res ? num_images : 1);  // Load full res / load previews
 }
 
@@ -202,7 +205,8 @@ StitchingResult RunStitchingPipeline(
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
     utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
   const int num_images = static_cast<int>(pano.ids.size());
-  const int num_tasks = StitchTaskCount(options, num_images);
+  const int num_tasks =
+      StitchTaskCount(options, num_images, pano.cameras.has_value());
   progress->Reset(ProgressType::kLoadingImages, num_tasks);
   std::vector<cv::Mat> imgs;
   if (options.full_res) {
@@ -234,7 +238,7 @@ StitchingResult RunStitchingPipeline(
                          .progress_monitor = progress});
   progress->NotifyTaskDone();
 
-  if (status != algorithm::stitcher::Status::kSuccess) {
+  if (!IsSuccess(status)) {
     return StitchingResult{
         .pano_id = options.pano_id,
         .full_res = options.full_res,

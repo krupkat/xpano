@@ -65,10 +65,9 @@ constexpr auto DivideByConstant(const Vec<TType, N, Tag>& lhs, TRight rhs,
 }
 
 template <typename TType, size_t N, typename Tag, std::size_t... Index>
-constexpr auto DivideByItself(const Vec<TType, N, Tag>& lhs,
-                              const Vec<TType, N, Tag>& rhs,
-                              std::index_sequence<Index...> /*unused*/)
-    -> Vec<float, N, Ratio> {
+constexpr auto DivideByItself(
+    const Vec<TType, N, Tag>& lhs, const Vec<TType, N, Tag>& rhs,
+    std::index_sequence<Index...> /*unused*/) -> Vec<float, N, Ratio> {
   if constexpr (std::is_floating_point_v<TType>) {
     return {lhs[Index] / rhs[Index]...};
   } else {
@@ -95,8 +94,8 @@ constexpr auto MultiplyByRatio(const Vec<TType, N, Tag>& lhs,
 
 template <typename TagLeft, typename TagRight>
 concept Addable =
-    !(std::same_as<TagLeft, Point> && std::same_as<TagRight, Point>) && !
-std::same_as<TagLeft, Ratio> && !std::same_as<TagRight, Ratio>;
+    !(std::same_as<TagLeft, Point> && std::same_as<TagRight, Point>) &&
+    !std::same_as<TagLeft, Ratio> && !std::same_as<TagRight, Ratio>;
 
 template <typename TagLeft, typename TagRight>
 using AddResultTag = std::conditional_t<std::is_same_v<TagLeft, Vector> &&

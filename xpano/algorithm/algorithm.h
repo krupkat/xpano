@@ -69,7 +69,7 @@ StitchResult Stitch(const std::vector<cv::Mat>& images,
                     const std::optional<Cameras>& cameras,
                     StitchUserOptions user_options, StitchOptions options);
 
-int StitchTasksCount(int num_images);
+int StitchTasksCount(int num_images, bool cameras_precomputed);
 
 std::string ToString(stitcher::Status& status);
 

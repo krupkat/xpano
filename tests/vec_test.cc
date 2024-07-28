@@ -87,8 +87,8 @@ TEST_CASE("Add") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Addable = requires(TLeft lhs, TRight rhs, TResult result) {
-                    { lhs + rhs } -> std::same_as<TResult>;
-                  };
+  { lhs + rhs } -> std::same_as<TResult>;
+};
 
 TEST_CASE("Add type checks") {
   REQUIRE(Addable<Vec2f, Vec2f, Vec2f>);
@@ -124,8 +124,8 @@ TEST_CASE("Subtract") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Subtractable = requires(TLeft lhs, TRight rhs, TResult result) {
-                         { lhs - rhs } -> std::same_as<TResult>;
-                       };
+  { lhs - rhs } -> std::same_as<TResult>;
+};
 
 TEST_CASE("Subtract type checks") {
   REQUIRE(Subtractable<Vec2f, Vec2f, Vec2f>);
@@ -191,8 +191,8 @@ TEST_CASE("Divide by Vec") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Divisible = requires(TLeft lhs, TRight rhs, TResult result) {
-                      { lhs / rhs } -> std::same_as<TResult>;
-                    };
+  { lhs / rhs } -> std::same_as<TResult>;
+};
 
 TEST_CASE("Divide type checks") {
   SECTION("Divide by constant") {
@@ -280,8 +280,8 @@ TEST_CASE("Multiply by Ratio") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Multiplicable = requires(TLeft lhs, TRight rhs, TResult result) {
-                          { lhs* rhs } -> std::same_as<TResult>;
-                        };
+  { lhs* rhs } -> std::same_as<TResult>;
+};
 
 TEST_CASE("Multiply type checks") {
   SECTION("Multiply by constant") {
