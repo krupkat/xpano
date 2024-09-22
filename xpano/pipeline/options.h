@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 #include "xpano/algorithm/options.h"
 #include "xpano/constants.h"
@@ -17,7 +18,7 @@ namespace xpano::pipeline {
 //  - Will result in reloading the default values when loading the config.
 constexpr int kOptionsVersion = 5;
 
-enum class ChromaSubsampling {
+enum class ChromaSubsampling : std::uint8_t {
   k444,
   k422,
   k420,
@@ -28,7 +29,7 @@ const char *Label(ChromaSubsampling subsampling);
 const auto kSubsamplingModes = std::array{
     ChromaSubsampling::k444, ChromaSubsampling::k422, ChromaSubsampling::k420};
 
-enum class MatchingType { kNone, kSinglePano, kAuto };
+enum class MatchingType : std::uint8_t { kNone, kSinglePano, kAuto };
 
 const char *Label(MatchingType type);
 

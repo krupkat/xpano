@@ -7,7 +7,7 @@
 
 #include <spdlog/fmt/fmt.h>
 
-#include "xpano/version.h"
+#include "xpano/version.h"  // IWYU pragma: export
 
 template <>
 struct fmt::formatter<xpano::version::Triplet> : formatter<std::string> {

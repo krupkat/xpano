@@ -21,6 +21,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/vec.h"

@@ -4,10 +4,11 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
 
 namespace xpano::algorithm {
 
-enum class ProgressType {
+enum class ProgressType : std::uint8_t {
   kNone,
   kLoadingImages,
   kStitchingPano,

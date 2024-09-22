@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <queue>
 #include <string>
@@ -14,7 +15,7 @@
 
 namespace xpano::gui {
 
-enum class WarningType {
+enum class WarningType : std::uint8_t {
   kNone,
   kWarnInputConversion,
   kFirstTimeLaunch,
@@ -29,7 +30,7 @@ enum class WarningType {
 
 struct Warning {
   WarningType type = WarningType::kNone;
-  std::string extra_message = {};
+  std::string extra_message;
 };
 
 class WarningPane {

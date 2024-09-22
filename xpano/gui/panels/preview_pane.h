@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -20,7 +21,7 @@
 
 namespace xpano::gui {
 
-enum class ImageType {
+enum class ImageType : std::uint8_t {
   kNone,
   kSingleImage,
   kMatch,
@@ -28,9 +29,9 @@ enum class ImageType {
   kPanoFullRes
 };
 
-enum class CropMode { kInitial, kEnabled, kDisabled };
+enum class CropMode : std::uint8_t { kInitial, kEnabled, kDisabled };
 
-enum class RotateMode { kEnabled, kDisabled };
+enum class RotateMode : std::uint8_t { kEnabled, kDisabled };
 
 class PreviewPane {
  public:

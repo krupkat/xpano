@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 #include "xpano/constants.h"
 
@@ -12,7 +13,7 @@ namespace xpano::algorithm {
 // Bump kOptionsVersion in xpano/pipeline/options.h when changing the
 // definitions
 
-enum class ProjectionType {
+enum class ProjectionType : std::uint8_t {
   kPerspective,
   kCylindrical,
   kSpherical,
@@ -24,16 +25,21 @@ enum class ProjectionType {
   kTransverseMercator
 };
 
-enum class FeatureType { kSift, kOrb };
+enum class FeatureType : std::uint8_t { kSift, kOrb };
 
-enum class WaveCorrectionType { kOff, kAuto, kHorizontal, kVertical };
+enum class WaveCorrectionType : std::uint8_t {
+  kOff,
+  kAuto,
+  kHorizontal,
+  kVertical
+};
 
-enum class InpaintingMethod {
+enum class InpaintingMethod : std::uint8_t {
   kNavierStokes,
   kTelea,
 };
 
-enum class BlendingMethod { kOpenCV, kMultiblend };
+enum class BlendingMethod : std::uint8_t { kOpenCV, kMultiblend };
 
 const char* Label(ProjectionType projection_type);
 const char* Label(FeatureType feature_type);

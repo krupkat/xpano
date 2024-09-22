@@ -4,7 +4,8 @@
 #include "xpano/cli/signal.h"
 
 #ifdef _WIN32
-#include <windows.h>
+#include <consoleapi.h>
+#include <minwindef.h>
 
 #include <spdlog/spdlog.h>
 #else

@@ -50,7 +50,7 @@ template <typename TType>
   return {};
 }
 
-enum class DeserializeStatus {
+enum class DeserializeStatus : std::uint8_t {
   kNoSuchFile,
   kBreakingChange,
   kUnknownError,

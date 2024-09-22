@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@
 
 namespace xpano::gui::file_dialog {
 
-enum class ErrorType {
+enum class ErrorType : std::uint8_t {
   kUserCancelled,
   kTargetNotDirectory,
   kUnsupportedExtension,

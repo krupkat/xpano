@@ -22,6 +22,9 @@
 #include "xpano/version_fmt.h"
 
 #ifdef _WIN32
+#include <consoleapi.h>
+#include <minwindef.h>
+
 #include "xpano/cli/windows_console.h"
 #endif
 

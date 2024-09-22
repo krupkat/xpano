@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include <imgui.h>
@@ -33,7 +34,7 @@ class HoverChecker {
 };
 
 class AutoScroller {
-  enum class ScrollType {
+  enum class ScrollType : std::uint8_t {
     kNone,
     kRatio,
     kAbsolute,
@@ -52,7 +53,7 @@ class AutoScroller {
 
 class ResizeChecker {
  public:
-  enum class Status {
+  enum class Status : std::uint8_t {
     kIdle,
     kResizing,
     kResized,

@@ -3,9 +3,12 @@
 
 #include "xpano/cli/windows_console.h"
 
-#include <cstdio>
-#include <windows.h>
-
+#include <windows.h>  // IWYU pragma: keep
+//
+#include <consoleapi.h>
+#include <processenv.h>
+#include <stdio.h>  // NOLINT(modernize-deprecated-headers)
+#include <WinBase.h>
 
 namespace xpano::cli::windows {
 
@@ -13,7 +16,7 @@ namespace xpano::cli::windows {
 // building with the WIN32 subsystem (app with no console window).
 
 Attach::Attach() {
-  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+  if (AttachConsole(ATTACH_PARENT_PROCESS) != 0) {
     attached_console_ = true;
     freopen_s(&attached_stdout_, "CONOUT$", "w", stdout);
 
@@ -23,7 +26,7 @@ Attach::Attach() {
 }
 
 Attach::~Attach() {
-  if (attached_stdout_) {
+  if (attached_stdout_ != nullptr) {
     fflush(attached_stdout_);
     fclose(attached_stdout_);
   }

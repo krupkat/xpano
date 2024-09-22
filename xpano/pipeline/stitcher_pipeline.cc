@@ -5,6 +5,7 @@
 #include "xpano/pipeline/stitcher_pipeline.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <future>
 #include <memory>
@@ -69,7 +70,7 @@ auto MakeTask() -> std::conditional_t<run == RunTraits::kReturnFuture,
   return {.progress = std::make_unique<ProgressMonitor>()};
 }
 
-enum class WaitStatus {
+enum class WaitStatus : std::uint8_t {
   kReady,
   kCancelled,
 };

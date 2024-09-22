@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <future>
 #include <optional>
 #include <string>
@@ -33,7 +34,7 @@ struct StatusMessage {
   std::string tooltip;
 };
 
-enum class SelectionType {
+enum class SelectionType : std::uint8_t {
   kNone,
   kImage,
   kMatch,
