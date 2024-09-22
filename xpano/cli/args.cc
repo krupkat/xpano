@@ -12,6 +12,10 @@
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
+#ifdef SPDLOG_FMT_EXTERNAL
+#include <fmt/ranges.h> // workaround for macos builds
+#endif
+
 #include "xpano/constants.h"
 #include "xpano/utils/path.h"
 

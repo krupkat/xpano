@@ -87,5 +87,7 @@ jobs:
 
     - name: Check clang-tidy results
       run: |
-        pip install -r misc/scripts/python/requirements.txt
+        python -m venv venv
+        source venv/bin/activate
+        python -m pip install -r misc/scripts/python/requirements.txt
         python misc/scripts/python/check_fixes.py fixes.yml
