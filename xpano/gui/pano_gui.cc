@@ -16,7 +16,6 @@
 #include <vector>
 
 #include <imgui.h>
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/algorithm/algorithm.h"
@@ -39,6 +38,7 @@
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/text.h"
 #include "xpano/version.h"

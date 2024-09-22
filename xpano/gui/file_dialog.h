@@ -8,10 +8,9 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/fmt/fmt.h>
-
 #include "xpano/gui/action.h"
 #include "xpano/utils/expected.h"
+#include "xpano/utils/fmt.h"
 
 namespace xpano::gui::file_dialog {
 

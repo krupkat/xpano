@@ -5,8 +5,7 @@
 
 #include <string>
 
-#include <spdlog/fmt/fmt.h>
-
+#include "xpano/utils/fmt.h"
 #include "xpano/version.h"  // IWYU pragma: export
 
 template <>

@@ -10,10 +10,10 @@
 #ifdef XPANO_WITH_EXIV2
 #include <exiv2/exiv2.hpp>
 #endif
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/path.h"
 #include "xpano/utils/vec.h"
 #include "xpano/version_fmt.h"

@@ -14,7 +14,6 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/algorithm/algorithm.h"
@@ -24,6 +23,7 @@
 #include "xpano/gui/widgets/drag.h"
 #include "xpano/gui/widgets/rotate.h"
 #include "xpano/gui/widgets/widgets.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"

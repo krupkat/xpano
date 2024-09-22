@@ -12,12 +12,12 @@
 #include <vector>
 
 #include <nfd.hpp>
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/utils/expected.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/path.h"
 
 namespace xpano::gui::file_dialog {
