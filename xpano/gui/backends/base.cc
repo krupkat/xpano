@@ -7,7 +7,7 @@
 
 namespace xpano::gui::backends {
 
-TexDeleter::TexDeleter(Base* backend) : backend_(backend) {};
+TexDeleter::TexDeleter(Base* backend) : backend_(backend){};
 
 void TexDeleter::operator()(ImTextureID tex) {
   if (backend_ != nullptr) {
