@@ -5,15 +5,20 @@
 #include "xpano/log/logger.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <iterator>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include <SDL.h>
 #include <spdlog/common.h>
+#include <spdlog/details/log_msg.h>
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/logger.h>
+#include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>

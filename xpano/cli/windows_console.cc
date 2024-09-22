@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <windows.h>
 
-#include <spdlog/spdlog.h>
 
 namespace xpano::cli::windows {
 

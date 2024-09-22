@@ -7,7 +7,6 @@
 #include <array>
 #include <cctype>
 #include <filesystem>
-#include <iterator>
 #include <string>
 #include <utility>
 #include <vector>
@@ -17,6 +16,7 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/gui/action.h"
 #include "xpano/utils/expected.h"
 #include "xpano/utils/path.h"
 

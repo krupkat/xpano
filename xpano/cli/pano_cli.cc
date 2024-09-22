@@ -6,6 +6,8 @@
 #include <atomic>
 #include <exception>
 #include <filesystem>
+#include <optional>
+#include <utility>
 
 #include <spdlog/spdlog.h>
 

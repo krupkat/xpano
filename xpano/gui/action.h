@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <filesystem>
 #include <iterator>
 #include <variant>

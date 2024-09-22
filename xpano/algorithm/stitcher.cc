@@ -54,10 +54,12 @@
 #include <numeric>
 #include <string_view>
 #include <utility>
+#include <vector>
 
+#include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 
-#include "xpano/constants.h"
+#include "xpano/algorithm/progress.h"
 #include "xpano/utils/opencv.h"
 
 namespace xpano::algorithm::stitcher {

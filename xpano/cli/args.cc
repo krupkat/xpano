@@ -5,10 +5,11 @@
 
 #include <exception>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
-#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/bundled/format.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"

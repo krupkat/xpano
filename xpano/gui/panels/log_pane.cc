@@ -4,6 +4,7 @@
 #include "xpano/gui/panels/log_pane.h"
 
 #include <imgui.h>
+#include "xpano/log/logger.h"
 
 namespace xpano::gui {
 

@@ -7,7 +7,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <future>
+#include <memory>
 #include <optional>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -17,7 +19,10 @@
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/progress.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/constants.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/utils/exiv2.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/opencv.h"

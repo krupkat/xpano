@@ -5,6 +5,7 @@
 #include "xpano/gui/panels/about.h"
 
 #include <algorithm>
+#include <future>
 #include <iterator>
 #include <optional>
 #include <sstream>

@@ -3,6 +3,7 @@
 
 #include "xpano/gui/panels/warning_pane.h"
 
+#include <optional>
 #include <utility>
 
 #include <imgui.h>
@@ -12,6 +13,7 @@
 #include "xpano/constants.h"
 #include "xpano/gui/file_dialog.h"
 #include "xpano/utils/imgui_.h"
+#include "xpano/utils/text.h"
 #include "xpano/version_fmt.h"
 
 namespace xpano::gui {
