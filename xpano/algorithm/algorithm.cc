@@ -24,6 +24,7 @@
 #include "xpano/algorithm/auto_crop.h"
 #include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
+#include "xpano/algorithm/options.h"
 #include "xpano/algorithm/stitcher.h"
 #include "xpano/algorithm/warpers.h"
 #include "xpano/utils/disjoint_set.h"

@@ -17,12 +17,12 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  CATCH_VERSION: "v3.6.0"
-  EXIV2_VERSION: "v0.28.2"
+  CATCH_VERSION: "v3.7.1"
+  EXIV2_VERSION: "v0.28.3"
 
 jobs:
   clang-tidy-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -79,7 +79,7 @@ jobs:
 
     - name: Run clang-tidy
       run: |
-        run-clang-tidy-15 `pwd`/xpano `pwd`/tests \
+        run-clang-tidy-18 `pwd`/xpano `pwd`/tests \
           -p=build \
           -quiet \
           -header-filter=xpano/xpano.*xpano \
@@ -87,5 +87,7 @@ jobs:
 
     - name: Check clang-tidy results
       run: |
-        pip install -r misc/scripts/python/requirements.txt
+        python -m venv venv
+        source venv/bin/activate
+        python -m pip install -r misc/scripts/python/requirements.txt
         python misc/scripts/python/check_fixes.py fixes.yml

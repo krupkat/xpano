@@ -11,12 +11,11 @@
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
-#include <spdlog/fmt/fmt.h>
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/blenders.h"
 #include "xpano/algorithm/image.h"
-#include "xpano/algorithm/progress.h"
+#include "xpano/algorithm/options.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/panels/preview_pane.h"
@@ -25,6 +24,7 @@
 #include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/exiv2.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/opencv.h"
 

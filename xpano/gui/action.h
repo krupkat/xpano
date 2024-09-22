@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <iterator>
 #include <variant>
@@ -15,7 +17,7 @@
 
 namespace xpano::gui {
 
-enum class ActionType {
+enum class ActionType : std::uint8_t {
   kNone,
   kCancelPipeline,
   kToggleCrop,

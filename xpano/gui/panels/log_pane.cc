@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+#include "xpano/log/logger.h"
+
 namespace xpano::gui {
 
 LogPane::LogPane(logger::Logger *logger) : logger_(logger) {}

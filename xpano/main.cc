@@ -13,7 +13,6 @@
 #include <imgui_impl_sdlrenderer2.h>
 #include <nfd.h>
 #include <SDL.h>
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/cli/pano_cli.h"
@@ -22,6 +21,7 @@
 #include "xpano/gui/pano_gui.h"
 #include "xpano/log/logger.h"
 #include "xpano/utils/config.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/resource.h"
 #include "xpano/utils/sdl_.h"
@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
                            clear_color.b, clear_color.a);
     SDL_RenderClear(renderer);
     ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
     SDL_RenderPresent(renderer);
   }
 

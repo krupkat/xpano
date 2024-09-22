@@ -3,17 +3,28 @@
 
 #include "xpano/pipeline/stitcher_pipeline.h"
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
+#include <future>
 #include <iterator>
+#include <optional>
 #include <string>
+#include <thread>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+
+#include "xpano/algorithm/algorithm.h"
+#include "xpano/pipeline/options.h"
+#include "xpano/utils/vec.h"
 
 #ifdef XPANO_WITH_EXIV2
 #include <exiv2/exiv2.hpp>

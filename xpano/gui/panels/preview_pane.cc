@@ -7,6 +7,7 @@
 #include <cmath>
 #include <numeric>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -15,10 +16,14 @@
 #include <opencv2/imgproc.hpp>
 #include <spdlog/spdlog.h>
 
+#include "xpano/algorithm/algorithm.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
+#include "xpano/gui/widgets/drag.h"
+#include "xpano/gui/widgets/rotate.h"
 #include "xpano/gui/widgets/widgets.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/opencv.h"
 #include "xpano/utils/rect.h"
 #include "xpano/utils/vec.h"

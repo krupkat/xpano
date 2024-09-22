@@ -121,7 +121,7 @@ float DpiHandler::QueryDpiScale() const {
       // logic, this is a hack to get consistent scaling factor. This code
       // shouldn't be triggered often as we prefer to run in Wayland.
       float max_dpi = 96.0f;
-      int num_displays = SDL_GetNumVideoDisplays();
+      const int num_displays = SDL_GetNumVideoDisplays();
       for (int i = 0; i < num_displays; i++) {
         float dpi;
         SDL_GetDisplayDPI(i, &dpi, nullptr, nullptr);

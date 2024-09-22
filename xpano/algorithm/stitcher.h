@@ -48,6 +48,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -59,7 +60,7 @@
 
 namespace xpano::algorithm::stitcher {
 
-enum class Status {
+enum class Status : std::uint8_t {
   kSuccess,
   kSuccessResolutionCapped,
   kCancelled,

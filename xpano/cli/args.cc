@@ -5,13 +5,14 @@
 
 #include <exception>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/path.h"
 
 namespace xpano::cli {

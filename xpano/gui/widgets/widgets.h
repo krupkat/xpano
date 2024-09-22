@@ -3,17 +3,12 @@
 
 #pragma once
 
-#include <array>
-#include <vector>
-
-#include <imgui.h>
 #include <opencv2/core.hpp>
 #include <opencv2/stitching/detail/warpers.hpp>
 
-#include "xpano/algorithm/algorithm.h"
-#include "xpano/utils/rect.h"
-
 namespace xpano::gui::widgets {
+
+// NOLINTNEXTLINE(performance-enum-size)
 enum class EdgeType : int {
   kTop = 1,
   kBottom = 2,

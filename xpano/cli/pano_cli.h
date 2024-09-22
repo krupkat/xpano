@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <utility>
 
@@ -10,7 +11,7 @@
 
 namespace xpano::cli {
 
-enum class ResultType {
+enum class ResultType : std::uint8_t {
   kSuccess,
   kError,
   kForwardToGui,

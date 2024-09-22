@@ -16,12 +16,12 @@
 #include <vector>
 
 #include <imgui.h>
-#include <spdlog/fmt/fmt.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/algorithm/algorithm.h"
 #include "xpano/algorithm/image.h"
 #include "xpano/algorithm/options.h"
+#include "xpano/algorithm/stitcher.h"
 #include "xpano/cli/args.h"
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
@@ -31,12 +31,16 @@
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/sidebar.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
+#include "xpano/gui/panels/warning_pane.h"
 #include "xpano/gui/shortcut.h"
 #include "xpano/log/logger.h"
+#include "xpano/pipeline/options.h"
 #include "xpano/pipeline/stitcher_pipeline.h"
 #include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
+#include "xpano/utils/fmt.h"
 #include "xpano/utils/imgui_.h"
+#include "xpano/utils/text.h"
 #include "xpano/version.h"
 
 template <>

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 
@@ -10,7 +11,7 @@
 
 namespace xpano::utils::sdl {
 
-enum class WindowManager {
+enum class WindowManager : std::uint8_t {
   kWindows,
   kMacOS,
   kX11,

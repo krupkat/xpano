@@ -19,6 +19,8 @@ Checks: >
 HeaderFilterRegex: "xpano.*xpano.*"
 
 CheckOptions:
+  - key:   misc-include-cleaner.IgnoreHeaders
+    value: SDL.*;opencv2.*;exiv2.*;spdlog.*;nfd.*;fmt.*
   - key:   readability-identifier-naming.ClassCase
     value: CamelCase
   - key:   readability-identifier-naming.ClassMemberCase

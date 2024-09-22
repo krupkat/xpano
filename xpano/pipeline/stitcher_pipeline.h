@@ -78,7 +78,7 @@ using ProgressMonitor = algorithm::ProgressMonitor;
 using ProgressReport = algorithm::ProgressReport;
 using ProgressType = algorithm::ProgressType;
 
-enum class RunTraits { kOwnFuture, kReturnFuture };
+enum class RunTraits : std::uint8_t { kOwnFuture, kReturnFuture };
 
 template <typename Result>
 struct Task {

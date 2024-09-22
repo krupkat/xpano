@@ -7,8 +7,10 @@
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 
 #ifdef XPANO_WITH_MULTIBLEND
+#include <mb/image.h>
 #include <mb/multiblend.h>
 #endif
 

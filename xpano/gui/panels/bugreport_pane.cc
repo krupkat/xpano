@@ -9,6 +9,7 @@
 #include <imgui.h>
 
 #include "xpano/constants.h"
+#include "xpano/log/logger.h"
 
 namespace xpano::gui {
 

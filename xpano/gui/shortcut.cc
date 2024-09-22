@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+#include "xpano/gui/action.h"
+
 namespace xpano::gui {
 
 const char* Label(ShortcutType type) {
