@@ -212,7 +212,8 @@ void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
 bool ThumbnailPane::ThumbnailButton(int img_id) const {
   const auto &coord = coords_[img_id];
   return ImGui::ImageButton(
-      tex_.get(), ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
+      "", tex_.get(),
+      ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
       utils::ImVec(coord.uv0), utils::ImVec(coord.uv1));
 }
 

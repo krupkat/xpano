@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
                            clear_color.b, clear_color.a);
     SDL_RenderClear(renderer);
     ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
     SDL_RenderPresent(renderer);
   }
 
