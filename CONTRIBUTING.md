@@ -8,7 +8,7 @@ The repository mostly uses the Google C++ [style guide](https://google.github.io
 
 ## clang-format
 
- Formatting is checked upon submission, please format your files with the included `.clang-format` configuration. Use the provided scripts for your convenience:
+ Formatting is checked when you make a PR, please format your files with the included `.clang-format` configuration. Use the provided scripts for your convenience:
 
  ```
  /misc/scripts/format.ps1
@@ -16,12 +16,16 @@ The repository mostly uses the Google C++ [style guide](https://google.github.io
  ```
 ## clang-tidy
 
-Static analysis is checked upon submission, please make sure there are 0 clang-tidy warnings in your code, using the included `.clang-tidy` configutaion. Use the provided scripts for your convenience:
+Static analysis is checked when you make a PR, please make sure there are 0 clang-tidy warnings in your code, using the included `.clang-tidy` configutaion. Use the provided scripts for your convenience:
 
  ```
  /misc/scripts/tidy.ps1
  /misc/scripts/tidy.sh
  ```
+
+### Clang tools versions
+
+The CI currently works with the clang-18 tools from the [Ubuntu 24.04 runner](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)
 
 ## Copyright
 
