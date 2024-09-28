@@ -203,7 +203,7 @@ void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
   }
   ImGui::BeginTooltip();
   for (const int img_id : images) {
-    ImGui::PushID(coord_id);
+    ImGui::PushID(img_id);
     ThumbnailButton(img_id);
     ImGui::PopID();
     ImGui::SameLine();
