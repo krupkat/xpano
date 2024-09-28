@@ -1,3 +1,7 @@
+# Xpano 0.19.1
+
+- Update Flatpak runtime to 24.08
+
 # Xpano 0.19.0
 
 - User selectable maximum panorama size (in MPx)
