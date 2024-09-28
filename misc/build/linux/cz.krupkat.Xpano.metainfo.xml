@@ -6,6 +6,10 @@
   <project_license>GPL-3.0-or-later</project_license>
   <name>Xpano</name>
   <summary>Easy panorama stitching</summary>
+  <branding>
+    <color type="primary" scheme_preference="light">#9de185</color>
+    <color type="primary" scheme_preference="dark">#344a2c</color>
+  </branding>
   <description>
     <p>
       Xpano is a photo stitching tool that focuses on simplicity and ease of use, you can use it to:
