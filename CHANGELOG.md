@@ -1,3 +1,7 @@
+# Xpano 0.19.2
+
+- Fix crash when showing thumbnail tooltips
+
 # Xpano 0.19.1
 
 - Update Flatpak runtime to 24.08
