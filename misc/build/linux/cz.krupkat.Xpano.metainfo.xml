@@ -5,22 +5,24 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Xpano</name>
-  <summary>Automated photo stiching tool</summary>
+  <summary>Easy panorama stitching</summary>
   <description>
     <p>
-      Xpano is a photo stitching tool that focuses on simplicity and ease of use, major features include:
+      Xpano is a photo stitching tool that focuses on simplicity and ease of use, you can use it to:
     </p>
     <ul>
-      <li>Auto detection of groups of images that can be stitched into panoramas</li>
-      <li>Preview + zoom + pan of the computed panoramas</li>
-      <li>Crop mode, boundary auto fill, selectable projection types</li>
-      <li>Export of full resolution panoramas including exif metadata</li>
+      <li>Auto detect groups of images that can be stitched into panoramas</li>
+      <li>Quickly preview the results with zoom and pan</li>
+      <li>Crop, auto fill boundaries and select from multiple projection types</li>
+      <li>Adjust the projection parameters: pitch, yaw and roll</li>
+      <li>Export full resolution panoramas, including exif metadata</li>
     </ul>
   </description>
   <launchable type="desktop-id">xpano.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/krupkat/xpano/main/misc/screenshots/xpano.jpg</image>
+      <caption>Xpano interface after loading 200 images</caption>
     </screenshot>
   </screenshots>
   <url type="homepage">https://krupkat.github.io/xpano/</url>
@@ -49,12 +51,9 @@
     <release version="0.18.0" date="2024-02-11">
       <description>
         <ul>
-          <li>Panorama adjustments
-            <ul>
-              <li>Drag the panorama by its horizontal / vertical axis</li>
-              <li>Rotate the panorama by its center point</li>
-            </ul>
-          </li>
+          <li>Panorama adjustments</li>
+          <li>Drag the panorama by its horizontal / vertical axis</li>
+          <li>Rotate the panorama by its center point</li>
         </ul>
       </description>
     </release>
