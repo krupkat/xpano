@@ -21,8 +21,24 @@
   <launchable type="desktop-id">xpano.desktop</launchable>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/krupkat/xpano/main/misc/screenshots/xpano.jpg</image>
-      <caption>Xpano interface after loading 200 images</caption>
+      <image>https://gist.githubusercontent.com/krupkat/55ca0f085c944fb1ea2a7dc2a779f141/raw/c7834a3136bdd9d50d25c36c0dfc1861bbb55653/1.png</image>
+      <caption>Stitch beautiful panoramas</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://gist.githubusercontent.com/krupkat/55ca0f085c944fb1ea2a7dc2a779f141/raw/c7834a3136bdd9d50d25c36c0dfc1861bbb55653/2.png</image>
+      <caption>Select different projection types</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://gist.githubusercontent.com/krupkat/55ca0f085c944fb1ea2a7dc2a779f141/raw/c7834a3136bdd9d50d25c36c0dfc1861bbb55653/3.png</image>
+      <caption>Fast adjustment of projection parameters</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://gist.githubusercontent.com/krupkat/55ca0f085c944fb1ea2a7dc2a779f141/raw/c7834a3136bdd9d50d25c36c0dfc1861bbb55653/4.png</image>
+      <caption>Zoom in to inspect the details</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://gist.githubusercontent.com/krupkat/55ca0f085c944fb1ea2a7dc2a779f141/raw/c7834a3136bdd9d50d25c36c0dfc1861bbb55653/5.png</image>
+      <caption>Export in full resolution</caption>
     </screenshot>
   </screenshots>
   <url type="homepage">https://krupkat.github.io/xpano/</url>
