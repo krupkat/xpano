@@ -47,7 +47,9 @@
   </screenshots>
   <url type="homepage">https://krupkat.github.io/xpano/</url>
   <url type="bugtracker">https://github.com/krupkat/xpano/issues</url>
-  <developer_name>Tomas Krupka</developer_name>
+  <developer id="cz.krupkat">
+    <name>Tomas Krupka</name>
+  </developer>
   <provides>
     <binary>Xpano</binary>
   </provides>
