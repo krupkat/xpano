@@ -21,9 +21,9 @@ Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](http
 
 ## Demo
 
-Check out the demo on [YouTube](https://youtu.be/MyiTC3i1hK0). This is how the app looks after importing a directory of 200 images.
+Check out the demo on [YouTube](https://youtu.be/MyiTC3i1hK0).
 
-![Main Xpano gui](misc/screenshots/xpano.jpg)
+![Main Xpano gui](https://gist.githubusercontent.com/krupkat/55ca0f085c944fb1ea2a7dc2a779f141/raw/f90afd675b1c0430db06a46984cbe5309908ddc1/1.webp)
 
 ## Installation
 
