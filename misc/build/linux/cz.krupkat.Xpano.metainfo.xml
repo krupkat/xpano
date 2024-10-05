@@ -54,6 +54,15 @@
     <binary>Xpano</binary>
   </provides>
   <releases>
+    <release version="0.19.3" date="2024-10-05">
+      <description>
+        <ul>
+          <li>Update Flatpak runtime to 24.08</li>
+          <li>Fix crash when showing thumbnail tooltips</li>
+          <li>Update screenshots</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.19.2" date="2024-09-28">
       <description>
         <ul>

@@ -1,3 +1,7 @@
+# Xpano 0.19.3
+
+- Update screenshots
+
 # Xpano 0.19.2
 
 - Fix crash when showing thumbnail tooltips
