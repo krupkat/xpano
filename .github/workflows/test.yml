@@ -12,10 +12,10 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  SDL_VERSION: "release-2.30.7"
+  SDL_VERSION: "release-2.30.10"
   OPENCV_VERSION: "4.10.0"
   CATCH_VERSION: "v3.7.1"
-  SPDLOG_VERSION: "v1.14.1"
+  SPDLOG_VERSION: "v1.15.0"
   EXIV2_VERSION: "v0.28.3"
   GENERATOR: "Ninja Multi-Config"
 
@@ -385,7 +385,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-12, macos-14]
+        os: [macos-13, macos-14]
 
     steps:
     - uses: actions/checkout@v4
@@ -412,7 +412,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_INSTALL_PREFIX=install \
           `cat ../misc/build/opencv-minimal-flags.txt`
-        cmake --build build --target install -j $(nproc)
+        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
         cd ..
 
     - name: Cache exiv2
@@ -430,7 +430,7 @@ jobs:
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
           `cat ../misc/build/exiv2-minimal-flags.txt`
-        cmake --build build --target install -j $(nproc)
+        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
         cd ..
 
     - name: Configure CMake
@@ -444,7 +444,7 @@ jobs:
           -Dexiv2_ROOT=exiv2/install
 
     - name: Build
-      run: cmake --build build -j $(nproc) --target install
+      run: cmake --build build -j `sysctl -n hw.logicalcpu` --target install
 
     - name: Run Tests
       run: |
