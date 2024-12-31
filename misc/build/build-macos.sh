@@ -18,7 +18,7 @@ cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/opencv-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.physicalcpu`
+cmake --build build --target install -j `sysctl -n hw.logicalcpu`
 cd ..
 
 
@@ -27,7 +27,7 @@ cd exiv2
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/exiv2-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.physicalcpu`
+cmake --build build --target install -j `sysctl -n hw.logicalcpu`
 cd ..
 
 cmake -B build \
@@ -38,7 +38,7 @@ cmake -B build \
   -DOpenCV_ROOT=opencv/install \
   -Dexiv2_ROOT=exiv2/install
 
-cmake --build build -j `sysctl -n hw.physicalcpu` --target install
+cmake --build build -j `sysctl -n hw.logicalcpu` --target install
 cd build
 ctest --output-on-failure
 cd ..

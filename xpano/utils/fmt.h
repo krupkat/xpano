@@ -9,7 +9,7 @@
 #include <spdlog/fmt/fmt.h>
 
 #if FMT_VERSION >= 110000
-#include <spdlog/fmt/bundled/ranges.h> // fmt::join moved here in fmt 11.0.0
+#include <spdlog/fmt/bundled/ranges.h>  // fmt::join moved here in fmt 11.0.0
 #endif
 
 #else
