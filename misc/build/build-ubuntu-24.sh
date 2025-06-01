@@ -9,17 +9,8 @@ export EXIV2_VERSION='v0.28.5'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
-#brew install sdl2 spdlog catch2
-
-
-git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
-cd opencv
-cmake -B build \
-  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DCMAKE_INSTALL_PREFIX=install \
-  `cat ../misc/build/opencv-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
-cd ..
+#sudo apt-get update
+#sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev catch2
 
 
 git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
@@ -27,7 +18,7 @@ cd exiv2
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   `cat ../misc/build/exiv2-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cmake --build build --target install -j $(nproc)
 cd ..
 
 cmake -B build \
@@ -35,13 +26,9 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-  -DOpenCV_ROOT=opencv/install \
-  -Dexiv2_ROOT=exiv2/install
+  -Dexiv2_ROOT=`pwd`/exiv2/install
 
-cmake --build build -j `sysctl -n hw.logicalcpu` --target install
+cmake --build build -j $(nproc) --target install
 cd build
 ctest --output-on-failure
 cd ..
-
-./misc/build/macos/bundle.sh
-ls -R Xpano.app

@@ -1,9 +1,9 @@
 export BUILD_TYPE='Release'
-export SDL_VERSION='release-2.30.10'
-# export OPENCV_VERSION='4.10.0'
-export CATCH_VERSION='v3.7.1'
-export SPDLOG_VERSION='v1.15.0'
-export EXIV2_VERSION='v0.28.3'
+export SDL_VERSION='release-2.32.6'
+# export OPENCV_VERSION='4.11.0'
+export CATCH_VERSION='v3.8.1'
+export SPDLOG_VERSION='v1.15.3'
+export EXIV2_VERSION='v0.28.5'
 # export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init

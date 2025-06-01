@@ -36,6 +36,7 @@ Get additional packages:
 - Windows and MacOS executables from [GitHub](https://github.com/krupkat/xpano/releases)
 - Ubuntu packages from my [Launchpad PPA](https://launchpad.net/~krupkat/+archive/ubuntu/code)
 - Nix packages from [nixpkgs](https://search.nixos.org/packages?channel=unstable&show=xpano)
+- Archlinux AUR: [xpano-git](https://aur.archlinux.org/packages/xpano-git)
 
 ## Command line
 
@@ -74,6 +75,20 @@ Run the build script from the root of the repository:
 ./misc/build/build-macos.sh
 ```
 
+### Ubuntu 24.04
+
+Library prerequisites:
+
+```
+sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev catch2
+```
+
+Run the build script from the root of the repository:
+
+```
+./misc/build/build-ubuntu-24.sh
+```
+
 ### Ubuntu 22.04
 
 Library prerequisites:
@@ -86,22 +101,6 @@ Run the build script from the root of the repository:
 
 ```
 ./misc/build/build-ubuntu-22.sh
-```
-
-### Ubuntu 20.04
-
-Build works with `g++-10` from the system repository. You will have to install a more recent version of CMake, e.g. from [Kitware](https://apt.kitware.com/).
-
-Library prerequisites:
-
-```
-sudo apt install libgtk-3-dev
-```
-
-Run the build script from the root of the repository:
-
-```
-./misc/build/build-ubuntu-20.sh
 ```
 
 ### Windows
