@@ -12,11 +12,11 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  SDL_VERSION: "release-2.30.10"
-  OPENCV_VERSION: "4.10.0"
-  CATCH_VERSION: "v3.7.1"
-  SPDLOG_VERSION: "v1.15.0"
-  EXIV2_VERSION: "v0.28.3"
+  SDL_VERSION: "release-2.32.6"
+  OPENCV_VERSION: "4.11.0"
+  CATCH_VERSION: "v3.8.1"
+  SPDLOG_VERSION: "v1.15.3"
+  EXIV2_VERSION: "v0.28.5"
   GENERATOR: "Ninja Multi-Config"
 
 jobs:
