@@ -202,48 +202,53 @@ install(DIRECTORY
   "${CMAKE_SOURCE_DIR}/misc/assets"
   TYPE DATA
 )
+
+# CMake 3.31 and later warn if normalization changes a path (CMP0177).
+# Normalize explicitly to avoid this warning.
+cmake_path(SET LICENSE_DIR NORMALIZE "${CMAKE_INSTALL_DATADIR}/licenses")
+
 install(FILES
   "external/imgui/LICENSE.txt"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "imgui-license.txt"
 )
 install(FILES
   "external/nativefiledialog-extended/LICENSE"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "nativefiledialog-extended-license.txt"
 )
 install(FILES
   "external/thread-pool/LICENSE.txt"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "thread-pool-license.txt"
 )
 install(FILES
   "external/alpaca/LICENSE"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "alpaca-license.txt"
 )
 install(FILES
   "external/simde/COPYING"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "simde-license.txt"
 )
 install(FILES
   "misc/assets/OFL.txt"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "google-noto-license.txt"
 )
 install(FILES
   "LICENSE"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "xpano-license.txt"
 )
 install(FILES
   "CHANGELOG.md"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
 )
 install(FILES
   "misc/build/opencv-notice.txt"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
 )
 install(DIRECTORY
   "${OpenCV_DIR}/etc/licenses"
@@ -252,25 +257,25 @@ install(DIRECTORY
 )
 install(FILES
   "${OpenCV_DIR}/LICENSE"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+  DESTINATION ${LICENSE_DIR}
   RENAME "opencv-license.txt"
   OPTIONAL
 )
 if (exiv-library)
   install(FILES
     "misc/build/exiv2-notice.txt"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    DESTINATION ${LICENSE_DIR}
   )
 endif()
 if (XPANO_WITH_MULTIBLEND)
   install(FILES
     "external/multiblend/COPYRIGHT"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    DESTINATION ${LICENSE_DIR}
     RENAME "multiblend-notice.txt"
   )
   install(FILES
     "external/multiblend/LICENSE"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses"
+    DESTINATION ${LICENSE_DIR}
     RENAME "multiblend-license.txt"
   )
 endif()
