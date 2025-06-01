@@ -22,6 +22,7 @@ env:
 jobs:
   build-windows-latest:
     runs-on: windows-latest
+
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
@@ -170,6 +171,8 @@ jobs:
   build-ubuntu-24:
     runs-on: ubuntu-24.04
 
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -218,6 +221,8 @@ jobs:
 
   build-ubuntu-22:
     runs-on: ubuntu-22.04
+
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
     - uses: actions/checkout@v4
@@ -270,6 +275,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DCatch2_ROOT=`pwd`/catch/install \
           -Dexiv2_ROOT=`pwd`/exiv2/install
 
     - name: Build

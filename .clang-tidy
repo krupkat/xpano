@@ -1,12 +1,14 @@
 # Disabled bugprone-exception-escape because of a bug in clang-tidy:
 # https://github.com/llvm/llvm-project/issues/54668
 # Dangerous: bugprone-unchecked-optional-access
+# Disabled bugprone-chained-comparison because it collides with Catch2
 
 Checks: >
   -*,
   bugprone-*,
   -bugprone-exception-escape,
   -bugprone-unchecked-optional-access,
+  -bugprone-chained-comparison,
   google-*,
   misc-*,
   modernize-*,
