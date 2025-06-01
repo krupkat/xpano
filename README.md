@@ -36,6 +36,7 @@ Get additional packages:
 - Windows and MacOS executables from [GitHub](https://github.com/krupkat/xpano/releases)
 - Ubuntu packages from my [Launchpad PPA](https://launchpad.net/~krupkat/+archive/ubuntu/code)
 - Nix packages from [nixpkgs](https://search.nixos.org/packages?channel=unstable&show=xpano)
+- Archlinux AUR: [xpano-git](https://aur.archlinux.org/packages/xpano-git)
 
 ## Command line
 
