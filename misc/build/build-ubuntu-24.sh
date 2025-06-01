@@ -10,14 +10,7 @@ export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
-
-
-git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
-cd catch
-cmake -B build -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=OFF
-cmake --build build -j $(nproc) --target install
-cd ..
+#sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev catch2
 
 
 git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
