@@ -29,6 +29,13 @@ def ShellExtension(system):
         return "sh"
 
 
+def DefaultShell(system):
+    if "windows" in system:
+        return "pwsh"
+    else:
+        return "bash"
+
+
 def OutputEnvironment(env, system):
     if "windows" in system:
         exports = [f"$env:{name} = '{value}'" for name, value in env.items()]
@@ -54,15 +61,16 @@ if __name__ == "__main__":
 
     for job_name, job in action["jobs"].items():
         system = job["runs-on"]
-        filename = "{}.{}".format(job_name, ShellExtension(system))
+        filename = f"{job_name}.{ShellExtension(system)}"
 
+        shebang = f"#!/usr/bin/env {DefaultShell(system)}"
         header = Header(args.action_path)
         exports = OutputEnvironment(env, system)
         script = "\n".join(ConvertStep(step) for step in job["steps"])
 
         with open(os.path.join(args.output_dir, filename), "w") as file:
-            if filename.endswith(".sh"):
-                file.write("#!/usr/bin/env bash\n")
+            file.write(shebang)
+            file.write("\n\n")
             file.write(header)
             file.write("\n\n")
             file.write(exports)

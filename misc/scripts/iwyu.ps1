@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 $cwd = (Get-Location).Path
 $iwyu_tool = (Get-Command iwyu_tool.py).Path
 

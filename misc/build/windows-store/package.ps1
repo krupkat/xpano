@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 Param
 (
     [Parameter(Mandatory=$true, Position=0)]
