@@ -22,7 +22,7 @@ cd ..
 
 
 git clone https://github.com/libsdl-org/sdl2-compat.git --depth 1 --branch $env:SDL_VERSION
-cd sdl
+cd sdl2-compat
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
@@ -64,7 +64,7 @@ cmake --build build --target install --config $env:BUILD_TYPE
 cd ..
 
 New-Item -Name "licenses" -ItemType "directory"
-Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
+Copy-Item "sdl2-compat/LICENSE.txt" -Destination "licenses/sdl-license.txt"
 Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
 Copy-Item "exiv2/COPYING" -Destination "licenses/exiv2-license.txt"
 
@@ -75,7 +75,7 @@ cmake -B build -G "$env:GENERATOR" `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-  -DSDL2_ROOT="${cwd}/sdl/install" `
+  -DSDL2_ROOT="${cwd}/sdl2-compat/install" `
   -DOpenCV_STATIC=ON `
   -DOpenCV_ROOT="${cwd}/opencv/install" `
   -Dspdlog_ROOT="${cwd}/spdlog/build/install" `
