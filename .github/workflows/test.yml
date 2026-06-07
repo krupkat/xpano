@@ -12,7 +12,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  SDL_VERSION: "release-2.32.68"
+  SDL_VERSION: "release-2.32.10"
   OPENCV_VERSION: "4.13.0"
   CATCH_VERSION: "v3.15.0"
   SPDLOG_VERSION: "v1.17.0"
@@ -56,15 +56,15 @@ jobs:
       id: cache-sdl
       with:
         path: |
-          sdl2-compat/install
-          sdl2-compat/LICENSE.txt
+          sdl/install
+          sdl/LICENSE.txt
         key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-static-ninja
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
       run: |
-        git clone https://github.com/libsdl-org/sdl2-compat.git --depth 1 --branch $env:SDL_VERSION
-        cd sdl2-compat
+        git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $env:SDL_VERSION
+        cd sdl
         cmake -B build -G "$env:GENERATOR" `
           -DBUILD_SHARED_LIBS=OFF `
           -DCMAKE_INSTALL_PREFIX=install `
@@ -139,7 +139,7 @@ jobs:
     - name: Bundle extra licenses
       run: |
         New-Item -Name "licenses" -ItemType "directory"
-        Copy-Item "sdl2-compat/LICENSE.txt" -Destination "licenses/sdl-license.txt"
+        Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
         Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
         Copy-Item "exiv2/COPYING" -Destination "licenses/exiv2-license.txt"
 
@@ -152,7 +152,7 @@ jobs:
           -DXPANO_STATIC_VCRT=ON `
           -DCMAKE_INSTALL_PREFIX=install `
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-          -DSDL2_ROOT="${cwd}/sdl2-compat/install" `
+          -DSDL2_ROOT="${cwd}/sdl/install" `
           -DOpenCV_STATIC=ON `
           -DOpenCV_ROOT="${cwd}/opencv/install" `
           -Dspdlog_ROOT="${cwd}/spdlog/build/install" `
