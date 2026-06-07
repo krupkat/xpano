@@ -295,7 +295,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-14-large, macos-15]
+        os: [macos-26-intel, macos-26]
 
     steps:
     - uses: actions/checkout@v6
