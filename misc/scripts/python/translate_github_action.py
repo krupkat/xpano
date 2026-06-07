@@ -61,6 +61,8 @@ if __name__ == "__main__":
         script = "\n".join(ConvertStep(step) for step in job["steps"])
 
         with open(os.path.join(args.output_dir, filename), "w") as file:
+            if filename.endswith(".sh"):
+                file.write("#!/usr/bin/env bash\n")
             file.write(header)
             file.write("\n\n")
             file.write(exports)

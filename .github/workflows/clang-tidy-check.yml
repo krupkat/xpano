@@ -17,23 +17,23 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  EXIV2_VERSION: "v0.28.5"
+  EXIV2_VERSION: "v0.28.8"
 
 jobs:
   clang-tidy-check:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: true
 
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
+          sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev catch2
 
     - name: Cache exiv2
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       id: cache-exiv2
       with:
         path: exiv2/install
