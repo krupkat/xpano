@@ -15,6 +15,8 @@ def ConvertStep(step):
     if step.get("uses", "").startswith("actions/checkout"):
         if step.get("with", {}).get("submodules", False) == True:
             return "git submodule update --init"
+    if step.get("name", "") == "Set up VS Developer Prompt":
+        return ''
     # comment out sudo actions
     command = step.get("run", "") \
         .replace("sudo", "#sudo") \

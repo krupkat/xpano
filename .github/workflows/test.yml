@@ -20,8 +20,8 @@ env:
   GENERATOR: "Ninja Multi-Config"
 
 jobs:
-  build-windows-latest:
-    runs-on: windows-latest
+  build-windows:
+    runs-on: windows-2025
 
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
@@ -30,7 +30,15 @@ jobs:
       with:
         submodules: true
 
-    - uses: ilammy/msvc-dev-cmd@v1
+    # https://github.com/bitcoin/bitcoin/pull/32513
+    - name: Set up VS Developer Prompt
+      run: |
+        $vswherePath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $installationPath = & $vswherePath -latest -property installationPath
+        & "${env:COMSPEC}" /s /c "`"$installationPath\Common7\Tools\vsdevcmd.bat`" -arch=x64 -no_logo && set" | foreach-object {
+          $name, $value = $_ -split '=', 2
+          echo "$name=$value" >> $env:GITHUB_ENV
+        }
 
     - name: Cache OpenCV
       uses: actions/cache@v5
