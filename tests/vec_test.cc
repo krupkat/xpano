@@ -280,7 +280,7 @@ TEST_CASE("Multiply by Ratio") {
 
 template <typename TLeft, typename TRight, typename TResult = void>
 concept Multiplicable = requires(TLeft lhs, TRight rhs, TResult result) {
-  { lhs* rhs } -> std::same_as<TResult>;
+  { lhs * rhs } -> std::same_as<TResult>;
 };
 
 TEST_CASE("Multiply type checks") {

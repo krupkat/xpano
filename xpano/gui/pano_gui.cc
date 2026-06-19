@@ -134,8 +134,8 @@ Action ModifyPano(int clicked_image, Selection* selection,
 
 auto ResolveStitcherDataFuture(
     std::future<pipeline::StitcherData> stitcher_data_future,
-    ThumbnailPane* thumbnail_pane,
-    StatusMessage* status_message) -> std::optional<pipeline::StitcherData> {
+    ThumbnailPane* thumbnail_pane, StatusMessage* status_message)
+    -> std::optional<pipeline::StitcherData> {
   std::optional<pipeline::StitcherData> stitcher_data;
   try {
     stitcher_data = stitcher_data_future.get();
@@ -209,8 +209,8 @@ auto ResolveStitchingResultFuture(
 }
 
 auto ResolveExportFuture(std::future<pipeline::ExportResult> export_future,
-                         PreviewPane* plot_pane,
-                         StatusMessage* status_message) -> std::optional<int> {
+                         PreviewPane* plot_pane, StatusMessage* status_message)
+    -> std::optional<int> {
   pipeline::ExportResult result;
   try {
     result = export_future.get();

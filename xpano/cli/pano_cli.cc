@@ -51,7 +51,7 @@ void CancelHandler(int /*signal*/) { cancel.fetch_add(1); }
 
 void PrintVersion() { spdlog::info("Xpano version {}", version::Current()); }
 
-ResultType RunPipeline(const Args &args) {
+ResultType RunPipeline(const Args& args) {
   pipeline::StitcherPipeline<pipeline::RunTraits::kReturnFuture> pipeline;
 
   auto loading_task = pipeline.RunLoading(
@@ -68,7 +68,7 @@ ResultType RunPipeline(const Args &args) {
     loading_task.progress->Cancel();
     pipeline.CancelAndWait();
     return ResultType::kError;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     spdlog::error("Failed to load images: {}", e.what());
     return ResultType::kError;
   }
@@ -96,7 +96,7 @@ ResultType RunPipeline(const Args &args) {
     stitching_task.progress->Cancel();
     pipeline.CancelAndWait();
     return ResultType::kError;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     spdlog::error("Failed to stitch panorama: {}", e.what());
     return ResultType::kError;
   }
@@ -122,7 +122,7 @@ ResultType RunPipeline(const Args &args) {
 }
 }  // namespace
 
-std::pair<ResultType, std::optional<Args>> Run(int argc, char **argv) {
+std::pair<ResultType, std::optional<Args>> Run(int argc, char** argv) {
 #ifdef _WIN32
   auto attach_console = windows::Attach();
 #endif

@@ -13,7 +13,7 @@
 
 namespace xpano::gui {
 
-BugReportPane::BugReportPane(logger::Logger *logger) : logger_(logger) {}
+BugReportPane::BugReportPane(logger::Logger* logger) : logger_(logger) {}
 
 void BugReportPane::Show() { show_ = true; }
 void BugReportPane::Draw() {

@@ -21,12 +21,12 @@ constexpr bool HasJpegSubsamplingSupport() {
 }
 
 std::vector<cv::detail::CameraParams> Scale(
-    const std::vector<cv::detail::CameraParams> &cameras, double scale);
+    const std::vector<cv::detail::CameraParams>& cameras, double scale);
 
-cv::Mat ToFloat(const cv::Mat &image);
+cv::Mat ToFloat(const cv::Mat& image);
 
-float MPx(const cv::Rect &rect);
+float MPx(const cv::Rect& rect);
 
-float MPx(const cv::Mat &image);
+float MPx(const cv::Mat& image);
 
 }  // namespace xpano::utils::opencv

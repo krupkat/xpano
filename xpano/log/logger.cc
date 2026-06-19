@@ -33,8 +33,8 @@
 namespace xpano::logger {
 
 namespace {
-void CustomLog(void * /*userdata*/, int /*category*/, SDL_LogPriority priority,
-               const char *message) {
+void CustomLog(void* /*userdata*/, int /*category*/, SDL_LogPriority priority,
+               const char* message) {
   switch (priority) {
     case SDL_LOG_PRIORITY_VERBOSE:
       spdlog::trace(message);
@@ -68,7 +68,7 @@ std::vector<std::string> BufferSinkMt::LastFormatted() {
   return new_messages;
 }
 
-void BufferSinkMt::sink_it_(const spdlog::details::log_msg &msg) {
+void BufferSinkMt::sink_it_(const spdlog::details::log_msg& msg) {
   spdlog::memory_buf_t formatted;
   base_sink<std::mutex>::formatter_->format(msg, formatted);
   messages_.push_back(fmt::to_string(formatted));
@@ -109,7 +109,7 @@ void Logger::RedirectSpdlogToGui(
 #endif
 }
 
-const std::vector<std::string> &Logger::Log() {
+const std::vector<std::string>& Logger::Log() {
   Concatenate();
   return log_;
 }

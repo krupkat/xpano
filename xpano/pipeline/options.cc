@@ -5,7 +5,7 @@
 
 namespace xpano::pipeline {
 
-const char *Label(ChromaSubsampling subsampling) {
+const char* Label(ChromaSubsampling subsampling) {
   switch (subsampling) {
     case ChromaSubsampling::k444:
       return "Off";
@@ -18,7 +18,7 @@ const char *Label(ChromaSubsampling subsampling) {
   }
 }
 
-const char *Label(MatchingType type) {
+const char* Label(MatchingType type) {
   switch (type) {
     case MatchingType::kNone:
       return "Off";

@@ -20,7 +20,7 @@ class HoverChecker {
  public:
   void SetColor(int img_id);
   void ResetColor(int img_id, bool ctrl_pressed);
-  void Highlight(const std::vector<int> &ids);
+  void Highlight(const std::vector<int>& ids);
   void DisableHighlight();
 
  private:
@@ -77,21 +77,21 @@ class ThumbnailPane {
   };
 
  public:
-  explicit ThumbnailPane(backends::Base *backend);
-  void Load(const std::vector<algorithm::Image> &images);
+  explicit ThumbnailPane(backends::Base* backend);
+  void Load(const std::vector<algorithm::Image>& images);
   [[nodiscard]] bool Loaded() const;
 
   Action Draw();
 
-  void ThumbnailTooltip(const std::vector<int> &images) const;
+  void ThumbnailTooltip(const std::vector<int>& images) const;
 
   void SetScrollX(int img_id);
   void SetScrollX(int id1, int id2);
-  void SetScrollX(const std::vector<int> &ids);
+  void SetScrollX(const std::vector<int>& ids);
 
   void Highlight(int img_id);
   void Highlight(int id1, int id2);
-  void Highlight(const std::vector<int> &ids);
+  void Highlight(const std::vector<int>& ids);
   void DisableHighlight();
 
   void Reset();
@@ -111,9 +111,9 @@ class ThumbnailPane {
   HoverChecker hover_checker_;
 
   backends::Texture tex_;
-  backends::Base *backend_;
+  backends::Base* backend_;
 
-  ImGuiIO &io_ = ImGui::GetIO();
+  ImGuiIO& io_ = ImGui::GetIO();
 };
 
 }  // namespace xpano::gui

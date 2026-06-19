@@ -102,10 +102,10 @@ class Timer {
   int64 start_count_ = 0;
 };
 
-double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
+double ComputeWarpScale(const std::vector<cv::detail::CameraParams>& cameras) {
   std::vector<double> focals(cameras.size());
   std::transform(cameras.begin(), cameras.end(), focals.begin(),
-                 [](const auto &camera) { return camera.focal; });
+                 [](const auto& camera) { return camera.focal; });
 
   std::sort(focals.begin(), focals.end());
   if (focals.size() % 2 == 1) {
@@ -114,20 +114,20 @@ double ComputeWarpScale(const std::vector<cv::detail::CameraParams> &cameras) {
   return (focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5;
 }
 
-double ComputeWorkScale(const cv::Size &img_size, double registr_resol) {
+double ComputeWorkScale(const cv::Size& img_size, double registr_resol) {
   if (registr_resol < 0) {
     return 1.0;
   }
   return std::min(1.0, std::sqrt(registr_resol * 1e6 / img_size.area()));
 }
 
-double ComputeSeamScale(const cv::Size &img_size, double seam_est_resol) {
+double ComputeSeamScale(const cv::Size& img_size, double seam_est_resol) {
   return std::min(1.0, std::sqrt(seam_est_resol * 1e6 / img_size.area()));
 }
 
 template <typename TType>
-std::vector<TType> Index(const std::vector<TType> &vec,
-                         const std::vector<int> &indices) {
+std::vector<TType> Index(const std::vector<TType>& vec,
+                         const std::vector<int>& indices) {
   std::vector<TType> subset(indices.size());
   std::transform(indices.begin(), indices.end(), subset.begin(),
                  [&vec](int index) { return vec[index]; });
@@ -141,9 +141,9 @@ struct Roi {
   cv::Rect rect;
 };
 
-Roi ComputeRoi(const std::vector<cv::detail::CameraParams> &cameras_scaled,
+Roi ComputeRoi(const std::vector<cv::detail::CameraParams>& cameras_scaled,
                std::vector<cv::Size> full_img_sizes,
-               const cv::Ptr<cv::WarperCreator> &warper_creater,
+               const cv::Ptr<cv::WarperCreator>& warper_creater,
                float warp_scale) {
   spdlog::info("Calculating pano size... ");
   auto compute_roi_timer = Timer();
@@ -238,7 +238,7 @@ Status Stitcher::EstimateTransform(cv::InputArrayOfArrays images,
   return Status::kSuccess;
 }
 
-Status Stitcher::EstimateSeams(std::vector<cv::UMat> *seams) {
+Status Stitcher::EstimateSeams(std::vector<cv::UMat>* seams) {
   auto seam_timer = Timer();
 
   std::vector<cv::UMat> masks(imgs_.size());
@@ -536,7 +536,7 @@ Status Stitcher::EstimateCameraParams() {
   }
   NextTask(ProgressType::kStitchBundleAdjustment);
 
-  for (auto &camera : cameras_) {
+  for (auto& camera : cameras_) {
     camera.R = utils::opencv::ToFloat(camera.R);
   }
 
@@ -555,7 +555,7 @@ Status Stitcher::EstimateCameraParams() {
     std::vector<cv::Mat> rmats;
     rmats.reserve(cameras_.size());
 
-    for (auto &camera : cameras_) {
+    for (auto& camera : cameras_) {
       rmats.push_back(camera.R.clone());
     }
     if (wave_correct_kind_ == cv::detail::WAVE_CORRECT_AUTO) {
@@ -577,7 +577,7 @@ Status Stitcher::EstimateCameraParams() {
 
 Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
-    const std::vector<cv::detail::CameraParams> &cameras) {
+    const std::vector<cv::detail::CameraParams>& cameras) {
   std::vector<int> component(images.total());
   std::iota(component.begin(), component.end(), 0);
 
@@ -586,8 +586,8 @@ Status Stitcher::SetTransform(
 
 Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
-    const std::vector<cv::detail::CameraParams> &cameras,
-    const std::vector<int> &component) {
+    const std::vector<cv::detail::CameraParams>& cameras,
+    const std::vector<int>& component) {
   images.getUMatVector(imgs_);
   masks_.clear();
 

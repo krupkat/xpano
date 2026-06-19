@@ -105,27 +105,27 @@ class StitcherPipeline {
   ~StitcherPipeline();
 
   // reason: some tasks use pointers to members
-  StitcherPipeline(const StitcherPipeline &) = delete;
-  StitcherPipeline &operator=(const StitcherPipeline &) = delete;
-  StitcherPipeline(StitcherPipeline &&) = delete;
-  StitcherPipeline &operator=(StitcherPipeline &&) = delete;
+  StitcherPipeline(const StitcherPipeline&) = delete;
+  StitcherPipeline& operator=(const StitcherPipeline&) = delete;
+  StitcherPipeline(StitcherPipeline&&) = delete;
+  StitcherPipeline& operator=(StitcherPipeline&&) = delete;
 
-  auto RunLoading(const std::vector<std::filesystem::path> &inputs,
-                  const LoadingOptions &loading_options,
-                  const MatchingOptions &matching_options)
+  auto RunLoading(const std::vector<std::filesystem::path>& inputs,
+                  const LoadingOptions& loading_options,
+                  const MatchingOptions& matching_options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<StitcherData>>, void>;
 
-  auto RunStitching(const StitcherData &data, const StitchingOptions &options)
+  auto RunStitching(const StitcherData& data, const StitchingOptions& options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<StitchingResult>>, void>;
 
-  auto RunExport(cv::Mat pano, const ExportOptions &options)
+  auto RunExport(cv::Mat pano, const ExportOptions& options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<ExportResult>>, void>;
 
   auto RunInpainting(cv::Mat pano, cv::Mat mask,
-                     const InpaintingOptions &options)
+                     const InpaintingOptions& options)
       -> std::conditional_t<run == RunTraits::kReturnFuture,
                             Task<std::future<InpaintingResult>>, void>;
 
