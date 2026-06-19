@@ -17,6 +17,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
+  SPDLOG_VERSION: "v1.17.0"
 
 jobs:
   clang-tidy-check:
