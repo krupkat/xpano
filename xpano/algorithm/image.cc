@@ -17,10 +17,10 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
+#include "xpano/utils/fmt.h"
 
 namespace xpano::algorithm {
 namespace {
-thread_local cv::Ptr<cv::Feature2D> sift = cv::SIFT::create(kNumFeatures);
 
 std::optional<cv::Size> PreviewSize(const cv::Size& full_size,
                                     int preview_longer_side) {
@@ -42,6 +42,9 @@ std::optional<cv::Size> PreviewSize(const cv::Size& full_size,
 Image::Image(std::filesystem::path path) : path_(std::move(path)) {}
 
 void Image::Load(ImageLoadOptions options) {
+  const thread_local cv::Ptr<cv::Feature2D> kSift =
+      cv::SIFT::create(kNumFeatures);
+
   cv::Mat tmp =
       cv::imread(path_.string(), cv::IMREAD_COLOR | cv::IMREAD_ANYDEPTH);
   if (!tmp.empty() && tmp.depth() != CV_8U) {
@@ -62,7 +65,7 @@ void Image::Load(ImageLoadOptions options) {
   }
 
   if (options.compute_keypoints) {
-    sift->detectAndCompute(preview_, cv::Mat(), keypoints_, descriptors_);
+    kSift->detectAndCompute(preview_, cv::Mat(), keypoints_, descriptors_);
   }
   cv::resize(preview_, thumbnail_, cv::Size(kThumbnailSize, kThumbnailSize), 0,
              0, cv::INTER_AREA);
@@ -113,8 +116,8 @@ cv::Mat Image::GetDescriptors() const { return descriptors_; }
 std::filesystem::path Image::GetPath() const { return path_; }
 
 std::string Image::PanoName() const {
-  return path_.stem().string() + kDefaultPanoSuffix +
-         path_.extension().string();
+  return fmt::format("{}{}{}", path_.stem().string(), kDefaultPanoSuffix,
+                     path_.extension().string());
 }
 
 }  // namespace xpano::algorithm

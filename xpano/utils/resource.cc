@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -15,7 +16,7 @@
 namespace xpano::utils::resource {
 
 std::optional<std::string> Find(const std::filesystem::path& executable_path,
-                                const std::string& rel_path) {
+                                std::string_view rel_path) {
   auto path = executable_path / rel_path;
   if (std::filesystem::exists(path)) {
     return path.string();
@@ -32,7 +33,7 @@ std::optional<std::string> Find(const std::filesystem::path& executable_path,
 }
 
 SdlSurface LoadIcon(const std::filesystem::path& executable_path,
-                    const std::string& path) {
+                    std::string_view path) {
   auto full_path = Find(executable_path, path);
   if (!full_path) {
     return {nullptr, &SDL_FreeSurface};

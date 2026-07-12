@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <imgui.h>
@@ -18,10 +17,9 @@
 
 namespace xpano::utils::imgui {
 
-FontLoader::FontLoader(std::string alphabet_font_path,
-                       std::string symbols_font_path)
-    : alphabet_font_path_(std::move(alphabet_font_path)),
-      symbols_font_path_(std::move(symbols_font_path)) {}
+FontLoader::FontLoader(const FontLoaderArgs& args)
+    : alphabet_font_path_(args.alphabet_font_path),
+      symbols_font_path_(args.symbols_font_path) {}
 
 void FontLoader::ComputeGlyphRanges() {
   ImFontGlyphRangesBuilder builder;

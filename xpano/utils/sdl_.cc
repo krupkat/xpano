@@ -90,8 +90,6 @@ bool DpiHandler::DpiChanged() {
 
 float DpiHandler::DpiScale() const { return dpi_scale_; }
 
-// NOLINTBEGIN(bugprone-branch-clone): doesn't work with [[fallthrough]]
-
 float DpiHandler::QueryDpiScale() const {
   switch (window_manager_) {
     case WindowManager::kWindows:
@@ -143,11 +141,11 @@ float DpiHandler::QueryDpiScale() const {
   }
 }
 
-// NOLINTEND(bugprone-branch-clone)
-
 std::optional<std::filesystem::path> InitializePrefPath() {
+  const std::string org_name{kOrgName};
+  const std::string app_name{kAppName};
   auto sdl_pref_path = std::unique_ptr<char, decltype(&SDL_free)>(
-      SDL_GetPrefPath(kOrgName.c_str(), kAppName.c_str()), &SDL_free);
+      SDL_GetPrefPath(org_name.c_str(), app_name.c_str()), &SDL_free);
   if (!sdl_pref_path) {
     return {};
   }

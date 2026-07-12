@@ -8,6 +8,7 @@
 #include <cctype>
 #include <filesystem>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -29,11 +30,12 @@ utils::Unexpected<Error> MakeUnexpected(Args&&... args) {
   return utils::Unexpected<Error>(Error{std::forward<Args>(args)...});
 }
 
-template <typename TArray>
-TArray Uppercase(const TArray& extensions) {
-  TArray result;
+template <auto N>
+std::array<std::string, N> Uppercase(
+    const std::array<std::string_view, N>& extensions) {
+  std::array<std::string, N> result;
   auto to_upper = [](const auto& extension) {
-    auto uppercase_extension = extension;
+    std::string uppercase_extension{extension};
     std::transform(extension.begin(), extension.end(),
                    uppercase_extension.begin(),
                    [](const auto& letter) { return std::toupper(letter); });

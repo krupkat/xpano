@@ -633,7 +633,7 @@ MultiAction PanoGui::ResolveFutures() {
         }
         if (stitcher_data_ && !stitcher_data_->panos.empty()) {
           // keep delayed == true to wait for the thumbnails to be drawn at
-          // leaset once before scrolling
+          // least once before scrolling
           actions |= {.type = ActionType::kShowPano,
                       .target_id = 0,
                       .delayed = true,

@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <spdlog/spdlog.h>
@@ -22,12 +23,12 @@ namespace {
 // Custom args parsing...
 // TODO(krupkat): move to cxxopts / cli11 when adding new arguments
 
-const std::string kGuiFlag = "--gui";
-const std::string kOutputFlag = "--output=";
-const std::string kHelpFlag = "--help";
-const std::string kVersionFlag = "--version";
+constexpr std::string_view kGuiFlag = "--gui";
+constexpr std::string_view kOutputFlag = "--output=";
+constexpr std::string_view kHelpFlag = "--help";
+constexpr std::string_view kVersionFlag = "--version";
 
-void ParseArg(Args* result, const std::string& arg) {
+void ParseArg(Args* result, const std::string_view arg) {
   if (arg == kGuiFlag) {
     result->run_gui = true;
   } else if (arg == kHelpFlag) {

@@ -49,6 +49,7 @@ namespace {
 
 constexpr auto kReturnFuture = xpano::pipeline::RunTraits::kReturnFuture;
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization): acceptable
 const std::vector<std::filesystem::path> kInputs = {
     "data/image00.jpg", "data/image01.jpg", "data/image02.jpg",
     "data/image03.jpg", "data/image04.jpg", "data/image05.jpg",
@@ -184,14 +185,14 @@ TEST_CASE("Stitcher pipeline defaults [extra results]") {
   CHECK(stitch_result1.cameras->cameras.size() == 3);
 }
 
-const std::vector<std::filesystem::path> kInputsFirstPano = {
-    "data/image01.jpg", "data/image02.jpg", "data/image03.jpg",
-    "data/image04.jpg", "data/image05.jpg"};
-
 TEST_CASE("Pano too large") {
+  const std::vector<std::filesystem::path> inputs_first_pano = {
+      "data/image01.jpg", "data/image02.jpg", "data/image03.jpg",
+      "data/image04.jpg", "data/image05.jpg"};
+
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
 
-  auto loading_task = stitcher.RunLoading(kInputsFirstPano, {}, {});
+  auto loading_task = stitcher.RunLoading(inputs_first_pano, {}, {});
   auto stitch_data = loading_task.future.get();
   auto progress = loading_task.progress->Report();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -243,16 +244,16 @@ TEST_CASE("Pano too large") {
   CHECK_THAT(pano_mpx, WithinRel(max_pano_mpx, eps));
 }
 
-const std::vector<std::filesystem::path> kInputsIncomplete = {
-    "data/image05.jpg",  // pano 1
-    "data/image06.jpg",  // pano 2
-    "data/image07.jpg"   // pano 2
-};
-
 TEST_CASE("Incomplete pano") {
+  const std::vector<std::filesystem::path> inputs_incomplete = {
+      "data/image05.jpg",  // pano 1
+      "data/image06.jpg",  // pano 2
+      "data/image07.jpg"   // pano 2
+  };
+
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
 
-  auto loading_task = stitcher.RunLoading(kInputsIncomplete, {}, {});
+  auto loading_task = stitcher.RunLoading(inputs_incomplete, {}, {});
   auto stitch_data = loading_task.future.get();
   auto progress = loading_task.progress->Report();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -316,24 +317,24 @@ TEST_CASE("Stitcher pipeline no matching") {
   }
 }
 
-const std::vector<std::filesystem::path> kShuffledInputs = {
-    "data/image01.jpg",  // Pano 1
-    "data/image06.jpg",  // 2
-    "data/image02.jpg",  // Pano 1
-    "data/image07.jpg",  // 2
-    "data/image03.jpg",  // Pano 1
-    "data/image00.jpg",
-    "data/image08.jpg",  // 2
-    "data/image04.jpg",  // Pano 1
-    "data/image09.jpg",
-    "data/image05.jpg",  // Pano 1
-};
-
 TEST_CASE("Stitcher pipeline custom matching neighborhood") {
+  const std::vector<std::filesystem::path> shuffled_inputs = {
+      "data/image01.jpg",  // Pano 1
+      "data/image06.jpg",  // 2
+      "data/image02.jpg",  // Pano 1
+      "data/image07.jpg",  // 2
+      "data/image03.jpg",  // Pano 1
+      "data/image00.jpg",
+      "data/image08.jpg",  // 2
+      "data/image04.jpg",  // Pano 1
+      "data/image09.jpg",
+      "data/image05.jpg",  // Pano 1
+  };
+
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
 
   auto loading_task =
-      stitcher.RunLoading(kShuffledInputs, {}, {.neighborhood_search_size = 3});
+      stitcher.RunLoading(shuffled_inputs, {}, {.neighborhood_search_size = 3});
   auto result = loading_task.future.get();
   auto progress = loading_task.progress->Report();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -424,16 +425,16 @@ TEST_CASE("Stitcher pipeline loading options") {
                        allowed_margin));
 }
 
-const std::vector<std::filesystem::path> kVerticalPanoInputs = {
-    "data/image10.jpg",
-    "data/image11.jpg",
-    "data/image12.jpg",
-};
-
 TEST_CASE("Stitcher pipeline vertical pano") {
+  const std::vector<std::filesystem::path> vertical_pano_inputs = {
+      "data/image10.jpg",
+      "data/image11.jpg",
+      "data/image12.jpg",
+  };
+
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
 
-  auto loading_task = stitcher.RunLoading(kVerticalPanoInputs, {},
+  auto loading_task = stitcher.RunLoading(vertical_pano_inputs, {},
                                           {.neighborhood_search_size = 1});
   auto result = loading_task.future.get();
   auto progress = loading_task.progress->Report();
@@ -456,6 +457,7 @@ TEST_CASE("Stitcher pipeline vertical pano") {
   CHECK_THAT(pano0->cols, WithinRel(1030, eps));
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization): acceptable
 const std::vector<std::filesystem::path> kInputsWithExifMetadata = {
     "data/image06.jpg",
     "data/image07.jpg",
@@ -606,14 +608,14 @@ TEST_CASE("ExportWithoutMetadata") {
   std::filesystem::remove(tmp_path);
 }
 
-const std::vector<std::filesystem::path> kTiffInputs = {
-    "data/8bit.tif",
-    "data/16bit.tif",
-};
-
 TEST_CASE("TIFF inputs") {
+  const std::vector<std::filesystem::path> tiff_inputs = {
+      "data/8bit.tif",
+      "data/16bit.tif",
+  };
+
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
-  auto loading_task = stitcher.RunLoading(kTiffInputs, {}, {});
+  auto loading_task = stitcher.RunLoading(tiff_inputs, {}, {});
   auto result = loading_task.future.get();
   auto progress = loading_task.progress->Report();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -628,11 +630,11 @@ TEST_CASE("TIFF inputs") {
   CHECK(preview1.depth() == CV_8U);
 }
 
-const std::filesystem::path kMalformedInput = "data/malformed.jpg";
-
 TEST_CASE("Malformed input") {
+  const std::filesystem::path malformed_input = "data/malformed.jpg";
+
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
-  auto loading_task = stitcher.RunLoading({kMalformedInput}, {}, {});
+  auto loading_task = stitcher.RunLoading({malformed_input}, {}, {});
   auto result = loading_task.future.get();
   auto progress = loading_task.progress->Report();
   CHECK(progress.tasks_done == progress.num_tasks);
@@ -723,18 +725,18 @@ TEST_CASE("Stitcher pipeline polling") {
   CHECK_THAT(pano1->cols, WithinRel(1335, eps));
 }
 
-const std::vector<std::filesystem::path> kInputsWithStack = {
-    "data/image01.jpg",  // Minimal shift
-    "data/image05.jpg",  // between images
-    "data/image06.jpg",
-    "data/image07.jpg",
-};
-
 TEST_CASE("Stitcher pipeline stack detection") {
+  const std::vector<std::filesystem::path> inputs_with_stack = {
+      "data/image01.jpg",  // Minimal shift
+      "data/image05.jpg",  // between images
+      "data/image06.jpg",
+      "data/image07.jpg",
+  };
+
   const float min_shift = 0.2f;
   xpano::pipeline::StitcherPipeline<kReturnFuture> stitcher;
   auto loading_task =
-      stitcher.RunLoading(kInputsWithStack, {}, {.min_shift = min_shift});
+      stitcher.RunLoading(inputs_with_stack, {}, {.min_shift = min_shift});
   auto result = loading_task.future.get();
   auto progress = loading_task.progress->Report();
   CHECK(progress.tasks_done == progress.num_tasks);
