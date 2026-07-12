@@ -1,6 +1,12 @@
 { pkgs ? import <nixpkgs> { }
 }:
-
+let
+  # In LLVM 22, run-clang-tidy.py moved from share/clang/ to bin/, so nixpkgs
+  # clang-tools no longer links it. Wrap it manually.
+  runClangTidy = pkgs.writeShellScriptBin "run-clang-tidy-22" ''
+    exec ${pkgs.python3}/bin/python3 ${pkgs.llvmPackages_22.clang-unwrapped}/bin/run-clang-tidy "$@"
+  '';
+in
 pkgs.mkShell {
   buildInputs = with pkgs; [
     cmake
@@ -15,6 +21,7 @@ pkgs.mkShell {
     dbus
     (python3.withPackages (pkgs: with pkgs; [ pyyaml ]))
     llvmPackages_22.clang-tools
+    runClangTidy
     ruby_4_0
   ];
 }

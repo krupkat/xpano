@@ -104,10 +104,10 @@ class Timer {
 
 double ComputeWarpScale(const std::vector<cv::detail::CameraParams>& cameras) {
   std::vector<double> focals(cameras.size());
-  std::transform(cameras.begin(), cameras.end(), focals.begin(),
-                 [](const auto& camera) { return camera.focal; });
+  std::ranges::transform(cameras, focals.begin(),
+                         [](const auto& camera) { return camera.focal; });
 
-  std::sort(focals.begin(), focals.end());
+  std::ranges::sort(focals);
   if (focals.size() % 2 == 1) {
     return focals[focals.size() / 2];
   }
@@ -427,8 +427,8 @@ Status Stitcher::ComposePanorama(cv::OutputArray pano) {
                   std::move(roi.warper)};
 
   EndMonitoring();
-  return (resolution_capped) ? Status::kSuccessResolutionCapped
-                             : Status::kSuccess;
+  return resolution_capped ? Status::kSuccessResolutionCapped
+                           : Status::kSuccess;
 }
 
 Status Stitcher::Stitch(cv::InputArrayOfArrays images, cv::OutputArray pano) {

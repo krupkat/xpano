@@ -98,7 +98,7 @@ utils::Expected<std::vector<std::filesystem::path>, Error> DirectoryOpen() {
   for (const auto& file : std::filesystem::directory_iterator(dir_path)) {
     results.emplace_back(file.path());
   }
-  std::sort(results.begin(), results.end());
+  std::ranges::sort(results);
   return results;
 }
 

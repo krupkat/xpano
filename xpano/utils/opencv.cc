@@ -14,15 +14,14 @@ namespace xpano::utils::opencv {
 std::vector<cv::detail::CameraParams> Scale(
     const std::vector<cv::detail::CameraParams>& cameras, double scale) {
   std::vector<cv::detail::CameraParams> scaled_cameras;
-  std::transform(cameras.begin(), cameras.end(),
-                 std::back_inserter(scaled_cameras),
-                 [scale](const auto& camera) {
-                   cv::detail::CameraParams scaled_camera = camera;
-                   scaled_camera.focal *= scale;
-                   scaled_camera.ppx *= scale;
-                   scaled_camera.ppy *= scale;
-                   return scaled_camera;
-                 });
+  std::ranges::transform(cameras, std::back_inserter(scaled_cameras),
+                         [scale](const auto& camera) {
+                           cv::detail::CameraParams scaled_camera = camera;
+                           scaled_camera.focal *= scale;
+                           scaled_camera.ppx *= scale;
+                           scaled_camera.ppy *= scale;
+                           return scaled_camera;
+                         });
   return scaled_cameras;
 }
 

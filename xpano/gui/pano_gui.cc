@@ -95,7 +95,7 @@ Action ModifyPano(int clicked_image, Selection* selection,
   // Existing pano is being edited
   if (selection->type == SelectionType::kPano) {
     auto& pano = panos->at(selection->target_id);
-    auto iter = std::find(pano.ids.begin(), pano.ids.end(), clicked_image);
+    auto iter = std::ranges::find(pano.ids, clicked_image);
     if (iter == pano.ids.end()) {
       pano.ids.push_back(clicked_image);
     } else {
@@ -252,8 +252,8 @@ auto ResolveInpaintingResultFuture(
 }
 
 bool AnyRawImage(const std::vector<algorithm::Image>& images) {
-  return std::any_of(images.begin(), images.end(),
-                     [](const auto& img) { return img.IsRaw(); });
+  return std::ranges::any_of(images,
+                             [](const auto& img) { return img.IsRaw(); });
 }
 
 WarningType GetWarningType(utils::config::LoadingStatus loading_status) {
@@ -315,9 +315,9 @@ bool PanoGui::Run() {
   actions |= extra_actions;
   next_actions_ = ForwardDelayed(actions);
 
-  return std::any_of(
-      actions.items.begin(), actions.items.end(),
-      [](const auto& action) { return action.type == ActionType::kQuit; });
+  return std::ranges::any_of(actions.items, [](const auto& action) {
+    return action.type == ActionType::kQuit;
+  });
 }
 
 Action PanoGui::DrawGui() {

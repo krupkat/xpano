@@ -62,7 +62,7 @@ void CustomLog(void* /*userdata*/, int /*category*/, SDL_LogPriority priority,
 }  // namespace
 
 std::vector<std::string> BufferSinkMt::LastFormatted() {
-  const std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
+  const std::scoped_lock<std::mutex> lock(base_sink<std::mutex>::mutex_);
   std::vector<std::string> new_messages;
   std::swap(new_messages, messages_);
   return new_messages;
@@ -116,7 +116,7 @@ const std::vector<std::string>& Logger::Log() {
 
 void Logger::Concatenate() {
   auto new_messages = sink_->LastFormatted();
-  std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
+  std::ranges::copy(new_messages, std::back_inserter(log_));
 }
 
 std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_; }

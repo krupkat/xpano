@@ -46,13 +46,12 @@ std::vector<cv::Point2f> PointsOnRectangle(
   }
   points.emplace_back(0, 0);
 
-  std::transform(points.begin(), points.end(), points.begin(),
-                 [&size, points_per_edge](const cv::Point& point) {
-                   auto rescaled =
-                       cv::Point{(point.x * size.width) / points_per_edge,
-                                 (point.y * size.height) / points_per_edge};
-                   return cv::Point2f{rescaled};
-                 });
+  std::ranges::transform(
+      points, points.begin(), [&size, points_per_edge](const cv::Point& point) {
+        auto rescaled = cv::Point{(point.x * size.width) / points_per_edge,
+                                  (point.y * size.height) / points_per_edge};
+        return cv::Point2f{rescaled};
+      });
   return points;
 }
 
@@ -61,12 +60,13 @@ std::vector<PreprocessedCamera> Preprocess(
   auto scaled_cameras = utils::opencv::Scale(cameras, 1.0 / work_scale);
 
   std::vector<PreprocessedCamera> result(scaled_cameras.size());
-  std::transform(scaled_cameras.begin(), scaled_cameras.end(), result.begin(),
-                 [](const cv::detail::CameraParams& camera_params) {
-                   return PreprocessedCamera{
-                       .k_mat = utils::opencv::ToFloat(camera_params.K()),
-                       .r_mat = camera_params.R};
-                 });
+  std::ranges::transform(
+      scaled_cameras, result.begin(),
+      [](const cv::detail::CameraParams& camera_params) {
+        return PreprocessedCamera{
+            .k_mat = utils::opencv::ToFloat(camera_params.K()),
+            .r_mat = camera_params.R};
+      });
   return result;
 }
 
@@ -101,8 +101,8 @@ PanoCenter ComputePanoCenter(const std::vector<cv::Size>& image_sizes,
   };
 
   auto center = Avg(centers);
-  auto middle_image = std::min_element(
-      centers.begin(), centers.end(),
+  auto middle_image = std::ranges::min_element(
+      centers,
       [&center, &dist](const cv::Point2f& left, const cv::Point2f& right) {
         return dist(left, center) < dist(right, center);
       });
@@ -366,21 +366,20 @@ Polyline Warp(const Projectable& projectable, const StaticWarpData& warp,
   cv::Mat extra_rotation = FullRotation(state, warp);
 
   std::vector<ImVec2> projected(projectable.points.size());
-  std::transform(projectable.points.begin(), projectable.points.end(),
-                 projected.begin(), [&](const cv::Point2f& point) {
-                   auto projected_point = warp.warper->warpPoint(
-                       point, camera.k_mat, extra_rotation * camera.r_mat);
+  std::ranges::transform(
+      projectable.points, projected.begin(), [&](const cv::Point2f& point) {
+        auto projected_point = warp.warper->warpPoint(
+            point, camera.k_mat, extra_rotation * camera.r_mat);
 
-                   auto translated = projected_point + projectable.translation;
+        auto translated = projected_point + projectable.translation;
 
-                   return ImVec2{
-                       (translated.x / static_cast<float>(warp.scale.width)) *
-                               image.size[0] +
-                           image.start[0],
-                       (translated.y / static_cast<float>(warp.scale.height)) *
-                               image.size[1] +
-                           image.start[1]};
-                 });
+        return ImVec2{(translated.x / static_cast<float>(warp.scale.width)) *
+                              image.size[0] +
+                          image.start[0],
+                      (translated.y / static_cast<float>(warp.scale.height)) *
+                              image.size[1] +
+                          image.start[1]};
+      });
   return projected;
 }
 

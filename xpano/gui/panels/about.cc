@@ -72,8 +72,8 @@ std::optional<utils::Text> AboutPane::GetText(const std::string& name) {
   if (licenses_future_.valid()) {
     WaitForLicenseLoading();
   }
-  auto result = std::find_if(
-      licenses_.begin(), licenses_.end(),
+  auto result = std::ranges::find_if(
+      licenses_,
       [&name](const utils::Text& text) { return text.name == name; });
   if (result == licenses_.end()) {
     return {};
@@ -83,8 +83,7 @@ std::optional<utils::Text> AboutPane::GetText(const std::string& name) {
 
 void AboutPane::WaitForLicenseLoading() {
   auto temp_licenses = licenses_future_.get();
-  std::copy(temp_licenses.begin(), temp_licenses.end(),
-            std::back_inserter(licenses_));
+  std::ranges::copy(temp_licenses, std::back_inserter(licenses_));
 }
 
 void AboutPane::Draw() {

@@ -24,8 +24,7 @@ namespace xpano::gui {
 
 void HoverChecker::SetColor(int img_id) {
   const bool highlighted =
-      std::find(highlighted_ids_.begin(), highlighted_ids_.end(), img_id) !=
-      highlighted_ids_.end();
+      std::ranges::find(highlighted_ids_, img_id) != highlighted_ids_.end();
 
   if (WasHovered(img_id)) {
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, highlighted

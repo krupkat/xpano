@@ -45,6 +45,8 @@ using Catch::Matchers::Equals;
 using Catch::Matchers::WithinAbs;
 using Catch::Matchers::WithinRel;
 
+namespace {
+
 constexpr auto kReturnFuture = xpano::pipeline::RunTraits::kReturnFuture;
 
 const std::vector<std::filesystem::path> kInputs = {
@@ -59,6 +61,29 @@ int CountNonZero(const cv::Mat& image) {
   cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
   return cv::countNonZero(image_gray);
 }
+
+#ifdef XPANO_WITH_EXIV2
+bool TagExists(const Exiv2::ExifData& exif, const std::string& tag) {
+  return exif.findKey(Exiv2::ExifKey(tag)) != exif.end();
+}
+#endif
+
+constexpr int kMaxIterations = 1000;
+constexpr auto kIterationDelay = std::chrono::milliseconds(10);
+
+auto WaitForTask(xpano::pipeline::StitcherPipeline<>* stitcher,
+                 int max_iterations = kMaxIterations)
+    -> std::optional<xpano::pipeline::Task<xpano::pipeline::GenericFuture>> {
+  for (int i = 0; i < max_iterations; ++i) {
+    if (auto task = stitcher->GetReadyTask(); task) {
+      return task;
+    }
+    std::this_thread::sleep_for(kIterationDelay);
+  }
+  return {};
+}
+
+}  // namespace
 
 // Clang-tidy doesn't like the macros
 // NOLINTBEGIN(readability-function-cognitive-complexity)
@@ -529,8 +554,8 @@ TEST_CASE("ExportWithMetadata") {
 
   auto width = exif["Exif.Photo.PixelXDimension"].toUint32();
   auto height = exif["Exif.Photo.PixelYDimension"].toUint32();
-  CHECK(width == image.cols);
-  CHECK(height == image.rows);
+  CHECK(std::cmp_equal(width, image.cols));
+  CHECK(std::cmp_equal(height, image.rows));
 
   auto orientation = exif["Exif.Image.Orientation"].toUint32();
   CHECK(orientation == xpano::kExifDefaultOrientation);
@@ -542,12 +567,6 @@ TEST_CASE("ExportWithMetadata") {
 #endif
   std::filesystem::remove(tmp_path);
 }
-
-#ifdef XPANO_WITH_EXIV2
-bool TagExists(const Exiv2::ExifData& exif, const std::string& tag) {
-  return exif.findKey(Exiv2::ExifKey(tag)) != exif.end();
-}
-#endif
 
 TEST_CASE("ExportWithoutMetadata") {
   const std::filesystem::path tmp_path =
@@ -658,21 +677,6 @@ TEST_CASE("Stitcher pipeline OpenCV blender") {
 }
 #endif
 
-constexpr int kMaxIterations = 1000;
-constexpr auto kIterationDelay = std::chrono::milliseconds(10);
-
-auto WaitForTask(xpano::pipeline::StitcherPipeline<>* stitcher,
-                 int max_iterations = kMaxIterations)
-    -> std::optional<xpano::pipeline::Task<xpano::pipeline::GenericFuture>> {
-  for (int i = 0; i < max_iterations; ++i) {
-    if (auto task = stitcher->GetReadyTask(); task) {
-      return task;
-    }
-    std::this_thread::sleep_for(kIterationDelay);
-  }
-  return {};
-}
-
 TEST_CASE("Stitcher pipeline polling") {
   xpano::pipeline::StitcherPipeline<> stitcher;
 
@@ -736,10 +740,10 @@ TEST_CASE("Stitcher pipeline stack detection") {
   CHECK(progress.tasks_done == progress.num_tasks);
 
   std::vector<xpano::algorithm::Match> good_matches;
-  std::copy_if(result.matches.begin(), result.matches.end(),
-               std::back_inserter(good_matches), [](const auto& match) {
-                 return match.matches.size() >= xpano::kDefaultMatchThreshold;
-               });
+  std::ranges::copy_if(
+      result.matches, std::back_inserter(good_matches), [](const auto& match) {
+        return match.matches.size() >= xpano::kDefaultMatchThreshold;
+      });
 
   CHECK(result.images.size() == 4);
 

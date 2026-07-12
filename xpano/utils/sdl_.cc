@@ -18,6 +18,13 @@
 
 namespace xpano::utils::sdl {
 
+namespace {
+struct RendererFlagInfo {
+  SDL_RendererFlags flag;
+  std::string label;
+};
+}  // namespace
+
 WindowManager DetermineWindowManager(bool wayland_supported) {
 #ifdef _WIN32
   spdlog::info("WM: Windows");
@@ -47,11 +54,6 @@ WindowManager DetermineWindowManager(bool wayland_supported) {
   spdlog::info("WM: GenericLinux: {}", video_driver);
   return WindowManager::kGenericLinux;
 }
-
-struct RendererFlagInfo {
-  SDL_RendererFlags flag;
-  std::string label;
-};
 
 void PrintRenderDrivers() {
   const int num_drivers = SDL_GetNumRenderDrivers();

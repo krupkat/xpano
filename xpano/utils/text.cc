@@ -48,7 +48,7 @@ std::vector<Text> LoadTexts(const std::filesystem::path& executable_path,
       texts.emplace_back(std::move(*text));
     }
   }
-  std::sort(texts.begin(), texts.end(), [](const Text& lhs, const Text& rhs) {
+  std::ranges::sort(texts, [](const Text& lhs, const Text& rhs) {
     return lhs.name < rhs.name;
   });
   return texts;

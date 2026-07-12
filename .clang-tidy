@@ -9,14 +9,18 @@ Checks: >
   -bugprone-exception-escape,
   -bugprone-unchecked-optional-access,
   -bugprone-chained-comparison,
+  -bugprone-throwing-static-initialization,
   google-*,
   misc-*,
   modernize-*,
   -modernize-use-trailing-return-type,
+  -modernize-use-designated-initializers,
   performance-*,
   portability-*,
   -portability-simd-intrinsics,
-  readability-*
+  -portability-avoid-pragma-once,
+  readability-*,
+  -readability-math-missing-parentheses
 
 HeaderFilterRegex: "xpano.*xpano.*"
 

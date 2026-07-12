@@ -10,7 +10,7 @@
 namespace xpano::gui {
 
 const char* Label(ShortcutType type) {
-#if defined(__APPLE__)
+#ifdef __APPLE__
   switch (type) {
     case ShortcutType::kOpen:
       return reinterpret_cast<const char*>(u8"⌘ O");
@@ -48,7 +48,7 @@ const char* Label(ShortcutType type) {
 }
 
 Action CheckKeybindings() {
-#if defined(__APPLE__)
+#ifdef __APPLE__
   bool ctrl = ImGui::GetIO().KeySuper;
 #else
   const bool ctrl = ImGui::GetIO().KeyCtrl;
