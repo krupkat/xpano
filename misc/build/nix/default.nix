@@ -6,6 +6,9 @@ let
   runClangTidy = pkgs.writeShellScriptBin "run-clang-tidy-22" ''
     exec ${pkgs.python3}/bin/python3 ${pkgs.llvmPackages_22.clang-unwrapped}/bin/run-clang-tidy "$@"
   '';
+  runClangFormat = pkgs.writeShellScriptBin "clang-format-22" ''
+    ${pkgs.llvmPackages_22.clang-tools}/bin/clang-format "$@"
+  '';
 in
 pkgs.mkShell {
   buildInputs = with pkgs; [
@@ -22,6 +25,7 @@ pkgs.mkShell {
     (python3.withPackages (pkgs: with pkgs; [ pyyaml ]))
     llvmPackages_22.clang-tools
     runClangTidy
+    runClangFormat
     ruby_4_0
   ];
 }

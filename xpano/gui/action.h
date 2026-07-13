@@ -64,6 +64,7 @@ struct CropExtra {
   utils::RectRRf crop_rect;
 };
 
+// NOLINTNEXTLINE(bugprone-exception-escape): may be thrown from the variant
 struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
