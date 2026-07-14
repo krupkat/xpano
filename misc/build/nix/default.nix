@@ -15,12 +15,12 @@ pkgs.mkShell {
     cmake
     ninja
     pkg-config
-    # opencv
+    opencv
     SDL2
     libx11.dev
-    # catch2_3
-    # spdlog
-    # exiv2
+    catch2_3
+    spdlog
+    exiv2
     dbus
     (python3.withPackages (pkgs: with pkgs; [ pyyaml ]))
     llvmPackages_22.clang-tools

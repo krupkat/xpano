@@ -196,7 +196,7 @@ jobs:
       id: cache-spdlog
       with:
         path: spdlog/build/install
-        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}-20.04
+        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}-26.04
 
     # build newer spdlog as ubuntu 26 version of fmtlib is not compatible with clang-22
     # fixed in https://github.com/fmtlib/fmt/issues/4177, fmtlib 11.1.0
