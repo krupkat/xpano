@@ -66,9 +66,10 @@ constexpr auto DivideByConstant(const Vec<TType, N, Tag>& lhs, TRight rhs,
 }
 
 template <typename TType, size_t N, typename Tag, std::size_t... Index>
-constexpr auto DivideByItself(
-    const Vec<TType, N, Tag>& lhs, const Vec<TType, N, Tag>& rhs,
-    std::index_sequence<Index...> /*unused*/) -> Vec<float, N, Ratio> {
+constexpr auto DivideByItself(const Vec<TType, N, Tag>& lhs,
+                              const Vec<TType, N, Tag>& rhs,
+                              std::index_sequence<Index...> /*unused*/)
+    -> Vec<float, N, Ratio> {
   if constexpr (std::is_floating_point_v<TType>) {
     return {lhs[Index] / rhs[Index]...};
   } else {

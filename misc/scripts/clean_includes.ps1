@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 $xpano_sources = @(Get-ChildItem -Recurse -Path xpano/ -Include *.cc,*.h).fullname
 $test_sources = @(Get-ChildItem -Recurse -Path tests/ -Include *.cc,*.h).fullname
 

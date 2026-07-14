@@ -36,7 +36,7 @@ namespace xpano::algorithm {
 
 namespace {
 void InsertInOrder(int value, std::vector<int>* vec) {
-  auto iter = std::lower_bound(vec->begin(), vec->end(), value);
+  auto iter = std::ranges::lower_bound(*vec, value);
   vec->insert(iter, value);
 }
 
@@ -242,9 +242,9 @@ std::vector<Pano> FindPanos(const std::vector<Match>& matches,
   }
 
   std::vector<Pano> result;
-  std::transform(pano_map.begin(), pano_map.end(), std::back_inserter(result),
-                 [](const auto& pano) { return pano.second; });
-  std::sort(result.begin(), result.end(), [](const Pano& lhs, const Pano& rhs) {
+  std::ranges::transform(pano_map, std::back_inserter(result),
+                         [](const auto& pano) { return pano.second; });
+  std::ranges::sort(result, [](const Pano& lhs, const Pano& rhs) {
     return lhs.ids[0] < rhs.ids[0];
   });
   return result;

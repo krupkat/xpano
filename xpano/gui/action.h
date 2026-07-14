@@ -64,6 +64,7 @@ struct CropExtra {
   utils::RectRRf crop_rect;
 };
 
+// NOLINTNEXTLINE(bugprone-exception-escape): may be thrown from the variant
 struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
@@ -91,7 +92,7 @@ inline MultiAction& operator|=(MultiAction& lhs, const Action& rhs) {
 }
 
 inline MultiAction& operator|=(MultiAction& lhs, const MultiAction& rhs) {
-  std::copy(rhs.items.begin(), rhs.items.end(), std::back_inserter(lhs.items));
+  std::ranges::copy(rhs.items, std::back_inserter(lhs.items));
   return lhs;
 }
 

@@ -33,8 +33,8 @@
 namespace xpano::logger {
 
 namespace {
-void CustomLog(void * /*userdata*/, int /*category*/, SDL_LogPriority priority,
-               const char *message) {
+void CustomLog(void* /*userdata*/, int /*category*/, SDL_LogPriority priority,
+               const char* message) {
   switch (priority) {
     case SDL_LOG_PRIORITY_VERBOSE:
       spdlog::trace(message);
@@ -62,13 +62,13 @@ void CustomLog(void * /*userdata*/, int /*category*/, SDL_LogPriority priority,
 }  // namespace
 
 std::vector<std::string> BufferSinkMt::LastFormatted() {
-  const std::lock_guard<std::mutex> lock(base_sink<std::mutex>::mutex_);
+  const std::scoped_lock<std::mutex> lock(base_sink<std::mutex>::mutex_);
   std::vector<std::string> new_messages;
   std::swap(new_messages, messages_);
   return new_messages;
 }
 
-void BufferSinkMt::sink_it_(const spdlog::details::log_msg &msg) {
+void BufferSinkMt::sink_it_(const spdlog::details::log_msg& msg) {
   spdlog::memory_buf_t formatted;
   base_sink<std::mutex>::formatter_->format(msg, formatted);
   messages_.push_back(fmt::to_string(formatted));
@@ -109,14 +109,14 @@ void Logger::RedirectSpdlogToGui(
 #endif
 }
 
-const std::vector<std::string> &Logger::Log() {
+const std::vector<std::string>& Logger::Log() {
   Concatenate();
   return log_;
 }
 
 void Logger::Concatenate() {
   auto new_messages = sink_->LastFormatted();
-  std::copy(new_messages.begin(), new_messages.end(), std::back_inserter(log_));
+  std::ranges::copy(new_messages, std::back_inserter(log_));
 }
 
 std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_; }

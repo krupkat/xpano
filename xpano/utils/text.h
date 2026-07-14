@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace xpano::utils {
@@ -16,7 +17,7 @@ struct Text {
 };
 
 std::vector<Text> LoadTexts(const std::filesystem::path& executable_path,
-                            const std::string& rel_path);
+                            std::string_view rel_path);
 
 using Texts = std::vector<Text>;
 

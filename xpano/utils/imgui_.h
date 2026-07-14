@@ -8,15 +8,21 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <imgui.h>
 
 namespace xpano::utils::imgui {
 
+struct FontLoaderArgs {
+  std::string_view alphabet_font_path;
+  std::string_view symbols_font_path;
+};
+
 class FontLoader {
  public:
-  FontLoader(std::string alphabet_font_path, std::string symbols_font_path);
+  explicit FontLoader(const FontLoaderArgs& args);
   bool Init(const std::filesystem::path& executable_path);
   void Reload(float scale);
 

@@ -1,1 +1,3 @@
-run-clang-tidy-18 `pwd`/xpano `pwd`/tests -p=build -quiet
+#!/usr/bin/env bash
+
+run-clang-tidy-22 `pwd`/xpano `pwd`/tests -p=build -quiet

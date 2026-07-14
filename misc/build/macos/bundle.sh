@@ -1,4 +1,5 @@
 #!/bin/sh
+
 # macports based, should work with brew as well
 
 set -e

@@ -35,7 +35,7 @@ namespace {
 
 #if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
 cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
-    const ChromaSubsampling &subsampling) {
+    const ChromaSubsampling& subsampling) {
   switch (subsampling) {
     case ChromaSubsampling::k444:
       return cv::IMWRITE_JPEG_SAMPLING_FACTOR_444;
@@ -49,7 +49,7 @@ cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
 }
 #endif
 
-std::vector<int> CompressionParameters(const CompressionOptions &options) {
+std::vector<int> CompressionParameters(const CompressionOptions& options) {
   return {cv::IMWRITE_JPEG_QUALITY,
           options.jpeg_quality,
           cv::IMWRITE_JPEG_PROGRESSIVE,
@@ -76,8 +76,8 @@ enum class WaitStatus : std::uint8_t {
 };
 
 template <typename TFutureType>
-WaitStatus WaitWithCancellation(TFutureType *future,
-                                ProgressMonitor *progress) {
+WaitStatus WaitWithCancellation(TFutureType* future,
+                                ProgressMonitor* progress) {
   std::future_status status;
   while ((status = future->wait_for(kTaskCancellationTimeout)) !=
          std::future_status::ready) {
@@ -91,8 +91,8 @@ WaitStatus WaitWithCancellation(TFutureType *future,
   return WaitStatus::kReady;
 }
 
-ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options,
-                               ProgressMonitor *progress) {
+ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions& options,
+                               ProgressMonitor* progress) {
   const int num_tasks = 2;
   progress->Reset(ProgressType::kExport, num_tasks);
 
@@ -116,13 +116,13 @@ ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions &options,
 }
 
 std::vector<algorithm::Image> RunLoadingPipeline(
-    const std::vector<std::filesystem::path> &inputs,
-    const LoadingOptions &options, bool compute_keypoints,
-    ProgressMonitor *progress, utils::mt::Threadpool *pool) {
+    const std::vector<std::filesystem::path>& inputs,
+    const LoadingOptions& options, bool compute_keypoints,
+    ProgressMonitor* progress, utils::mt::Threadpool* pool) {
   const int num_tasks = static_cast<int>(inputs.size());
   progress->Reset(ProgressType::kDetectingKeypoints, num_tasks);
   utils::mt::MultiFuture<algorithm::Image> loading_future;
-  for (const auto &input : inputs) {
+  for (const auto& input : inputs) {
     loading_future.push_back(
         pool->submit([options, input, compute_keypoints, progress]() {
           algorithm::Image image(input);
@@ -139,7 +139,7 @@ std::vector<algorithm::Image> RunLoadingPipeline(
   auto images = loading_future.get();
 
   auto num_erased =
-      std::erase_if(images, [](const auto &img) { return !img.IsLoaded(); });
+      std::erase_if(images, [](const auto& img) { return !img.IsLoaded(); });
   if (num_erased > 0) {
     spdlog::warn("Failed to load {} images", num_erased);
   }
@@ -147,9 +147,9 @@ std::vector<algorithm::Image> RunLoadingPipeline(
 }
 
 StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
-                                 const MatchingOptions &options,
-                                 ProgressMonitor *progress,
-                                 utils::mt::Threadpool *pool) {
+                                 const MatchingOptions& options,
+                                 ProgressMonitor* progress,
+                                 utils::mt::Threadpool* pool) {
   if (images.empty()) {
     return {};
   }
@@ -195,7 +195,7 @@ StitcherData RunMatchingPipeline(std::vector<algorithm::Image> images,
   return StitcherData{images, matches, panos};
 }
 
-int StitchTaskCount(const StitchingOptions &options, int num_images,
+int StitchTaskCount(const StitchingOptions& options, int num_images,
                     bool cameras_precomputed) {
   return 1 +  // Stitching
          algorithm::StitchTasksCount(
@@ -206,10 +206,10 @@ int StitchTaskCount(const StitchingOptions &options, int num_images,
 }
 
 StitchingResult RunStitchingPipeline(
-    const algorithm::Pano &pano, const std::vector<algorithm::Image> &images,
-    const StitchingOptions &options, ProgressMonitor *progress,
+    const algorithm::Pano& pano, const std::vector<algorithm::Image>& images,
+    const StitchingOptions& options, ProgressMonitor* progress,
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters): fixme
-    utils::mt::Threadpool *pool, utils::mt::Threadpool *multiblend_pool) {
+    utils::mt::Threadpool* pool, utils::mt::Threadpool* multiblend_pool) {
   const int num_images = static_cast<int>(pano.ids.size());
   const int num_tasks =
       StitchTaskCount(options, num_images, pano.cameras.has_value());
@@ -217,7 +217,7 @@ StitchingResult RunStitchingPipeline(
   std::vector<cv::Mat> imgs;
   if (options.full_res) {
     utils::mt::MultiFuture<cv::Mat> imgs_future;
-    for (const auto &img_id : pano.ids) {
+    for (const auto& img_id : pano.ids) {
       imgs_future.push_back(pool->submit([&image = images[img_id], progress]() {
         auto full_res_image = image.GetFullRes();
         progress->NotifyTaskDone();
@@ -260,7 +260,7 @@ StitchingResult RunStitchingPipeline(
   if (options.export_path) {
     std::optional<std::filesystem::path> metadata_path;
     if (options.metadata.copy_from_first_image) {
-      const auto &first_image = images[pano.ids[0]];
+      const auto& first_image = images[pano.ids[0]];
       metadata_path = first_image.GetPath();
     }
 
@@ -304,9 +304,9 @@ void StitcherPipeline<run>::CancelAndWait() {
 
 template <RunTraits run>
 auto StitcherPipeline<run>::RunLoading(
-    const std::vector<std::filesystem::path> &inputs,
-    const LoadingOptions &loading_options,
-    const MatchingOptions &matching_options)
+    const std::vector<std::filesystem::path>& inputs,
+    const LoadingOptions& loading_options,
+    const MatchingOptions& matching_options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<StitcherData>>, void> {
   Cancel();
@@ -329,8 +329,8 @@ auto StitcherPipeline<run>::RunLoading(
 }
 
 template <RunTraits run>
-auto StitcherPipeline<run>::RunStitching(const StitcherData &data,
-                                         const StitchingOptions &options)
+auto StitcherPipeline<run>::RunStitching(const StitcherData& data,
+                                         const StitchingOptions& options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<StitchingResult>>, void> {
   Cancel();
@@ -352,7 +352,7 @@ auto StitcherPipeline<run>::RunStitching(const StitcherData &data,
 
 template <RunTraits run>
 auto StitcherPipeline<run>::RunExport(cv::Mat pano,
-                                      const ExportOptions &options)
+                                      const ExportOptions& options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<ExportResult>>, void> {
   Cancel();
@@ -372,7 +372,7 @@ auto StitcherPipeline<run>::RunExport(cv::Mat pano,
 
 template <RunTraits run>
 auto StitcherPipeline<run>::RunInpainting(cv::Mat pano, cv::Mat pano_mask,
-                                          const InpaintingOptions &options)
+                                          const InpaintingOptions& options)
     -> std::conditional_t<run == RunTraits::kReturnFuture,
                           Task<std::future<InpaintingResult>>, void> {
   Cancel();
@@ -419,9 +419,9 @@ auto StitcherPipeline<run>::GetReadyTask()
 
   // This logic doesn't keep fifo behavior, modify if needed.
   auto ready_task =
-      std::find_if(queue_.begin(), queue_.end(), [](const auto &task) {
+      std::find_if(queue_.begin(), queue_.end(), [](const auto& task) {
         return std::visit(
-            [](const auto &future) { return utils::future::IsReady(future); },
+            [](const auto& future) { return utils::future::IsReady(future); },
             task.future);
       });
 

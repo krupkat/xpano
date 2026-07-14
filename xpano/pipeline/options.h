@@ -24,14 +24,14 @@ enum class ChromaSubsampling : std::uint8_t {
   k420,
 };
 
-const char *Label(ChromaSubsampling subsampling);
+const char* Label(ChromaSubsampling subsampling);
 
 const auto kSubsamplingModes = std::array{
     ChromaSubsampling::k444, ChromaSubsampling::k422, ChromaSubsampling::k420};
 
 enum class MatchingType : std::uint8_t { kNone, kSinglePano, kAuto };
 
-const char *Label(MatchingType type);
+const char* Label(MatchingType type);
 
 const auto kMatchingTypes = std::array{
     MatchingType::kAuto, MatchingType::kSinglePano, MatchingType::kNone};

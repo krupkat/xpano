@@ -10,6 +10,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -24,7 +25,7 @@ namespace xpano::gui {
 
 namespace {
 
-const std::string kAboutText =
+constexpr std::string_view kAboutText =
     R"(Here you can check out the full app changelog, licenses of the
 libraries used in Xpano as well as the full terms of the GPL license
 under which this app is distributed.
@@ -55,7 +56,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.)";
 
 utils::Text DefaultNotice() {
   auto text = utils::Text{.name = "Readme", .lines = {}};
-  std::istringstream stream(kAboutText);
+  std::istringstream stream(std::string{kAboutText});
   for (std::string line; std::getline(stream, line);) {
     text.lines.push_back(line);
   }
@@ -68,12 +69,12 @@ AboutPane::AboutPane(std::future<utils::Texts> licenses)
 
 void AboutPane::Show() { show_ = true; }
 
-std::optional<utils::Text> AboutPane::GetText(const std::string& name) {
+std::optional<utils::Text> AboutPane::GetText(std::string_view name) {
   if (licenses_future_.valid()) {
     WaitForLicenseLoading();
   }
-  auto result = std::find_if(
-      licenses_.begin(), licenses_.end(),
+  auto result = std::ranges::find_if(
+      licenses_,
       [&name](const utils::Text& text) { return text.name == name; });
   if (result == licenses_.end()) {
     return {};
@@ -83,8 +84,7 @@ std::optional<utils::Text> AboutPane::GetText(const std::string& name) {
 
 void AboutPane::WaitForLicenseLoading() {
   auto temp_licenses = licenses_future_.get();
-  std::copy(temp_licenses.begin(), temp_licenses.end(),
-            std::back_inserter(licenses_));
+  std::ranges::copy(temp_licenses, std::back_inserter(licenses_));
 }
 
 void AboutPane::Draw() {

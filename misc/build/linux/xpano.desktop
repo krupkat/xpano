@@ -7,3 +7,4 @@ Exec=Xpano
 Terminal=false
 Icon=xpano
 Categories=Graphics;
+StartupWMClass=Xpano

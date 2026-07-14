@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # use git archive to create a tar.gz with the project sources including submodules
 

@@ -5,7 +5,7 @@
 
 #include <array>
 #include <chrono>
-#include <string>
+#include <string_view>
 
 namespace xpano {
 
@@ -33,13 +33,13 @@ constexpr int kResizingDelayFrames = 30;
 constexpr int kScrollingStep = 200;
 constexpr int kScrollingStepPerFrame = 25;
 
-const std::array<std::string, 6> kSupportedExtensions = {"jpg", "jpeg", "tiff",
-                                                         "tif", "png",  "bmp"};
+constexpr std::array<std::string_view, 6> kSupportedExtensions = {
+    "jpg", "jpeg", "tiff", "tif", "png", "bmp"};
 
-const std::array<std::string, 4> kMetadataSupportedExtensions = {"jpg", "jpeg",
-                                                                 "tiff", "tif"};
+constexpr std::array<std::string_view, 4> kMetadataSupportedExtensions = {
+    "jpg", "jpeg", "tiff", "tif"};
 
-const std::string kLogFilename = "logs/xpano.log";
+constexpr std::string_view kLogFilename = "logs/xpano.log";
 constexpr int kMaxLogSize = 5 * 1024 * 1024;
 constexpr int kMaxLogFiles = 5;
 
@@ -59,13 +59,14 @@ constexpr int kAboutBoxHeight = 30;
 constexpr int kSidebarWidth = 35;
 constexpr int kWideButtonWidth = 12;
 
-const std::string kOrgName = "krupkat";
-const std::string kAppName = "Xpano";
+constexpr std::string_view kOrgName = "krupkat";
+constexpr std::string_view kAppName = "Xpano";
 
-const std::string kLicensePath = "licenses";
-const std::string kFontPath = "assets/NotoSans-Regular.ttf";
-const std::string kSymbolsFontPath = "assets/NotoSansSymbols2-Regular.ttf";
-const std::string kIconPath = "assets/icon.png";
+constexpr std::string_view kLicensePath = "licenses";
+constexpr std::string_view kFontPath = "assets/NotoSans-Regular.ttf";
+constexpr std::string_view kSymbolsFontPath =
+    "assets/NotoSansSymbols2-Regular.ttf";
+constexpr std::string_view kIconPath = "assets/icon.png";
 
 constexpr int kDefaultNeighborhoodSearchSize = 2;
 constexpr int kMaxNeighborhoodSearchSize = 10;
@@ -81,9 +82,9 @@ constexpr float kDefaultMatchConf = 0.25f;
 constexpr float kMinMatchConf = 0.1f;
 constexpr float kMaxMatchConf = 0.4f;
 
-const std::string kAppConfigFilename = "app_config.alpaca";
-const std::string kUserConfigFilename = "user_config.alpaca";
-const std::string kChangelogFilename = "CHANGELOG.md";
+constexpr std::string_view kAppConfigFilename = "app_config.alpaca";
+constexpr std::string_view kUserConfigFilename = "user_config.alpaca";
+constexpr std::string_view kChangelogFilename = "CHANGELOG.md";
 
 constexpr int kCropEdgeTolerance = 10;
 constexpr int kAutoCropSamplingDistance = 512;
@@ -93,15 +94,16 @@ constexpr double kMaxInpaintingRadius = 15.0;
 constexpr double kInpaintingRadiusStep = 1.0;
 constexpr float kMegapixel = 1'000'000;
 
-const std::string kDefaultPanoSuffix = "_pano";
+constexpr std::string_view kDefaultPanoSuffix = "_pano";
 constexpr int kMaxImageSizeForCLI = 8192;
 
 constexpr int kExifDefaultOrientation = 1;
 
 constexpr int kCancelAnimationFrameDuration = 128;
 
-const std::string kGithubIssuesLink = "https://github.com/krupkat/xpano/issues";
-const std::string kAuthorEmail = "tomas@krupkat.cz";
+constexpr std::string_view kGithubIssuesLink =
+    "https://github.com/krupkat/xpano/issues";
+constexpr std::string_view kAuthorEmail = "tomas@krupkat.cz";
 
 constexpr int kMaxPanoMpx = 100;
 

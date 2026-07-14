@@ -6,7 +6,7 @@
 
 #include <future>
 #include <optional>
-#include <string>
+#include <string_view>
 
 #include "xpano/utils/text.h"
 
@@ -18,7 +18,7 @@ class AboutPane {
   void Draw();
   void Show();
 
-  std::optional<utils::Text> GetText(const std::string& name);
+  std::optional<utils::Text> GetText(std::string_view name);
 
  private:
   void WaitForLicenseLoading();

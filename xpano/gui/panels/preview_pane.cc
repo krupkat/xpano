@@ -132,8 +132,8 @@ void Overlay(const widgets::RotationWidget& widget, const utils::RectPVf& image,
 
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
   std::iota(zoom_levels_.begin(), zoom_levels_.end(), -1.0f);
-  std::transform(zoom_levels_.begin(), zoom_levels_.end(), zoom_levels_.begin(),
-                 [](float exp) { return std::pow(kZoomFactor, exp); });
+  std::ranges::transform(zoom_levels_, zoom_levels_.begin(),
+                         [](float exp) { return std::pow(kZoomFactor, exp); });
 };
 
 float PreviewPane::Zoom() const { return zoom_; }

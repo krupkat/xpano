@@ -24,8 +24,7 @@ namespace xpano::gui {
 
 void HoverChecker::SetColor(int img_id) {
   const bool highlighted =
-      std::find(highlighted_ids_.begin(), highlighted_ids_.end(), img_id) !=
-      highlighted_ids_.end();
+      std::ranges::find(highlighted_ids_, img_id) != highlighted_ids_.end();
 
   if (WasHovered(img_id)) {
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, highlighted
@@ -50,7 +49,7 @@ void HoverChecker::ResetColor(int img_id, bool ctrl_pressed) {
   }
 }
 
-void HoverChecker::Highlight(const std::vector<int> &ids) {
+void HoverChecker::Highlight(const std::vector<int>& ids) {
   highlighted_ids_ = ids;
 }
 
@@ -121,9 +120,9 @@ ResizeChecker::Status ResizeChecker::Check(ImVec2 window_size) {
   return Status::kIdle;
 }
 
-ThumbnailPane::ThumbnailPane(backends::Base *backend) : backend_(backend) {}
+ThumbnailPane::ThumbnailPane(backends::Base* backend) : backend_(backend) {}
 
-void ThumbnailPane::Load(const std::vector<algorithm::Image> &images) {
+void ThumbnailPane::Load(const std::vector<algorithm::Image>& images) {
   spdlog::info("Loading {} thumbnails", images.size());
   const int num_images = static_cast<int>(images.size());
   auto thumbnail_size = utils::Vec2i{kThumbnailSize};
@@ -197,7 +196,7 @@ Action ThumbnailPane::Draw() {
   return action;
 }
 
-void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
+void ThumbnailPane::ThumbnailTooltip(const std::vector<int>& images) const {
   if (images.empty()) {
     return;
   }
@@ -212,7 +211,7 @@ void ThumbnailPane::ThumbnailTooltip(const std::vector<int> &images) const {
 }
 
 bool ThumbnailPane::ThumbnailButton(int img_id) const {
-  const auto &coord = coords_[img_id];
+  const auto& coord = coords_[img_id];
   return ImGui::ImageButton(
       "", tex_.get(),
       ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
@@ -225,7 +224,7 @@ void ThumbnailPane::SetScrollX(int img_id) {
 void ThumbnailPane::SetScrollX(int id1, int id2) {
   SetScrollX(std::vector<int>({id1, id2}));
 }
-void ThumbnailPane::SetScrollX(const std::vector<int> &ids) {
+void ThumbnailPane::SetScrollX(const std::vector<int>& ids) {
   const float scroll =
       std::transform_reduce(ids.begin(), ids.end(), 0.0f, std::plus<>(),
                             [this](int index) { return scroll_[index]; }) /
@@ -242,7 +241,7 @@ void ThumbnailPane::Highlight(int img_id) {
 void ThumbnailPane::Highlight(int id1, int id2) {
   Highlight(std::vector<int>({id1, id2}));
 }
-void ThumbnailPane::Highlight(const std::vector<int> &ids) {
+void ThumbnailPane::Highlight(const std::vector<int>& ids) {
   hover_checker_.Highlight(ids);
 }
 void ThumbnailPane::DisableHighlight() { hover_checker_.DisableHighlight(); }

@@ -182,14 +182,7 @@ bool DrawMatchConf(float* match_conf) {
   bool value_changed = false;
   if (ImGui::InputFloat("Match confidence", match_conf, 0.01f, 0.01f, "%.2f")) {
     value_changed = true;
-
-    if (*match_conf < kMinMatchConf) {
-      *match_conf = kMinMatchConf;
-    }
-
-    if (*match_conf > kMaxMatchConf) {
-      *match_conf = kMaxMatchConf;
-    }
+    *match_conf = std::clamp(*match_conf, kMinMatchConf, kMaxMatchConf);
   }
   ImGui::SameLine();
   utils::imgui::InfoMarker(

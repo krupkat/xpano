@@ -11,6 +11,8 @@
 #include "xpano/algorithm/options.h"
 #include "xpano/pipeline/options.h"
 
+namespace {
+
 struct Bar {
   int first;
   int second;
@@ -33,6 +35,8 @@ struct FooV2 {
   int second;
   BarV2 bar;
 };
+
+}  // namespace
 
 TEST_CASE("Deserialize") {
   auto tmp_path = xpano::tests::TmpPath();

@@ -6,6 +6,7 @@
 namespace xpano::utils {
 
 template <class... Ts>
+// NOLINTNEXTLINE(misc-multiple-inheritance): This is a utility for std::visit.
 struct Overloaded : Ts... {
   using Ts::operator()...;
 };

@@ -17,36 +17,38 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  EXIV2_VERSION: "v0.28.5"
+  SPDLOG_VERSION: "v1.17.0"
 
 jobs:
   clang-tidy-check:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: true
 
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
+          sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libexiv2-dev catch2
 
-    - name: Cache exiv2
-      uses: actions/cache@v4
-      id: cache-exiv2
+    - name: Cache spdlog
+      uses: actions/cache@v5
+      id: cache-spdlog
       with:
-        path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-24.04
+        path: spdlog/build/install
+        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}-26.04
 
-    - name: Install exiv2
-      if: steps.cache-exiv2.outputs.cache-hit != 'true'
+    # build newer spdlog as ubuntu 26 version of fmtlib is not compatible with clang-22
+    # fixed in https://github.com/fmtlib/fmt/issues/4177, fmtlib 11.1.0
+    - name: Install spdlog
+      if: steps.cache-spdlog.outputs.cache-hit != 'true'
       run: |
-        git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
-        cd exiv2
+        git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+        cd spdlog
         cmake -B build \
-          -DCMAKE_INSTALL_PREFIX=install \
-          `cat ../misc/build/exiv2-minimal-flags.txt`
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=build/install
         cmake --build build --target install -j $(nproc)
         cd ..
 
@@ -57,11 +59,11 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DBUILD_TESTING=ON \
-          -Dexiv2_ROOT=`pwd`/exiv2/install
+          -Dspdlog_ROOT=`pwd`/spdlog/build/install
 
     - name: Run clang-tidy
       run: |
-        run-clang-tidy-18 `pwd`/xpano `pwd`/tests \
+        run-clang-tidy-22 `pwd`/xpano `pwd`/tests \
           -p=build \
           -quiet \
           -header-filter=xpano/xpano.*xpano \

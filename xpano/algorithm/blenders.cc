@@ -23,7 +23,7 @@ constexpr uint32_t kWithoutFlag = 0x7fffffffu;
 constexpr uint8_t kMaskOn = 0xffu;
 constexpr uint8_t kMaskOff = 0x00u;
 
-void SafeMemset(uint8_t *ptr, uint8_t value, size_t num, const uint8_t *end) {
+void SafeMemset(uint8_t* ptr, uint8_t value, size_t num, const uint8_t* end) {
   if (num == 0) {
     throw(std::runtime_error("Multiblend: invalid mask format"));
   }
@@ -36,14 +36,14 @@ void SafeMemset(uint8_t *ptr, uint8_t value, size_t num, const uint8_t *end) {
 // Convert from Multiblend's Flex format to OpenCV's UMat.
 // Flex is a RLE format, leftmost bit is the mask flag, the rest is the length.
 template <typename TFlexType>
-cv::Mat ToMat(TFlexType &flex) {
+cv::Mat ToMat(TFlexType& flex) {
   auto mask = cv::Mat(flex.height_, flex.width_, CV_8U);
 
   flex.Start();
 
   for (int y = 0; y < mask.rows; y++) {
-    auto *ptr = mask.ptr<uint8_t>(y);
-    auto *end = ptr + mask.cols;
+    auto* ptr = mask.ptr<uint8_t>(y);
+    auto* end = ptr + mask.cols;
 
     while (ptr < end) {
       auto length_with_flag = flex.SafeReadForwards32();
@@ -62,7 +62,7 @@ cv::Mat ToMat(TFlexType &flex) {
 }
 
 template <typename TChannelType>
-cv::UMat ToUMat(const std::array<TChannelType, 3> &mb_channels, int width,
+cv::UMat ToUMat(const std::array<TChannelType, 3>& mb_channels, int width,
                 int height) {
   auto blue = cv::Mat(height, width, CV_8UC1, mb_channels[0].get());
   auto green = cv::Mat(height, width, CV_8UC1, mb_channels[1].get());
@@ -76,7 +76,7 @@ cv::UMat ToUMat(const std::array<TChannelType, 3> &mb_channels, int width,
   return pano;
 }
 
-std::vector<uint8_t> ToVector(const cv::Mat &img) {
+std::vector<uint8_t> ToVector(const cv::Mat& img) {
   CV_Assert(img.type() == CV_8UC4 || img.type() == CV_8UC3);
 
   std::vector<uint8_t> result(img.total() * img.elemSize());
@@ -86,10 +86,10 @@ std::vector<uint8_t> ToVector(const cv::Mat &img) {
     return result;
   }
 
-  uint8_t *result_data = result.data();
+  uint8_t* result_data = result.data();
   auto row_size = img.cols * img.elemSize();
   for (int y = 0; y < img.rows; ++y, result_data += row_size) {
-    const auto *src_row = img.ptr<uint8_t>(y);
+    const auto* src_row = img.ptr<uint8_t>(y);
     std::memcpy(result_data, src_row, row_size);
   }
   return result;

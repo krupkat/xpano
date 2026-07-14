@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # useful for building from tarball
 
 TAG_IMGUI="docking_v1.89.5_highdpi"

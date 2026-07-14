@@ -5,8 +5,6 @@
 
 namespace xpano::algorithm {
 
-// NOLINTBEGIN(bugprone-branch-clone): doesn't work with [[fallthrough]]
-
 bool HasAdvancedParameters(ProjectionType projection_type) {
   switch (projection_type) {
     case ProjectionType::kCompressedRectilinear:
@@ -17,8 +15,6 @@ bool HasAdvancedParameters(ProjectionType projection_type) {
       return false;
   }
 }
-
-// NOLINTEND(bugprone-branch-clone)
 
 const char* Label(ProjectionType projection_type) {
   switch (projection_type) {

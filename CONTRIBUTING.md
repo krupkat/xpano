@@ -25,7 +25,7 @@ Static analysis is checked when you make a PR, please make sure there are 0 clan
 
 ### Clang tools versions
 
-The CI currently works with the clang-18 tools from the [Ubuntu 24.04 runner](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)
+The CI currently works with the clang-22 tools from the [Ubuntu 26.04 runner](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2604-Readme.md)
 
 ## Copyright
 

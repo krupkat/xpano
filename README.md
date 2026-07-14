@@ -75,31 +75,24 @@ Run the build script from the root of the repository:
 ./misc/build/build-macos.sh
 ```
 
-### Ubuntu 24.04
+### Ubuntu
 
 Library prerequisites:
 
-```
+```bash
+# Ubuntu 26
+sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libexiv2-dev catch2
+# Ubuntu 24
 sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev catch2
-```
-
-Run the build script from the root of the repository:
-
-```
-./misc/build/build-ubuntu-24.sh
-```
-
-### Ubuntu 22.04
-
-Library prerequisites:
-
-```
+# Ubuntu 22
 sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
 ```
 
 Run the build script from the root of the repository:
 
 ```
+./misc/build/build-ubuntu-26.sh
+./misc/build/build-ubuntu-24.sh
 ./misc/build/build-ubuntu-22.sh
 ```
 

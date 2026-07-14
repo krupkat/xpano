@@ -141,8 +141,9 @@ int main(int argc, char** argv) {
   auto window_manager =
       xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
   xpano::utils::sdl::DpiHandler dpi_handler(window, window_manager);
-  xpano::utils::imgui::FontLoader font_loader(xpano::kFontPath,
-                                              xpano::kSymbolsFontPath);
+  xpano::utils::imgui::FontLoader font_loader(
+      {.alphabet_font_path = xpano::kFontPath,
+       .symbols_font_path = xpano::kSymbolsFontPath});
   if (!font_loader.Init(*app_exe_path)) {
     spdlog::error("Font location not found!");
     return -1;
@@ -176,8 +177,6 @@ int main(int argc, char** argv) {
 
     // User code
     done |= gui.Run();
-
-    // ImGui::ShowDemoWindow();
 
     // Rendering
     SDL_SetRenderDrawColor(renderer, clear_color.r, clear_color.g,
