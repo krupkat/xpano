@@ -11,6 +11,7 @@ export EXIV2_VERSION='v0.28.8'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
+#brew untap aws/tap
 #brew install sdl2 spdlog catch2
 
 
