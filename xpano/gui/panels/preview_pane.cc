@@ -197,7 +197,7 @@ void PreviewPane::Reload(cv::Mat image, ImageType image_type) {
     resized = image;
     coord_uv = utils::ToIntVec(image.size) / texture_size;
   }
-  backend_->UpdateTexture(tex_.get(), resized);
+  backend_->UpdateTexture(tex_.Get(), resized);
   tex_coord_ = coord_uv;
 
   image_type_ = image_type;
@@ -260,7 +260,7 @@ Action PreviewPane::Draw(const std::string& message) {
             : utils::Rect(tex_coord_ * crop_widget_.rect.start,
                           tex_coord_ * crop_widget_.rect.end);
 
-    ImGui::GetWindowDrawList()->AddImage(tex_.get(), utils::ImVec(image.start),
+    ImGui::GetWindowDrawList()->AddImage(tex_.Get(), utils::ImVec(image.start),
                                          utils::ImVec(image.start + image.size),
                                          utils::ImVec(tex_coords.start),
                                          utils::ImVec(tex_coords.end));
