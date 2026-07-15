@@ -18,7 +18,7 @@ class Sdl final : public Base {
 
   Texture CreateTexture(utils::Vec2i size) override;
   void UpdateTexture(ImTextureID tex, cv::Mat image) override;
-  void DestroyTexture(ImTextureID tex) override;
+  void DestroyTexture(ImTextureID tex) noexcept override;
 
  private:
   SDL_Renderer* renderer_;

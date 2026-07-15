@@ -33,7 +33,7 @@ Texture::~Texture() {
   }
 }
 
-Texture::operator bool() const noexcept { return tex_ != 0; }
+Texture::operator bool() const noexcept { return backend_ != nullptr; }
 
 ImTextureID Texture::Get() const { return tex_; }
 

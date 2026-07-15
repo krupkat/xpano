@@ -53,7 +53,7 @@ void Sdl::UpdateTexture(ImTextureID tex, cv::Mat image) {
   }
 }
 
-void Sdl::DestroyTexture(ImTextureID tex) {
+void Sdl::DestroyTexture(ImTextureID tex) noexcept {
   SDL_DestroyTexture(
       // NOLINTNEXTLINE(performance-no-int-to-ptr): taken from imgui faq
       reinterpret_cast<SDL_Texture*>(static_cast<intptr_t>(tex)));

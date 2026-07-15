@@ -36,7 +36,7 @@ class Base {
   virtual ~Base() = default;
   virtual Texture CreateTexture(utils::Vec2i size) = 0;
   virtual void UpdateTexture(ImTextureID tex, cv::Mat image) = 0;
-  virtual void DestroyTexture(ImTextureID tex) = 0;
+  virtual void DestroyTexture(ImTextureID tex) noexcept = 0;
 };
 
 }  // namespace xpano::gui::backends
