@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "xpano/utils/vec.h"
 

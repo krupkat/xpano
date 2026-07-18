@@ -10,7 +10,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 
 namespace xpano::utils::resource {
@@ -36,13 +36,13 @@ SdlSurface LoadIcon(const std::filesystem::path& executable_path,
                     std::string_view path) {
   auto full_path = Find(executable_path, path);
   if (!full_path) {
-    return {nullptr, &SDL_FreeSurface};
+    return {nullptr, &SDL_DestroySurface};
   }
 
   auto icon = cv::imread(*full_path, cv::IMREAD_UNCHANGED);
   if (icon.depth() != CV_8U || icon.channels() != 4) {
     spdlog::error("Icon is not RGBA");
-    return {nullptr, &SDL_FreeSurface};
+    return {nullptr, &SDL_DestroySurface};
   }
 
   const Uint32 rmask = 0x00ff0000U;
@@ -53,17 +53,19 @@ SdlSurface LoadIcon(const std::filesystem::path& executable_path,
 
   // this call doesn't allocate memory
   const SdlSurface surface = {
-      SDL_CreateRGBSurfaceFrom(
-          icon.data, icon.cols, icon.rows, icon.channels() * channel_depth,
-          static_cast<int>(icon.step1()), rmask, gmask, bmask, amask),
-      &SDL_FreeSurface};
+      SDL_CreateSurfaceFrom(
+          icon.cols, icon.rows,
+          SDL_GetPixelFormatForMasks(icon.channels() * channel_depth, rmask,
+                                     gmask, bmask, amask),
+          icon.data, static_cast<int>(icon.step1())),
+      &SDL_DestroySurface};
 
   if (surface == nullptr) {
     spdlog::error("Failed to create SDL_Surface: {}", SDL_GetError());
-    return {nullptr, &SDL_FreeSurface};
+    return {nullptr, &SDL_DestroySurface};
   }
 
-  return {SDL_DuplicateSurface(surface.get()), &SDL_FreeSurface};
+  return {SDL_DuplicateSurface(surface.get()), &SDL_DestroySurface};
 }
 
 }  // namespace xpano::utils::resource

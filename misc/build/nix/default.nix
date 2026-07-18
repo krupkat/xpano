@@ -16,7 +16,7 @@ pkgs.mkShell {
     ninja
     pkg-config
     opencv
-    SDL2
+    sdl3
     libx11.dev
     catch2_3
     spdlog

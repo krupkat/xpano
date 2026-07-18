@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <imgui.h>
-#include <imgui_impl_sdlrenderer2.h>
+#include <imgui_impl_sdlrenderer3.h>
 
 #include "xpano/constants.h"
 #include "xpano/utils/resource.h"
@@ -62,8 +62,8 @@ void FontLoader::Reload(float scale) {
                                      std::roundf(18.0f * scale), &config,
                                      symbol_ranges_.Data);
 
-  ImGui_ImplSDLRenderer2_DestroyDeviceObjects();
-  ImGui_ImplSDLRenderer2_CreateDeviceObjects();
+  ImGui_ImplSDLRenderer3_DestroyDeviceObjects();
+  ImGui_ImplSDLRenderer3_CreateDeviceObjects();
 
   ImGui::GetStyle() = {};
   ImGui::GetStyle().ScaleAllSizes(scale);

@@ -37,8 +37,8 @@ set(IMGUI_SOURCES
   "external/imgui/imgui_demo.cpp"
   "external/imgui/imgui_tables.cpp"
   "external/imgui/imgui_widgets.cpp"
-  "external/imgui/backends/imgui_impl_sdl2.cpp"
-  "external/imgui/backends/imgui_impl_sdlrenderer2.cpp"
+  "external/imgui/backends/imgui_impl_sdl3.cpp"
+  "external/imgui/backends/imgui_impl_sdlrenderer3.cpp"
 )
 
 set(XPANO_SOURCES
@@ -86,7 +86,7 @@ if (WIN32)
  list(APPEND XPANO_SOURCES "xpano/cli/windows_console.cc")
 endif()
 
-find_package(SDL2 REQUIRED CONFIG)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching CONFIG)
 find_package(spdlog REQUIRED CONFIG)
 find_package(exiv2 CONFIG)
@@ -142,8 +142,7 @@ target_link_libraries(Xpano
   expected
   nfd
   ${OPENCV_TARGETS}
-  SDL2::SDL2
-  SDL2::SDL2main
+  SDL3::SDL3
   spdlog::spdlog
 )
 

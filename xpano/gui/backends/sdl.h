@@ -5,7 +5,7 @@
 
 #include <imgui.h>
 #include <opencv2/core.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "xpano/gui/backends/base.h"
 #include "xpano/utils/vec.h"
@@ -22,7 +22,7 @@ class Sdl final : public Base {
 
  private:
   SDL_Renderer* renderer_;
-  SDL_RendererInfo info_;
+  int max_texture_size_;
 };
 
 }  // namespace xpano::gui::backends

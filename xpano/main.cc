@@ -9,10 +9,12 @@
 #include <utility>
 
 #include <imgui.h>
-#include <imgui_impl_sdl2.h>
-#include <imgui_impl_sdlrenderer2.h>
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_sdlrenderer3.h>
 #include <nfd.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_properties.h>
+#include <SDL3/SDL_render.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/cli/pano_cli.h"
@@ -40,22 +42,7 @@ int main(int argc, char** argv) {
     return xpano::cli::ExitCode(cli_status);
   }
 
-#if SDL_VERSION_ATLEAST(2, 23, 1)
-  SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
-  // This feature isn't compatible with ImGui as of v1.88
-  // SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
-#endif
-
-  const bool has_wayland_support = (SDL_VideoInit("wayland") == 0);
-
-#if SDL_VERSION_ATLEAST(2, 0, 22)
-  // Prefer Wayland as it provides non-blurry fractional scaling
-  if (has_wayland_support) {
-    SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
-  }
-#endif
-
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
     printf("Error: %s\n", SDL_GetError());
     return -1;
   }
@@ -91,11 +78,10 @@ int main(int argc, char** argv) {
   }
 
   // Setup SDL Window + Renderer
-  auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+  auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
   auto window_title = fmt::format("Xpano {}", xpano::version::Current());
   SDL_Window* window =
-      SDL_CreateWindow(window_title.c_str(), SDL_WINDOWPOS_CENTERED,
-                       SDL_WINDOWPOS_CENTERED, config.app_state.window_width,
+      SDL_CreateWindow(window_title.c_str(), config.app_state.window_width,
                        config.app_state.window_height, window_flags);
 
   if (window == nullptr) {
@@ -103,8 +89,13 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  SDL_Renderer* renderer = SDL_CreateRenderer(
-      window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+  SDL_PropertiesID props = SDL_CreateProperties();
+  SDL_SetPointerProperty(props, SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
+                         window);
+  SDL_SetNumberProperty(props, SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER,
+                        1);
+  SDL_Renderer* renderer = SDL_CreateRendererWithProperties(props);
+  SDL_DestroyProperties(props);
   if (renderer == nullptr) {
     spdlog::error("Error creating SDL_Renderer! {}", SDL_GetError());
     return -1;
@@ -123,8 +114,8 @@ int main(int argc, char** argv) {
   imgui_io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // Setup Platform/Renderer backends
-  ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-  ImGui_ImplSDLRenderer2_Init(renderer);
+  ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
+  ImGui_ImplSDLRenderer3_Init(renderer);
 
   const SDL_Color clear_color{114, 140, 165, 255};
 
@@ -138,9 +129,7 @@ int main(int argc, char** argv) {
   xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
                           *args);
 
-  auto window_manager =
-      xpano::utils::sdl::DetermineWindowManager(has_wayland_support);
-  xpano::utils::sdl::DpiHandler dpi_handler(window, window_manager);
+  xpano::utils::sdl::DpiHandler dpi_handler(window);
   xpano::utils::imgui::FontLoader font_loader(
       {.alphabet_font_path = xpano::kFontPath,
        .symbols_font_path = xpano::kSymbolsFontPath});
@@ -153,13 +142,12 @@ int main(int argc, char** argv) {
   bool done = false;
   while (!done) {
     SDL_Event event;
-    while (SDL_PollEvent(&event) > 0) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-      if (event.type == SDL_QUIT) {
+    while (SDL_PollEvent(&event)) {
+      ImGui_ImplSDL3_ProcessEvent(&event);
+      if (event.type == SDL_EVENT_QUIT) {
         done = true;
       }
-      if (event.type == SDL_WINDOWEVENT &&
-          event.window.event == SDL_WINDOWEVENT_CLOSE &&
+      if (event.window.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
           event.window.windowID == SDL_GetWindowID(window)) {
         done = true;
       }
@@ -171,8 +159,8 @@ int main(int argc, char** argv) {
     }
 
     // Start the Dear ImGui frame
-    ImGui_ImplSDLRenderer2_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
     // User code
@@ -183,7 +171,7 @@ int main(int argc, char** argv) {
                            clear_color.b, clear_color.a);
     SDL_RenderClear(renderer);
     ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
     SDL_RenderPresent(renderer);
   }
 
@@ -191,8 +179,8 @@ int main(int argc, char** argv) {
   xpano::utils::config::Save(app_data_path, size, gui.GetOptions());
 
   // Cleanup
-  ImGui_ImplSDLRenderer2_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
+  ImGui_ImplSDLRenderer3_Shutdown();
+  ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
 
   SDL_DestroyRenderer(renderer);
