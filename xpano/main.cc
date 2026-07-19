@@ -13,8 +13,7 @@
 #include <imgui_impl_sdlrenderer3.h>
 #include <nfd.h>
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_properties.h>
-#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_main.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/cli/pano_cli.h"
