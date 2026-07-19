@@ -30,10 +30,6 @@
 #include "xpano/utils/text.h"
 #include "xpano/version_fmt.h"
 
-#if !SDL_VERSION_ATLEAST(2, 0, 17)
-#error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
-#endif
-
 int main(int argc, char** argv) {
   const char* locale = std::setlocale(LC_ALL, "en_US.UTF-8");
   auto [cli_status, args] = xpano::cli::Run(argc, argv);
@@ -133,12 +129,13 @@ int main(int argc, char** argv) {
   xpano::utils::imgui::FontLoader font_loader(
       {.alphabet_font_path = xpano::kFontPath,
        .symbols_font_path = xpano::kSymbolsFontPath});
+
   if (!font_loader.Init(*app_exe_path)) {
-    spdlog::error("Font location not found!");
+    spdlog::error("Fonts could not be initialized!");
     return -1;
   }
 
-  font_loader.Reload(SDL_GetWindowDisplayScale(window));
+  font_loader.SetScale(SDL_GetWindowDisplayScale(window));
 
   // Main loop
   bool done = false;
@@ -152,7 +149,7 @@ int main(int argc, char** argv) {
                  event.window.windowID == SDL_GetWindowID(window)) {
         done = true;
       } else if (event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
-        font_loader.Reload(SDL_GetWindowDisplayScale(window));
+        font_loader.SetScale(SDL_GetWindowDisplayScale(window));
       }
     }
 

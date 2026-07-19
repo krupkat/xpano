@@ -24,15 +24,11 @@ class FontLoader {
  public:
   explicit FontLoader(const FontLoaderArgs& args);
   bool Init(const std::filesystem::path& executable_path);
-  void Reload(float scale);
+  void SetScale(float scale);
 
  private:
-  void ComputeGlyphRanges();
-
   std::string alphabet_font_path_;
   std::string symbols_font_path_;
-  ImVector<ImWchar> alphabet_ranges_;
-  ImVector<ImWchar> symbol_ranges_;
 };
 
 void InfoMarker(const std::string& label, const std::string& desc);

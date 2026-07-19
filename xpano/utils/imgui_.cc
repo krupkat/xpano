@@ -12,7 +12,6 @@
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer3.h>
 
-#include "xpano/constants.h"
 #include "xpano/utils/resource.h"
 
 namespace xpano::utils::imgui {
@@ -21,20 +20,7 @@ FontLoader::FontLoader(const FontLoaderArgs& args)
     : alphabet_font_path_(args.alphabet_font_path),
       symbols_font_path_(args.symbols_font_path) {}
 
-void FontLoader::ComputeGlyphRanges() {
-  ImFontGlyphRangesBuilder builder;
-  builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
-  builder.BuildRanges(&alphabet_ranges_);
-
-  builder.Clear();
-  builder.AddText(kCheckMark);
-  builder.AddText(kCommandSymbol);
-  builder.BuildRanges(&symbol_ranges_);
-}
-
 bool FontLoader::Init(const std::filesystem::path& executable_path) {
-  ComputeGlyphRanges();
-
   if (auto font = resource::Find(executable_path, alphabet_font_path_); font) {
     alphabet_font_path_ = *font;
   } else {
@@ -47,24 +33,26 @@ bool FontLoader::Init(const std::filesystem::path& executable_path) {
     return false;
   }
 
+  ImGuiIO& imgui_io = ImGui::GetIO();
+
+  if (ImFont* alphabet_font =
+          imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path_.c_str());
+      alphabet_font == nullptr) {
+    return false;
+  }
+
+  ImFontConfig cfg;
+  cfg.MergeMode = true;
+  if (ImFont* symbol_font = imgui_io.Fonts->AddFontFromFileTTF(
+          symbols_font_path_.c_str(), 0.0f, &cfg);
+      symbol_font == nullptr) {
+    return false;
+  }
+
   return true;
 }
 
-void FontLoader::Reload(float scale) {
-  ImGuiIO& imgui_io = ImGui::GetIO();
-  imgui_io.Fonts->Clear();
-  imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path_.c_str(),
-                                     std::roundf(18.0f), nullptr,
-                                     alphabet_ranges_.Data);
-  ImFontConfig config;
-  config.MergeMode = true;
-  imgui_io.Fonts->AddFontFromFileTTF(symbols_font_path_.c_str(),
-                                     std::roundf(18.0f), &config,
-                                     symbol_ranges_.Data);
-
-  ImGui_ImplSDLRenderer3_DestroyDeviceObjects();
-  ImGui_ImplSDLRenderer3_CreateDeviceObjects();
-
+void FontLoader::SetScale(float scale) {
   ImGui::GetStyle() = {};
   ImGui::GetStyle().ScaleAllSizes(scale);
   ImGui::GetStyle().FontScaleDpi = scale;
