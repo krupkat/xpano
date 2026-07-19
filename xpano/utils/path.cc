@@ -41,6 +41,23 @@ bool IsMetadataExtensionSupported(const std::filesystem::path& path) {
   return ContainsExtensionIgnoreCase(kMetadataSupportedExtensions, path);
 }
 
+ImageType GetImageType(const std::filesystem::path& path) {
+  if (!path.has_extension()) {
+    return ImageType::kOther;
+  }
+
+  const auto extension = LowercaseExtension(path);
+  if (extension == "jpg" || extension == "jpeg") {
+    return ImageType::kJPG;
+  }
+
+  if (extension == "png") {
+    return ImageType::kPNG;
+  }
+
+  return ImageType::kOther;
+}
+
 std::vector<std::filesystem::path> KeepSupported(
     const std::vector<std::filesystem::path>& paths) {
   std::vector<std::filesystem::path> valid_paths;

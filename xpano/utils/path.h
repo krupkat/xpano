@@ -12,6 +12,10 @@ bool IsExtensionSupported(const std::filesystem::path& path);
 
 bool IsMetadataExtensionSupported(const std::filesystem::path& path);
 
+enum class ImageType : std::uint8_t { kJPG, kPNG, kOther };
+
+ImageType GetImageType(const std::filesystem::path& path);
+
 std::vector<std::filesystem::path> KeepSupported(
     const std::vector<std::filesystem::path>& paths);
 
