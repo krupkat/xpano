@@ -3,7 +3,6 @@
 
 #include "xpano/utils/imgui_.h"
 
-#include <cmath>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -11,24 +10,26 @@
 
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer3.h>
+#include <spdlog/spdlog.h>
 
 #include "xpano/utils/resource.h"
 
 namespace xpano::utils::imgui {
 
-FontLoader::FontLoader(const FontLoaderArgs& args)
-    : alphabet_font_path_(args.alphabet_font_path),
-      symbols_font_path_(args.symbols_font_path) {}
-
-bool FontLoader::Init(const std::filesystem::path& executable_path) {
-  if (auto font = resource::Find(executable_path, alphabet_font_path_); font) {
-    alphabet_font_path_ = *font;
+bool LoadFonts(const std::filesystem::path& executable_path,
+               const FontLoaderArgs& args) {
+  std::string alphabet_font_path;
+  if (auto font = resource::Find(executable_path, args.alphabet_font_path);
+      font) {
+    alphabet_font_path = *font;
   } else {
     return false;
   }
 
-  if (auto font = resource::Find(executable_path, symbols_font_path_); font) {
-    symbols_font_path_ = *font;
+  std::string symbols_font_path;
+  if (auto font = resource::Find(executable_path, args.symbols_font_path);
+      font) {
+    symbols_font_path = *font;
   } else {
     return false;
   }
@@ -36,7 +37,7 @@ bool FontLoader::Init(const std::filesystem::path& executable_path) {
   ImGuiIO& imgui_io = ImGui::GetIO();
 
   if (ImFont* alphabet_font =
-          imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path_.c_str());
+          imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path.c_str());
       alphabet_font == nullptr) {
     return false;
   }
@@ -44,7 +45,7 @@ bool FontLoader::Init(const std::filesystem::path& executable_path) {
   ImFontConfig cfg;
   cfg.MergeMode = true;
   if (ImFont* symbol_font = imgui_io.Fonts->AddFontFromFileTTF(
-          symbols_font_path_.c_str(), 0.0f, &cfg);
+          symbols_font_path.c_str(), 0.0f, &cfg);
       symbol_font == nullptr) {
     return false;
   }
@@ -52,7 +53,8 @@ bool FontLoader::Init(const std::filesystem::path& executable_path) {
   return true;
 }
 
-void FontLoader::SetScale(float scale) {
+void SetScale(float scale) {
+  spdlog::info("Loading fonts at {}x scale", scale);
   ImGui::GetStyle() = {};
   ImGui::GetStyle().ScaleAllSizes(scale);
   ImGui::GetStyle().FontScaleDpi = scale;

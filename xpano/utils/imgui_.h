@@ -20,16 +20,10 @@ struct FontLoaderArgs {
   std::string_view symbols_font_path;
 };
 
-class FontLoader {
- public:
-  explicit FontLoader(const FontLoaderArgs& args);
-  bool Init(const std::filesystem::path& executable_path);
-  void SetScale(float scale);
+bool LoadFonts(const std::filesystem::path& executable_path,
+               const FontLoaderArgs& args);
 
- private:
-  std::string alphabet_font_path_;
-  std::string symbols_font_path_;
-};
+void SetScale(float scale);
 
 void InfoMarker(const std::string& label, const std::string& desc);
 

@@ -16,9 +16,15 @@ namespace xpano::gui::backends {
 
 Sdl::Sdl(SDL_Renderer* renderer) : renderer_(renderer) {
   if (const char* name = SDL_GetRendererName(renderer_)) {
-    spdlog::info("Current SDL_Renderer: {}", name);
+    spdlog::info("Current SDL renderer: {}", name);
   } else {
     spdlog::error("Failed to get SDL_RendererInfo: {}", SDL_GetError());
+  }
+
+  if (const char* video_driver = SDL_GetCurrentVideoDriver()) {
+    spdlog::info("Current SDL video driver: {}", video_driver);
+  } else {
+    spdlog::error("Failed to get SDL video driver: {}", SDL_GetError());
   }
 
   if (SDL_PropertiesID props = SDL_GetRendererProperties(renderer)) {

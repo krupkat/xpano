@@ -126,16 +126,12 @@ int main(int argc, char** argv) {
   xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
                           *args);
 
-  xpano::utils::imgui::FontLoader font_loader(
-      {.alphabet_font_path = xpano::kFontPath,
-       .symbols_font_path = xpano::kSymbolsFontPath});
-
-  if (!font_loader.Init(*app_exe_path)) {
+  if (!xpano::utils::imgui::LoadFonts(
+          *app_exe_path, {.alphabet_font_path = xpano::kFontPath,
+                          .symbols_font_path = xpano::kSymbolsFontPath})) {
     spdlog::error("Fonts could not be initialized!");
     return -1;
   }
-
-  font_loader.SetScale(SDL_GetWindowDisplayScale(window));
 
   // Main loop
   bool done = false;
@@ -149,7 +145,7 @@ int main(int argc, char** argv) {
                  event.window.windowID == SDL_GetWindowID(window)) {
         done = true;
       } else if (event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
-        font_loader.SetScale(SDL_GetWindowDisplayScale(window));
+        xpano::utils::imgui::SetScale(xpano::utils::sdl::GetDpiScale(window));
       }
     }
 

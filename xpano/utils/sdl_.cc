@@ -9,11 +9,14 @@
 #include <string>
 
 #include <SDL3/SDL.h>
-#include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
 
 namespace xpano::utils::sdl {
+
+float GetDpiScale(SDL_Window* window) {
+  return SDL_GetWindowDisplayScale(window);
+}
 
 std::optional<std::filesystem::path> InitializePrefPath() {
   const std::string org_name{kOrgName};

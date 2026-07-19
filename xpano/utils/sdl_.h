@@ -10,6 +10,8 @@
 
 namespace xpano::utils::sdl {
 
+float GetDpiScale(SDL_Window* window);
+
 std::optional<std::filesystem::path> InitializePrefPath();
 
 std::optional<std::filesystem::path> InitializeBasePath();
