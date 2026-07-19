@@ -42,6 +42,10 @@ int main(int argc, char** argv) {
     return xpano::cli::ExitCode(cli_status);
   }
 
+#ifdef __linux__
+  SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "wayland,x11");
+#endif
+
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     printf("Error: %s\n", SDL_GetError());
     return -1;
@@ -78,7 +82,8 @@ int main(int argc, char** argv) {
   }
 
   // Setup SDL Window + Renderer
-  auto window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+  auto window_flags =
+      SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
   auto window_title = fmt::format("Xpano {}", xpano::version::Current());
   SDL_Window* window =
       SDL_CreateWindow(window_title.c_str(), config.app_state.window_width,
@@ -89,13 +94,8 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  SDL_PropertiesID props = SDL_CreateProperties();
-  SDL_SetPointerProperty(props, SDL_PROP_RENDERER_CREATE_WINDOW_POINTER,
-                         window);
-  SDL_SetNumberProperty(props, SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER,
-                        1);
-  SDL_Renderer* renderer = SDL_CreateRendererWithProperties(props);
-  SDL_DestroyProperties(props);
+  SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
+  SDL_SetRenderVSync(renderer, 1);
   if (renderer == nullptr) {
     spdlog::error("Error creating SDL_Renderer! {}", SDL_GetError());
     return -1;
@@ -103,6 +103,7 @@ int main(int argc, char** argv) {
 
   auto icon = xpano::utils::resource::LoadIcon(*app_exe_path, xpano::kIconPath);
   SDL_SetWindowIcon(window, icon.get());
+  SDL_ShowWindow(window);
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -129,7 +130,6 @@ int main(int argc, char** argv) {
   xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
                           *args);
 
-  xpano::utils::sdl::DpiHandler dpi_handler(window);
   xpano::utils::imgui::FontLoader font_loader(
       {.alphabet_font_path = xpano::kFontPath,
        .symbols_font_path = xpano::kSymbolsFontPath});
@@ -137,6 +137,8 @@ int main(int argc, char** argv) {
     spdlog::error("Font location not found!");
     return -1;
   }
+
+  font_loader.Reload(SDL_GetWindowDisplayScale(window));
 
   // Main loop
   bool done = false;
@@ -146,16 +148,12 @@ int main(int argc, char** argv) {
       ImGui_ImplSDL3_ProcessEvent(&event);
       if (event.type == SDL_EVENT_QUIT) {
         done = true;
-      }
-      if (event.window.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-          event.window.windowID == SDL_GetWindowID(window)) {
+      } else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+                 event.window.windowID == SDL_GetWindowID(window)) {
         done = true;
+      } else if (event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
+        font_loader.Reload(SDL_GetWindowDisplayScale(window));
       }
-    }
-
-    // Handle DPI change
-    if (dpi_handler.DpiChanged()) {
-      font_loader.Reload(dpi_handler.DpiScale());
     }
 
     // Start the Dear ImGui frame
@@ -167,10 +165,12 @@ int main(int argc, char** argv) {
     done |= gui.Run();
 
     // Rendering
+    ImGui::Render();
+    SDL_SetRenderScale(renderer, imgui_io.DisplayFramebufferScale.x,
+                       imgui_io.DisplayFramebufferScale.y);
     SDL_SetRenderDrawColor(renderer, clear_color.r, clear_color.g,
                            clear_color.b, clear_color.a);
     SDL_RenderClear(renderer);
-    ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
     SDL_RenderPresent(renderer);
   }

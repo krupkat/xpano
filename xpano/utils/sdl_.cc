@@ -15,23 +15,6 @@
 
 namespace xpano::utils::sdl {
 
-DpiHandler::DpiHandler(SDL_Window* window) : window_(window) {}
-
-bool DpiHandler::DpiChanged() {
-  if (const float dpi_scale = QueryDpiScale(); dpi_scale != dpi_scale_) {
-    dpi_scale_ = dpi_scale;
-    spdlog::info("Loading fonts at {}x scale", dpi_scale);
-    return true;
-  }
-  return false;
-}
-
-float DpiHandler::DpiScale() const { return dpi_scale_; }
-
-float DpiHandler::QueryDpiScale() const {
-  return SDL_GetWindowDisplayScale(window_);
-}
-
 std::optional<std::filesystem::path> InitializePrefPath() {
   const std::string org_name{kOrgName};
   const std::string app_name{kAppName};

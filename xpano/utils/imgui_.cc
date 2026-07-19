@@ -54,12 +54,12 @@ void FontLoader::Reload(float scale) {
   ImGuiIO& imgui_io = ImGui::GetIO();
   imgui_io.Fonts->Clear();
   imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path_.c_str(),
-                                     std::roundf(18.0f * scale), nullptr,
+                                     std::roundf(18.0f), nullptr,
                                      alphabet_ranges_.Data);
   ImFontConfig config;
   config.MergeMode = true;
   imgui_io.Fonts->AddFontFromFileTTF(symbols_font_path_.c_str(),
-                                     std::roundf(18.0f * scale), &config,
+                                     std::roundf(18.0f), &config,
                                      symbol_ranges_.Data);
 
   ImGui_ImplSDLRenderer3_DestroyDeviceObjects();
@@ -67,6 +67,7 @@ void FontLoader::Reload(float scale) {
 
   ImGui::GetStyle() = {};
   ImGui::GetStyle().ScaleAllSizes(scale);
+  ImGui::GetStyle().FontScaleDpi = scale;
 }
 
 void InfoMarker(const std::string& label, const std::string& desc) {
