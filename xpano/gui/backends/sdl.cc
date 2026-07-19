@@ -3,6 +3,8 @@
 
 #include "xpano/gui/backends/sdl.h"
 
+#include <cstdint>
+
 #include <imgui.h>
 #include <opencv2/core.hpp>
 #include <SDL3/SDL.h>
@@ -27,7 +29,7 @@ Sdl::Sdl(SDL_Renderer* renderer) : renderer_(renderer) {
     spdlog::error("Failed to get SDL video driver: {}", SDL_GetError());
   }
 
-  if (SDL_PropertiesID props = SDL_GetRendererProperties(renderer)) {
+  if (const SDL_PropertiesID props = SDL_GetRendererProperties(renderer)) {
     max_texture_size_ = static_cast<int>(SDL_GetNumberProperty(
         props, SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER, 0));
     spdlog::info("Max texture size: {}", max_texture_size_);
@@ -47,13 +49,15 @@ Texture Sdl::CreateTexture(utils::Vec2i size) {
     spdlog::error("Failed to create SDL_Texture: {}", SDL_GetError());
     return {};
   }
-  return {static_cast<ImTextureID>(reinterpret_cast<intptr_t>(sdl_tex)), this};
+  return {static_cast<ImTextureID>(reinterpret_cast<std::intptr_t>(sdl_tex)),
+          this};
 }
 
 void Sdl::UpdateTexture(ImTextureID tex, cv::Mat image) {
   auto target = utils::SdlRect(utils::Point2i{0}, utils::ToIntVec(image.size));
-  // NOLINTNEXTLINE(performance-no-int-to-ptr): taken from imgui faq
-  auto* sdl_tex = reinterpret_cast<SDL_Texture*>(static_cast<intptr_t>(tex));
+  auto* sdl_tex =
+      // NOLINTNEXTLINE(performance-no-int-to-ptr): taken from imgui faq
+      reinterpret_cast<SDL_Texture*>(static_cast<std::intptr_t>(tex));
   if (!SDL_UpdateTexture(sdl_tex, &target, image.data,
                          static_cast<int>(image.step1()))) {
     spdlog::error("Failed to update SDL_Texture: {}", SDL_GetError());
@@ -63,7 +67,7 @@ void Sdl::UpdateTexture(ImTextureID tex, cv::Mat image) {
 void Sdl::DestroyTexture(ImTextureID tex) noexcept {
   SDL_DestroyTexture(
       // NOLINTNEXTLINE(performance-no-int-to-ptr): taken from imgui faq
-      reinterpret_cast<SDL_Texture*>(static_cast<intptr_t>(tex)));
+      reinterpret_cast<SDL_Texture*>(static_cast<std::intptr_t>(tex)));
 }
 
 }  // namespace xpano::gui::backends

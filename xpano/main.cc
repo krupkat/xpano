@@ -139,10 +139,9 @@ int main(int argc, char** argv) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
       ImGui_ImplSDL3_ProcessEvent(&event);
-      if (event.type == SDL_EVENT_QUIT) {
-        done = true;
-      } else if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-                 event.window.windowID == SDL_GetWindowID(window)) {
+      if (event.type == SDL_EVENT_QUIT ||
+          (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+           event.window.windowID == SDL_GetWindowID(window))) {
         done = true;
       } else if (event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
         xpano::utils::imgui::SetScale(xpano::utils::sdl::GetDpiScale(window));

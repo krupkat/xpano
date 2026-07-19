@@ -9,7 +9,6 @@
 #include <vector>
 
 #include <imgui.h>
-#include <imgui_impl_sdlrenderer3.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/utils/resource.h"
@@ -36,7 +35,7 @@ bool LoadFonts(const std::filesystem::path& executable_path,
 
   ImGuiIO& imgui_io = ImGui::GetIO();
 
-  if (ImFont* alphabet_font =
+  if (const ImFont* alphabet_font =
           imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path.c_str());
       alphabet_font == nullptr) {
     return false;
@@ -44,7 +43,7 @@ bool LoadFonts(const std::filesystem::path& executable_path,
 
   ImFontConfig cfg;
   cfg.MergeMode = true;
-  if (ImFont* symbol_font = imgui_io.Fonts->AddFontFromFileTTF(
+  if (const ImFont* symbol_font = imgui_io.Fonts->AddFontFromFileTTF(
           symbols_font_path.c_str(), 0.0f, &cfg);
       symbol_font == nullptr) {
     return false;
