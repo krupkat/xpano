@@ -26,7 +26,6 @@
 #include "xpano/pipeline/options.h"
 #include "xpano/utils/exiv2.h"
 #include "xpano/utils/future.h"
-#include "xpano/utils/opencv.h"
 #include "xpano/utils/path.h"
 #include "xpano/utils/threadpool.h"
 #include "xpano/utils/vec_opencv.h"
@@ -34,7 +33,6 @@
 namespace xpano::pipeline {
 namespace {
 
-#if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
 cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
     const ChromaSubsampling& subsampling) {
   switch (subsampling) {
@@ -48,7 +46,6 @@ cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
       return cv::IMWRITE_JPEG_SAMPLING_FACTOR_422;
   }
 }
-#endif
 
 std::vector<int> CompressionParameters(const CompressionOptions& options,
                                        utils::path::ImageType image_type) {
@@ -60,10 +57,8 @@ std::vector<int> CompressionParameters(const CompressionOptions& options,
         static_cast<int>(options.jpeg_progressive),
         cv::IMWRITE_JPEG_OPTIMIZE,
         static_cast<int>(options.jpeg_optimize),
-#if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
         cv::IMWRITE_JPEG_SAMPLING_FACTOR,
         ToOpenCVEnum(options.jpeg_subsampling),
-#endif
     };
   }
 
