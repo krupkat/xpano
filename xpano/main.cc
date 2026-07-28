@@ -4,6 +4,7 @@
 
 #include <clocale>
 #include <cstdio>
+#include <cstdlib>
 #include <future>
 #include <string>
 #include <utility>
@@ -38,7 +39,10 @@ int main(int argc, char** argv) {
   }
 
 #ifdef __linux__
-  SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "wayland,x11");
+  if (const char* session = std::getenv("XDG_SESSION_TYPE");
+      session != nullptr and std::string(session) == "wayland") {
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "wayland");
+  }
 #endif
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
