@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export BUILD_TYPE='Release'
-export SDL_VERSION='release-2.32.10'
+export SDL_VERSION='release-3.4.12'
 export OPENCV_VERSION='4.13.0'
 export CATCH_VERSION='v3.15.0'
 export SPDLOG_VERSION='v1.17.0'
@@ -34,7 +34,8 @@ git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $SDL_VERSION
 cd SDL
 cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DCMAKE_INSTALL_PREFIX=install
+  -DCMAKE_INSTALL_PREFIX=install \
+  `cat ../misc/build/sdl3-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..
 
