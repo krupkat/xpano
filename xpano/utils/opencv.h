@@ -8,11 +8,20 @@
 #include <opencv2/core/version.hpp>
 #include <opencv2/stitching.hpp>
 
+#define XPANO_OPENCV_VERSIONNUM(major, minor, patch) \
+    ((major) * 1000000 + (minor) * 1000 + (patch))
+
+#define XPANO_OPENCV_VERSION \
+    XPANO_OPENCV_VERSIONNUM(CV_VERSION_MAJOR, CV_VERSION_MINOR, CV_VERSION_REVISION)
+
+#define XPANO_OPENCV_VERSION_ATLEAST(X, Y, Z) \
+    (XPANO_OPENCV_VERSION >= XPANO_OPENCV_VERSIONNUM(X, Y, Z))
+
 #define XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT \
-  (CV_VERSION_MAJOR >= 4 && CV_VERSION_MINOR >= 7)
+  XPANO_OPENCV_VERSION_ATLEAST(4, 7, 0)
 
 #define XPANO_OPENCV_HAS_NEW_DRAW_MATCHES_API \
-  (CV_VERSION_MAJOR >= 4 && CV_VERSION_MINOR >= 5 && CV_VERSION_REVISION >= 3)
+  XPANO_OPENCV_VERSION_ATLEAST(4, 5, 3)
 
 namespace xpano::utils::opencv {
 
