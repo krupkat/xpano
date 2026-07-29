@@ -28,8 +28,8 @@ cd sdl
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
-  -DSDL_FORCE_STATIC_VCRT=ON `
-  -DSDL_MISC=OFF
+  -DSDL_SHARED=OFF `
+  -DSDL_STATIC=ON
 cmake --build build --target install --config Release
 cd ..
 
@@ -77,7 +77,7 @@ cmake -B build -G "$env:GENERATOR" `
   -DXPANO_STATIC_VCRT=ON `
   -DCMAKE_INSTALL_PREFIX=install `
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON `
-  -DSDL2_ROOT="${cwd}/sdl/install" `
+  -DSDL3_ROOT="${cwd}/sdl/install" `
   -DOpenCV_STATIC=ON `
   -DOpenCV_ROOT="${cwd}/opencv/install" `
   -Dspdlog_ROOT="${cwd}/spdlog/build/install" `
