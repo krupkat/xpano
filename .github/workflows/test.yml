@@ -12,7 +12,7 @@ permissions:
 
 env:
   BUILD_TYPE: Release
-  SDL_VERSION: "release-2.32.10"
+  SDL_VERSION: "release-3.4.12"
   OPENCV_VERSION: "4.13.0"
   CATCH_VERSION: "v3.15.0"
   SPDLOG_VERSION: "v1.17.0"
@@ -293,7 +293,8 @@ jobs:
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
+          sudo apt-get install -y libgtk-3-dev libopencv-dev libspdlog-dev 
+          sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
     - name: Cache Catch
       uses: actions/cache@v5
@@ -329,6 +330,27 @@ jobs:
         cmake --build build --target install -j $(nproc)
         cd ..
 
+    - name: Cache SDL
+      uses: actions/cache@v5
+      id: cache-sdl
+      with:
+        path: |
+          SDL/install
+          SDL/LICENSE.txt
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04
+
+    - name: Install SDL
+      if: steps.cache-sdl.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $SDL_VERSION
+        cd SDL
+        cmake -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          `cat ../misc/build/sdl3-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
     - name: Configure CMake
       run: |
         cmake -B build \
@@ -337,7 +359,8 @@ jobs:
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCatch2_ROOT=`pwd`/catch/install \
-          -Dexiv2_ROOT=`pwd`/exiv2/install
+          -Dexiv2_ROOT=`pwd`/exiv2/install \
+          -DSDL3_ROOT=`pwd`/SDL/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install
@@ -366,7 +389,7 @@ jobs:
     - name: Install prerequisites
       run: |
         brew untap aws/tap
-        brew install sdl2 spdlog catch2
+        brew install sdl3 spdlog catch2
 
     - name: Cache OpenCV
       uses: actions/cache@v5
