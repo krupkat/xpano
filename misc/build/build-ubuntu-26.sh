@@ -12,7 +12,7 @@ export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl2-dev libexiv2-dev catch2
+#sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl3-dev libexiv2-dev catch2
 
 
 git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
