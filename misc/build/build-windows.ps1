@@ -29,7 +29,9 @@ cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
   -DSDL_SHARED=OFF `
-  -DSDL_STATIC=ON
+  -DSDL_STATIC=ON `
+  -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+  @(Get-Content ../misc/build/sdl3-minimal-flags.txt)
 cmake --build build --target install --config Release
 cd ..
 
