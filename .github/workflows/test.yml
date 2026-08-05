@@ -22,6 +22,7 @@ env:
 jobs:
   build-windows:
     runs-on: windows-2025
+    timeout-minutes: 30
 
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
@@ -191,6 +192,7 @@ jobs:
 
   build-ubuntu-26:
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
 
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
@@ -245,6 +247,7 @@ jobs:
 
   build-ubuntu-24:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
@@ -320,6 +323,7 @@ jobs:
 
   build-ubuntu-22:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
 
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
@@ -413,6 +417,7 @@ jobs:
   build-macos:
     name: build-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
