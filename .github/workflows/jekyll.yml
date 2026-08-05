@@ -8,11 +8,8 @@ on:
       - misc/site/**
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Allow one concurrent deployment
 concurrency:
@@ -22,9 +19,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      pages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -41,9 +42,10 @@ jobs:
       - name: Build with Jekyll
         run: |
           cd misc/site
-          bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+          bundle exec jekyll build --baseurl "${STEPS_PAGES_OUTPUTS_BASE_PATH}"
         env:
           JEKYLL_ENV: production
+          STEPS_PAGES_OUTPUTS_BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
@@ -56,6 +58,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-24.04
     needs: build
+    permissions:
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
