@@ -11,6 +11,10 @@ $env:EXIV2_VERSION = 'v0.28.8'
 $env:GENERATOR = 'Ninja Multi-Config'
 
 git submodule update --init
+cd external/imgui
+git apply ../../misc/build/windows-store/0001-imgui-sdl3-backend-disable-default-shell-function.patch
+cd ../..
+
 
 
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $env:OPENCV_VERSION
@@ -25,6 +29,7 @@ cd ..
 
 git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $env:SDL_VERSION
 cd sdl
+git apply ../misc/build/windows-store/0002-disable-sdl-dynamic-api.patch
 cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `

@@ -1,0 +1,14 @@
+diff --git a/backends/imgui_impl_sdl3.cpp b/backends/imgui_impl_sdl3.cpp
+index 2b26db377..d4c671d6a 100644
+--- a/backends/imgui_impl_sdl3.cpp
++++ b/backends/imgui_impl_sdl3.cpp
+@@ -611,7 +611,9 @@ static bool ImGui_ImplSDL3_Init(SDL_Window* window, SDL_Renderer* renderer, void
+     platform_io.Platform_SetClipboardTextFn = ImGui_ImplSDL3_SetClipboardText;
+     platform_io.Platform_GetClipboardTextFn = ImGui_ImplSDL3_GetClipboardText;
+     platform_io.Platform_SetImeDataFn = ImGui_ImplSDL3_PlatformSetImeData;
++#ifndef IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS
+     platform_io.Platform_OpenInShellFn = [](ImGuiContext*, const char* url) { return SDL_OpenURL(url); };
++#endif
+ 
+     // Update monitor a first time during init
+     ImGui_ImplSDL3_UpdateMonitors();

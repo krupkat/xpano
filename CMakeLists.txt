@@ -115,10 +115,14 @@ add_executable(Xpano WIN32
 )
 
 target_include_directories(Xpano PRIVATE
-  "external/imgui" 
+  "external/imgui"
   "external/imgui/backends"
   "external/thread-pool/include"
   "."
+)
+
+target_compile_definitions(Xpano PRIVATE
+  IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS
 )
 
 set(OPENCV_TARGETS
