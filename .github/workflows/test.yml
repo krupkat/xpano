@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read # to fetch code (actions/checkout)
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Release
   SDL_VERSION: "release-3.4.12"
@@ -422,6 +426,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-26-intel, macos-26]
 
