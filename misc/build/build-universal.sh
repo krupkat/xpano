@@ -65,7 +65,7 @@ cmake -B build \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DCatch2_ROOT=`pwd`/catch/install \
   -DOpenCV_ROOT=`pwd`/opencv/install \
-  -DSDL2_ROOT=`pwd`/SDL/install \
+  -DSDL3_ROOT=`pwd`/SDL/install \
   -Dexiv2_ROOT=`pwd`/exiv2/install \
   -Dspdlog_ROOT=`pwd`/spdlog/build/install
 

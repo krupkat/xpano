@@ -248,17 +248,6 @@ install(FILES
   "misc/build/opencv-notice.txt"
   DESTINATION ${LICENSE_DIR}
 )
-install(DIRECTORY
-  "${OpenCV_DIR}/etc/licenses"
-  TYPE DATA
-  OPTIONAL
-)
-install(FILES
-  "${OpenCV_DIR}/LICENSE"
-  DESTINATION ${LICENSE_DIR}
-  RENAME "opencv-license.txt"
-  OPTIONAL
-)
 if (exiv-library)
   install(FILES
     "misc/build/exiv2-notice.txt"
