@@ -73,6 +73,8 @@ cmake --build build --target install --config $env:BUILD_TYPE
 cd ..
 
 New-Item -Name "licenses" -ItemType "directory"
+Copy-Item "opencv/LICENSE" -Destination "licenses/opencv-license.txt"
+Copy-Item "opencv/install/etc/licenses/*" -Destination "licenses"
 Copy-Item "sdl/LICENSE.txt" -Destination "licenses/sdl-license.txt"
 Copy-Item "spdlog/LICENSE" -Destination "licenses/spdlog-license.txt"
 Copy-Item "exiv2/COPYING" -Destination "licenses/exiv2-license.txt"
