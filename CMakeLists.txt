@@ -5,6 +5,7 @@ OPTION(BUILD_TESTING "Build tests" OFF)
 OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
 OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ON)
 OPTION(XPANO_INSTALL_DESKTOP_FILES "Install desktop files" OFF)
+OPTION(XPANO_DISABLE_SHELL_EXECUTE "Disable linking ShellExecute" OFF)
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -121,9 +122,12 @@ target_include_directories(Xpano PRIVATE
   "."
 )
 
-target_compile_definitions(Xpano PRIVATE
-  IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS
-)
+if (XPANO_DISABLE_SHELL_EXECUTE)
+  # windows store requires no ShellExecute reference in final binary
+  target_compile_definitions(Xpano PRIVATE
+    IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS
+  )
+endif()
 
 set(OPENCV_TARGETS
   opencv_calib3d
