@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
-./misc/build/build-ubuntu-22.sh
+./misc/build/build-universal.sh
 
 mkdir licenses
 
 cp exiv2/COPYING licenses/exiv2-license.txt
+cp SDL/LICENSE.txt licenses/sdl3-license.txt
+cp opencv/LICENSE licenses/opencv-license.txt
+cp opencv/install/share/licenses/opencv4/* licenses
+cp spdlog/LICENSE licenses/spdlog-license.txt
 
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=/usr \
@@ -13,6 +17,6 @@ cmake -B build \
 
 DESTDIR=AppDir cmake --build build -j $(nproc) --target install
 
-export LD_LIBRARY_PATH=exiv2/install/lib
+export LD_LIBRARY_PATH=exiv2/install/lib:SDL/install/lib:opencv/install/lib:spdlog/build/install/lib
 
 linuxdeploy-x86_64.AppImage --appdir build/AppDir --output appimage

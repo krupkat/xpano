@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <spdlog/common.h>
 #include <spdlog/details/log_msg.h>
 #include <spdlog/logger.h>
@@ -121,7 +121,7 @@ void Logger::Concatenate() {
 
 std::optional<std::string> Logger::GetLogDirPath() { return log_dir_path_; }
 
-void RedirectSDLOutput() { SDL_LogSetOutputFunction(CustomLog, nullptr); }
+void RedirectSDLOutput() { SDL_SetLogOutputFunction(CustomLog, nullptr); }
 
 void RedirectSpdlogToCout() {
   auto logger = spdlog::stdout_logger_mt("console");

@@ -3,9 +3,6 @@
 
 #pragma once
 
-#include <memory>
-#include <type_traits>
-
 #include <imgui.h>
 #include <opencv2/core.hpp>
 
@@ -15,24 +12,31 @@ namespace xpano::gui::backends {
 
 class Base;
 
-class TexDeleter {
+class Texture {
  public:
-  TexDeleter() = default;
-  explicit TexDeleter(Base* backend);
-  void operator()(ImTextureID tex);
+  Texture() = default;
+  Texture(ImTextureID tex, Base* backend);
+  Texture(const Texture&) = delete;
+  Texture(Texture&& other) noexcept;
+  Texture& operator=(const Texture&) = delete;
+  Texture& operator=(Texture&& other) noexcept;
+  ~Texture();
+
+  explicit operator bool() const noexcept;
+
+  [[nodiscard]] ImTextureID Get() const;
 
  private:
+  ImTextureID tex_ = 0;
   Base* backend_ = nullptr;
 };
-
-using Texture = std::unique_ptr<std::remove_pointer_t<ImTextureID>, TexDeleter>;
 
 class Base {
  public:
   virtual ~Base() = default;
   virtual Texture CreateTexture(utils::Vec2i size) = 0;
   virtual void UpdateTexture(ImTextureID tex, cv::Mat image) = 0;
-  virtual void DestroyTexture(ImTextureID tex) = 0;
+  virtual void DestroyTexture(ImTextureID tex) noexcept = 0;
 };
 
 }  // namespace xpano::gui::backends

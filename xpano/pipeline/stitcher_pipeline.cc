@@ -27,6 +27,7 @@
 #include "xpano/utils/exiv2.h"
 #include "xpano/utils/future.h"
 #include "xpano/utils/opencv.h"
+#include "xpano/utils/path.h"
 #include "xpano/utils/threadpool.h"
 #include "xpano/utils/vec_opencv.h"
 
@@ -49,19 +50,28 @@ cv::ImwriteJPEGSamplingFactorParams ToOpenCVEnum(
 }
 #endif
 
-std::vector<int> CompressionParameters(const CompressionOptions& options) {
-  return {cv::IMWRITE_JPEG_QUALITY,
-          options.jpeg_quality,
-          cv::IMWRITE_JPEG_PROGRESSIVE,
-          static_cast<int>(options.jpeg_progressive),
-          cv::IMWRITE_JPEG_OPTIMIZE,
-          static_cast<int>(options.jpeg_optimize),
+std::vector<int> CompressionParameters(const CompressionOptions& options,
+                                       utils::path::ImageType image_type) {
+  if (image_type == utils::path::ImageType::kJPG) {
+    return {
+        cv::IMWRITE_JPEG_QUALITY,
+        options.jpeg_quality,
+        cv::IMWRITE_JPEG_PROGRESSIVE,
+        static_cast<int>(options.jpeg_progressive),
+        cv::IMWRITE_JPEG_OPTIMIZE,
+        static_cast<int>(options.jpeg_optimize),
 #if XPANO_OPENCV_HAS_JPEG_SUBSAMPLING_SUPPORT
-          cv::IMWRITE_JPEG_SAMPLING_FACTOR,
-          ToOpenCVEnum(options.jpeg_subsampling),
+        cv::IMWRITE_JPEG_SAMPLING_FACTOR,
+        ToOpenCVEnum(options.jpeg_subsampling),
 #endif
-          cv::IMWRITE_PNG_COMPRESSION,
-          options.png_compression};
+    };
+  }
+
+  if (image_type == utils::path::ImageType::kPNG) {
+    return {cv::IMWRITE_PNG_COMPRESSION, options.png_compression};
+  };
+
+  return {};
 }
 
 template <typename TFutureType, RunTraits run>
@@ -103,7 +113,9 @@ ExportResult RunExportPipeline(cv::Mat pano, const ExportOptions& options,
 
   std::optional<std::filesystem::path> export_path;
   if (cv::imwrite(options.export_path.string(), pano,
-                  CompressionParameters(options.compression))) {
+                  CompressionParameters(
+                      options.compression,
+                      utils::path::GetImageType(options.export_path)))) {
     export_path = options.export_path;
   }
   progress->NotifyTaskDone();

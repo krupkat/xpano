@@ -3,70 +3,65 @@
 
 #include "xpano/utils/imgui_.h"
 
-#include <cmath>
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include <imgui.h>
-#include <imgui_impl_sdlrenderer2.h>
+#include <spdlog/spdlog.h>
 
-#include "xpano/constants.h"
 #include "xpano/utils/resource.h"
 
 namespace xpano::utils::imgui {
 
-FontLoader::FontLoader(const FontLoaderArgs& args)
-    : alphabet_font_path_(args.alphabet_font_path),
-      symbols_font_path_(args.symbols_font_path) {}
-
-void FontLoader::ComputeGlyphRanges() {
-  ImFontGlyphRangesBuilder builder;
-  builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
-  builder.BuildRanges(&alphabet_ranges_);
-
-  builder.Clear();
-  builder.AddText(kCheckMark);
-  builder.AddText(kCommandSymbol);
-  builder.BuildRanges(&symbol_ranges_);
+namespace {
+constexpr float kDefaultFontSizeBase = 18.0f;
 }
 
-bool FontLoader::Init(const std::filesystem::path& executable_path) {
-  ComputeGlyphRanges();
-
-  if (auto font = resource::Find(executable_path, alphabet_font_path_); font) {
-    alphabet_font_path_ = *font;
+bool LoadFonts(const std::filesystem::path& executable_path,
+               const FontLoaderArgs& args) {
+  std::string alphabet_font_path;
+  if (auto font = resource::Find(executable_path, args.alphabet_font_path);
+      font) {
+    alphabet_font_path = *font;
   } else {
     return false;
   }
 
-  if (auto font = resource::Find(executable_path, symbols_font_path_); font) {
-    symbols_font_path_ = *font;
+  std::string symbols_font_path;
+  if (auto font = resource::Find(executable_path, args.symbols_font_path);
+      font) {
+    symbols_font_path = *font;
   } else {
+    return false;
+  }
+
+  ImGuiIO& imgui_io = ImGui::GetIO();
+
+  if (const ImFont* alphabet_font = imgui_io.Fonts->AddFontFromFileTTF(
+          alphabet_font_path.c_str(), kDefaultFontSizeBase);
+      alphabet_font == nullptr) {
+    return false;
+  }
+
+  ImFontConfig cfg;
+  cfg.MergeMode = true;
+  if (const ImFont* symbol_font = imgui_io.Fonts->AddFontFromFileTTF(
+          symbols_font_path.c_str(), kDefaultFontSizeBase, &cfg);
+      symbol_font == nullptr) {
     return false;
   }
 
   return true;
 }
 
-void FontLoader::Reload(float scale) {
-  ImGuiIO& imgui_io = ImGui::GetIO();
-  imgui_io.Fonts->Clear();
-  imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path_.c_str(),
-                                     std::roundf(18.0f * scale), nullptr,
-                                     alphabet_ranges_.Data);
-  ImFontConfig config;
-  config.MergeMode = true;
-  imgui_io.Fonts->AddFontFromFileTTF(symbols_font_path_.c_str(),
-                                     std::roundf(18.0f * scale), &config,
-                                     symbol_ranges_.Data);
-
-  ImGui_ImplSDLRenderer2_DestroyDeviceObjects();
-  ImGui_ImplSDLRenderer2_CreateDeviceObjects();
-
+void SetScale(float scale) {
+  spdlog::info("Setting scale factor {}x", scale);
   ImGui::GetStyle() = {};
   ImGui::GetStyle().ScaleAllSizes(scale);
+  ImGui::GetStyle().FontSizeBase = kDefaultFontSizeBase;
+  ImGui::GetStyle().FontScaleDpi = scale;
 }
 
 void InfoMarker(const std::string& label, const std::string& desc) {

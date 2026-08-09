@@ -146,7 +146,7 @@ void ThumbnailPane::Load(const std::vector<algorithm::Image>& images) {
   scroll_.resize(coords_.size());
 
   tex_ = backend_->CreateTexture(size);
-  backend_->UpdateTexture(tex_.get(), atlas);
+  backend_->UpdateTexture(tex_.Get(), atlas);
   spdlog::info("Thumbnails loaded successfully");
 }
 
@@ -213,7 +213,7 @@ void ThumbnailPane::ThumbnailTooltip(const std::vector<int>& images) const {
 bool ThumbnailPane::ThumbnailButton(int img_id) const {
   const auto& coord = coords_[img_id];
   return ImGui::ImageButton(
-      "", tex_.get(),
+      "", tex_.Get(),
       ImVec2(thumbnail_height_ * coord.aspect, thumbnail_height_),
       utils::ImVec(coord.uv0), utils::ImVec(coord.uv1));
 }
@@ -247,7 +247,7 @@ void ThumbnailPane::Highlight(const std::vector<int>& ids) {
 void ThumbnailPane::DisableHighlight() { hover_checker_.DisableHighlight(); }
 
 void ThumbnailPane::Reset() {
-  tex_.reset(nullptr);
+  tex_ = {};
   coords_.resize(0);
   scroll_.resize(0);
   hover_checker_ = HoverChecker{};

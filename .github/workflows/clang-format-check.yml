@@ -14,11 +14,18 @@ on:
 permissions:
   contents: read # to fetch code (actions/checkout)
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   clang-format-check:
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: Run clang-format
       run: |

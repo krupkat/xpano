@@ -9,14 +9,14 @@
 #include <string>
 #include <string_view>
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace xpano::utils::resource {
 
 std::optional<std::string> Find(const std::filesystem::path& executable_path,
                                 std::string_view rel_path);
 
-using SdlSurface = std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>;
+using SdlSurface = std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)>;
 
 SdlSurface LoadIcon(const std::filesystem::path& executable_path,
                     std::string_view rel_path);

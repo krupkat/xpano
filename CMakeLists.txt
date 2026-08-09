@@ -5,6 +5,7 @@ OPTION(BUILD_TESTING "Build tests" OFF)
 OPTION(XPANO_STATIC_VCRT "Build with static VCRT" OFF)
 OPTION(XPANO_WITH_MULTIBLEND "Build with multiblend" ON)
 OPTION(XPANO_INSTALL_DESKTOP_FILES "Install desktop files" OFF)
+OPTION(XPANO_DISABLE_SHELL_EXECUTE "Disable linking ShellExecute" OFF)
 
 if(XPANO_STATIC_VCRT)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -37,8 +38,8 @@ set(IMGUI_SOURCES
   "external/imgui/imgui_demo.cpp"
   "external/imgui/imgui_tables.cpp"
   "external/imgui/imgui_widgets.cpp"
-  "external/imgui/backends/imgui_impl_sdl2.cpp"
-  "external/imgui/backends/imgui_impl_sdlrenderer2.cpp"
+  "external/imgui/backends/imgui_impl_sdl3.cpp"
+  "external/imgui/backends/imgui_impl_sdlrenderer3.cpp"
 )
 
 set(XPANO_SOURCES
@@ -86,7 +87,7 @@ if (WIN32)
  list(APPEND XPANO_SOURCES "xpano/cli/windows_console.cc")
 endif()
 
-find_package(SDL2 REQUIRED CONFIG)
+find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching CONFIG)
 find_package(spdlog REQUIRED CONFIG)
 find_package(exiv2 CONFIG)
@@ -115,11 +116,18 @@ add_executable(Xpano WIN32
 )
 
 target_include_directories(Xpano PRIVATE
-  "external/imgui" 
+  "external/imgui"
   "external/imgui/backends"
   "external/thread-pool/include"
   "."
 )
+
+if (XPANO_DISABLE_SHELL_EXECUTE)
+  # windows store requires no ShellExecute reference in final binary
+  target_compile_definitions(Xpano PRIVATE
+    IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS
+  )
+endif()
 
 set(OPENCV_TARGETS
   opencv_calib3d
@@ -132,18 +140,12 @@ set(OPENCV_TARGETS
   opencv_stitching
 )
 
-if(NOT TARGET SDL2::SDL2main)
-# This is a workaround for SDL 2.24.0, still needed for build on Kinetic
-  add_library(SDL2::SDL2main INTERFACE IMPORTED)
-endif()
-
 target_link_libraries(Xpano
   alpaca
   expected
   nfd
   ${OPENCV_TARGETS}
-  SDL2::SDL2
-  SDL2::SDL2main
+  SDL3::SDL3
   spdlog::spdlog
 )
 
@@ -249,17 +251,6 @@ install(FILES
 install(FILES
   "misc/build/opencv-notice.txt"
   DESTINATION ${LICENSE_DIR}
-)
-install(DIRECTORY
-  "${OpenCV_DIR}/etc/licenses"
-  TYPE DATA
-  OPTIONAL
-)
-install(FILES
-  "${OpenCV_DIR}/LICENSE"
-  DESTINATION ${LICENSE_DIR}
-  RENAME "opencv-license.txt"
-  OPTIONAL
 )
 if (exiv-library)
   install(FILES

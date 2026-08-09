@@ -3,9 +3,11 @@
 
 #include "xpano/gui/backends/sdl.h"
 
+#include <cstdint>
+
 #include <imgui.h>
 #include <opencv2/core.hpp>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 
 #include "xpano/gui/backends/base.h"
@@ -15,45 +17,57 @@
 namespace xpano::gui::backends {
 
 Sdl::Sdl(SDL_Renderer* renderer) : renderer_(renderer) {
-  if (SDL_GetRendererInfo(renderer, &info_) == 0) {
-    spdlog::info("Current SDL_Renderer: {}", info_.name);
-    spdlog::info("Max tex width: {}", info_.max_texture_width);
-    spdlog::info("Max tex height: {}", info_.max_texture_height);
+  if (const char* name = SDL_GetRendererName(renderer_)) {
+    spdlog::info("Current SDL renderer: {}", name);
   } else {
     spdlog::error("Failed to get SDL_RendererInfo: {}", SDL_GetError());
+  }
+
+  if (const char* video_driver = SDL_GetCurrentVideoDriver()) {
+    spdlog::info("Current SDL video driver: {}", video_driver);
+  } else {
+    spdlog::error("Failed to get SDL video driver: {}", SDL_GetError());
+  }
+
+  if (const SDL_PropertiesID props = SDL_GetRendererProperties(renderer)) {
+    max_texture_size_ = static_cast<int>(SDL_GetNumberProperty(
+        props, SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER, 0));
+    spdlog::info("Max texture size: {}", max_texture_size_);
+  } else {
+    spdlog::error("Failed to get SDL_RendererProperties: {}", SDL_GetError());
   }
 }
 
 Texture Sdl::CreateTexture(utils::Vec2i size) {
-  if (size[0] > info_.max_texture_width || size[1] > info_.max_texture_height) {
+  if (size[0] > max_texture_size_ || size[1] > max_texture_size_) {
     spdlog::error("Texture size {} x {} is too big.", size[0], size[1]);
-    return nullptr;
+    return {};
   }
-  const char* old_texture_sampling = SDL_GetHint(SDL_HINT_RENDER_SCALE_QUALITY);
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
   auto* sdl_tex = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_BGR24,
                                     SDL_TEXTUREACCESS_STATIC, size[0], size[1]);
-  if (old_texture_sampling != nullptr) {
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, old_texture_sampling);
-  }
   if (sdl_tex == nullptr) {
     spdlog::error("Failed to create SDL_Texture: {}", SDL_GetError());
-    return nullptr;
+    return {};
   }
-  return {static_cast<ImTextureID>(sdl_tex), TexDeleter{this}};
+  return {static_cast<ImTextureID>(reinterpret_cast<std::intptr_t>(sdl_tex)),
+          this};
 }
 
 void Sdl::UpdateTexture(ImTextureID tex, cv::Mat image) {
   auto target = utils::SdlRect(utils::Point2i{0}, utils::ToIntVec(image.size));
-  auto* sdl_tex = static_cast<SDL_Texture*>(tex);
-  if (SDL_UpdateTexture(sdl_tex, &target, image.data,
-                        static_cast<int>(image.step1())) != 0) {
+  auto* sdl_tex =
+      // NOLINTNEXTLINE(performance-no-int-to-ptr): taken from imgui faq
+      reinterpret_cast<SDL_Texture*>(static_cast<std::intptr_t>(tex));
+  if (!SDL_UpdateTexture(sdl_tex, &target, image.data,
+                         static_cast<int>(image.step1()))) {
     spdlog::error("Failed to update SDL_Texture: {}", SDL_GetError());
   }
 }
 
-void Sdl::DestroyTexture(ImTextureID tex) {
-  SDL_DestroyTexture(static_cast<SDL_Texture*>(tex));
+void Sdl::DestroyTexture(ImTextureID tex) noexcept {
+  SDL_DestroyTexture(
+      // NOLINTNEXTLINE(performance-no-int-to-ptr): taken from imgui faq
+      reinterpret_cast<SDL_Texture*>(static_cast<std::intptr_t>(tex)));
 }
 
 }  // namespace xpano::gui::backends

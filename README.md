@@ -52,24 +52,16 @@ The project can be built by running a single script from the `misc/build` direct
 
 ### NixOS
 
-Run the build script from the root of the repository:
+Enter the provided nix-shell and run the build script from the root of the repository:
 
 ```
 nix-shell misc/build/nix/default.nix
 ./misc/build/build-nixos.sh
 ```
 
-Possible issues when running - [troubleshooting](https://gist.github.com/krupkat/cd0adbd584e2bfe154accdb393076fc3).
-
 ### MacOS
 
-Library prerequisites: SDL2, spdlog, catch2
-
-Install with brew: `brew install sdl2 spdlog catch2`
-
-Install with macports: `sudo port install libsdl2 spdlog catch2` (for details: [#96](https://github.com/krupkat/xpano/pull/96#issuecomment-1575589249))
-
-Run the build script from the root of the repository:
+Install prerequisites (listed in the build script, you can also use macports instead of brew), then run the build script from the root of the repository:
 
 ```
 ./misc/build/build-macos.sh
@@ -77,18 +69,7 @@ Run the build script from the root of the repository:
 
 ### Ubuntu
 
-Library prerequisites:
-
-```bash
-# Ubuntu 26
-sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libexiv2-dev catch2
-# Ubuntu 24
-sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev catch2
-# Ubuntu 22
-sudo apt install libgtk-3-dev libopencv-dev libsdl2-dev libspdlog-dev
-```
-
-Run the build script from the root of the repository:
+Install prerequisites (listed in the build scripts), then run the build script from the root of the repository:
 
 ```
 ./misc/build/build-ubuntu-26.sh
@@ -98,7 +79,7 @@ Run the build script from the root of the repository:
 
 ### Windows
 
-Open the "Developer PowerShell for VS 2022" profile in Windows Terminal and run the build script from the root of the repository:
+Open the "Developer PowerShell for VS" profile in Windows Terminal and run the build script from the root of the repository:
 
 ```
 ./misc/build/build-windows-latest.ps1

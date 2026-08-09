@@ -1,0 +1,13 @@
+diff --git a/src/dynapi/SDL_dynapi.h b/src/dynapi/SDL_dynapi.h
+index 786d86e..17a454f 100644
+--- a/src/dynapi/SDL_dynapi.h
++++ b/src/dynapi/SDL_dynapi.h
+@@ -71,7 +71,7 @@
+ 
+ // everyone else. This is where we turn on the API if nothing forced it off.
+ #ifndef SDL_DYNAMIC_API
+-#define SDL_DYNAMIC_API 1
++#define SDL_DYNAMIC_API 0
+ #endif
+ 
+ #endif
