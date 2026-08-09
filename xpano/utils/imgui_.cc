@@ -15,6 +15,10 @@
 
 namespace xpano::utils::imgui {
 
+namespace {
+constexpr float kDefaultFontSizeBase = 18.0f;
+}
+
 bool LoadFonts(const std::filesystem::path& executable_path,
                const FontLoaderArgs& args) {
   std::string alphabet_font_path;
@@ -35,8 +39,8 @@ bool LoadFonts(const std::filesystem::path& executable_path,
 
   ImGuiIO& imgui_io = ImGui::GetIO();
 
-  if (const ImFont* alphabet_font =
-          imgui_io.Fonts->AddFontFromFileTTF(alphabet_font_path.c_str());
+  if (const ImFont* alphabet_font = imgui_io.Fonts->AddFontFromFileTTF(
+          alphabet_font_path.c_str(), kDefaultFontSizeBase);
       alphabet_font == nullptr) {
     return false;
   }
@@ -44,7 +48,7 @@ bool LoadFonts(const std::filesystem::path& executable_path,
   ImFontConfig cfg;
   cfg.MergeMode = true;
   if (const ImFont* symbol_font = imgui_io.Fonts->AddFontFromFileTTF(
-          symbols_font_path.c_str(), 0.0f, &cfg);
+          symbols_font_path.c_str(), kDefaultFontSizeBase, &cfg);
       symbol_font == nullptr) {
     return false;
   }
@@ -53,9 +57,10 @@ bool LoadFonts(const std::filesystem::path& executable_path,
 }
 
 void SetScale(float scale) {
-  spdlog::info("Loading fonts at {}x scale", scale);
+  spdlog::info("Setting scale factor {}x", scale);
   ImGui::GetStyle() = {};
   ImGui::GetStyle().ScaleAllSizes(scale);
+  ImGui::GetStyle().FontSizeBase = kDefaultFontSizeBase;
   ImGui::GetStyle().FontScaleDpi = scale;
 }
 
