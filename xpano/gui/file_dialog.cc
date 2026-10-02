@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cctype>
 #include <exception>
+#include <expected>
 #include <filesystem>
 #include <functional>
 #include <future>
@@ -20,7 +21,6 @@
 
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
-#include "xpano/utils/expected.h"
 #include "xpano/utils/fmt.h"
 #include "xpano/utils/path.h"
 
@@ -29,8 +29,8 @@ namespace xpano::gui::file_dialog {
 namespace {
 
 template <typename... Args>
-utils::Unexpected<Error> MakeUnexpected(Args&&... args) {
-  return utils::Unexpected<Error>(Error{std::forward<Args>(args)...});
+std::unexpected<Error> MakeUnexpected(Args&&... args) {
+  return std::unexpected<Error>(Error{std::forward<Args>(args)...});
 }
 
 std::string Extensions() {
@@ -52,8 +52,8 @@ using Paths = std::vector<std::filesystem::path>;
 // default location must also outlive the asynchronous dialog.
 template <typename T>
 struct DialogState {
-  std::promise<utils::Expected<T, Error>> promise;
-  std::function<utils::Expected<T, Error>(Paths)> process;
+  std::promise<std::expected<T, Error>> promise;
+  std::function<std::expected<T, Error>(Paths)> process;
   std::string extensions = Extensions();
   SDL_DialogFileFilter filter{"Images", extensions.c_str()};
   std::string default_location;
@@ -83,7 +83,7 @@ void SDLCALL DialogCallback(void* userdata, const char* const* files, int) {
   }
 }
 
-utils::Expected<Paths, Error> DirectoryOpen(Paths paths) {
+std::expected<Paths, Error> DirectoryOpen(Paths paths) {
   const auto& dir_path = paths.front();
   if (!std::filesystem::is_directory(dir_path)) {
     return MakeUnexpected(ErrorType::kTargetNotDirectory, dir_path.string());
@@ -100,12 +100,12 @@ utils::Expected<Paths, Error> DirectoryOpen(Paths paths) {
 
 }  // namespace
 
-std::future<utils::Expected<Paths, Error>> Open(const Action& action,
-                                                SDL_Window* window) {
+std::future<std::expected<Paths, Error>> Open(const Action& action,
+                                              SDL_Window* window) {
   auto state = std::make_unique<DialogState<Paths>>();
   auto future = state->promise.get_future();
   if (action.type == ActionType::kOpenFiles) {
-    state->process = [](Paths paths) -> utils::Expected<Paths, Error> {
+    state->process = [](Paths paths) -> std::expected<Paths, Error> {
       spdlog::info("Selected files [SDL_ShowOpenFileDialog]");
       return utils::path::KeepSupported(paths);
     };
@@ -122,13 +122,13 @@ std::future<utils::Expected<Paths, Error>> Open(const Action& action,
   return future;
 }
 
-std::future<utils::Expected<std::filesystem::path, Error>> Save(
+std::future<std::expected<std::filesystem::path, Error>> Save(
     const std::string& default_name, SDL_Window* window) {
   auto state = std::make_unique<DialogState<std::filesystem::path>>();
   auto future = state->promise.get_future();
   state->default_location = default_name;
   state->process =
-      [](Paths paths) -> utils::Expected<std::filesystem::path, Error> {
+      [](Paths paths) -> std::expected<std::filesystem::path, Error> {
     auto result_path = std::move(paths.front());
     spdlog::info("Picked save file {}", result_path.string());
     if (!utils::path::IsExtensionSupported(result_path)) {

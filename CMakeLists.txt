@@ -18,12 +18,10 @@ if (MSVC)
   add_compile_options(/utf-8)
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
-
-set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
-add_subdirectory("external/expected" EXCLUDE_FROM_ALL)
 
 if(XPANO_WITH_MULTIBLEND)
   add_subdirectory("external/multiblend")
@@ -141,7 +139,6 @@ set(OPENCV_TARGETS
 
 target_link_libraries(Xpano
   alpaca
-  expected
   ${OPENCV_TARGETS}
   SDL3::SDL3
   spdlog::spdlog

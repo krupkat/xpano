@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <expected>
 #include <future>
 #include <optional>
 #include <string>
@@ -70,9 +71,9 @@ class PanoGui {
   bool IsDebugEnabled() const;
 
   SDL_Window* window_;
-  std::future<utils::Expected<std::vector<std::filesystem::path>,
-                              file_dialog::Error>> open_dialog_;
-  std::future<utils::Expected<std::filesystem::path, file_dialog::Error>>
+  std::future<std::expected<std::vector<std::filesystem::path>,
+                            file_dialog::Error>> open_dialog_;
+  std::future<std::expected<std::filesystem::path, file_dialog::Error>>
       save_dialog_;
   int export_pano_id_ = -1;
 

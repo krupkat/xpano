@@ -133,7 +133,7 @@ add_executable(FileDialogTest
 )
 target_include_directories(FileDialogTest PRIVATE "..")
 target_link_libraries(FileDialogTest PRIVATE
-  Catch2::Catch2WithMain expected SDL3::SDL3 spdlog::spdlog opencv_core
+  Catch2::Catch2WithMain SDL3::SDL3 spdlog::spdlog opencv_core
 )
 # Replace only the dialog entry points, leaving SDL error handling available.
 target_compile_definitions(FileDialogTest PRIVATE

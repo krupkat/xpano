@@ -12,7 +12,7 @@ export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libopencv-dev libspdlog-dev
+#sudo apt-get install -y g++-12 libopencv-dev libspdlog-dev
 #sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
 
@@ -48,7 +48,9 @@ cmake -B build \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DCatch2_ROOT=`pwd`/catch/install \
   -Dexiv2_ROOT=`pwd`/exiv2/install \
-  -DSDL3_ROOT=`pwd`/SDL/install
+  -DSDL3_ROOT=`pwd`/SDL/install \
+  -DCMAKE_C_COMPILER=gcc-12 \
+  -DCMAKE_CXX_COMPILER=g++-12
 
 cmake --build build -j $(nproc) --target install
 cd build
