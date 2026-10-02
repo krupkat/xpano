@@ -126,7 +126,24 @@ target_include_directories(ArgsTest PRIVATE
   ".."
 )
 
+add_executable(FileDialogTest
+  file_dialog_test.cc
+  ../xpano/gui/file_dialog.cc
+  ../xpano/utils/path.cc
+)
+target_include_directories(FileDialogTest PRIVATE "..")
+target_link_libraries(FileDialogTest PRIVATE
+  Catch2::Catch2WithMain expected SDL3::SDL3 spdlog::spdlog opencv_core
+)
+# Replace only the dialog entry points, leaving SDL error handling available.
+target_compile_definitions(FileDialogTest PRIVATE
+  SDL_ShowOpenFileDialog=TestShowOpenFileDialog
+  SDL_ShowOpenFolderDialog=TestShowOpenFolderDialog
+  SDL_ShowSaveFileDialog=TestShowSaveFileDialog
+)
+
 set(ALL_TEST_TARGETS
+  FileDialogTest
   AutoCropTest
   DisjointSetTest
   RectTest

@@ -20,7 +20,6 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory("external/nativefiledialog-extended")
 add_subdirectory("external/alpaca" EXCLUDE_FROM_ALL)
 
 set(EXPECTED_BUILD_TESTS OFF) # needed to disable download of catch2
@@ -87,7 +86,7 @@ if (WIN32)
  list(APPEND XPANO_SOURCES "xpano/cli/windows_console.cc")
 endif()
 
-find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
+find_package(SDL3 3.2 REQUIRED CONFIG COMPONENTS SDL3)
 find_package(OpenCV REQUIRED COMPONENTS calib3d core features2d flann imgcodecs imgproc photo stitching CONFIG)
 find_package(spdlog REQUIRED CONFIG)
 find_package(exiv2 CONFIG)
@@ -143,7 +142,6 @@ set(OPENCV_TARGETS
 target_link_libraries(Xpano
   alpaca
   expected
-  nfd
   ${OPENCV_TARGETS}
   SDL3::SDL3
   spdlog::spdlog
@@ -213,11 +211,6 @@ install(FILES
   "external/imgui/LICENSE.txt"
   DESTINATION ${LICENSE_DIR}
   RENAME "imgui-license.txt"
-)
-install(FILES
-  "external/nativefiledialog-extended/LICENSE"
-  DESTINATION ${LICENSE_DIR}
-  RENAME "nativefiledialog-extended-license.txt"
 )
 install(FILES
   "external/thread-pool/LICENSE.txt"

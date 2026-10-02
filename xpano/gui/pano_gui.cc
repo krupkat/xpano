@@ -39,6 +39,7 @@
 #include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
 #include "xpano/utils/fmt.h"
+#include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/text.h"
 #include "xpano/version.h"
@@ -279,8 +280,10 @@ const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
 
 PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
                  const utils::config::Config& config,
-                 std::future<utils::Texts> licenses, const cli::Args& args)
-    : options_(config.user_options),
+                 std::future<utils::Texts> licenses, const cli::Args& args,
+                 SDL_Window* window)
+    : window_(window),
+      options_(config.user_options),
       log_pane_(logger),
       about_pane_(std::move(licenses)),
       bugreport_pane_(logger),
@@ -301,8 +304,44 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
+bool PanoGui::FileDialogPending() const {
+  return open_dialog_.valid() || save_dialog_.valid();
+}
+
+Action PanoGui::ResolveFileDialog() {
+  if (utils::future::IsReady(open_dialog_)) {
+    auto files = open_dialog_.get();
+    if (!files) {
+      spdlog::warn(files.error());
+      warning_pane_.QueueFilePickerError(files.error());
+      return {};
+    }
+    return {.type = ActionType::kLoadFiles, .extra = std::move(*files)};
+  }
+  if (utils::future::IsReady(save_dialog_)) {
+    auto path = save_dialog_.get();
+    if (!path) {
+      spdlog::warn(path.error());
+      warning_pane_.QueueFilePickerError(path.error());
+    } else {
+      FinishExportAction(export_pano_id_, *path);
+    }
+  }
+  return {};
+}
+
 bool PanoGui::Run() {
+  auto dialog_action = ResolveFileDialog();
+  if (FileDialogPending()) {
+    // Keep rendering and pumping SDL events, but preserve the selection and
+    // pipeline results until the modal dialog has completed.
+    ImGui::BeginDisabled();
+    DrawGui();
+    ImGui::EndDisabled();
+    return false;
+  }
   MultiAction actions = std::move(next_actions_);
+  actions |= dialog_action;
 
   actions |= DrawGui();
   actions |= CheckKeybindings();
@@ -388,7 +427,7 @@ void PanoGui::Reset() {
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
 Action PanoGui::PerformAction(const Action& action) {
-  if (action.delayed) {
+  if (action.delayed || FileDialogPending()) {
     return {};
   }
 
@@ -426,13 +465,8 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      auto files = file_dialog::Open(action);
-      if (!files) {
-        spdlog::warn(files.error());
-        warning_pane_.QueueFilePickerError(files.error());
-        break;
-      }
-      return {.type = ActionType::kLoadFiles, .delayed = true, .extra = *files};
+      open_dialog_ = file_dialog::Open(action, window_);
+      break;
     }
     case ActionType::kLoadFiles: {
       if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {
@@ -586,14 +620,13 @@ void PanoGui::PerformExportAction(int pano_id) {
   status_message_ = {};
 
   const auto* first_image = FirstImage(*stitcher_data_, pano_id);
-  auto export_path = file_dialog::Save(first_image->PanoName());
+  export_pano_id_ = pano_id;
+  save_dialog_ = file_dialog::Save(first_image->PanoName(), window_);
+}
 
-  if (!export_path) {
-    spdlog::warn(export_path.error());
-    warning_pane_.QueueFilePickerError(export_path.error());
-    return;
-  }
-
+void PanoGui::FinishExportAction(int pano_id,
+                                const std::filesystem::path& export_path) {
+  const auto* first_image = FirstImage(*stitcher_data_, pano_id);
   const auto& pano = stitcher_data_->panos.at(pano_id);
   if (plot_pane_.Type() == ImageType::kPanoFullRes) {
     std::optional<std::filesystem::path> metadata_path;
@@ -602,7 +635,7 @@ void PanoGui::PerformExportAction(int pano_id) {
     }
     stitcher_pipeline_.RunExport(plot_pane_.Image(),
                                  {.pano_id = pano_id,
-                                  .export_path = *export_path,
+                                  .export_path = export_path,
                                   .metadata_path = metadata_path,
                                   .compression = options_.compression,
                                   .crop = pano.crop});
@@ -610,7 +643,7 @@ void PanoGui::PerformExportAction(int pano_id) {
     stitcher_pipeline_.RunStitching(*stitcher_data_,
                                     {.pano_id = pano_id,
                                      .full_res = true,
-                                     .export_path = *export_path,
+                                     .export_path = export_path,
                                      .export_crop = pano.crop,
                                      .metadata = options_.metadata,
                                      .compression = options_.compression,

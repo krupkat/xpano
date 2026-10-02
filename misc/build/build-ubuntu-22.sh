@@ -12,7 +12,7 @@ export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libgtk-3-dev libopencv-dev libspdlog-dev 
+#sudo apt-get install -y libopencv-dev libspdlog-dev
 #sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
 

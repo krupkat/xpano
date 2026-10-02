@@ -12,8 +12,7 @@ cp spdlog/LICENSE licenses/spdlog-license.txt
 
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=/usr \
-  -DXPANO_EXTRA_LICENSES=licenses \
-  -DNFD_PORTAL=ON
+  -DXPANO_EXTRA_LICENSES=licenses
 
 DESTDIR=AppDir cmake --build build -j $(nproc) --target install
 

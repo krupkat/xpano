@@ -12,7 +12,6 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
-#include <nfd.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <spdlog/spdlog.h>
@@ -75,11 +74,6 @@ int main(int argc, char** argv) {
 
   auto config = xpano::utils::config::Load(app_data_path);
 
-  // Setup file dialog library
-  if (NFD_Init() != NFD_OKAY) {
-    spdlog::error("Couldn't initialize NFD");
-  }
-
   // Setup SDL Window + Renderer
   auto window_flags =
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
@@ -127,7 +121,7 @@ int main(int argc, char** argv) {
                  xpano::kLicensePath);
 
   xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
-                          *args);
+                          *args, window);
 
   if (!xpano::utils::imgui::LoadFonts(
           *app_exe_path, {.alphabet_font_path = xpano::kFontPath,
@@ -181,7 +175,6 @@ int main(int argc, char** argv) {
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 
-  NFD_Quit();
   SDL_Quit();
 
   return 0;

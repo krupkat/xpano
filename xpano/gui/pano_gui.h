@@ -15,6 +15,7 @@
 #include "xpano/cli/args.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
+#include "xpano/gui/file_dialog.h"
 #include "xpano/gui/panels/about.h"
 #include "xpano/gui/panels/bugreport_pane.h"
 #include "xpano/gui/panels/log_pane.h"
@@ -50,7 +51,8 @@ class PanoGui {
  public:
   PanoGui(backends::Base* backend, logger::Logger* logger,
           const utils::config::Config& config,
-          std::future<utils::Texts> licenses, const cli::Args& args);
+          std::future<utils::Texts> licenses, const cli::Args& args,
+          SDL_Window* window);
 
   bool Run();
   pipeline::Options GetOptions() const;
@@ -61,8 +63,18 @@ class PanoGui {
   MultiAction ResolveFutures();
   Action PerformAction(const Action& action);
   void PerformExportAction(int pano_id);
+  void FinishExportAction(int pano_id, const std::filesystem::path& export_path);
+  Action ResolveFileDialog();
+  bool FileDialogPending() const;
   void Reset();
   bool IsDebugEnabled() const;
+
+  SDL_Window* window_;
+  std::future<utils::Expected<std::vector<std::filesystem::path>,
+                              file_dialog::Error>> open_dialog_;
+  std::future<utils::Expected<std::filesystem::path, file_dialog::Error>>
+      save_dialog_;
+  int export_pano_id_ = -1;
 
   // PODs
   Selection selection_;
