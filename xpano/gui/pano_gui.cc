@@ -26,7 +26,7 @@
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
-#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/file_dialog/error.h"
 #include "xpano/gui/layout.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/sidebar.h"
@@ -278,11 +278,11 @@ const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
 
 }  // namespace
 
-PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
-                 const utils::config::Config& config,
-                 std::future<utils::Texts> licenses, const cli::Args& args,
-                 SDL_Window* window)
-    : window_(window),
+PanoGui::PanoGui(backends::Base* backend,
+                 file_dialog::Base* file_dialog_backend,
+                 logger::Logger* logger, const utils::config::Config& config,
+                 std::future<utils::Texts> licenses, const cli::Args& args)
+    : file_dialog_backend_(file_dialog_backend),
       options_(config.user_options),
       log_pane_(logger),
       about_pane_(std::move(licenses)),
@@ -448,7 +448,7 @@ Action PanoGui::PerformAction(const Action& action) {
       if (selection_.type == SelectionType::kPano) {
         const auto* first_image =
             FirstImage(*stitcher_data_, selection_.target_id);
-        save_dialog_ = file_dialog::Save(first_image->PanoName(), window_);
+        save_dialog_ = file_dialog_backend_->Save(first_image->PanoName());
       }
       break;
     }
@@ -475,7 +475,7 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      open_dialog_ = file_dialog::Open(action, window_);
+      open_dialog_ = file_dialog_backend_->Open(action);
       break;
     }
     case ActionType::kLoadFiles: {

@@ -16,7 +16,8 @@
 #include "xpano/cli/args.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
-#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/file_dialog/base.h"
+#include "xpano/gui/file_dialog/error.h"
 #include "xpano/gui/panels/about.h"
 #include "xpano/gui/panels/bugreport_pane.h"
 #include "xpano/gui/panels/log_pane.h"
@@ -50,10 +51,9 @@ struct Selection {
 
 class PanoGui {
  public:
-  PanoGui(backends::Base* backend, logger::Logger* logger,
-          const utils::config::Config& config,
-          std::future<utils::Texts> licenses, const cli::Args& args,
-          SDL_Window* window);
+  PanoGui(backends::Base* backend, file_dialog::Base* file_dialog_backend,
+          logger::Logger* logger, const utils::config::Config& config,
+          std::future<utils::Texts> licenses, const cli::Args& args);
 
   bool Run();
   pipeline::Options GetOptions() const;
@@ -71,7 +71,8 @@ class PanoGui {
   void Reset();
   bool IsDebugEnabled() const;
 
-  SDL_Window* window_;
+  // File dialogs
+  file_dialog::Base* file_dialog_backend_;
 
   std::future<
       std::expected<std::vector<std::filesystem::path>, file_dialog::Error>>

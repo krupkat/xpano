@@ -128,7 +128,7 @@ target_include_directories(ArgsTest PRIVATE
 
 add_executable(FileDialogTest
   file_dialog_test.cc
-  ../xpano/gui/file_dialog.cc
+  ../xpano/gui/file_dialog/sdl.cc
   ../xpano/utils/path.cc
 )
 target_include_directories(FileDialogTest PRIVATE "..")

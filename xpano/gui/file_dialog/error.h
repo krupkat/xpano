@@ -4,16 +4,9 @@
 #pragma once
 
 #include <cstdint>
-#include <expected>
-#include <filesystem>
-#include <future>
 #include <string>
-#include <vector>
 
-#include "xpano/gui/action.h"
 #include "xpano/utils/fmt.h"
-
-struct SDL_Window;
 
 namespace xpano::gui::file_dialog {
 
@@ -29,13 +22,6 @@ struct Error {
   ErrorType type;
   std::string message;
 };
-
-// Launch on the main thread and poll the returned future while pumping events.
-std::future<std::expected<std::vector<std::filesystem::path>, Error>> Open(
-    const Action& action, SDL_Window* window);
-
-std::future<std::expected<std::filesystem::path, Error>> Save(
-    const std::string& default_name, SDL_Window* window);
 
 }  // namespace xpano::gui::file_dialog
 

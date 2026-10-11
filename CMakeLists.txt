@@ -54,7 +54,7 @@ set(XPANO_SOURCES
   "xpano/log/logger.cc"
   "xpano/gui/backends/base.cc"
   "xpano/gui/backends/sdl.cc"
-  "xpano/gui/file_dialog.cc"
+  "xpano/gui/file_dialog/sdl.cc"
   "xpano/gui/layout.cc"
   "xpano/gui/panels/about.cc"
   "xpano/gui/panels/bugreport_pane.cc"

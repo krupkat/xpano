@@ -10,7 +10,7 @@
 #include <spdlog/spdlog.h>
 
 #include "xpano/constants.h"
-#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/file_dialog/error.h"
 #include "xpano/utils/fmt.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/text.h"

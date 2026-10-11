@@ -19,6 +19,7 @@
 #include "xpano/cli/pano_cli.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/sdl.h"
+#include "xpano/gui/file_dialog/sdl.h"
 #include "xpano/gui/pano_gui.h"
 #include "xpano/log/logger.h"
 #include "xpano/utils/config.h"
@@ -115,13 +116,14 @@ int main(int argc, char** argv) {
 
   // Application specific
   auto backend = xpano::gui::backends::Sdl{renderer};
+  auto file_dialog_backend = xpano::gui::file_dialog::Sdl{window};
 
   std::future<xpano::utils::Texts> license_texts =
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
-                          *args, window);
+  xpano::gui::PanoGui gui(&backend, &file_dialog_backend, &logger, config,
+                          std::move(license_texts), *args);
 
   if (!xpano::utils::imgui::LoadFonts(
           *app_exe_path, {.alphabet_font_path = xpano::kFontPath,

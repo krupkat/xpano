@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Tomas Krupka
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/file_dialog/sdl.h"
 
 #include <algorithm>
 #include <cctype>
@@ -47,9 +47,9 @@ std::string Extensions() {
 
 using Paths = std::vector<std::filesystem::path>;
 
-// SDL may call back on another thread, even after the GUI has been destroyed.
-// The callback owns this state; it never accesses GUI objects. Filters and the
-// default location must also outlive the asynchronous dialog.
+// SDL may call back on another thread, even after the GUI or backend has been
+// destroyed. The callback owns this state; it never accesses either object.
+// Filters and the default location must also outlive the asynchronous dialog.
 template <typename T>
 struct DialogState {
   std::promise<std::expected<T, Error>> promise;
@@ -100,8 +100,9 @@ std::expected<Paths, Error> DirectoryOpen(Paths paths) {
 
 }  // namespace
 
-std::future<std::expected<Paths, Error>> Open(const Action& action,
-                                              SDL_Window* window) {
+Sdl::Sdl(SDL_Window* window) : window_(window) {}
+
+std::future<std::expected<Paths, Error>> Sdl::Open(const Action& action) {
   auto state = std::make_unique<DialogState<Paths>>();
   auto future = state->promise.get_future();
   if (action.type == ActionType::kOpenFiles) {
@@ -110,11 +111,11 @@ std::future<std::expected<Paths, Error>> Open(const Action& action,
       return utils::path::KeepSupported(paths);
     };
     auto* data = state.release();
-    SDL_ShowOpenFileDialog(DialogCallback<Paths>, data, window, &data->filter,
+    SDL_ShowOpenFileDialog(DialogCallback<Paths>, data, window_, &data->filter,
                            1, nullptr, true);
   } else if (action.type == ActionType::kOpenDirectory) {
     state->process = DirectoryOpen;
-    SDL_ShowOpenFolderDialog(DialogCallback<Paths>, state.release(), window,
+    SDL_ShowOpenFolderDialog(DialogCallback<Paths>, state.release(), window_,
                              nullptr, false);
   } else {
     state->promise.set_value(MakeUnexpected(ErrorType::kUnknownAction));
@@ -122,8 +123,8 @@ std::future<std::expected<Paths, Error>> Open(const Action& action,
   return future;
 }
 
-std::future<std::expected<std::filesystem::path, Error>> Save(
-    const std::string& default_name, SDL_Window* window) {
+std::future<std::expected<std::filesystem::path, Error>> Sdl::Save(
+    const std::string& default_name) {
   auto state = std::make_unique<DialogState<std::filesystem::path>>();
   auto future = state->promise.get_future();
   state->default_location = default_name;
@@ -138,7 +139,7 @@ std::future<std::expected<std::filesystem::path, Error>> Save(
     return result_path;
   };
   auto* data = state.release();
-  SDL_ShowSaveFileDialog(DialogCallback<std::filesystem::path>, data, window,
+  SDL_ShowSaveFileDialog(DialogCallback<std::filesystem::path>, data, window_,
                          &data->filter, 1, data->default_location.c_str());
   return future;
 }
