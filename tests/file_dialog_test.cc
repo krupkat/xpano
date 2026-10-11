@@ -132,9 +132,7 @@ TEST_CASE(
 }
 
 TEST_CASE("Dialog future remains usable after the backend is destroyed") {
-  std::future<
-      std::expected<std::filesystem::path, xpano::gui::file_dialog::Error>>
-      future;
+  std::future<xpano::gui::file_dialog::SaveResult> future;
   {
     xpano::gui::file_dialog::Sdl backend{nullptr};
     future = backend.Save("panorama.jpg");
@@ -179,4 +177,39 @@ TEST_CASE("SDL dialogs use the backend window as their parent") {
   CHECK(parent == window);
   Complete(cancelled);
   CHECK_FALSE(save.get());
+}
+
+TEST_CASE("File dialog future variant tracks open and save lifetimes") {
+  using xpano::gui::file_dialog::Future;
+  using xpano::gui::file_dialog::OpenResult;
+  using xpano::gui::file_dialog::SaveResult;
+  xpano::gui::file_dialog::Sdl backend{nullptr};
+  Future future;
+  auto pending = [&future] {
+    return std::visit([](const auto& value) { return value.valid(); }, future);
+  };
+
+  CHECK_FALSE(pending());
+  future = backend.Open({.type = xpano::gui::ActionType::kOpenFiles});
+  CHECK(std::holds_alternative<std::future<OpenResult>>(future));
+  CHECK(pending());
+  CHECK(std::get<std::future<OpenResult>>(future).wait_for(
+            std::chrono::seconds{0}) == std::future_status::timeout);
+  const char* files[] = {"photo.jpg", nullptr};
+  Complete(files);
+  auto opened = std::get<std::future<OpenResult>>(future).get();
+  REQUIRE(opened);
+  CHECK(opened->size() == 1);
+  CHECK_FALSE(pending());
+
+  future = backend.Save("panorama.jpg");
+  CHECK(std::holds_alternative<std::future<SaveResult>>(future));
+  CHECK(pending());
+  const char* cancelled[] = {nullptr};
+  Complete(cancelled);
+  auto saved = std::get<std::future<SaveResult>>(future).get();
+  REQUIRE_FALSE(saved);
+  CHECK(saved.error().type ==
+        xpano::gui::file_dialog::ErrorType::kUserCancelled);
+  CHECK_FALSE(pending());
 }

@@ -83,7 +83,7 @@ void SDLCALL DialogCallback(void* userdata, const char* const* files, int) {
   }
 }
 
-std::expected<Paths, Error> DirectoryOpen(Paths paths) {
+OpenResult DirectoryOpen(Paths paths) {
   const auto& dir_path = paths.front();
   if (!std::filesystem::is_directory(dir_path)) {
     return MakeUnexpected(ErrorType::kTargetNotDirectory, dir_path.string());
@@ -102,11 +102,11 @@ std::expected<Paths, Error> DirectoryOpen(Paths paths) {
 
 Sdl::Sdl(SDL_Window* window) : window_(window) {}
 
-std::future<std::expected<Paths, Error>> Sdl::Open(const Action& action) {
+std::future<OpenResult> Sdl::Open(const Action& action) {
   auto state = std::make_unique<DialogState<Paths>>();
   auto future = state->promise.get_future();
   if (action.type == ActionType::kOpenFiles) {
-    state->process = [](Paths paths) -> std::expected<Paths, Error> {
+    state->process = [](Paths paths) -> OpenResult {
       spdlog::info("Selected files [SDL_ShowOpenFileDialog]");
       return utils::path::KeepSupported(paths);
     };
@@ -123,13 +123,11 @@ std::future<std::expected<Paths, Error>> Sdl::Open(const Action& action) {
   return future;
 }
 
-std::future<std::expected<std::filesystem::path, Error>> Sdl::Save(
-    const std::string& default_name) {
+std::future<SaveResult> Sdl::Save(const std::string& default_name) {
   auto state = std::make_unique<DialogState<std::filesystem::path>>();
   auto future = state->promise.get_future();
   state->default_location = default_name;
-  state->process =
-      [](Paths paths) -> std::expected<std::filesystem::path, Error> {
+  state->process = [](Paths paths) -> SaveResult {
     auto result_path = std::move(paths.front());
     spdlog::info("Picked save file {}", result_path.string());
     if (!utils::path::IsExtensionSupported(result_path)) {

@@ -13,11 +13,8 @@ class Sdl final : public Base {
  public:
   explicit Sdl(SDL_Window* window);
 
-  std::future<
-      std::expected<std::vector<std::filesystem::path>, file_dialog::Error>>
-  Open(const Action& action) override;
-  std::future<std::expected<std::filesystem::path, file_dialog::Error>> Save(
-      const std::string& default_name) override;
+  std::future<OpenResult> Open(const Action& action) override;
+  std::future<SaveResult> Save(const std::string& default_name) override;
 
  private:
   SDL_Window* window_;

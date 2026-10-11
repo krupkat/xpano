@@ -6,7 +6,6 @@
 #pragma once
 
 #include <cstdint>
-#include <expected>
 #include <future>
 #include <optional>
 #include <string>
@@ -73,12 +72,7 @@ class PanoGui {
 
   // File dialogs
   file_dialog::Base* file_dialog_backend_;
-
-  std::future<
-      std::expected<std::vector<std::filesystem::path>, file_dialog::Error>>
-      open_dialog_;
-  std::future<std::expected<std::filesystem::path, file_dialog::Error>>
-      save_dialog_;
+  file_dialog::Future file_dialog_future_;
 
   // PODs
   Selection selection_;

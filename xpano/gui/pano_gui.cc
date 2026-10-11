@@ -279,8 +279,8 @@ const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend,
-                 file_dialog::Base* file_dialog_backend,
-                 logger::Logger* logger, const utils::config::Config& config,
+                 file_dialog::Base* file_dialog_backend, logger::Logger* logger,
+                 const utils::config::Config& config,
                  std::future<utils::Texts> licenses, const cli::Args& args)
     : file_dialog_backend_(file_dialog_backend),
       options_(config.user_options),
@@ -305,31 +305,33 @@ PanoGui::PanoGui(backends::Base* backend,
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
 bool PanoGui::FileDialogPending() const {
-  return open_dialog_.valid() || save_dialog_.valid();
+  return std::visit([](const auto& future) { return future.valid(); },
+                    file_dialog_future_);
 }
 
 Action PanoGui::ResolveFileDialogFutures() {
-  if (utils::future::IsReady(open_dialog_)) {
-    auto files = open_dialog_.get();
-    if (!files) {
-      spdlog::warn(files.error());
-      warning_pane_.QueueFilePickerError(files.error());
-      return {};
-    }
-    return {.type = ActionType::kLoadFiles, .extra = std::move(*files)};
-  }
-  if (utils::future::IsReady(save_dialog_)) {
-    auto path = save_dialog_.get();
-    if (!path) {
-      spdlog::warn(path.error());
-      warning_pane_.QueueFilePickerError(path.error());
-    } else {
-      return {.type = ActionType::kFinishExport,
-              .target_id = selection_.target_id,
-              .extra = FinishExportExtra{.export_path = std::move(*path)}};
-    }
-  }
-  return {};
+  auto make_action = utils::Overloaded{
+      [](std::vector<std::filesystem::path> files) -> Action {
+        return {.type = ActionType::kLoadFiles, .extra = std::move(files)};
+      },
+      [](std::filesystem::path path) -> Action {
+        return {.type = ActionType::kFinishExport,
+                .extra = FinishExportExtra{.export_path = std::move(path)}};
+      }};
+  return std::visit(
+      [this, &make_action](auto& future) -> Action {
+        if (!utils::future::IsReady(future)) {
+          return {};
+        }
+        auto result = future.get();
+        if (!result) {
+          spdlog::warn(result.error());
+          warning_pane_.QueueFilePickerError(result.error());
+          return {};
+        }
+        return make_action(std::move(*result));
+      },
+      file_dialog_future_);
 }
 
 bool PanoGui::Run() {
@@ -448,14 +450,15 @@ Action PanoGui::PerformAction(const Action& action) {
       if (selection_.type == SelectionType::kPano) {
         const auto* first_image =
             FirstImage(*stitcher_data_, selection_.target_id);
-        save_dialog_ = file_dialog_backend_->Save(first_image->PanoName());
+        file_dialog_future_ =
+            file_dialog_backend_->Save(first_image->PanoName());
       }
       break;
     }
     case ActionType::kFinishExport: {
       auto extra = ValueOrDefault<FinishExportExtra>(action);
       if (!extra.export_path.empty()) {
-        RunExportAction(action.target_id, extra.export_path);
+        RunExportAction(selection_.target_id, extra.export_path);
       }
       break;
     }
@@ -475,7 +478,7 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      open_dialog_ = file_dialog_backend_->Open(action);
+      file_dialog_future_ = file_dialog_backend_->Open(action);
       break;
     }
     case ActionType::kLoadFiles: {
