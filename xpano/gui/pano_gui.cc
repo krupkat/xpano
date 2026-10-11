@@ -308,7 +308,7 @@ bool PanoGui::FileDialogPending() const {
   return open_dialog_.valid() || save_dialog_.valid();
 }
 
-Action PanoGui::ResolveFileDialog() {
+Action PanoGui::ResolveFileDialogFutures() {
   if (utils::future::IsReady(open_dialog_)) {
     auto files = open_dialog_.get();
     if (!files) {
@@ -324,22 +324,23 @@ Action PanoGui::ResolveFileDialog() {
       spdlog::warn(path.error());
       warning_pane_.QueueFilePickerError(path.error());
     } else {
-      FinishExportAction(export_pano_id_, *path);
+      return {.type = ActionType::kFinishExport,
+              .target_id = selection_.target_id,
+              .extra = FinishExportExtra{.export_path = std::move(*path)}};
     }
   }
   return {};
 }
 
 bool PanoGui::Run() {
-  auto dialog_action = ResolveFileDialog();
+  auto dialog_action = ResolveFileDialogFutures();
   if (FileDialogPending()) {
-    // Keep rendering and pumping SDL events, but preserve the selection and
-    // pipeline results until the modal dialog has completed.
     ImGui::BeginDisabled();
     DrawGui();
     ImGui::EndDisabled();
     return false;
   }
+
   MultiAction actions = std::move(next_actions_);
   actions |= dialog_action;
 
@@ -427,7 +428,7 @@ void PanoGui::Reset() {
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
 Action PanoGui::PerformAction(const Action& action) {
-  if (action.delayed || FileDialogPending()) {
+  if (action.delayed) {
     return {};
   }
 
@@ -445,7 +446,16 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kExport: {
       if (selection_.type == SelectionType::kPano) {
-        PerformExportAction(selection_.target_id);
+        const auto* first_image =
+            FirstImage(*stitcher_data_, selection_.target_id);
+        save_dialog_ = file_dialog::Save(first_image->PanoName(), window_);
+      }
+      break;
+    }
+    case ActionType::kFinishExport: {
+      auto extra = ValueOrDefault<FinishExportExtra>(action);
+      if (!extra.export_path.empty()) {
+        RunExportAction(action.target_id, extra.export_path);
       }
       break;
     }
@@ -615,17 +625,11 @@ Action PanoGui::PerformAction(const Action& action) {
   return {};
 }
 
-void PanoGui::PerformExportAction(int pano_id) {
+void PanoGui::RunExportAction(int pano_id,
+                              const std::filesystem::path& export_path) {
   spdlog::info("Exporting pano {}", pano_id);
   status_message_ = {};
 
-  const auto* first_image = FirstImage(*stitcher_data_, pano_id);
-  export_pano_id_ = pano_id;
-  save_dialog_ = file_dialog::Save(first_image->PanoName(), window_);
-}
-
-void PanoGui::FinishExportAction(int pano_id,
-                                const std::filesystem::path& export_path) {
   const auto* first_image = FirstImage(*stitcher_data_, pano_id);
   const auto& pano = stitcher_data_->panos.at(pano_id);
   if (plot_pane_.Type() == ImageType::kPanoFullRes) {

@@ -24,6 +24,7 @@ enum class ActionType : std::uint8_t {
   kToggleRotate,
   kDisableHighlight,
   kExport,
+  kFinishExport,
   kRotate,
   kInpaint,
   kLoadFiles,
@@ -56,6 +57,10 @@ struct ShowPanoExtra {
 
 using LoadFilesExtra = std::vector<std::filesystem::path>;
 
+struct FinishExportExtra {
+  std::filesystem::path export_path;
+};
+
 struct RotateExtra {
   cv::Mat rotation_matrix;
 };
@@ -69,7 +74,9 @@ struct Action {
   ActionType type = ActionType::kNone;
   int target_id;
   bool delayed = false;
-  std::variant<ShowPanoExtra, LoadFilesExtra, RotateExtra, CropExtra> extra;
+  std::variant<ShowPanoExtra, LoadFilesExtra, FinishExportExtra, RotateExtra,
+               CropExtra>
+      extra;
 };
 
 template <typename TExtraType>

@@ -62,20 +62,22 @@ class PanoGui {
   Action DrawGui();
   Action DrawSidebar();
   MultiAction ResolveFutures();
+  Action ResolveFileDialogFutures();
   Action PerformAction(const Action& action);
-  void PerformExportAction(int pano_id);
-  void FinishExportAction(int pano_id, const std::filesystem::path& export_path);
-  Action ResolveFileDialog();
+
+  void RunExportAction(int pano_id, const std::filesystem::path& export_path);
+
   bool FileDialogPending() const;
   void Reset();
   bool IsDebugEnabled() const;
 
   SDL_Window* window_;
-  std::future<std::expected<std::vector<std::filesystem::path>,
-                            file_dialog::Error>> open_dialog_;
+
+  std::future<
+      std::expected<std::vector<std::filesystem::path>, file_dialog::Error>>
+      open_dialog_;
   std::future<std::expected<std::filesystem::path, file_dialog::Error>>
       save_dialog_;
-  int export_pano_id_ = -1;
 
   // PODs
   Selection selection_;
