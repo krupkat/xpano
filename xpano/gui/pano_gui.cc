@@ -309,33 +309,7 @@ bool PanoGui::FileDialogPending() const {
                     file_dialog_future_);
 }
 
-Action PanoGui::ResolveFileDialogFutures() {
-  auto make_action = utils::Overloaded{
-      [](std::vector<std::filesystem::path> files) -> Action {
-        return {.type = ActionType::kLoadFiles, .extra = std::move(files)};
-      },
-      [](std::filesystem::path path) -> Action {
-        return {.type = ActionType::kFinishExport,
-                .extra = FinishExportExtra{.export_path = std::move(path)}};
-      }};
-  return std::visit(
-      [this, &make_action](auto& future) -> Action {
-        if (!utils::future::IsReady(future)) {
-          return {};
-        }
-        auto result = future.get();
-        if (!result) {
-          spdlog::warn(result.error());
-          warning_pane_.QueueFilePickerError(result.error());
-          return {};
-        }
-        return make_action(std::move(*result));
-      },
-      file_dialog_future_);
-}
-
 bool PanoGui::Run() {
-  auto dialog_action = ResolveFileDialogFutures();
   if (FileDialogPending()) {
     ImGui::BeginDisabled();
     DrawGui();
@@ -344,11 +318,11 @@ bool PanoGui::Run() {
   }
 
   MultiAction actions = std::move(next_actions_);
-  actions |= dialog_action;
 
   actions |= DrawGui();
   actions |= CheckKeybindings();
-  actions |= ResolveFutures();
+  actions |= ResolveStitcherFutures();
+  actions |= ResolveFileDialogFutures();
 
   MultiAction extra_actions;
   for (const auto& action : actions.items) {
@@ -659,7 +633,7 @@ void PanoGui::RunExportAction(int pano_id,
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
-MultiAction PanoGui::ResolveFutures() {
+MultiAction PanoGui::ResolveStitcherFutures() {
   MultiAction actions;
   auto handle_stitcher_data =
       [this,
@@ -734,6 +708,31 @@ MultiAction PanoGui::ResolveFutures() {
   }
 
   return actions;
+}
+
+Action PanoGui::ResolveFileDialogFutures() {
+  auto make_action = utils::Overloaded{
+      [](std::vector<std::filesystem::path> files) -> Action {
+        return {.type = ActionType::kLoadFiles, .extra = std::move(files)};
+      },
+      [](std::filesystem::path path) -> Action {
+        return {.type = ActionType::kFinishExport,
+                .extra = FinishExportExtra{.export_path = std::move(path)}};
+      }};
+  return std::visit(
+      [this, &make_action](auto& future) -> Action {
+        if (!utils::future::IsReady(future)) {
+          return {};
+        }
+        auto result = future.get();
+        if (!result) {
+          spdlog::warn(result.error());
+          warning_pane_.QueueFilePickerError(result.error());
+          return {};
+        }
+        return make_action(std::move(*result));
+      },
+      file_dialog_future_);
 }
 
 pipeline::Options PanoGui::GetOptions() const { return options_; }

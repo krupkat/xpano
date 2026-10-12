@@ -60,7 +60,7 @@ class PanoGui {
  private:
   Action DrawGui();
   Action DrawSidebar();
-  MultiAction ResolveFutures();
+  MultiAction ResolveStitcherFutures();
   Action ResolveFileDialogFutures();
   Action PerformAction(const Action& action);
 
