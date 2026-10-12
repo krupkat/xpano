@@ -334,6 +334,10 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
 
+    env:
+      CC: gcc-12
+      CXX: g++-12
+
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
@@ -345,15 +349,52 @@ jobs:
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y g++-12 libopencv-dev libspdlog-dev
+          sudo apt-get install -y gcc-12 g++-12
           sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
+
+    - name: Cache OpenCV
+      uses: actions/cache@v5
+      id: cache-opencv
+      with:
+        path: opencv/install
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
+
+    - name: Install OpenCV
+      if: steps.cache-opencv.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
+        cd opencv
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/opencv-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
+    - name: Cache spdlog
+      uses: actions/cache@v5
+      id: cache-spdlog
+      with:
+        path: spdlog/build/install
+        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12
+
+    - name: Install spdlog
+      if: steps.cache-spdlog.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+        cd spdlog
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=build/install
+        cmake --build build --target install -j $(nproc)
+        cd ..
 
     - name: Cache Catch
       uses: actions/cache@v5
       id: cache-catch
       with:
         path: catch/install
-        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}-22.04
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12
 
     - name: Install Catch
       if: steps.cache-catch.outputs.cache-hit != 'true'
@@ -369,7 +410,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-22.04
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -389,7 +430,7 @@ jobs:
         path: |
           SDL/install
           SDL/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -410,11 +451,11 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DOpenCV_ROOT=`pwd`/opencv/install \
+          -Dspdlog_ROOT=`pwd`/spdlog/build/install \
           -DCatch2_ROOT=`pwd`/catch/install \
           -Dexiv2_ROOT=`pwd`/exiv2/install \
-          -DSDL3_ROOT=`pwd`/SDL/install \
-          -DCMAKE_C_COMPILER=gcc-12 \
-          -DCMAKE_CXX_COMPILER=g++-12
+          -DSDL3_ROOT=`pwd`/SDL/install
 
     - name: Build
       run: cmake --build build -j $(nproc) --target install

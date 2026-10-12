@@ -67,7 +67,8 @@ if __name__ == "__main__":
 
         shebang = f"#!/usr/bin/env {DefaultShell(system)}"
         header = Header(args.action_path)
-        exports = OutputEnvironment(env, system)
+        job_env = {**env, **job.get("env", {})}
+        exports = OutputEnvironment(job_env, system)
         script = "\n".join(ConvertStep(step) for step in job["steps"])
 
         with open(os.path.join(args.output_dir, filename), "w") as file:

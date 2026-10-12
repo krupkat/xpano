@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-./misc/build/build-universal.sh
+./misc/build/build-ubuntu-22.sh
 
 mkdir licenses
 
