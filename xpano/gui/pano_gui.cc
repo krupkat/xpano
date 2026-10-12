@@ -310,6 +310,8 @@ bool PanoGui::FileDialogPending() const {
 }
 
 bool PanoGui::Run() {
+  auto dialog_action = ResolveFileDialogFutures();
+
   if (FileDialogPending()) {
     ImGui::BeginDisabled();
     DrawGui();
@@ -322,7 +324,7 @@ bool PanoGui::Run() {
   actions |= DrawGui();
   actions |= CheckKeybindings();
   actions |= ResolveStitcherFutures();
-  actions |= ResolveFileDialogFutures();
+  actions |= dialog_action;
 
   MultiAction extra_actions;
   for (const auto& action : actions.items) {
