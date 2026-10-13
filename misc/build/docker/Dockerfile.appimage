@@ -1,0 +1,26 @@
+FROM ubuntu:22.04
+
+WORKDIR /repo
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV APPIMAGE_EXTRACT_AND_RUN=1
+
+RUN apt-get update && \
+    apt-get install -y vim git gcc-12 g++-12 make cmake pkgconf file wget \
+      libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+      libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev \
+      libdbus-1-dev libwayland-dev libdecor-0-dev
+
+RUN wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage \
+      -O /usr/local/bin/linuxdeploy-x86_64.AppImage && \
+    chmod +x /usr/local/bin/linuxdeploy-x86_64.AppImage
+
+COPY xpano xpano
+COPY tests tests
+COPY external external
+COPY misc misc
+COPY CMakeLists.txt CMakeLists.txt
+COPY LICENSE LICENSE
+COPY CHANGELOG.md CHANGELOG.md
+
+RUN ./misc/build/build-appimage.sh
