@@ -131,6 +131,7 @@ void Overlay(const widgets::RotationWidget& widget, const utils::RectPVf& image,
 }  // namespace
 
 PreviewPane::PreviewPane(backends::Base* backend) : backend_(backend) {
+  // NOLINTNEXTLINE(modernize-use-ranges): GCC 12 lacks std::ranges::iota.
   std::iota(zoom_levels_.begin(), zoom_levels_.end(), -1.0f);
   std::ranges::transform(zoom_levels_, zoom_levels_.begin(),
                          [](float exp) { return std::pow(kZoomFactor, exp); });

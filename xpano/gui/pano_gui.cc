@@ -26,7 +26,7 @@
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
-#include "xpano/gui/file_dialog/error.h"
+#include "xpano/gui/file_dialog/base.h"
 #include "xpano/gui/layout.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/sidebar.h"

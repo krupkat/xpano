@@ -355,6 +355,7 @@ cv::Mat Inpaint(const cv::Mat& pano, const cv::Mat& mask,
 Pano SinglePano(int size) {
   Pano pano;
   pano.ids.resize(size);
+  // NOLINTNEXTLINE(modernize-use-ranges): GCC 12 lacks std::ranges::iota.
   std::iota(pano.ids.begin(), pano.ids.end(), 0);
   return pano;
 }

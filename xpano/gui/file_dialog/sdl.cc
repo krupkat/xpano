@@ -21,6 +21,8 @@
 
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
+#include "xpano/gui/file_dialog/base.h"
+#include "xpano/gui/file_dialog/error.h"
 #include "xpano/utils/fmt.h"
 #include "xpano/utils/path.h"
 
@@ -60,7 +62,8 @@ struct DialogState {
 };
 
 template <typename T>
-void SDLCALL DialogCallback(void* userdata, const char* const* files, int) {
+void SDLCALL DialogCallback(void* userdata, const char* const* files,
+                            int /*filter*/) {
   std::unique_ptr<DialogState<T>> state(static_cast<DialogState<T>*>(userdata));
   try {
     if (files == nullptr) {
@@ -106,7 +109,7 @@ std::future<OpenResult> Sdl::Open(const Action& action) {
   auto state = std::make_unique<DialogState<Paths>>();
   auto future = state->promise.get_future();
   if (action.type == ActionType::kOpenFiles) {
-    state->process = [](Paths paths) -> OpenResult {
+    state->process = [](const Paths& paths) -> OpenResult {
       spdlog::info("Selected files [SDL_ShowOpenFileDialog]");
       return utils::path::KeepSupported(paths);
     };

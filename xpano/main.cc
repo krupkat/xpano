@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <clocale>
-#include <cstdio>
 #include <cstdlib>
 #include <future>
 #include <string>
@@ -46,7 +45,7 @@ int main(int argc, char** argv) {
 #endif
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    printf("Error: %s\n", SDL_GetError());
+    fmt::print("Error: {}\n", SDL_GetError());
     return -1;
   }
 
