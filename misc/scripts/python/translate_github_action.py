@@ -62,6 +62,10 @@ if __name__ == "__main__":
     env = action.get("env", {})
 
     for job_name, job in action["jobs"].items():
+        # Release-only jobs have no checkout and are not local build scripts.
+        if not any(step.get("uses", "").startswith("actions/checkout")
+                   for step in job["steps"]):
+            continue
         system = job["runs-on"]
         filename = f"{job_name}.{ShellExtension(system)}"
 
@@ -69,7 +73,12 @@ if __name__ == "__main__":
         header = Header(args.action_path)
         job_env = {**env, **job.get("env", {})}
         exports = OutputEnvironment(job_env, system)
-        script = "\n".join(ConvertStep(step) for step in job["steps"])
+        # Packaging for CI and uploading artifacts require GitHub context.
+        script = "\n".join(
+            ConvertStep(step) for step in job["steps"]
+            if not step.get("name", "").startswith("CI:")
+            and not step.get("uses", "").startswith("actions/upload-artifact")
+        )
 
         with open(os.path.join(args.output_dir, filename), "w") as file:
             file.write(shebang)

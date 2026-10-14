@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-./misc/build/build-ubuntu-22.sh
-
 mkdir licenses
 
 cp exiv2/COPYING licenses/exiv2-license.txt
