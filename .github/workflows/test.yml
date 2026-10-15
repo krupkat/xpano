@@ -57,7 +57,8 @@ jobs:
         }
 
     - name: Cache OpenCV
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-opencv
       with:
         path: |
@@ -78,7 +79,8 @@ jobs:
         cd ..
 
     - name: Cache SDL
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-sdl
       with:
         path: |
@@ -103,7 +105,8 @@ jobs:
         cd ..
 
     - name: Cache Catch
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-catch
       with:
         path: catch/install
@@ -123,7 +126,8 @@ jobs:
         cd ..
 
     - name: Cache spdlog
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-spdlog
       with:
         path: |
@@ -144,7 +148,8 @@ jobs:
         cd ..
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: |
@@ -236,7 +241,8 @@ jobs:
           sudo apt-get install -y libopencv-dev libsdl3-dev libexiv2-dev catch2
 
     - name: Cache spdlog
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-spdlog
       with:
         path: spdlog/build/install
@@ -292,7 +298,8 @@ jobs:
           sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: exiv2/install
@@ -310,7 +317,8 @@ jobs:
         cd ..
 
     - name: Cache SDL
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-sdl
       with:
         path: |
@@ -372,7 +380,8 @@ jobs:
           sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
     - name: Cache OpenCV
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-opencv
       with:
         path: |
@@ -393,7 +402,8 @@ jobs:
         cd ..
 
     - name: Cache spdlog
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-spdlog
       with:
         path: |
@@ -413,7 +423,8 @@ jobs:
         cd ..
 
     - name: Cache Catch
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-catch
       with:
         path: catch/install
@@ -429,7 +440,8 @@ jobs:
         cd ..
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: |
@@ -449,7 +461,8 @@ jobs:
         cd ..
 
     - name: Cache SDL
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-sdl
       with:
         path: |
@@ -539,7 +552,8 @@ jobs:
         brew install sdl3 spdlog catch2
 
     - name: Cache OpenCV
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-opencv
       with:
         path: opencv/install
@@ -558,7 +572,8 @@ jobs:
         cd ..
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: exiv2/install
@@ -626,7 +641,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         pattern: release-*
         path: dist
@@ -648,24 +663,9 @@ jobs:
         done
         sha256sum "${assets[@]}"
 
-    # Do not upload to a published release: immutable assets cannot be changed.
-    - name: Create draft release
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-        TAG: ${{ github.ref_name }}
-      run: gh release create "$TAG" --verify-tag --draft --prerelease --title "$TAG" --generate-notes
-
-    - name: Upload all release assets
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-        TAG: ${{ github.ref_name }}
-      run: gh release upload "$TAG" dist/*
-
     - name: Publish release
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
         TAG: ${{ github.ref_name }}
-      run: gh release edit "$TAG" --draft=false
+      run: gh release create "$TAG" dist/* --verify-tag --prerelease --title "$TAG" --generate-notes
