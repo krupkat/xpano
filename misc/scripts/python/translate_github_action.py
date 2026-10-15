@@ -11,16 +11,20 @@ def Header(action_path):
 
 
 def ConvertStep(step):
-    # update submodules
     if step.get("uses", "").startswith("actions/checkout"):
         if step.get("with", {}).get("submodules", False) == True:
             return "git submodule update --init"
     if step.get("name", "") == "Set up VS Developer Prompt":
         return ''
-    # comment out sudo actions
+    if step.get("name", "").startswith("CI:"):
+        return ''
+    if step.get("uses", "").startswith("actions/upload-artifact"):
+        return ''
+
     command = step.get("run", "") \
         .replace("sudo", "#sudo") \
         .replace("brew", "#brew")
+
     return command
 
 
@@ -73,12 +77,7 @@ if __name__ == "__main__":
         header = Header(args.action_path)
         job_env = {**env, **job.get("env", {})}
         exports = OutputEnvironment(job_env, system)
-        # Packaging for CI and uploading artifacts require GitHub context.
-        script = "\n".join(
-            ConvertStep(step) for step in job["steps"]
-            if not step.get("name", "").startswith("CI:")
-            and not step.get("uses", "").startswith("actions/upload-artifact")
-        )
+        script = "\n".join(ConvertStep(step) for step in job["steps"])
 
         with open(os.path.join(args.output_dir, filename), "w") as file:
             file.write(shebang)

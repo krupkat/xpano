@@ -49,3 +49,5 @@ cd ..
 
 ./misc/build/macos/bundle.sh
 ls -R Xpano.app
+
+
