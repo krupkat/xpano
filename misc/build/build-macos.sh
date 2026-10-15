@@ -11,7 +11,7 @@ export EXIV2_VERSION='v0.28.8'
 export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
-#brew untap aws/tap
+#brew untap aws/tap || true
 #brew install sdl3 spdlog catch2
 
 
@@ -29,6 +29,7 @@ git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
 cd exiv2
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   `cat ../misc/build/exiv2-minimal-flags.txt`
 cmake --build build --target install -j `sysctl -n hw.logicalcpu`
 cd ..

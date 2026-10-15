@@ -29,8 +29,6 @@ jobs:
     runs-on: windows-2025
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     steps:
     - uses: actions/checkout@v6
       with:
@@ -86,7 +84,7 @@ jobs:
         path: |
           sdl/install
           sdl/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-static-ninja-${{hashFiles('misc/build/windows-store/0002-disable-sdl-dynamic-api.patch')}}
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-static-ninja-${{hashFiles('misc/build/windows-store/0002-disable-sdl-dynamic-api.patch', 'misc/build/sdl3-minimal-flags.txt')}}
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -132,7 +130,7 @@ jobs:
       with:
         path: |
           spdlog/LICENSE
-          spdlog/build/install          
+          spdlog/build/install
         key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-static-${{env.BUILD_TYPE}}-ninja
 
     - name: Install spdlog
@@ -155,7 +153,7 @@ jobs:
         path: |
           exiv2/COPYING
           exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-static-${{env.BUILD_TYPE}}-ninja
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -227,8 +225,6 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     steps:
     - uses: actions/checkout@v6
       with:
@@ -283,14 +279,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     steps:
     - uses: actions/checkout@v6
       with:
         submodules: true
         persist-credentials: false
-    
+
     - name: Install prerequisites
       run: |
           sudo apt-get update
@@ -303,7 +297,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-24.04
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-24.04-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -312,6 +306,7 @@ jobs:
         cd exiv2
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
@@ -324,7 +319,7 @@ jobs:
         path: |
           SDL/install
           SDL/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-24.04
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-24.04-${{hashFiles('misc/build/sdl3-minimal-flags.txt')}}
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -365,14 +360,12 @@ jobs:
       CC: gcc-12
       CXX: g++-12
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     steps:
     - uses: actions/checkout@v6
       with:
         submodules: true
         persist-credentials: false
-    
+
     - name: Install prerequisites
       run: |
           sudo apt-get update
@@ -447,7 +440,7 @@ jobs:
         path: |
           exiv2/install
           exiv2/COPYING
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-appimage-22.04-gcc-12
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-appimage-22.04-gcc-12-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -456,6 +449,7 @@ jobs:
         cd exiv2
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
@@ -468,7 +462,7 @@ jobs:
         path: |
           SDL/install
           SDL/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12-${{hashFiles('misc/build/sdl3-minimal-flags.txt')}}
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -510,6 +504,7 @@ jobs:
         PACKAGE_VERSION: ${{ github.ref_name }}
       run: |
         wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/linuxdeploy-x86_64.AppImage
+        echo "c20cd71e3a4e3b80c3483cef793cda3f4e990aca14014d23c544ca3ce1270b4d  linuxdeploy-x86_64.AppImage" | sha256sum -c
         chmod +x linuxdeploy-x86_64.AppImage
         export PATH="$PWD:$PATH"
         ./misc/build/build-appimage.sh
@@ -529,8 +524,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     strategy:
       fail-fast: false
       matrix:
@@ -548,7 +541,7 @@ jobs:
 
     - name: Install prerequisites
       run: |
-        brew untap aws/tap
+        brew untap aws/tap || true
         brew install sdl3 spdlog catch2
 
     - name: Cache OpenCV
@@ -577,7 +570,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{ matrix.os }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{ matrix.os }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -586,6 +579,7 @@ jobs:
         cd exiv2
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j `sysctl -n hw.logicalcpu`
         cd ..

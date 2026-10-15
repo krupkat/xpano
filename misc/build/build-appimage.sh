@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 mkdir licenses
 
 cp exiv2/COPYING licenses/exiv2-license.txt
