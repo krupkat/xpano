@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <clocale>
-#include <cstdio>
 #include <cstdlib>
 #include <future>
 #include <string>
@@ -12,7 +11,6 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
-#include <nfd.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <spdlog/spdlog.h>
@@ -20,6 +18,7 @@
 #include "xpano/cli/pano_cli.h"
 #include "xpano/constants.h"
 #include "xpano/gui/backends/sdl.h"
+#include "xpano/gui/file_dialog/sdl.h"
 #include "xpano/gui/pano_gui.h"
 #include "xpano/log/logger.h"
 #include "xpano/utils/config.h"
@@ -46,7 +45,7 @@ int main(int argc, char** argv) {
 #endif
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    printf("Error: %s\n", SDL_GetError());
+    fmt::print("Error: {}\n", SDL_GetError());
     return -1;
   }
 
@@ -74,11 +73,6 @@ int main(int argc, char** argv) {
   }
 
   auto config = xpano::utils::config::Load(app_data_path);
-
-  // Setup file dialog library
-  if (NFD_Init() != NFD_OKAY) {
-    spdlog::error("Couldn't initialize NFD");
-  }
 
   // Setup SDL Window + Renderer
   auto window_flags =
@@ -121,13 +115,14 @@ int main(int argc, char** argv) {
 
   // Application specific
   auto backend = xpano::gui::backends::Sdl{renderer};
+  auto file_dialog_backend = xpano::gui::file_dialog::Sdl{window};
 
   std::future<xpano::utils::Texts> license_texts =
       std::async(std::launch::async, xpano::utils::LoadTexts, *app_exe_path,
                  xpano::kLicensePath);
 
-  xpano::gui::PanoGui gui(&backend, &logger, config, std::move(license_texts),
-                          *args);
+  xpano::gui::PanoGui gui(&backend, &file_dialog_backend, &logger, config,
+                          std::move(license_texts), *args);
 
   if (!xpano::utils::imgui::LoadFonts(
           *app_exe_path, {.alphabet_font_path = xpano::kFontPath,
@@ -181,7 +176,6 @@ int main(int argc, char** argv) {
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 
-  NFD_Quit();
   SDL_Quit();
 
   return 0;

@@ -4,12 +4,8 @@
 #pragma once
 
 #include <cstdint>
-#include <filesystem>
 #include <string>
-#include <vector>
 
-#include "xpano/gui/action.h"
-#include "xpano/utils/expected.h"
 #include "xpano/utils/fmt.h"
 
 namespace xpano::gui::file_dialog {
@@ -26,12 +22,6 @@ struct Error {
   ErrorType type;
   std::string message;
 };
-
-utils::Expected<std::vector<std::filesystem::path>, Error> Open(
-    const Action& action);
-
-utils::Expected<std::filesystem::path, Error> Save(
-    const std::string& default_name);
 
 }  // namespace xpano::gui::file_dialog
 

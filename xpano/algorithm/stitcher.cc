@@ -579,6 +579,7 @@ Status Stitcher::SetTransform(
     cv::InputArrayOfArrays images,
     const std::vector<cv::detail::CameraParams>& cameras) {
   std::vector<int> component(images.total());
+  // NOLINTNEXTLINE(modernize-use-ranges): GCC 12 lacks std::ranges::iota.
   std::iota(component.begin(), component.end(), 0);
 
   return SetTransform(images, cameras, component);

@@ -11,16 +11,20 @@ def Header(action_path):
 
 
 def ConvertStep(step):
-    # update submodules
     if step.get("uses", "").startswith("actions/checkout"):
         if step.get("with", {}).get("submodules", False) == True:
             return "git submodule update --init"
     if step.get("name", "") == "Set up VS Developer Prompt":
         return ''
-    # comment out sudo actions
+    if step.get("name", "").startswith("CI:"):
+        return ''
+    if step.get("uses", "").startswith("actions/upload-artifact"):
+        return ''
+
     command = step.get("run", "") \
         .replace("sudo", "#sudo") \
         .replace("brew", "#brew")
+
     return command
 
 
@@ -62,12 +66,17 @@ if __name__ == "__main__":
     env = action.get("env", {})
 
     for job_name, job in action["jobs"].items():
+        # Release-only jobs have no checkout and are not local build scripts.
+        if not any(step.get("uses", "").startswith("actions/checkout")
+                   for step in job["steps"]):
+            continue
         system = job["runs-on"]
         filename = f"{job_name}.{ShellExtension(system)}"
 
         shebang = f"#!/usr/bin/env {DefaultShell(system)}"
         header = Header(args.action_path)
-        exports = OutputEnvironment(env, system)
+        job_env = {**env, **job.get("env", {})}
+        exports = OutputEnvironment(job_env, system)
         script = "\n".join(ConvertStep(step) for step in job["steps"])
 
         with open(os.path.join(args.output_dir, filename), "w") as file:

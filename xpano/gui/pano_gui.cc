@@ -26,7 +26,7 @@
 #include "xpano/constants.h"
 #include "xpano/gui/action.h"
 #include "xpano/gui/backends/base.h"
-#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/file_dialog/base.h"
 #include "xpano/gui/layout.h"
 #include "xpano/gui/panels/preview_pane.h"
 #include "xpano/gui/panels/sidebar.h"
@@ -39,6 +39,7 @@
 #include "xpano/utils/common.h"
 #include "xpano/utils/config.h"
 #include "xpano/utils/fmt.h"
+#include "xpano/utils/future.h"
 #include "xpano/utils/imgui_.h"
 #include "xpano/utils/text.h"
 #include "xpano/version.h"
@@ -277,10 +278,12 @@ const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
 
 }  // namespace
 
-PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
+PanoGui::PanoGui(backends::Base* backend,
+                 file_dialog::Base* file_dialog_backend, logger::Logger* logger,
                  const utils::config::Config& config,
                  std::future<utils::Texts> licenses, const cli::Args& args)
-    : options_(config.user_options),
+    : file_dialog_backend_(file_dialog_backend),
+      options_(config.user_options),
       log_pane_(logger),
       about_pane_(std::move(licenses)),
       bugreport_pane_(logger),
@@ -301,12 +304,27 @@ PanoGui::PanoGui(backends::Base* backend, logger::Logger* logger,
 
 bool PanoGui::IsDebugEnabled() const { return log_pane_.IsShown(); }
 
+bool PanoGui::FileDialogPending() const {
+  return std::visit([](const auto& future) { return future.valid(); },
+                    file_dialog_future_);
+}
+
 bool PanoGui::Run() {
+  auto dialog_action = ResolveFileDialogFutures();
+
+  if (FileDialogPending()) {
+    ImGui::BeginDisabled();
+    DrawGui();
+    ImGui::EndDisabled();
+    return false;
+  }
+
   MultiAction actions = std::move(next_actions_);
 
   actions |= DrawGui();
   actions |= CheckKeybindings();
-  actions |= ResolveFutures();
+  actions |= ResolveStitcherFutures();
+  actions |= dialog_action;
 
   MultiAction extra_actions;
   for (const auto& action : actions.items) {
@@ -406,7 +424,17 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kExport: {
       if (selection_.type == SelectionType::kPano) {
-        PerformExportAction(selection_.target_id);
+        const auto* first_image =
+            FirstImage(*stitcher_data_, selection_.target_id);
+        file_dialog_future_ =
+            file_dialog_backend_->Save(first_image->PanoName());
+      }
+      break;
+    }
+    case ActionType::kFinishExport: {
+      auto extra = ValueOrDefault<FinishExportExtra>(action);
+      if (!extra.export_path.empty()) {
+        RunExportAction(selection_.target_id, extra.export_path);
       }
       break;
     }
@@ -426,13 +454,8 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kOpenDirectory:
       [[fallthrough]];
     case ActionType::kOpenFiles: {
-      auto files = file_dialog::Open(action);
-      if (!files) {
-        spdlog::warn(files.error());
-        warning_pane_.QueueFilePickerError(files.error());
-        break;
-      }
-      return {.type = ActionType::kLoadFiles, .delayed = true, .extra = *files};
+      file_dialog_future_ = file_dialog_backend_->Open(action);
+      break;
     }
     case ActionType::kLoadFiles: {
       if (auto files = ValueOrDefault<LoadFilesExtra>(action); !files.empty()) {
@@ -581,19 +604,12 @@ Action PanoGui::PerformAction(const Action& action) {
   return {};
 }
 
-void PanoGui::PerformExportAction(int pano_id) {
+void PanoGui::RunExportAction(int pano_id,
+                              const std::filesystem::path& export_path) {
   spdlog::info("Exporting pano {}", pano_id);
   status_message_ = {};
 
   const auto* first_image = FirstImage(*stitcher_data_, pano_id);
-  auto export_path = file_dialog::Save(first_image->PanoName());
-
-  if (!export_path) {
-    spdlog::warn(export_path.error());
-    warning_pane_.QueueFilePickerError(export_path.error());
-    return;
-  }
-
   const auto& pano = stitcher_data_->panos.at(pano_id);
   if (plot_pane_.Type() == ImageType::kPanoFullRes) {
     std::optional<std::filesystem::path> metadata_path;
@@ -602,7 +618,7 @@ void PanoGui::PerformExportAction(int pano_id) {
     }
     stitcher_pipeline_.RunExport(plot_pane_.Image(),
                                  {.pano_id = pano_id,
-                                  .export_path = *export_path,
+                                  .export_path = export_path,
                                   .metadata_path = metadata_path,
                                   .compression = options_.compression,
                                   .crop = pano.crop});
@@ -610,7 +626,7 @@ void PanoGui::PerformExportAction(int pano_id) {
     stitcher_pipeline_.RunStitching(*stitcher_data_,
                                     {.pano_id = pano_id,
                                      .full_res = true,
-                                     .export_path = *export_path,
+                                     .export_path = export_path,
                                      .export_crop = pano.crop,
                                      .metadata = options_.metadata,
                                      .compression = options_.compression,
@@ -619,7 +635,7 @@ void PanoGui::PerformExportAction(int pano_id) {
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): fixme
-MultiAction PanoGui::ResolveFutures() {
+MultiAction PanoGui::ResolveStitcherFutures() {
   MultiAction actions;
   auto handle_stitcher_data =
       [this,
@@ -694,6 +710,31 @@ MultiAction PanoGui::ResolveFutures() {
   }
 
   return actions;
+}
+
+Action PanoGui::ResolveFileDialogFutures() {
+  auto make_action = utils::Overloaded{
+      [](std::vector<std::filesystem::path> files) -> Action {
+        return {.type = ActionType::kLoadFiles, .extra = std::move(files)};
+      },
+      [](std::filesystem::path path) -> Action {
+        return {.type = ActionType::kFinishExport,
+                .extra = FinishExportExtra{.export_path = std::move(path)}};
+      }};
+  return std::visit(
+      [this, &make_action](auto& future) -> Action {
+        if (!utils::future::IsReady(future)) {
+          return {};
+        }
+        auto result = future.get();
+        if (!result) {
+          spdlog::warn(result.error());
+          warning_pane_.QueueFilePickerError(result.error());
+          return {};
+        }
+        return make_action(std::move(*result));
+      },
+      file_dialog_future_);
 }
 
 pipeline::Options PanoGui::GetOptions() const { return options_; }

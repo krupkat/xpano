@@ -9,11 +9,32 @@ export CATCH_VERSION='v3.15.0'
 export SPDLOG_VERSION='v1.17.0'
 export EXIV2_VERSION='v0.28.8'
 export GENERATOR='Ninja Multi-Config'
+export CC='gcc-12'
+export CXX='g++-12'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libgtk-3-dev libopencv-dev libspdlog-dev 
+#sudo apt-get install -y gcc-12 g++-12
 #sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
+
+
+git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
+cd opencv
+cmake -B build \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX=install \
+  `cat ../misc/build/opencv-minimal-flags.txt`
+cmake --build build --target install -j $(nproc)
+cd ..
+
+
+git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+cd spdlog
+cmake -B build \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX=build/install
+cmake --build build --target install -j $(nproc)
+cd ..
 
 
 git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
@@ -27,6 +48,7 @@ git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
 cd exiv2
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   `cat ../misc/build/exiv2-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..
@@ -46,6 +68,8 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DOpenCV_ROOT=`pwd`/opencv/install \
+  -Dspdlog_ROOT=`pwd`/spdlog/build/install \
   -DCatch2_ROOT=`pwd`/catch/install \
   -Dexiv2_ROOT=`pwd`/exiv2/install \
   -DSDL3_ROOT=`pwd`/SDL/install
@@ -54,3 +78,5 @@ cmake --build build -j $(nproc) --target install
 cd build
 ctest --output-on-failure
 cd ..
+
+

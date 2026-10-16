@@ -3,6 +3,7 @@ name: tests
 on:
   push:
     branches: [ "main" ]
+    tags: [ "*" ]
     paths-ignore: [ "misc/site/**" ]
   pull_request:
     branches: [ "main" ]
@@ -12,7 +13,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 env:
   BUILD_TYPE: Release
@@ -27,8 +28,6 @@ jobs:
   build-windows:
     runs-on: windows-2025
     timeout-minutes: 30
-
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
     - uses: actions/checkout@v6
@@ -56,7 +55,8 @@ jobs:
         }
 
     - name: Cache OpenCV
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-opencv
       with:
         path: |
@@ -77,13 +77,14 @@ jobs:
         cd ..
 
     - name: Cache SDL
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-sdl
       with:
         path: |
           sdl/install
           sdl/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-static-ninja-${{hashFiles('misc/build/windows-store/0002-disable-sdl-dynamic-api.patch')}}
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-static-ninja-${{hashFiles('misc/build/windows-store/0002-disable-sdl-dynamic-api.patch', 'misc/build/sdl3-minimal-flags.txt')}}
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -102,7 +103,8 @@ jobs:
         cd ..
 
     - name: Cache Catch
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-catch
       with:
         path: catch/install
@@ -122,12 +124,13 @@ jobs:
         cd ..
 
     - name: Cache spdlog
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-spdlog
       with:
         path: |
           spdlog/LICENSE
-          spdlog/build/install          
+          spdlog/build/install
         key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-static-${{env.BUILD_TYPE}}-ninja
 
     - name: Install spdlog
@@ -143,13 +146,14 @@ jobs:
         cd ..
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: |
           exiv2/COPYING
           exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-static-${{env.BUILD_TYPE}}-ninja
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -199,11 +203,27 @@ jobs:
         ctest -C $env:BUILD_TYPE --output-on-failure
         cd ..
 
+    - name: 'CI: Package Windows'
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      env:
+        PACKAGE_VERSION: ${{ github.ref_name }}
+      run: |
+        New-Item -Name "dist" -ItemType "directory"
+        $archive = "dist/xpano-$env:PACKAGE_VERSION-windows-x64.zip"
+        Compress-Archive -Path install/* -DestinationPath $archive
+        $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLower()
+        Write-Output "$hash  $archive"
+
+    - uses: actions/upload-artifact@v7
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      with:
+        name: release-windows-x64
+        path: dist/*.zip
+        if-no-files-found: error
+
   build-ubuntu-26:
     runs-on: ubuntu-26.04
     timeout-minutes: 30
-
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
     - uses: actions/checkout@v6
@@ -214,10 +234,11 @@ jobs:
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libopencv-dev libsdl3-dev libexiv2-dev catch2
+          sudo apt-get install -y libopencv-dev libsdl3-dev libexiv2-dev catch2
 
     - name: Cache spdlog
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-spdlog
       with:
         path: spdlog/build/install
@@ -258,26 +279,25 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     steps:
     - uses: actions/checkout@v6
       with:
         submodules: true
         persist-credentials: false
-    
+
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libopencv-dev libspdlog-dev catch2
+          sudo apt-get install -y libopencv-dev libspdlog-dev catch2
           sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-24.04
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-24.04-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -286,18 +306,20 @@ jobs:
         cd exiv2
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
 
     - name: Cache SDL
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-sdl
       with:
         path: |
           SDL/install
           SDL/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-24.04
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-24.04-${{hashFiles('misc/build/sdl3-minimal-flags.txt')}}
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -334,26 +356,72 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    env:
+      CC: gcc-12
+      CXX: g++-12
 
     steps:
     - uses: actions/checkout@v6
       with:
         submodules: true
         persist-credentials: false
-    
+
     - name: Install prerequisites
       run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libopencv-dev libspdlog-dev 
+          sudo apt-get install -y gcc-12 g++-12
           sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
+    - name: Cache OpenCV
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
+      id: cache-opencv
+      with:
+        path: |
+          opencv/install
+          opencv/LICENSE
+        key: ${{runner.os}}-opencv-${{env.OPENCV_VERSION}}-${{env.BUILD_TYPE}}-appimage-22.04-gcc-12-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
+
+    - name: Install OpenCV
+      if: steps.cache-opencv.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
+        cd opencv
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=install \
+          `cat ../misc/build/opencv-minimal-flags.txt`
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
+    - name: Cache spdlog
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
+      id: cache-spdlog
+      with:
+        path: |
+          spdlog/build/install
+          spdlog/LICENSE
+        key: ${{runner.os}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}-appimage-22.04-gcc-12
+
+    - name: Install spdlog
+      if: steps.cache-spdlog.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+        cd spdlog
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=build/install
+        cmake --build build --target install -j $(nproc)
+        cd ..
+
     - name: Cache Catch
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-catch
       with:
         path: catch/install
-        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}-22.04
+        key: ${{runner.os}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12
 
     - name: Install Catch
       if: steps.cache-catch.outputs.cache-hit != 'true'
@@ -365,11 +433,14 @@ jobs:
         cd ..
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
-        path: exiv2/install
-        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-22.04
+        path: |
+          exiv2/install
+          exiv2/COPYING
+        key: ${{runner.os}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-appimage-22.04-gcc-12-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -378,18 +449,20 @@ jobs:
         cd exiv2
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j $(nproc)
         cd ..
 
     - name: Cache SDL
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-sdl
       with:
         path: |
           SDL/install
           SDL/LICENSE.txt
-        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04
+        key: ${{runner.os}}-sdl-${{env.SDL_VERSION}}-${{env.BUILD_TYPE}}-22.04-gcc-12-${{hashFiles('misc/build/sdl3-minimal-flags.txt')}}
 
     - name: Install SDL
       if: steps.cache-sdl.outputs.cache-hit != 'true'
@@ -410,6 +483,8 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DOpenCV_ROOT=`pwd`/opencv/install \
+          -Dspdlog_ROOT=`pwd`/spdlog/build/install \
           -DCatch2_ROOT=`pwd`/catch/install \
           -Dexiv2_ROOT=`pwd`/exiv2/install \
           -DSDL3_ROOT=`pwd`/SDL/install
@@ -423,17 +498,40 @@ jobs:
         ctest --output-on-failure
         cd ..
 
+    - name: 'CI: Build AppImage'
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      env:
+        PACKAGE_VERSION: ${{ github.ref_name }}
+      run: |
+        wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20251107-1/linuxdeploy-x86_64.AppImage
+        echo "c20cd71e3a4e3b80c3483cef793cda3f4e990aca14014d23c544ca3ce1270b4d  linuxdeploy-x86_64.AppImage" | sha256sum -c
+        chmod +x linuxdeploy-x86_64.AppImage
+        export PATH="$PWD:$PATH"
+        ./misc/build/build-appimage.sh
+        mkdir -p dist
+        mv Xpano-*.AppImage "dist/Xpano-${PACKAGE_VERSION}-x86_64.AppImage"
+        sha256sum dist/*.AppImage
+
+    - uses: actions/upload-artifact@v7
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      with:
+        name: release-linux-x86_64
+        path: dist/*.AppImage
+        if-no-files-found: error
+
   build-macos:
     name: build-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-26-intel, macos-26]
+        include:
+          - os: macos-26-intel
+            arch: x86_64
+          - os: macos-26
+            arch: arm64
 
     steps:
     - uses: actions/checkout@v6
@@ -443,11 +541,12 @@ jobs:
 
     - name: Install prerequisites
       run: |
-        brew untap aws/tap
+        brew untap aws/tap || true
         brew install sdl3 spdlog catch2
 
     - name: Cache OpenCV
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-opencv
       with:
         path: opencv/install
@@ -466,11 +565,12 @@ jobs:
         cd ..
 
     - name: Cache exiv2
-      uses: actions/cache@v5
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{ matrix.os }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}
+        key: ${{ matrix.os }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -479,6 +579,7 @@ jobs:
         cd exiv2
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j `sysctl -n hw.logicalcpu`
         cd ..
@@ -506,3 +607,59 @@ jobs:
       run: |
         ./misc/build/macos/bundle.sh
         ls -R Xpano.app
+
+    - name: 'CI: Package macOS'
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      env:
+        PACKAGE_VERSION: ${{ github.ref_name }}
+        PACKAGE_ARCH: ${{ matrix.arch }}
+      run: |
+        mkdir -p dist
+        ditto -c -k --sequesterRsrc --keepParent Xpano.app "dist/xpano-${PACKAGE_VERSION}-macos-${PACKAGE_ARCH}.zip"
+        shasum -a 256 dist/*.zip
+
+    - uses: actions/upload-artifact@v7
+      if: github.event_name == 'push' && github.ref_type == 'tag'
+      with:
+        name: release-macos-${{ matrix.arch }}
+        path: dist/*.zip
+        if-no-files-found: error
+
+  release:
+    # Enable immutable releases in the repository settings before publishing.
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: [build-windows, build-ubuntu-26, build-ubuntu-24, build-ubuntu-22, build-macos]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/download-artifact@v8
+      with:
+        pattern: release-*
+        path: dist
+        merge-multiple: true
+
+    - name: Verify assets and print SHA-256 checksums
+      env:
+        TAG: ${{ github.ref_name }}
+      run: |
+        assets=(
+          "dist/xpano-${TAG}-windows-x64.zip"
+          "dist/Xpano-${TAG}-x86_64.AppImage"
+          "dist/xpano-${TAG}-macos-arm64.zip"
+          "dist/xpano-${TAG}-macos-x86_64.zip"
+        )
+        test "$(find dist -type f | wc -l)" -eq 4
+        for asset in "${assets[@]}"; do
+          test -s "$asset"
+        done
+        sha256sum "${assets[@]}"
+
+    - name: Publish release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        TAG: ${{ github.ref_name }}
+      run: gh release create "$TAG" dist/* --verify-tag --prerelease --title "$TAG" --generate-notes

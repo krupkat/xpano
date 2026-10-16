@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "xpano/gui/file_dialog.h"
+#include "xpano/gui/file_dialog/error.h"
 #include "xpano/utils/text.h"
 #include "xpano/version.h"
 

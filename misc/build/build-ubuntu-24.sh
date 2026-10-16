@@ -12,7 +12,7 @@ export GENERATOR='Ninja Multi-Config'
 
 git submodule update --init
 #sudo apt-get update
-#sudo apt-get install -y libgtk-3-dev libopencv-dev libspdlog-dev catch2
+#sudo apt-get install -y libopencv-dev libspdlog-dev catch2
 #sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libwayland-dev libdecor-0-dev
 
 
@@ -20,6 +20,7 @@ git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
 cd exiv2
 cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   `cat ../misc/build/exiv2-minimal-flags.txt`
 cmake --build build --target install -j $(nproc)
 cd ..

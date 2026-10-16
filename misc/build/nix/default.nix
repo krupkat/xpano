@@ -27,5 +27,6 @@ pkgs.mkShell {
     runClangTidy
     runClangFormat
     ruby_4_0
+    zizmor
   ];
 }

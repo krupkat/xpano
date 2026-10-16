@@ -1,0 +1,38 @@
+FROM ubuntu:26.04
+
+WORKDIR /repo
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV BUILD_TYPE=Release
+ENV SPDLOG_VERSION=v1.17.0
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates git build-essential cmake pkgconf clang-tidy-22 \
+      libopencv-dev libsdl3-dev libexiv2-dev catch2 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Use bundled fmt: Ubuntu's fmt version is not compatible with clang-22.
+RUN git clone https://github.com/gabime/spdlog.git --depth 1 --branch "$SPDLOG_VERSION" /opt/spdlog && \
+    cmake -S /opt/spdlog -B /opt/spdlog/build \
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+      -DCMAKE_INSTALL_PREFIX=/opt/spdlog/install && \
+    cmake --build /opt/spdlog/build --target install -j "$(nproc)"
+
+COPY xpano xpano
+COPY tests tests
+COPY external external
+COPY misc misc
+COPY CMakeLists.txt CMakeLists.txt
+COPY LICENSE LICENSE
+COPY CHANGELOG.md CHANGELOG.md
+COPY .clang-tidy .clang-tidy
+
+RUN cmake -B build \
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+      -DCMAKE_INSTALL_PREFIX=install \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DBUILD_TESTING=ON \
+      -Dspdlog_ROOT=/opt/spdlog/install
+
+CMD ["run-clang-tidy-22", "/repo/xpano", "/repo/tests", "-p=build", "-quiet"]

@@ -17,7 +17,7 @@ Xpano is a tool for panorama stitching with focus on simplicity and ease of use,
 
 The app uses the excellent [OpenCV](https://opencv.org/) library for image manipulation and its [stitching](https://docs.opencv.org/4.x/d1/d46/group__stitching.html) module for computing the panoramas.
 
-Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](https://github.com/libsdl-org/SDL), [spdlog](https://github.com/gabime/spdlog/), [Catch2](https://github.com/catchorg/Catch2), [nativefiledialog-extended](https://github.com/btzy/nativefiledialog-extended), [alpaca](https://github.com/p-ranav/alpaca), [thread-pool](https://github.com/bshoshany/thread-pool), [expected](https://github.com/TartanLlama/expected), [Exiv2](https://github.com/Exiv2/exiv2), [multiblend](https://horman.net/multiblend/), [SIMDe](https://github.com/simd-everywhere/simde) and the [Google Noto](https://fonts.google.com/noto) fonts.
+Other dependencies include [imgui](https://github.com/ocornut/imgui), [SDL](https://github.com/libsdl-org/SDL), [spdlog](https://github.com/gabime/spdlog/), [Catch2](https://github.com/catchorg/Catch2), [alpaca](https://github.com/p-ranav/alpaca), [thread-pool](https://github.com/bshoshany/thread-pool), [Exiv2](https://github.com/Exiv2/exiv2), [multiblend](https://horman.net/multiblend/), [SIMDe](https://github.com/simd-everywhere/simde) and the [Google Noto](https://fonts.google.com/noto) fonts.
 
 ## Demo
 
@@ -48,7 +48,7 @@ Xpano [<input files>] [--output=<path>] [--gui] [--help] [--version]
 
 ## Development
 
-The project can be built by running a single script from the `misc/build` directory. You will need at least CMake 3.21, git and a compiler with C++20 support.
+The project can be built by running a single script from the `misc/build` directory. You will need at least CMake 3.21, git and a compiler and standard library with C++23 `std::expected` support (for example, GCC 12 or newer).
 
 ### NixOS
 
