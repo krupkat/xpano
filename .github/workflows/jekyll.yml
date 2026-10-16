@@ -20,8 +20,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    permissions:
-      pages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -61,6 +59,7 @@ jobs:
     timeout-minutes: 30
     needs: build
     permissions:
+      pages: write
       id-token: write
     steps:
       - name: Deploy to GitHub Pages
