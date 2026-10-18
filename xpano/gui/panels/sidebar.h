@@ -29,7 +29,13 @@ Action DrawMatchesMenu(const std::vector<algorithm::Match>& matches,
 Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
                      const ThumbnailPane& thumbnail_pane, int highlight_id);
 
-Action DrawMenu(pipeline::Options* options, bool debug_enabled);
+struct UiScale {
+  float dpi = 1.0f;
+  float combined = 1.0f;
+};
+
+Action DrawMenu(pipeline::Options* options, const UiScale& ui_scale,
+                bool debug_enabled);
 
 void DrawWelcomeTextPart1();
 

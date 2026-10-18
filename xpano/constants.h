@@ -25,6 +25,11 @@ constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
 constexpr int kMinWindowSize = 200;
 
+constexpr int kMinUiScalePercent = 50;
+constexpr int kDefaultUiScalePercent = 100;
+constexpr int kMaxUiScalePercent = 200;
+constexpr int kUiScaleStepPercent = 5;
+
 constexpr float kZoomFactor = 1.4f;
 constexpr int kZoomLevels = 11;
 constexpr float kZoomSpeed = 0.1f;

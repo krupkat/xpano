@@ -13,7 +13,9 @@ enum class ShortcutType : std::uint8_t {
   kDebug,
   kReset,
   kRotate,
-  kCrop
+  kCrop,
+  kScaleUp,
+  kScaleDown
 };
 
 const char* Label(ShortcutType type);

@@ -397,10 +397,46 @@ Action DrawResetButton() {
   return {};
 }
 
-Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
+Action DrawUiScaleMenu(const pipeline::GuiOptions& gui_options,
+                       const UiScale& ui_scale) {
+  constexpr float kPercent = 100.0f;
+  Action action{};
+  if (ImGui::BeginMenu("UI scale")) {
+    ImGui::Text("DPI scale: %.0f%%", ui_scale.dpi * kPercent);
+
+    const int percent = gui_options.ui_scale_percent;
+    ImGui::BeginDisabled(percent <= kMinUiScalePercent);
+    if (ImGui::Button("-")) {
+      action |= {ActionType::kDecreaseUiScale};
+    }
+    ImGui::SetItemTooltip("%s", Label(ShortcutType::kScaleDown));
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    ImGui::Text("%d%%", percent);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(percent >= kMaxUiScalePercent);
+    if (ImGui::Button("+")) {
+      action |= {ActionType::kIncreaseUiScale};
+    }
+    ImGui::SetItemTooltip("%s", Label(ShortcutType::kScaleUp));
+    ImGui::EndDisabled();
+
+    if (ImGui::Button("Reset")) {
+      action |= {ActionType::kResetUiScale};
+    }
+
+    ImGui::Text("Total scale: %.0f%%", ui_scale.combined * kPercent);
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
+Action DrawOptionsMenu(pipeline::Options* options, const UiScale& ui_scale,
+                       bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     action |= DrawResetButton();
+    action |= DrawUiScaleMenu(options->gui, ui_scale);
     DrawExportOptionsMenu(&options->metadata, &options->compression);
     DrawLoadingOptionsMenu(&options->loading);
     DrawMatchingOptionsMenu(&options->matching, debug_enabled);
@@ -556,12 +592,13 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
+Action DrawMenu(pipeline::Options* options, const UiScale& ui_scale,
+                bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
     action |= DrawEditMenu();
-    action |= DrawOptionsMenu(options, debug_enabled);
+    action |= DrawOptionsMenu(options, ui_scale, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }

@@ -132,7 +132,9 @@ int main(int argc, char** argv) {
   }
 
   // Main loop
+  float applied_scale = 1.0f;
   bool done = false;
+
   while (!done) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -142,8 +144,14 @@ int main(int argc, char** argv) {
            event.window.windowID == SDL_GetWindowID(window))) {
         done = true;
       } else if (event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
-        xpano::utils::imgui::SetScale(xpano::utils::sdl::GetDpiScale(window));
+        gui.SetDpiScale(xpano::utils::sdl::GetDpiScale(window));
       }
+    }
+
+    // Apply scale changes between frames
+    if (const float scale = gui.GetScale(); scale != applied_scale) {
+      xpano::utils::imgui::SetScale(scale);
+      applied_scale = scale;
     }
 
     // Start the Dear ImGui frame

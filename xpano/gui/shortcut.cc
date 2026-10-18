@@ -24,6 +24,10 @@ const char* Label(ShortcutType type) {
       return "A";
     case ShortcutType::kCrop:
       return "C";
+    case ShortcutType::kScaleUp:
+      return reinterpret_cast<const char*>(u8"⌘ +");
+    case ShortcutType::kScaleDown:
+      return reinterpret_cast<const char*>(u8"⌘ -");
     default:
       return "";
   }
@@ -41,6 +45,10 @@ const char* Label(ShortcutType type) {
       return "A";
     case ShortcutType::kCrop:
       return "C";
+    case ShortcutType::kScaleUp:
+      return "CTRL+PLUS";
+    case ShortcutType::kScaleDown:
+      return "CTRL+MINUS";
     default:
       return "";
   }
@@ -67,6 +75,16 @@ Action CheckKeybindings() {
   }
   if (ImGui::Shortcut(ImGuiKey_C, kFlags)) {
     return {ActionType::kToggleCrop};
+  }
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Equal, kFlags) ||
+      ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Equal,
+                      kFlags) ||
+      ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_KeypadAdd, kFlags)) {
+    return {ActionType::kIncreaseUiScale};
+  }
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Minus, kFlags) ||
+      ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_KeypadSubtract, kFlags)) {
+    return {ActionType::kDecreaseUiScale};
   }
   return {ActionType::kNone};
 }

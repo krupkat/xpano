@@ -45,7 +45,10 @@ enum class ActionType : std::uint8_t {
   kResetRotation,
   kResetCrop,
   kSaveCrop,
-  kRecrop
+  kRecrop,
+  kIncreaseUiScale,
+  kDecreaseUiScale,
+  kResetUiScale
 };
 
 struct ShowPanoExtra {
