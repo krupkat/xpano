@@ -662,4 +662,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
         TAG: ${{ github.ref_name }}
-      run: gh release create "$TAG" dist/* --verify-tag --prerelease --title "$TAG" --generate-notes
+      run: |
+        prev_tag="$(gh release view --json tagName --jq .tagName)"
+        test -n "$prev_tag"
+        gh release create "$TAG" dist/* --verify-tag --prerelease --title "$TAG" --generate-notes --notes-start-tag "$prev_tag"
