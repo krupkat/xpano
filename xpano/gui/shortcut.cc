@@ -47,28 +47,25 @@ const char* Label(ShortcutType type) {
 #endif
 }
 
+// On macOS, imgui swaps Cmd and Ctrl, so ImGuiMod_Ctrl means Cmd
 Action CheckKeybindings() {
-#ifdef __APPLE__
-  bool ctrl = ImGui::GetIO().KeySuper;
-#else
-  const bool ctrl = ImGui::GetIO().KeyCtrl;
-#endif
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
+  constexpr ImGuiInputFlags kFlags = ImGuiInputFlags_RouteGlobal;
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O, kFlags)) {
     return {ActionType::kOpenFiles};
   }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S, kFlags)) {
     return {ActionType::kExport};
   }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_D, kFlags)) {
     return {ActionType::kToggleDebugLog};
   }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_R)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_R, kFlags)) {
     return {ActionType::kResetOptions};
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_A)) {
+  if (ImGui::Shortcut(ImGuiKey_A, kFlags)) {
     return {ActionType::kToggleRotate};
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_C)) {
+  if (ImGui::Shortcut(ImGuiKey_C, kFlags)) {
     return {ActionType::kToggleCrop};
   }
   return {ActionType::kNone};
