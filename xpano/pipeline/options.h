@@ -67,7 +67,7 @@ struct MatchingOptions {
 using StitchAlgorithmOptions = algorithm::StitchUserOptions;
 
 struct GuiOptions {
-  int ui_scale_percent = kDefaultUiScalePercent;
+  int scale_adjustment = 0;  // percentage points
 };
 
 struct Options {

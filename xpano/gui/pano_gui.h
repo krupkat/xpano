@@ -71,8 +71,7 @@ class PanoGui {
 
   bool FileDialogPending() const;
   void Reset();
-  void SetUiScalePercent(int percent);
-  void UpdateUiScale();
+  void SetScaleAdjustment(int adjustment);
   bool IsDebugEnabled() const;
 
   // File dialogs

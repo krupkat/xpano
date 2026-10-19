@@ -402,30 +402,30 @@ Action DrawUiScaleMenu(const pipeline::GuiOptions& gui_options,
   constexpr float kPercent = 100.0f;
   Action action{};
   if (ImGui::BeginMenu("UI scale")) {
-    ImGui::Text("DPI scale: %.0f%%", ui_scale.dpi * kPercent);
+    ImGui::Text("Monitor scaling: %.0f%%", ui_scale.dpi * kPercent);
+    ImGui::SameLine();
+    utils::imgui::InfoMarker("(?)", "Value provided by your desktop settings");
 
-    const int percent = gui_options.ui_scale_percent;
-    ImGui::BeginDisabled(percent <= kMinUiScalePercent);
-    if (ImGui::Button("-")) {
+    const int adjustment = gui_options.scale_adjustment;
+    ImGui::Text("Manual adjustment: %+d%%", adjustment);
+    ImGui::Indent();
+    // Keep the menu open for repeated clicks
+    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+    if (ImGui::MenuItem("Decrease", Label(ShortcutType::kScaleDown), false,
+                        adjustment > kMinScaleAdjustment)) {
       action |= {ActionType::kDecreaseUiScale};
     }
-    ImGui::SetItemTooltip("%s", Label(ShortcutType::kScaleDown));
-    ImGui::EndDisabled();
-    ImGui::SameLine();
-    ImGui::Text("%d%%", percent);
-    ImGui::SameLine();
-    ImGui::BeginDisabled(percent >= kMaxUiScalePercent);
-    if (ImGui::Button("+")) {
+    if (ImGui::MenuItem("Increase", Label(ShortcutType::kScaleUp), false,
+                        adjustment < kMaxScaleAdjustment)) {
       action |= {ActionType::kIncreaseUiScale};
     }
-    ImGui::SetItemTooltip("%s", Label(ShortcutType::kScaleUp));
-    ImGui::EndDisabled();
-
-    if (ImGui::Button("Reset")) {
+    if (ImGui::MenuItem("Reset", nullptr, false, adjustment != 0)) {
       action |= {ActionType::kResetUiScale};
     }
+    ImGui::PopItemFlag();
+    ImGui::Unindent();
 
-    ImGui::Text("Total scale: %.0f%%", ui_scale.combined * kPercent);
+    ImGui::Text("Combined scaling: %.0f%%", ui_scale.combined * kPercent);
     ImGui::EndMenu();
   }
   return action;

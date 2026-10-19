@@ -276,6 +276,13 @@ const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
   return &stitcher_data.images.at(pano.ids.at(0));
 }
 
+UiScale CalcUiScale(float dpi_scale, int scale_adjustment) {
+  constexpr float kPercent = 100.0f;
+  return {
+      .dpi = dpi_scale,
+      .combined = dpi_scale + static_cast<float>(scale_adjustment) / kPercent};
+}
+
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend,
@@ -289,7 +296,7 @@ PanoGui::PanoGui(backends::Base* backend,
       bugreport_pane_(logger),
       plot_pane_(backend),
       thumbnail_pane_(backend) {
-  SetUiScalePercent(options_.gui.ui_scale_percent);
+  SetScaleAdjustment(options_.gui.scale_adjustment);
   if (config.app_state.xpano_version != version::Current()) {
     warning_pane_.QueueNewVersion(config.app_state.xpano_version,
                                   about_pane_.GetText(kChangelogFilename));
@@ -573,15 +580,15 @@ Action PanoGui::PerformAction(const Action& action) {
       return plot_pane_.ToggleRotate();
     }
     case ActionType::kIncreaseUiScale: {
-      SetUiScalePercent(options_.gui.ui_scale_percent + kUiScaleStepPercent);
+      SetScaleAdjustment(options_.gui.scale_adjustment + kScaleAdjustmentStep);
       break;
     }
     case ActionType::kDecreaseUiScale: {
-      SetUiScalePercent(options_.gui.ui_scale_percent - kUiScaleStepPercent);
+      SetScaleAdjustment(options_.gui.scale_adjustment - kScaleAdjustmentStep);
       break;
     }
     case ActionType::kResetUiScale: {
-      SetUiScalePercent(kDefaultUiScalePercent);
+      SetScaleAdjustment(0);
       break;
     }
     case ActionType::kWarnInputConversion: {
@@ -753,23 +760,15 @@ Action PanoGui::ResolveFileDialogFutures() {
 pipeline::Options PanoGui::GetOptions() const { return options_; }
 
 void PanoGui::SetDpiScale(float scale) {
-  ui_scale_.dpi = scale;
-  UpdateUiScale();
+  ui_scale_ = CalcUiScale(scale, options_.gui.scale_adjustment);
 }
 
 float PanoGui::GetScale() const { return ui_scale_.combined; }
 
-void PanoGui::SetUiScalePercent(int percent) {
-  options_.gui.ui_scale_percent =
-      std::clamp(percent, kMinUiScalePercent, kMaxUiScalePercent);
-  UpdateUiScale();
-}
-
-void PanoGui::UpdateUiScale() {
-  constexpr float kPercent = 100.0f;
-  ui_scale_.combined = ui_scale_.dpi *
-                       static_cast<float>(options_.gui.ui_scale_percent) /
-                       kPercent;
+void PanoGui::SetScaleAdjustment(int adjustment) {
+  options_.gui.scale_adjustment =
+      std::clamp(adjustment, kMinScaleAdjustment, kMaxScaleAdjustment);
+  ui_scale_ = CalcUiScale(ui_scale_.dpi, options_.gui.scale_adjustment);
 }
 
 }  // namespace xpano::gui

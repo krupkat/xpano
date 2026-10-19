@@ -25,10 +25,10 @@ constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
 constexpr int kMinWindowSize = 200;
 
-constexpr int kMinUiScalePercent = 50;
-constexpr int kDefaultUiScalePercent = 100;
-constexpr int kMaxUiScalePercent = 200;
-constexpr int kUiScaleStepPercent = 5;
+// Percentage points added to the monitor scaling
+constexpr int kMinScaleAdjustment = -50;
+constexpr int kMaxScaleAdjustment = 100;
+constexpr int kScaleAdjustmentStep = 5;
 
 constexpr float kZoomFactor = 1.4f;
 constexpr int kZoomLevels = 11;
