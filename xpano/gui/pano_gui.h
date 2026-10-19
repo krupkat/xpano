@@ -21,6 +21,7 @@
 #include "xpano/gui/panels/bugreport_pane.h"
 #include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"
+#include "xpano/gui/panels/shortcuts_pane.h"
 #include "xpano/gui/panels/sidebar.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/panels/warning_pane.h"
@@ -91,6 +92,7 @@ class PanoGui {
   LogPane log_pane_;
   AboutPane about_pane_;
   BugReportPane bugreport_pane_;
+  ShortcutsPane shortcuts_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
   WarningPane warning_pane_;

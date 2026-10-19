@@ -32,6 +32,7 @@ enum class ActionType : std::uint8_t {
   kOpenFiles,
   kShowAbout,
   kShowBugReport,
+  kShowShortcuts,
   kShowImage,
   kShowMatch,
   kShowPano,

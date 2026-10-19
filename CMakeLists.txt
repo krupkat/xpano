@@ -60,6 +60,7 @@ set(XPANO_SOURCES
   "xpano/gui/panels/bugreport_pane.cc"
   "xpano/gui/panels/log_pane.cc"
   "xpano/gui/panels/preview_pane.cc"
+  "xpano/gui/panels/shortcuts_pane.cc"
   "xpano/gui/panels/sidebar.cc"
   "xpano/gui/panels/thumbnail_pane.cc"
   "xpano/gui/panels/warning_pane.cc"

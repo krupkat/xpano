@@ -452,6 +452,9 @@ Action DrawOptionsMenu(pipeline::Options* options, const UiScale& ui_scale,
 Action DrawHelpMenu() {
   Action action{};
   if (ImGui::BeginMenu("Help")) {
+    if (ImGui::MenuItem("Keyboard shortcuts")) {
+      action |= {ActionType::kShowShortcuts};
+    }
     if (ImGui::MenuItem("Show debug info", Label(ShortcutType::kDebug))) {
       action |= {ActionType::kToggleDebugLog};
     }

@@ -354,6 +354,7 @@ Action PanoGui::DrawGui() {
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
+  shortcuts_pane_.Draw();
   warning_pane_.Draw();
   return action;
 }
@@ -550,6 +551,10 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kShowBugReport: {
       bugreport_pane_.Show();
+      break;
+    }
+    case ActionType::kShowShortcuts: {
+      shortcuts_pane_.Show();
       break;
     }
     case ActionType::kToggleDebugLog: {

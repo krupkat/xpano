@@ -9,52 +9,6 @@
 
 namespace xpano::gui {
 
-const char* Label(ShortcutType type) {
-#ifdef __APPLE__
-  switch (type) {
-    case ShortcutType::kOpen:
-      return reinterpret_cast<const char*>(u8"⌘ O");
-    case ShortcutType::kExport:
-      return reinterpret_cast<const char*>(u8"⌘ S");
-    case ShortcutType::kDebug:
-      return reinterpret_cast<const char*>(u8"⌘ D");
-    case ShortcutType::kReset:
-      return reinterpret_cast<const char*>(u8"⌘ R");
-    case ShortcutType::kRotate:
-      return "A";
-    case ShortcutType::kCrop:
-      return "C";
-    case ShortcutType::kScaleUp:
-      return reinterpret_cast<const char*>(u8"⌘ +");
-    case ShortcutType::kScaleDown:
-      return reinterpret_cast<const char*>(u8"⌘ -");
-    default:
-      return "";
-  }
-#else
-  switch (type) {
-    case ShortcutType::kOpen:
-      return "CTRL+O";
-    case ShortcutType::kExport:
-      return "CTRL+S";
-    case ShortcutType::kDebug:
-      return "CTRL+D";
-    case ShortcutType::kReset:
-      return "CTRL+R";
-    case ShortcutType::kRotate:
-      return "A";
-    case ShortcutType::kCrop:
-      return "C";
-    case ShortcutType::kScaleUp:
-      return "CTRL+PLUS";
-    case ShortcutType::kScaleDown:
-      return "CTRL+MINUS";
-    default:
-      return "";
-  }
-#endif
-}
-
 // On macOS, imgui swaps Cmd and Ctrl, so ImGuiMod_Ctrl means Cmd
 Action CheckKeybindings() {
   constexpr ImGuiInputFlags kFlags = ImGuiInputFlags_RouteGlobal;
