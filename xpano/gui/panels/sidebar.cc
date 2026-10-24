@@ -102,6 +102,10 @@ Action DrawEditMenu() {
     if (ImGui::MenuItem("Toggle crop", Label(ShortcutType::kCrop))) {
       action |= {ActionType::kToggleCrop};
     }
+    if (ImGui::MenuItem("Full resolution",
+                        Label(ShortcutType::kRecomputeFull))) {
+      action |= {ActionType::kRecomputePanoFullRes};
+    }
     if (ImGui::MenuItem("Reset adjustments")) {
       action |= {ActionType::kResetRotation};
     }
@@ -397,10 +401,46 @@ Action DrawResetButton() {
   return {};
 }
 
-Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
+Action DrawUiScaleMenu(const pipeline::GuiOptions& gui_options,
+                       const UiScale& ui_scale) {
+  constexpr float kPercent = 100.0f;
+  Action action{};
+  if (ImGui::BeginMenu("UI scale")) {
+    ImGui::Text("Monitor scaling: %.0f%%", ui_scale.dpi * kPercent);
+    ImGui::SameLine();
+    utils::imgui::InfoMarker("(?)", "Value provided by your desktop settings");
+
+    const int adjustment = gui_options.scale_adjustment;
+    ImGui::Text("Manual adjustment: %+d%%", adjustment);
+    ImGui::Indent();
+    // Keep the menu open for repeated clicks
+    ImGui::PushItemFlag(ImGuiItemFlags_AutoClosePopups, false);
+    if (ImGui::MenuItem("Decrease", Label(ShortcutType::kScaleDown), false,
+                        adjustment > kMinScaleAdjustment)) {
+      action |= {ActionType::kDecreaseUiScale};
+    }
+    if (ImGui::MenuItem("Increase", Label(ShortcutType::kScaleUp), false,
+                        adjustment < kMaxScaleAdjustment)) {
+      action |= {ActionType::kIncreaseUiScale};
+    }
+    if (ImGui::MenuItem("Reset", nullptr, false, adjustment != 0)) {
+      action |= {ActionType::kResetUiScale};
+    }
+    ImGui::PopItemFlag();
+    ImGui::Unindent();
+
+    ImGui::Text("Combined scaling: %.0f%%", ui_scale.combined * kPercent);
+    ImGui::EndMenu();
+  }
+  return action;
+}
+
+Action DrawOptionsMenu(pipeline::Options* options, const UiScale& ui_scale,
+                       bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenu("Options")) {
     action |= DrawResetButton();
+    action |= DrawUiScaleMenu(options->gui, ui_scale);
     DrawExportOptionsMenu(&options->metadata, &options->compression);
     DrawLoadingOptionsMenu(&options->loading);
     DrawMatchingOptionsMenu(&options->matching, debug_enabled);
@@ -416,6 +456,9 @@ Action DrawOptionsMenu(pipeline::Options* options, bool debug_enabled) {
 Action DrawHelpMenu() {
   Action action{};
   if (ImGui::BeginMenu("Help")) {
+    if (ImGui::MenuItem("Keyboard shortcuts")) {
+      action |= {ActionType::kShowShortcuts};
+    }
     if (ImGui::MenuItem("Show debug info", Label(ShortcutType::kDebug))) {
       action |= {ActionType::kToggleDebugLog};
     }
@@ -556,12 +599,13 @@ Action DrawPanosMenu(const std::vector<algorithm::Pano>& panos,
   return action;
 }
 
-Action DrawMenu(pipeline::Options* options, bool debug_enabled) {
+Action DrawMenu(pipeline::Options* options, const UiScale& ui_scale,
+                bool debug_enabled) {
   Action action{};
   if (ImGui::BeginMenuBar()) {
     action |= DrawFileMenu();
     action |= DrawEditMenu();
-    action |= DrawOptionsMenu(options, debug_enabled);
+    action |= DrawOptionsMenu(options, ui_scale, debug_enabled);
     action |= DrawHelpMenu();
     ImGui::EndMenuBar();
   }
@@ -602,7 +646,7 @@ Action DrawImportActionButtons() {
   return action;
 };
 
-Action DrawActionButtons(ImageType image_type, int target_id,
+Action DrawActionButtons(ImageType image_type,
                          algorithm::ProjectionType* projection_type) {
   Action action{};
   if (utils::imgui::ComboBox(projection_type, algorithm::kProjectionTypes,
@@ -634,9 +678,7 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       image_type == ImageType::kPanoPreview,
       [&] {
         if (ImGui::Button("Full-res")) {
-          action |= {.type = ActionType::kShowPano,
-                     .target_id = target_id,
-                     .extra = ShowPanoExtra{.full_res = true}};
+          action |= {ActionType::kRecomputePanoFullRes};
         }
       },
       image_type == ImageType::kPanoFullRes ? "Already computed"

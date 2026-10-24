@@ -9,67 +9,45 @@
 
 namespace xpano::gui {
 
-const char* Label(ShortcutType type) {
-#ifdef __APPLE__
-  switch (type) {
-    case ShortcutType::kOpen:
-      return reinterpret_cast<const char*>(u8"⌘ O");
-    case ShortcutType::kExport:
-      return reinterpret_cast<const char*>(u8"⌘ S");
-    case ShortcutType::kDebug:
-      return reinterpret_cast<const char*>(u8"⌘ D");
-    case ShortcutType::kReset:
-      return reinterpret_cast<const char*>(u8"⌘ R");
-    case ShortcutType::kRotate:
-      return "A";
-    case ShortcutType::kCrop:
-      return "C";
-    default:
-      return "";
-  }
-#else
-  switch (type) {
-    case ShortcutType::kOpen:
-      return "CTRL+O";
-    case ShortcutType::kExport:
-      return "CTRL+S";
-    case ShortcutType::kDebug:
-      return "CTRL+D";
-    case ShortcutType::kReset:
-      return "CTRL+R";
-    case ShortcutType::kRotate:
-      return "A";
-    case ShortcutType::kCrop:
-      return "C";
-    default:
-      return "";
-  }
-#endif
-}
-
+// On macOS, imgui swaps Cmd and Ctrl, so ImGuiMod_Ctrl means Cmd
 Action CheckKeybindings() {
-#ifdef __APPLE__
-  bool ctrl = ImGui::GetIO().KeySuper;
-#else
-  const bool ctrl = ImGui::GetIO().KeyCtrl;
-#endif
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_O)) {
+  constexpr ImGuiInputFlags kFlags = ImGuiInputFlags_RouteGlobal;
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O, kFlags)) {
     return {ActionType::kOpenFiles};
   }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_S)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S, kFlags)) {
     return {ActionType::kExport};
   }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_D)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_D, kFlags)) {
     return {ActionType::kToggleDebugLog};
   }
-  if (ctrl && ImGui::IsKeyPressed(ImGuiKey_R)) {
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_R, kFlags)) {
     return {ActionType::kResetOptions};
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_A)) {
+  if (ImGui::Shortcut(ImGuiKey_A, kFlags)) {
     return {ActionType::kToggleRotate};
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_C)) {
+  if (ImGui::Shortcut(ImGuiKey_C, kFlags)) {
     return {ActionType::kToggleCrop};
+  }
+  if (ImGui::Shortcut(ImGuiKey_F, kFlags)) {
+    return {ActionType::kRecomputePanoFullRes};
+  }
+  if (ImGui::Shortcut(ImGuiKey_RightArrow, kFlags)) {
+    return {ActionType::kNextSelection};
+  }
+  if (ImGui::Shortcut(ImGuiKey_LeftArrow, kFlags)) {
+    return {ActionType::kPreviousSelection};
+  }
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Equal, kFlags) ||
+      ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Equal,
+                      kFlags) ||
+      ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_KeypadAdd, kFlags)) {
+    return {ActionType::kIncreaseUiScale};
+  }
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Minus, kFlags) ||
+      ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_KeypadSubtract, kFlags)) {
+    return {ActionType::kDecreaseUiScale};
   }
   return {ActionType::kNone};
 }

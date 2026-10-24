@@ -133,6 +133,53 @@ Action ModifyPano(int clicked_image, Selection* selection,
   return {};
 }
 
+Action StepSelection(bool next, const Selection& selection,
+                     const pipeline::StitcherData& stitcher_data) {
+  auto in_range = [](int idx, const auto& items) {
+    return idx >= 0 && idx < static_cast<int>(items.size());
+  };
+  const int target_id = selection.target_id + (next ? 1 : -1);
+
+  switch (selection.type) {
+    case SelectionType::kNone: {
+      if (stitcher_data.panos.empty()) {
+        return {};
+      }
+      const int num_panos = static_cast<int>(stitcher_data.panos.size());
+      return {.type = ActionType::kShowPano,
+              .target_id = next ? 0 : num_panos - 1,
+              .delayed = true,
+              .extra = ShowPanoExtra{.scroll_thumbnails = true}};
+    }
+    case SelectionType::kImage: {
+      if (!in_range(target_id, stitcher_data.images)) {
+        return {};
+      }
+      return {.type = ActionType::kShowImage,
+              .target_id = target_id,
+              .delayed = true};
+    }
+    case SelectionType::kMatch: {
+      if (!in_range(target_id, stitcher_data.matches)) {
+        return {};
+      }
+      return {.type = ActionType::kShowMatch,
+              .target_id = target_id,
+              .delayed = true};
+    }
+    case SelectionType::kPano: {
+      if (!in_range(target_id, stitcher_data.panos)) {
+        return {};
+      }
+      return {.type = ActionType::kShowPano,
+              .target_id = target_id,
+              .delayed = true,
+              .extra = ShowPanoExtra{.scroll_thumbnails = true}};
+    }
+  }
+  return {};
+}
+
 auto ResolveStitcherDataFuture(
     std::future<pipeline::StitcherData> stitcher_data_future,
     ThumbnailPane* thumbnail_pane, StatusMessage* status_message)
@@ -276,6 +323,13 @@ const algorithm::Image* FirstImage(const pipeline::StitcherData& stitcher_data,
   return &stitcher_data.images.at(pano.ids.at(0));
 }
 
+UiScale CalcUiScale(float dpi_scale, int scale_adjustment) {
+  constexpr float kPercent = 100.0f;
+  return {
+      .dpi = dpi_scale,
+      .combined = dpi_scale + static_cast<float>(scale_adjustment) / kPercent};
+}
+
 }  // namespace
 
 PanoGui::PanoGui(backends::Base* backend,
@@ -289,6 +343,7 @@ PanoGui::PanoGui(backends::Base* backend,
       bugreport_pane_(logger),
       plot_pane_(backend),
       thumbnail_pane_(backend) {
+  SetScaleAdjustment(options_.gui.scale_adjustment);
   if (config.app_state.xpano_version != version::Current()) {
     warning_pane_.QueueNewVersion(config.app_state.xpano_version,
                                   about_pane_.GetText(kChangelogFilename));
@@ -346,6 +401,7 @@ Action PanoGui::DrawGui() {
   log_pane_.Draw();
   about_pane_.Draw();
   bugreport_pane_.Draw();
+  shortcuts_pane_.Draw();
   warning_pane_.Draw();
   return action;
 }
@@ -355,12 +411,12 @@ Action PanoGui::DrawSidebar() {
   ImGui::Begin("PanoSweep", nullptr,
                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar);
 
-  action |= DrawMenu(&options_, IsDebugEnabled());
+  action |= DrawMenu(&options_, ui_scale_, IsDebugEnabled());
   DrawWelcomeTextPart1();
   action |= DrawImportActionButtons();
   DrawWelcomeTextPart2();
-  action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id,
-                              &options_.stitch.projection.type);
+  action |=
+      DrawActionButtons(plot_pane_.Type(), &options_.stitch.projection.type);
 
   auto progress = stitcher_pipeline_.Progress();
   DrawProgressBar(progress);
@@ -499,6 +555,15 @@ Action PanoGui::PerformAction(const Action& action) {
       }
       break;
     }
+    case ActionType::kNextSelection:
+      [[fallthrough]];
+    case ActionType::kPreviousSelection: {
+      if (!stitcher_data_) {
+        break;
+      }
+      return StepSelection(action.type == ActionType::kNextSelection,
+                           selection_, *stitcher_data_);
+    }
     case ActionType::kModifyPano: {
       return ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
     }
@@ -534,6 +599,7 @@ Action PanoGui::PerformAction(const Action& action) {
       const auto& img = stitcher_data_->images[action.target_id];
       plot_pane_.Load(img.Draw(IsDebugEnabled()), ImageType::kSingleImage);
       thumbnail_pane_.Highlight(action.target_id);
+      thumbnail_pane_.SetScrollX(action.target_id);
       break;
     }
     case ActionType::kShowAbout: {
@@ -542,6 +608,10 @@ Action PanoGui::PerformAction(const Action& action) {
     }
     case ActionType::kShowBugReport: {
       bugreport_pane_.Show();
+      break;
+    }
+    case ActionType::kShowShortcuts: {
+      shortcuts_pane_.Show();
       break;
     }
     case ActionType::kToggleDebugLog: {
@@ -571,12 +641,24 @@ Action PanoGui::PerformAction(const Action& action) {
     case ActionType::kToggleRotate: {
       return plot_pane_.ToggleRotate();
     }
+    case ActionType::kIncreaseUiScale: {
+      SetScaleAdjustment(options_.gui.scale_adjustment + kScaleAdjustmentStep);
+      break;
+    }
+    case ActionType::kDecreaseUiScale: {
+      SetScaleAdjustment(options_.gui.scale_adjustment - kScaleAdjustmentStep);
+      break;
+    }
+    case ActionType::kResetUiScale: {
+      SetScaleAdjustment(0);
+      break;
+    }
     case ActionType::kWarnInputConversion: {
       warning_pane_.Queue(WarningType::kWarnInputConversion);
       break;
     }
     case ActionType::kResetOptions: {
-      options_ = {};
+      options_ = {.gui = options_.gui};
       warning_pane_.Queue(WarningType::kUserPrefResetOnRequest);
       return {.type = ActionType::kRecomputePano, .delayed = true};
     }
@@ -738,5 +820,17 @@ Action PanoGui::ResolveFileDialogFutures() {
 }
 
 pipeline::Options PanoGui::GetOptions() const { return options_; }
+
+void PanoGui::SetDpiScale(float scale) {
+  ui_scale_ = CalcUiScale(scale, options_.gui.scale_adjustment);
+}
+
+float PanoGui::GetScale() const { return ui_scale_.combined; }
+
+void PanoGui::SetScaleAdjustment(int adjustment) {
+  options_.gui.scale_adjustment =
+      std::clamp(adjustment, kMinScaleAdjustment, kMaxScaleAdjustment);
+  ui_scale_ = CalcUiScale(ui_scale_.dpi, options_.gui.scale_adjustment);
+}
 
 }  // namespace xpano::gui

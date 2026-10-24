@@ -21,6 +21,8 @@
 #include "xpano/gui/panels/bugreport_pane.h"
 #include "xpano/gui/panels/log_pane.h"
 #include "xpano/gui/panels/preview_pane.h"
+#include "xpano/gui/panels/shortcuts_pane.h"
+#include "xpano/gui/panels/sidebar.h"
 #include "xpano/gui/panels/thumbnail_pane.h"
 #include "xpano/gui/panels/warning_pane.h"
 #include "xpano/log/logger.h"
@@ -56,6 +58,8 @@ class PanoGui {
 
   bool Run();
   pipeline::Options GetOptions() const;
+  void SetDpiScale(float scale);
+  float GetScale() const;
 
  private:
   Action DrawGui();
@@ -68,6 +72,7 @@ class PanoGui {
 
   bool FileDialogPending() const;
   void Reset();
+  void SetScaleAdjustment(int adjustment);
   bool IsDebugEnabled() const;
 
   // File dialogs
@@ -80,12 +85,14 @@ class PanoGui {
   StatusMessage status_message_;
 
   pipeline::Options options_;
+  UiScale ui_scale_;
   std::optional<pipeline::StitcherData> stitcher_data_;
 
   // Gui panels
   LogPane log_pane_;
   AboutPane about_pane_;
   BugReportPane bugreport_pane_;
+  ShortcutsPane shortcuts_pane_;
   PreviewPane plot_pane_;
   ThumbnailPane thumbnail_pane_;
   WarningPane warning_pane_;

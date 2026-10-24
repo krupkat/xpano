@@ -66,6 +66,10 @@ struct MatchingOptions {
 
 using StitchAlgorithmOptions = algorithm::StitchUserOptions;
 
+struct GuiOptions {
+  int scale_adjustment = 0;  // percentage points
+};
+
 struct Options {
   MetadataOptions metadata;
   CompressionOptions compression;
@@ -73,6 +77,7 @@ struct Options {
   InpaintingOptions inpaint;
   MatchingOptions matching;
   StitchAlgorithmOptions stitch;
+  GuiOptions gui;
 };
 
 }  // namespace xpano::pipeline

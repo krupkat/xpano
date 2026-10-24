@@ -32,9 +32,12 @@ enum class ActionType : std::uint8_t {
   kOpenFiles,
   kShowAbout,
   kShowBugReport,
+  kShowShortcuts,
   kShowImage,
   kShowMatch,
   kShowPano,
+  kNextSelection,
+  kPreviousSelection,
   kModifyPano,
   kRecomputePano,
   kRecomputePanoFullRes,
@@ -45,7 +48,10 @@ enum class ActionType : std::uint8_t {
   kResetRotation,
   kResetCrop,
   kSaveCrop,
-  kRecrop
+  kRecrop,
+  kIncreaseUiScale,
+  kDecreaseUiScale,
+  kResetUiScale
 };
 
 struct ShowPanoExtra {
