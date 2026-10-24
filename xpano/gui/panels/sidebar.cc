@@ -102,6 +102,10 @@ Action DrawEditMenu() {
     if (ImGui::MenuItem("Toggle crop", Label(ShortcutType::kCrop))) {
       action |= {ActionType::kToggleCrop};
     }
+    if (ImGui::MenuItem("Full resolution",
+                        Label(ShortcutType::kRecomputeFull))) {
+      action |= {ActionType::kRecomputePanoFullRes};
+    }
     if (ImGui::MenuItem("Reset adjustments")) {
       action |= {ActionType::kResetRotation};
     }
@@ -642,7 +646,7 @@ Action DrawImportActionButtons() {
   return action;
 };
 
-Action DrawActionButtons(ImageType image_type, int target_id,
+Action DrawActionButtons(ImageType image_type,
                          algorithm::ProjectionType* projection_type) {
   Action action{};
   if (utils::imgui::ComboBox(projection_type, algorithm::kProjectionTypes,
@@ -674,9 +678,7 @@ Action DrawActionButtons(ImageType image_type, int target_id,
       image_type == ImageType::kPanoPreview,
       [&] {
         if (ImGui::Button("Full-res")) {
-          action |= {.type = ActionType::kShowPano,
-                     .target_id = target_id,
-                     .extra = ShowPanoExtra{.full_res = true}};
+          action |= {ActionType::kRecomputePanoFullRes};
         }
       },
       image_type == ImageType::kPanoFullRes ? "Already computed"

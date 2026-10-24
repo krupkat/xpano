@@ -40,6 +40,7 @@ constexpr auto kKeyboardShortcuts = std::array{
     ShortcutRow{"Export", Label(ShortcutType::kExport)},
     ShortcutRow{"Toggle adjustments", Label(ShortcutType::kRotate)},
     ShortcutRow{"Toggle crop", Label(ShortcutType::kCrop)},
+    ShortcutRow{"Full resolution", Label(ShortcutType::kRecomputeFull)},
     ShortcutRow{"Reset options", Label(ShortcutType::kReset)},
     ShortcutRow{"Increase UI scale", Label(ShortcutType::kScaleUp)},
     ShortcutRow{"Decrease UI scale", Label(ShortcutType::kScaleDown)},

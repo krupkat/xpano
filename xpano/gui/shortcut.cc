@@ -30,6 +30,9 @@ Action CheckKeybindings() {
   if (ImGui::Shortcut(ImGuiKey_C, kFlags)) {
     return {ActionType::kToggleCrop};
   }
+  if (ImGui::Shortcut(ImGuiKey_F, kFlags)) {
+    return {ActionType::kRecomputePanoFullRes};
+  }
   if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Equal, kFlags) ||
       ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Equal,
                       kFlags) ||

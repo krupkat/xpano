@@ -368,8 +368,8 @@ Action PanoGui::DrawSidebar() {
   DrawWelcomeTextPart1();
   action |= DrawImportActionButtons();
   DrawWelcomeTextPart2();
-  action |= DrawActionButtons(plot_pane_.Type(), selection_.target_id,
-                              &options_.stitch.projection.type);
+  action |=
+      DrawActionButtons(plot_pane_.Type(), &options_.stitch.projection.type);
 
   auto progress = stitcher_pipeline_.Progress();
   DrawProgressBar(progress);

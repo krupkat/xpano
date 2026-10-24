@@ -16,6 +16,7 @@ enum class ShortcutType : std::uint8_t {
   kReset,
   kRotate,
   kCrop,
+  kRecomputeFull,
   kScaleUp,
   kScaleDown,
   kModifyPano
@@ -36,6 +37,8 @@ constexpr const char* Label(ShortcutType type) {
       return "A";
     case ShortcutType::kCrop:
       return "C";
+    case ShortcutType::kRecomputeFull:
+      return "F";
     case ShortcutType::kScaleUp:
       return "⌘ +";
     case ShortcutType::kScaleDown:
@@ -59,6 +62,8 @@ constexpr const char* Label(ShortcutType type) {
       return "A";
     case ShortcutType::kCrop:
       return "C";
+    case ShortcutType::kRecomputeFull:
+      return "F";
     case ShortcutType::kScaleUp:
       return "CTRL+PLUS";
     case ShortcutType::kScaleDown:

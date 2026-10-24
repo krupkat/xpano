@@ -387,6 +387,11 @@ bool PreviewPane::IsRotateEnabled() const {
 }
 
 Action PreviewPane::ToggleRotate() {
+  if (image_type_ != ImageType::kPanoFullRes and
+      image_type_ != ImageType::kPanoPreview) {
+    return {};
+  }
+
   switch (rotate_mode_) {
     case RotateMode::kEnabled: {
       ResetZoom(1);
