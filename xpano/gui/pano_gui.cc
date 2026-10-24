@@ -133,6 +133,53 @@ Action ModifyPano(int clicked_image, Selection* selection,
   return {};
 }
 
+Action StepSelection(bool next, const Selection& selection,
+                     const pipeline::StitcherData& stitcher_data) {
+  auto in_range = [](int idx, const auto& items) {
+    return idx >= 0 && idx < static_cast<int>(items.size());
+  };
+  const int target_id = selection.target_id + (next ? 1 : -1);
+
+  switch (selection.type) {
+    case SelectionType::kNone: {
+      if (stitcher_data.panos.empty()) {
+        return {};
+      }
+      const int num_panos = static_cast<int>(stitcher_data.panos.size());
+      return {.type = ActionType::kShowPano,
+              .target_id = next ? 0 : num_panos - 1,
+              .delayed = true,
+              .extra = ShowPanoExtra{.scroll_thumbnails = true}};
+    }
+    case SelectionType::kImage: {
+      if (!in_range(target_id, stitcher_data.images)) {
+        return {};
+      }
+      return {.type = ActionType::kShowImage,
+              .target_id = target_id,
+              .delayed = true};
+    }
+    case SelectionType::kMatch: {
+      if (!in_range(target_id, stitcher_data.matches)) {
+        return {};
+      }
+      return {.type = ActionType::kShowMatch,
+              .target_id = target_id,
+              .delayed = true};
+    }
+    case SelectionType::kPano: {
+      if (!in_range(target_id, stitcher_data.panos)) {
+        return {};
+      }
+      return {.type = ActionType::kShowPano,
+              .target_id = target_id,
+              .delayed = true,
+              .extra = ShowPanoExtra{.scroll_thumbnails = true}};
+    }
+  }
+  return {};
+}
+
 auto ResolveStitcherDataFuture(
     std::future<pipeline::StitcherData> stitcher_data_future,
     ThumbnailPane* thumbnail_pane, StatusMessage* status_message)
@@ -508,6 +555,15 @@ Action PanoGui::PerformAction(const Action& action) {
       }
       break;
     }
+    case ActionType::kNextSelection:
+      [[fallthrough]];
+    case ActionType::kPreviousSelection: {
+      if (!stitcher_data_) {
+        break;
+      }
+      return StepSelection(action.type == ActionType::kNextSelection,
+                           selection_, *stitcher_data_);
+    }
     case ActionType::kModifyPano: {
       return ModifyPano(action.target_id, &selection_, &stitcher_data_->panos);
     }
@@ -543,6 +599,7 @@ Action PanoGui::PerformAction(const Action& action) {
       const auto& img = stitcher_data_->images[action.target_id];
       plot_pane_.Load(img.Draw(IsDebugEnabled()), ImageType::kSingleImage);
       thumbnail_pane_.Highlight(action.target_id);
+      thumbnail_pane_.SetScrollX(action.target_id);
       break;
     }
     case ActionType::kShowAbout: {

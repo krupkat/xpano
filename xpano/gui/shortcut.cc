@@ -33,6 +33,12 @@ Action CheckKeybindings() {
   if (ImGui::Shortcut(ImGuiKey_F, kFlags)) {
     return {ActionType::kRecomputePanoFullRes};
   }
+  if (ImGui::Shortcut(ImGuiKey_RightArrow, kFlags)) {
+    return {ActionType::kNextSelection};
+  }
+  if (ImGui::Shortcut(ImGuiKey_LeftArrow, kFlags)) {
+    return {ActionType::kPreviousSelection};
+  }
   if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_Equal, kFlags) ||
       ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Equal,
                       kFlags) ||

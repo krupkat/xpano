@@ -36,6 +36,8 @@ enum class ActionType : std::uint8_t {
   kShowImage,
   kShowMatch,
   kShowPano,
+  kNextSelection,
+  kPreviousSelection,
   kModifyPano,
   kRecomputePano,
   kRecomputePanoFullRes,
