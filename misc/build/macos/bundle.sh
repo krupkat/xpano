@@ -106,6 +106,6 @@ cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
   echo '  <key>CFBundleVersion</key>' >>$plistfile
   echo '  <string>1.0</string>' >>$plistfile
   echo '  <key>NSHighResolutionCapable</key>' >>$plistfile
-  echo '  <string>True</string>' >>$plistfile
+  echo '  <true/>' >>$plistfile
   echo '</dict>' >>$plistfile
   echo '</plist>' >>$plistfile
