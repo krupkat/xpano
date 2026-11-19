@@ -9,11 +9,9 @@ export CATCH_VERSION='v3.15.0'
 export SPDLOG_VERSION='v1.17.0'
 export EXIV2_VERSION='v0.28.8'
 export GENERATOR='Ninja Multi-Config'
+export MACOSX_DEPLOYMENT_TARGET='15.0'
 
 git submodule update --init
-#brew untap aws/tap || true
-#brew install sdl3 spdlog catch2
-
 
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
 cd opencv
@@ -34,12 +32,44 @@ cmake -B build \
 cmake --build build --target install -j `sysctl -n hw.logicalcpu`
 cd ..
 
+
+git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+cd spdlog
+cmake -B build \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX=build/install
+cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cd ..
+
+
+git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
+cd catch
+cmake -B build \
+  -DCMAKE_INSTALL_PREFIX=install \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DBUILD_TESTING=OFF
+cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cd ..
+
+
+git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $SDL_VERSION
+cd SDL
+cmake -B build \
+  -DCMAKE_INSTALL_PREFIX=install \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  `cat ../misc/build/sdl3-minimal-flags.txt`
+cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cd ..
+
 cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
   -DBUILD_TESTING=ON \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DOpenCV_ROOT=opencv/install \
+  -Dspdlog_ROOT=spdlog/build/install \
+  -DCatch2_ROOT=catch/install \
+  -DSDL3_ROOT=SDL/install \
   -Dexiv2_ROOT=exiv2/install
 
 cmake --build build -j `sysctl -n hw.logicalcpu` --target install

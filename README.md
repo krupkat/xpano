@@ -61,7 +61,7 @@ nix-shell misc/build/nix/default.nix
 
 ### MacOS
 
-Install prerequisites (listed in the build script, you can also use macports instead of brew), then run the build script from the root of the repository:
+Run the build script from the root of the repository:
 
 ```
 ./misc/build/build-macos.sh
