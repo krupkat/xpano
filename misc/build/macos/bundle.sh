@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# macports based, should work with brew as well
-
 set -e
 
 appname=Xpano
@@ -25,6 +23,8 @@ mkdir -p $macosfolder $libfolder
 
 # Copy App
 cp ./install/bin/$appfile $macosfolder/$appfile
+# Resolve @rpath references to bundled libraries.
+install_name_tool -add_rpath @executable_path/../Resources/lib "$macosfolder/$appfile"
 echo "App copied..."
 # Copy the resource files to the correct place
 cp -r ./install/share $appfolder/Contents/
@@ -54,34 +54,10 @@ for dep in $rpathdependencies; do
   
   #copy lib
   cp $libfile $libfolder
-  #inametool
-  install_name_tool -change @rpath/$dep @executable_path/../Resources/lib/$dep $macosfolder/$appfile
   
   # for debugging
   otool -L $libfile
-
-  #detect and copy second level macports dependencies
-  submacportsdependencies=$(otool -L $libfile | awk 'NR>1{print $1}' | grep opt) || true
-  for subdep in $submacportsdependencies; do 
-   echo "handlingsubdep " $subdep
-   #copy lib
-   cp $subdep $libfolder
-   #inametool
-   install_name_tool -change $subdep @rpath/$(basename $subdep) $libfolder/$(basename $dep)  
-  done 
-  
-done 
-
-#get macports dependencies
-macportsdependencies=$(otool -L ./install/bin/Xpano| awk 'NR>1{print $1}' | grep opt) || true
-
-for dep in $macportsdependencies; do 
- echo "handling dep" $dep
- #copy lib
- cp $dep $libfolder
- #inametool
- install_name_tool -change $dep @executable_path/../Resources/lib/$(basename $dep) $macosfolder/$appfile
-done 
+done
 
 #handle icon
 cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
