@@ -39,11 +39,16 @@ echo "rpath dependencies..."
 otool -L ./install/bin/Xpano
 
 for dep in $rpathdependencies; do 
-  case ${dep:0:5} in 
-   'libop' ) 
+  case $dep in
+   libopencv* )
    libfile='./opencv/install/lib/'$dep;;
-   'libex' ) 
+   libexiv2* )
    libfile='./exiv2/install/lib/'$dep;;
+   libSDL3* )
+   libfile='./SDL/install/lib/'$dep;;
+   * )
+   echo "Unknown rpath dependency: $dep" >&2
+   exit 1;;
   esac
  echo "handling dep" $dep
   
