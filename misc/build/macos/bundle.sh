@@ -90,3 +90,17 @@ cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
   echo '  <true/>' >>$plistfile
   echo '</dict>' >>$plistfile
   echo '</plist>' >>$plistfile
+
+# Report build versions and reject Homebrew and MacPorts dependencies.
+for binary in "$macosfolder/$appfile" "$libfolder"/*.dylib; do
+  build_info=$(otool -l "$binary")
+  printf '%s\n' "$build_info" | awk -v binary="$binary" '$1 == "minos" {print binary ": minos " $2}'
+  dependencies=$(otool -L "$binary")
+  if printf '%s\n' "$dependencies" | awk 'NR > 1 {print $1}' | grep -E '^(/opt/homebrew|/opt/local|/usr/local)/'; then
+    echo "Homebrew or MacPorts dependency found in $binary" >&2
+    exit 1
+  fi
+done
+
+# Verify the bundled executable loads its libraries.
+"$macosfolder/$appfile" --help
