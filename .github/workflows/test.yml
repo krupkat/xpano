@@ -524,6 +524,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "15.0"
+
     strategy:
       fail-fast: false
       matrix:
@@ -539,18 +542,13 @@ jobs:
         submodules: true
         persist-credentials: false
 
-    - name: Install prerequisites
-      run: |
-        brew untap aws/tap || true
-        brew install sdl3 spdlog catch2
-
     - name: Cache OpenCV
       if: github.ref_type != 'tag'
       uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
       id: cache-opencv
       with:
         path: opencv/install
-        key: ${{ matrix.os }}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
+        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-opencv-${{env.OPENCV_VERSION}}-${{hashFiles('misc/build/opencv-minimal-flags.txt')}}
 
     - name: Install OpenCV
       if: steps.cache-opencv.outputs.cache-hit != 'true'
@@ -570,7 +568,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{ matrix.os }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
+        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
@@ -584,6 +582,65 @@ jobs:
         cmake --build build --target install -j `sysctl -n hw.logicalcpu`
         cd ..
 
+    - name: Cache spdlog
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
+      id: cache-spdlog
+      with:
+        path: spdlog/build/install
+        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-spdlog-${{env.SPDLOG_VERSION}}-${{env.BUILD_TYPE}}
+
+    - name: Install spdlog
+      if: steps.cache-spdlog.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/gabime/spdlog.git --depth 1 --branch $SPDLOG_VERSION
+        cd spdlog
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_INSTALL_PREFIX=build/install
+        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cd ..
+
+    - name: Cache Catch
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
+      id: cache-catch
+      with:
+        path: catch/install
+        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-catch-${{env.CATCH_VERSION}}-${{env.BUILD_TYPE}}
+
+    - name: Install Catch
+      if: steps.cache-catch.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/catchorg/Catch2.git catch --depth 1 --branch $CATCH_VERSION
+        cd catch
+        cmake -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DBUILD_TESTING=OFF
+        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cd ..
+
+    - name: Cache SDL
+      if: github.ref_type != 'tag'
+      uses: actions/cache@v6 # zizmor: ignore[cache-poisoning] skipped on tag builds
+      id: cache-sdl
+      with:
+        path: SDL/install
+        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-sdl-${{env.SDL_VERSION}}-static-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/sdl3-minimal-flags.txt')}}
+
+    - name: Install SDL
+      if: steps.cache-sdl.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/libsdl-org/SDL.git --depth 1 --branch $SDL_VERSION
+        cd SDL
+        cmake -B build \
+          -DCMAKE_INSTALL_PREFIX=install \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          `cat ../misc/build/sdl3-minimal-flags.txt`
+        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cd ..
+
     - name: Configure CMake
       run: |
         cmake -B build \
@@ -592,6 +649,9 @@ jobs:
           -DBUILD_TESTING=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DOpenCV_ROOT=opencv/install \
+          -Dspdlog_ROOT=spdlog/build/install \
+          -DCatch2_ROOT=catch/install \
+          -DSDL3_ROOT=SDL/install \
           -Dexiv2_ROOT=exiv2/install
 
     - name: Build
