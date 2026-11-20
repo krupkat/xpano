@@ -86,6 +86,10 @@ cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
   echo '  <string>????</string>' >>$plistfile
   echo '  <key>CFBundleVersion</key>' >>$plistfile
   echo '  <string>1.0</string>' >>$plistfile
+if [ -n "${MACOSX_DEPLOYMENT_TARGET-}" ]; then
+  echo '  <key>LSMinimumSystemVersion</key>' >>$plistfile
+  echo "  <string>$MACOSX_DEPLOYMENT_TARGET</string>" >>$plistfile
+fi
   echo '  <key>NSHighResolutionCapable</key>' >>$plistfile
   echo '  <true/>' >>$plistfile
   echo '</dict>' >>$plistfile
