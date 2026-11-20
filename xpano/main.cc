@@ -123,6 +123,7 @@ int main(int argc, char** argv) {
 
   xpano::gui::PanoGui gui(&backend, &file_dialog_backend, &logger, config,
                           std::move(license_texts), *args);
+  gui.SetDpiScale(xpano::utils::sdl::GetDpiScale(window));
 
   if (!xpano::utils::imgui::LoadFonts(
           *app_exe_path, {.alphabet_font_path = xpano::kFontPath,
@@ -132,7 +133,7 @@ int main(int argc, char** argv) {
   }
 
   // Main loop
-  float applied_scale = 1.0f;
+  float applied_scale = 0.0f;
   bool done = false;
 
   while (!done) {
@@ -143,7 +144,12 @@ int main(int argc, char** argv) {
           (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
            event.window.windowID == SDL_GetWindowID(window))) {
         done = true;
-      } else if (event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED) {
+      } else if ((event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED ||
+                  event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED) &&
+                 event.window.windowID == SDL_GetWindowID(window)) {
+        gui.SetDpiScale(xpano::utils::sdl::GetDpiScale(window));
+      } else if (event.type == SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED &&
+                 event.display.displayID == SDL_GetDisplayForWindow(window)) {
         gui.SetDpiScale(xpano::utils::sdl::GetDpiScale(window));
       }
     }
