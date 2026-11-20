@@ -29,6 +29,22 @@
 #include "xpano/utils/text.h"
 #include "xpano/version_fmt.h"
 
+namespace {
+
+bool IsScaleChangeEvent(const SDL_Event& event, SDL_Window* window) {
+  switch (event.type) {
+    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+      return event.window.windowID == SDL_GetWindowID(window);
+    case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+      return event.display.displayID == SDL_GetDisplayForWindow(window);
+    default:
+      return false;
+  }
+}
+
+}  // namespace
+
 int main(int argc, char** argv) {
   const char* locale = std::setlocale(LC_ALL, "en_US.UTF-8");
   auto [cli_status, args] = xpano::cli::Run(argc, argv);
@@ -144,12 +160,7 @@ int main(int argc, char** argv) {
           (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
            event.window.windowID == SDL_GetWindowID(window))) {
         done = true;
-      } else if ((event.type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED ||
-                  event.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED) &&
-                 event.window.windowID == SDL_GetWindowID(window)) {
-        gui.SetDpiScale(xpano::utils::sdl::GetDpiScale(window));
-      } else if (event.type == SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED &&
-                 event.display.displayID == SDL_GetDisplayForWindow(window)) {
+      } else if (IsScaleChangeEvent(event, window)) {
         gui.SetDpiScale(xpano::utils::sdl::GetDpiScale(window));
       }
     }
