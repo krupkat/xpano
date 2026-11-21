@@ -73,7 +73,7 @@ jobs:
           -DBUILD_SHARED_LIBS=OFF `
           -DCMAKE_INSTALL_PREFIX=install `
           @(Get-Content ../misc/build/opencv-minimal-flags.txt)
-        cmake --build build --target install --config Release
+        cmake --build build --target install --config "$env:BUILD_TYPE"
         cd ..
 
     - name: Cache SDL
@@ -99,7 +99,7 @@ jobs:
           -DSDL_STATIC=ON `
           -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
           @(Get-Content ../misc/build/sdl3-minimal-flags.txt)
-        cmake --build build --target install --config Release
+        cmake --build build --target install --config "$env:BUILD_TYPE"
         cd ..
 
     - name: Cache Catch

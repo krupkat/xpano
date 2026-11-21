@@ -23,7 +23,7 @@ cmake -B build -G "$env:GENERATOR" `
   -DBUILD_SHARED_LIBS=OFF `
   -DCMAKE_INSTALL_PREFIX=install `
   @(Get-Content ../misc/build/opencv-minimal-flags.txt)
-cmake --build build --target install --config Release
+cmake --build build --target install --config "$env:BUILD_TYPE"
 cd ..
 
 
@@ -37,7 +37,7 @@ cmake -B build -G "$env:GENERATOR" `
   -DSDL_STATIC=ON `
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
   @(Get-Content ../misc/build/sdl3-minimal-flags.txt)
-cmake --build build --target install --config Release
+cmake --build build --target install --config "$env:BUILD_TYPE"
 cd ..
 
 
