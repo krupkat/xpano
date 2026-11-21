@@ -15,7 +15,7 @@
 namespace xpano::utils::sdl {
 
 float GetDpiScale(SDL_Window* window) {
-  return SDL_GetWindowDisplayScale(window);
+  return SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(window));
 }
 
 std::optional<std::filesystem::path> InitializePrefPath() {

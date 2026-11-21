@@ -406,9 +406,12 @@ Action DrawUiScaleMenu(const pipeline::GuiOptions& gui_options,
   constexpr float kPercent = 100.0f;
   Action action{};
   if (ImGui::BeginMenu("UI scale")) {
-    ImGui::Text("Monitor scaling: %.0f%%", ui_scale.dpi * kPercent);
+    ImGui::Text("System scaling: %.0f%%", ui_scale.dpi * kPercent);
     ImGui::SameLine();
-    utils::imgui::InfoMarker("(?)", "Value provided by your desktop settings");
+    utils::imgui::InfoMarker(
+        "(?)",
+        "Value provided by your desktop\n - usually set to 100% on Linux and "
+        "MacOS\n - equal to configured display scale on Windows");
 
     const int adjustment = gui_options.scale_adjustment;
     ImGui::Text("Manual adjustment: %+d%%", adjustment);
