@@ -525,7 +525,7 @@ jobs:
     timeout-minutes: 30
 
     env:
-      MACOSX_DEPLOYMENT_TARGET: "15.0"
+      MACOSX_DEPLOYMENT_TARGET: "10.15"
 
     strategy:
       fail-fast: false
