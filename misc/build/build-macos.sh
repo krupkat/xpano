@@ -16,8 +16,11 @@ git submodule update --init
 git clone https://github.com/opencv/opencv.git --depth 1 --branch $OPENCV_VERSION
 cd opencv
 cmake -B build \
+  -DBLA_VENDOR=Apple \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=install \
+  -DOPENCV_LAPACK_FIND_PACKAGE_ONLY=ON \
+  -DOPENCV_OSX_USE_ACCELERATE_NEW_LAPACK=ON \
   `cat ../misc/build/opencv-minimal-flags.txt`
 cmake --build build --target install -j `sysctl -n hw.logicalcpu`
 cd ..
