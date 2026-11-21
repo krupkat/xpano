@@ -9,7 +9,7 @@ export CATCH_VERSION='v3.15.0'
 export SPDLOG_VERSION='v1.17.0'
 export EXIV2_VERSION='v0.28.8'
 export GENERATOR='Ninja Multi-Config'
-export MACOSX_DEPLOYMENT_TARGET='15.0'
+export MACOSX_DEPLOYMENT_TARGET='10.15'
 
 git submodule update --init
 
