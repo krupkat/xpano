@@ -9,8 +9,6 @@ libfolder=$appfolder/Contents/Resources/lib
 plistfile=$appfolder/Contents/Info.plist
 appfile=Xpano
 
-PkgInfoContents="APPL????"
-
 #
 if [ -e $appfolder ]
 then
@@ -63,7 +61,7 @@ done
 cp ./misc/build/macos/$appfile.icns $appfolder/Contents/Resources/
 
 # Create PkgInfo file.
-  echo $PkgInfoContents >$appfolder/Contents/PkgInfo
+  printf "APPL????" >$appfolder/Contents/PkgInfo
 #
 # Create information property list file (Info.plist).
   echo '<?xml version="1.0" encoding="UTF-8"?>' >$plistfile
