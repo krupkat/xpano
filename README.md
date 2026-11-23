@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=krupkat&project=xpano&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 [![tests](https://github.com/krupkat/xpano/actions/workflows/test.yml/badge.svg)](https://github.com/krupkat/xpano/actions/workflows/test.yml)
 [![clang-format](https://github.com/krupkat/xpano/actions/workflows/clang-format-check.yml/badge.svg)](https://github.com/krupkat/xpano/actions/workflows/clang-format-check.yml)
 [![clang-tidy](https://github.com/krupkat/xpano/actions/workflows/clang-tidy-check.yml/badge.svg)](https://github.com/krupkat/xpano/actions/workflows/clang-tidy-check.yml)
