@@ -11,9 +11,8 @@ $env:EXIV2_VERSION = 'v0.28.8'
 $env:GENERATOR = 'Ninja Multi-Config'
 
 git submodule update --init
-cd external/imgui
-git apply ../../misc/build/windows-store/0001-imgui-sdl3-backend-disable-default-shell-function.patch
-cd ../..
+git -C external/imgui `
+  apply ../../misc/build/windows-store/0001-imgui-sdl3-backend-disable-default-shell-function.patch
 
 
 
