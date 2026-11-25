@@ -571,7 +571,7 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
+        key: macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-${{ matrix.arch }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
