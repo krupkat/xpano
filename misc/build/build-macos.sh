@@ -22,7 +22,7 @@ cmake -B build \
   -DOPENCV_LAPACK_FIND_PACKAGE_ONLY=ON \
   -DOPENCV_OSX_USE_ACCELERATE_NEW_LAPACK=ON \
   `cat ../misc/build/opencv-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 cd ..
 
 
@@ -32,7 +32,7 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   `cat ../misc/build/exiv2-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 cd ..
 
 
@@ -41,7 +41,7 @@ cd spdlog
 cmake -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DCMAKE_INSTALL_PREFIX=build/install
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 cd ..
 
 
@@ -51,7 +51,7 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DBUILD_TESTING=OFF
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 cd ..
 
 
@@ -61,7 +61,7 @@ cmake -B build \
   -DCMAKE_INSTALL_PREFIX=install \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   `cat ../misc/build/sdl3-minimal-flags.txt`
-cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 cd ..
 
 cmake -B build \
@@ -75,7 +75,7 @@ cmake -B build \
   -DSDL3_ROOT=SDL/install \
   -Dexiv2_ROOT=exiv2/install
 
-cmake --build build -j `sysctl -n hw.logicalcpu` --target install
+cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 cd build
 ctest --output-on-failure
 cd ..
