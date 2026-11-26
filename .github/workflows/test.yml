@@ -562,7 +562,7 @@ jobs:
           -DOPENCV_LAPACK_FIND_PACKAGE_ONLY=ON \
           -DOPENCV_OSX_USE_ACCELERATE_NEW_LAPACK=ON \
           `cat ../misc/build/opencv-minimal-flags.txt`
-        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
         cd ..
 
     - name: Cache exiv2
@@ -582,7 +582,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/exiv2-minimal-flags.txt`
-        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
         cd ..
 
     - name: Cache spdlog
@@ -601,7 +601,7 @@ jobs:
         cmake -B build \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_INSTALL_PREFIX=build/install
-        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
         cd ..
 
     - name: Cache Catch
@@ -621,7 +621,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DBUILD_TESTING=OFF
-        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
         cd ..
 
     - name: Cache SDL
@@ -641,7 +641,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           `cat ../misc/build/sdl3-minimal-flags.txt`
-        cmake --build build --target install -j `sysctl -n hw.logicalcpu`
+        cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
         cd ..
 
     - name: Configure CMake
@@ -658,7 +658,7 @@ jobs:
           -Dexiv2_ROOT=exiv2/install
 
     - name: Build
-      run: cmake --build build -j `sysctl -n hw.logicalcpu` --target install
+      run: cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
 
     - name: Run Tests
       run: |
