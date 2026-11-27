@@ -571,16 +571,19 @@ jobs:
       id: cache-exiv2
       with:
         path: exiv2/install
-        key: ${{ matrix.os }}-macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
+        key: macos-${{env.MACOSX_DEPLOYMENT_TARGET}}-${{ matrix.arch }}-exiv2-${{env.EXIV2_VERSION}}-${{env.BUILD_TYPE}}-${{hashFiles('misc/build/exiv2-minimal-flags.txt')}}
 
     - name: Install exiv2
       if: steps.cache-exiv2.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/Exiv2/exiv2.git --depth 1 --branch $EXIV2_VERSION
         cd exiv2
+        sdk=$(xcrun --show-sdk-path)
         cmake -B build \
           -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DIconv_INCLUDE_DIR="$sdk/usr/include" \
+          -DIconv_LIBRARY="$sdk/usr/lib/libiconv.tbd" \
           `cat ../misc/build/exiv2-minimal-flags.txt`
         cmake --build build --target install -j "$(sysctl -n hw.activecpu)"
         cd ..
